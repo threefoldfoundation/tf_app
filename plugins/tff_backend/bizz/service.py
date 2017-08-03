@@ -15,18 +15,5 @@
 #
 # @@license_version:1.3@@
 
-from framework.plugin_loader import Plugin, get_plugin
-from plugins.tff_backend import rogerthat_callbacks
-
-
-class TffBackendPlugin(Plugin):
-
-    def __init__(self, configuration):
-        super(TffBackendPlugin, self).__init__(configuration)
-
-        rogerthat_api_plugin = get_plugin('rogerthat_api')
-        rogerthat_api_plugin.subscribe('messaging.flow_member_result', rogerthat_callbacks.flow_member_result)
-        rogerthat_api_plugin.subscribe('messaging.form_update', rogerthat_callbacks.form_update)
-
-    def get_handlers(self, auth):
-        return []
+def get_main_branding_hash():
+    return None  # TODO: MAIN BRANDING

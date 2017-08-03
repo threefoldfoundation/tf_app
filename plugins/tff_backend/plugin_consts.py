@@ -16,3 +16,6 @@
 # @@license_version:1.3@@
 
 NAMESPACE = 'tff_backend'
+
+KEY_ALGORITHM = u'ed25519'
+KEY_NAME = u'ThreeFold'
