@@ -1,4 +1,4 @@
-from mcfw.properties import unicode_property, typed_property, bool_property, long_property
+from mcfw.properties import unicode_property, typed_property, long_property
 from plugins.tff_backend.to.to import TO
 
 class IYOSeeDocumenVersion(TO):

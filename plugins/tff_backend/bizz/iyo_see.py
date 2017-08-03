@@ -15,6 +15,7 @@
 #
 # @@license_version:1.3@@
 
+import httplib
 import json
 import logging
 
