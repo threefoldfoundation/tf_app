@@ -19,10 +19,10 @@ import json
 import re
 
 from mcfw.rpc import returns, arguments
+from mcfw.exceptions import HttpException
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.messaging.flow import BaseFlowStepTO
 from plugins.rogerthat_api.to.messaging.forms import FormResultTO
-
 
 HUMAN_READABLE_TAG_REGEX = re.compile('(.*?)\\s*\\{.*\\}')
 
@@ -61,3 +61,13 @@ def get_step(steps, step_id):
 def get_step_value(steps, step_id):
     step = get_step(steps, step_id)
     return step and step.get_value()
+
+
+def raise_http_exception(status_code, result_text):
+    try:
+        err = json.loads(result_text)
+        e = HttpException(err.get('error'), err)
+    except ValueError:
+        e = HttpException(result_text)
+    e.http_code = status_code
+    raise e
