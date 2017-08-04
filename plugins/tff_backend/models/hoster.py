@@ -20,6 +20,7 @@ from google.appengine.ext import ndb
 
 
 class NodeOrder(ndb.Model):
+    STATUS_CANCELED = -1
     STATUS_CREATED = 0
     STATUS_SIGNED = 1
     STATUS_SENT = 2
@@ -31,11 +32,18 @@ class NodeOrder(ndb.Model):
 
     status = ndb.IntegerProperty(default=STATUS_CREATED)
     tos_iyo_see_id = ndb.StringProperty(indexed=False)
+    signature_payload = ndb.StringProperty(indexed=False)
     signature = ndb.StringProperty(indexed=False)
     order_time = ndb.IntegerProperty()
     sign_time = ndb.IntegerProperty()
     send_time = ndb.IntegerProperty()
     arrival_time = ndb.IntegerProperty()
+    cancel_time = ndb.IntegerProperty()
+
+    @property
+    def iyo_username(self):
+        from plugins.tff_backend.bizz.iyo import get_iyo_username
+        return get_iyo_username(self.app_user)
 
     @property
     def id(self):

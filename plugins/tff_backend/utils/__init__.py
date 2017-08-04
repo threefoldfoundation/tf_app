@@ -19,6 +19,7 @@ import json
 import re
 
 from mcfw.rpc import returns, arguments
+from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.messaging.flow import BaseFlowStepTO
 from plugins.rogerthat_api.to.messaging.forms import FormResultTO
 

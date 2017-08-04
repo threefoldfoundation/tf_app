@@ -15,6 +15,8 @@
 #
 # @@license_version:1.3@@
 
+import logging
+
 from mcfw.properties import object_factory
 from mcfw.rpc import parse_complex_value, serialize_complex_value
 from plugins.rogerthat_api.to import UserDetailsTO
@@ -23,6 +25,7 @@ from plugins.rogerthat_api.to.messaging.forms import FormResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     FormAcknowledgedCallbackResultTO
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed
+from plugins.tff_backend.bizz.user import user_registered
 from plugins.tff_backend.utils import parse_to_human_readable_tag
 
 
@@ -31,11 +34,15 @@ TAG_MAPPING = {'order_node': order_node,
                }
 
 
+def log_and_parse_user_details(user_details):
+    logging.debug('Current user: %(email)s:%(app_id)s', user_details[0])
+    return parse_complex_value(UserDetailsTO, user_details, True)
+
+
 def flow_member_result(rt_settings, request_id, message_flow_run_id, member, steps, end_id, end_message_flow_id,
                        parent_message_key, tag, result_key, flush_id, flush_message_flow_id, service_identity,
                        user_details, flow_params, **kwargs):
-
-    user_details = parse_complex_value(UserDetailsTO, user_details, True)
+    user_details = log_and_parse_user_details(user_details)
     steps = parse_complex_value(object_factory("step_type", FLOW_STEP_MAPPING), steps, True)
 
     f = TAG_MAPPING.get(parse_to_human_readable_tag(tag))
@@ -50,8 +57,7 @@ def flow_member_result(rt_settings, request_id, message_flow_run_id, member, ste
 
 def form_update(rt_settings, request_id, status, form_result, answer_id, member, message_key, tag, received_timestamp,
                 acked_timestamp, parent_message_key, result_key, service_identity, user_details, **kwargs):
-
-    user_details = parse_complex_value(UserDetailsTO, user_details, True)
+    user_details = log_and_parse_user_details(user_details)
     form_result = parse_complex_value(FormResultTO, form_result, False)
 
     f = TAG_MAPPING.get(parse_to_human_readable_tag(tag))
@@ -61,3 +67,8 @@ def form_update(rt_settings, request_id, status, form_result, answer_id, member,
     result = f(status, form_result, answer_id, member, message_key, tag, received_timestamp, acked_timestamp,
                parent_message_key, result_key, service_identity, user_details)
     return result and serialize_complex_value(result, FormAcknowledgedCallbackResultTO, False, skip_missing=True)
+
+
+def register_result(rt_settings, request_id, service_identity, user_details, origin, **kwargs):
+    user_details = log_and_parse_user_details(user_details)
+    return user_registered(user_details[0])
