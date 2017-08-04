@@ -34,7 +34,7 @@ def get_see_document(organization_id, username, uniqueid):
     logging.debug('get_see_document %s %s', result.status_code, result.text)
     if result.status_code != httplib.OK:
         raise_http_exception(result.status_code, result.text)
-    return IYOSeeDocument(**result)
+    return IYOSeeDocument(**result.json())
 
 
 @returns(IYOSeeDocumentView)
