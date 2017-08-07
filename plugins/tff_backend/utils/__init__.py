@@ -61,3 +61,15 @@ def get_step(steps, step_id):
 def get_step_value(steps, step_id):
     step = get_step(steps, step_id)
     return step and step.get_value()
+
+
+def is_flag_set(flag, value):
+    return value & flag == flag
+
+
+def set_flag(flag, value):
+    return flag | value
+
+
+def unset_flag(flag, value):
+    return value & ~flag

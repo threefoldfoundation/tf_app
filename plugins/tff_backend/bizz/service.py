@@ -15,5 +15,16 @@
 #
 # @@license_version:1.3@@
 
+from mcfw.cache import cached
+from mcfw.rpc import returns, arguments
+from plugins.rogerthat_api.api import system
+from plugins.tff_backend.bizz import get_rogerthat_api_key
+
+
+@cached(version=1, lifetime=86400, request=True, memcache=True)
+@returns(unicode)
+@arguments()
 def get_main_branding_hash():
-    return None  # TODO: MAIN BRANDING
+    api_key = get_rogerthat_api_key()
+    si = system.get_identity(api_key)
+    return si.description_branding

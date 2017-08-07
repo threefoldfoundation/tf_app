@@ -18,7 +18,9 @@
 import json
 import logging
 
-from framework.plugin_loader import get_plugin
+from framework.plugin_loader import get_config
+from framework.utils import now
+from google.appengine.ext import ndb
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.to import UserDetailsTO
@@ -37,11 +39,6 @@ from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email
 
 
-def now():
-    from framework.utils import now as now_
-    return now_()
-
-
 @returns(FlowMemberResultCallbackResultTO)
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
@@ -50,13 +47,13 @@ def now():
 def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
                flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
 
-    iyo_username = get_iyo_username(user_details[0])
     logging.info('Receiving order of Zero-Node')
 
     address = get_step_value(steps, 'message_address')
     name = get_step_value(steps, 'message_name')
 
-    cfg = get_plugin(NAMESPACE).configuration
+    cfg = get_config(NAMESPACE)
+    iyo_username = get_iyo_username(user_details[0])
 
     logging.debug('Creating IYO SEE document')
     iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
@@ -70,13 +67,19 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 
     iyo_see_doc = create_see_document(cfg.iyo.organization_id, iyo_username, iyo_see_doc)
 
-    order = NodeOrder(address=address,
-                      app_user=create_app_user_by_email(user_details[0].email, user_details[0].app_id),
-                      tos_iyo_see_id=iyo_see_doc.uniqueid,
-                      name=name,
-                      order_time=now(),
-                      status=NodeOrder.STATUS_CREATED)
-    order.put()
+    logging.debug('Storing order in the database')  # TODO: defer (model creation, qr creation)
+    def trans():
+        order = NodeOrder(key=NodeOrder.create_key(),
+                          address=address,
+                          app_user=create_app_user_by_email(user_details[0].email, user_details[0].app_id),
+                          tos_iyo_see_id=iyo_see_doc.uniqueid,
+                          name=name,
+                          order_time=now(),
+                          status=NodeOrder.STATUS_CREATED)
+        order.put()
+        return order
+
+    order = ndb.transaction(trans)
 
     logging.debug('Sending SIGN widget to app user')
 
@@ -123,7 +126,6 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 def order_node_signed(status, form_result, answer_id, member, message_key, tag, received_timestamp, acked_timestamp,
                       parent_message_key, result_key, service_identity, user_details):
 
-    iyo_username = get_iyo_username(user_details[0])
     tag_dict = json.loads(tag)
     order = NodeOrder.get_by_id(tag_dict['order_id'])
 
@@ -142,6 +144,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
     message_signature = signatures[1]
 
     iyo_organization_id = get_iyo_organization_id()
+    iyo_username = get_iyo_username(user_details[0])
 
     logging.debug('Getting IYO SEE document %s', order.tos_iyo_see_id)
     iyo_see_doc = get_see_document(iyo_organization_id, iyo_username, order.tos_iyo_see_id).versions[-1]
@@ -155,6 +158,8 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
     order.signature = message_signature
     order.sign_time = now()
     order.put()
+
+    # TODO: send mail to TF support
 
     logging.debug('Sending confirmation message')
     message = MessageCallbackResultTypeTO()
@@ -172,3 +177,13 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
     result.type = TYPE_MESSAGE
     result.value = message
     return result
+
+
+@returns(FlowMemberResultCallbackResultTO)
+@arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
+           end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flow_params=unicode)
+def node_arrived(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
+                 flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
+    pass

@@ -30,8 +30,16 @@ def user_registered(user_detail):
     organization_id = get_iyo_organization_id()
     username = get_iyo_username(user_detail)
 
-    logging.info('Adding user %s to IYO organization %s', username, organization_id)
+    logging.info('Inviting user %s to IYO organization %s', username, organization_id)
     logging.warn('TODO')
 
-    logging.info('Adding public key with label %s', KEY_NAME)
+    logging.info('Storing name and address in user_data')
+    logging.warn('TODO')
+
+
+@returns()
+@arguments(user_detail=UserDetailsTO)
+def store_public_key(user_detail):
+    # TODO: implementation
+    logging.info('Storing %s key in IYO', KEY_NAME)
     logging.warn('TODO')

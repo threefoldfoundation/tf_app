@@ -17,6 +17,7 @@
 
 from framework.utils import chunks
 from google.appengine.ext import ndb
+from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
 class NodeOrder(ndb.Model):
@@ -52,3 +53,9 @@ class NodeOrder(ndb.Model):
     @property
     def human_readable_id(self):
         return '.'.join(chunks(str(self.id), 4))
+
+    @classmethod
+    def create_key(cls, order_id=None):
+        if order_id is None:
+            order_id = cls.allocate_ids(1)[0]
+        return ndb.Key(cls, order_id, namespace=NAMESPACE)

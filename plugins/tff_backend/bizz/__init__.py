@@ -14,3 +14,15 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+
+from framework.plugin_loader import get_plugin, get_config
+from mcfw.consts import DEBUG
+from plugins.tff_backend.plugin_consts import NAMESPACE
+
+
+def get_rogerthat_api_key():
+    rt_cfg = get_config(NAMESPACE).rogerthat
+    if DEBUG:
+        return rt_cfg.dev.api_key
+    else:
+        return rt_cfg.prod.api_key

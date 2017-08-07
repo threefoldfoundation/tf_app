@@ -15,19 +15,19 @@
 #
 # @@license_version:1.3@@
 
-from framework.plugin_loader import get_plugin
+from framework.plugin_loader import get_config
 from google.appengine.api import users
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.to import UserDetailsTO
+from plugins.tff_backend.configuration import IYOConfiguration
 from plugins.tff_backend.plugin_consts import NAMESPACE
-from plugins.tff_backend.tff_backend_plugin import IYOConfiguration
 from plugins.tff_backend.utils.app import get_human_user_from_app_user
 
 
 @returns(IYOConfiguration)
 @arguments()
 def get_iyo_config():
-    get_plugin(NAMESPACE).configuration.iyo
+    get_config(NAMESPACE).iyo
 
 
 @returns(unicode)
