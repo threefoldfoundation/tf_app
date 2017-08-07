@@ -14,11 +14,3 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
-from mcfw.rpc import serialize_complex_value
-
-
-class TO(object):
-    def __repr__(self):
-        # useful when debugging
-        return repr(serialize_complex_value(self, type(self), False, skip_missing=True))

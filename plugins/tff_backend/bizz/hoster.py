@@ -34,7 +34,7 @@ from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_docum
 from plugins.tff_backend.bizz.service import get_main_branding_hash
 from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE
-from plugins.tff_backend.to.iyo_see import IYOSeeDocumentView
+from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email
 
