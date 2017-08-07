@@ -22,11 +22,6 @@ class TOSConfiguration(object):
     order_node = unicode_property('1')
 
 
-class IYOConfiguration(object):
-    organization_id = unicode_property('1')
-    organization_secret = unicode_property('2')
-
-
 class RogerthatKeysConfiguration(object):
     api_key = unicode_property('1')
     sik = unicode_property('2')
@@ -38,5 +33,4 @@ class RogerthatConfiguration(object):
 
 
 class TffConfiguration(object):
-    iyo = typed_property('1', IYOConfiguration, False)
-    tos = typed_property('2', TOSConfiguration, False)
+    tos = typed_property('1', TOSConfiguration, False)

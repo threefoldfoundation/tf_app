@@ -16,7 +16,7 @@
 # @@license_version:1.3@@
 
 
-from mcfw.properties import unicode_property, typed_property, long_property
+from mcfw.properties import unicode_property, typed_property
 from plugins.tff_backend.to import convert_to_unicode, TO
 
 class IYOKeyStoreKeyData(TO):
@@ -43,4 +43,4 @@ class IYOKeyStoreKey(TO):
         self.globalid = convert_to_unicode(globalid)
         self.username = convert_to_unicode(username)
         self.label = convert_to_unicode(label)
-        self.keydata = IYOKeyStoreKeyData(**keydata) if keydata else none
+        self.keydata = IYOKeyStoreKeyData(**keydata) if keydata else None

@@ -14,34 +14,3 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
-from framework.plugin_loader import get_config
-from google.appengine.api import users
-from mcfw.rpc import returns, arguments
-from plugins.rogerthat_api.to import UserDetailsTO
-from plugins.tff_backend.configuration import IYOConfiguration
-from plugins.tff_backend.plugin_consts import NAMESPACE
-from plugins.tff_backend.utils.app import get_human_user_from_app_user
-
-
-@returns(IYOConfiguration)
-@arguments()
-def get_iyo_config():
-    get_config(NAMESPACE).iyo
-
-
-@returns(unicode)
-@arguments()
-def get_iyo_organization_id():
-    return get_iyo_config().organization_id
-
-
-@returns(unicode)
-@arguments(user=(users.User, UserDetailsTO))
-def get_iyo_username(user):
-    if isinstance(user, users.User):
-        email = get_human_user_from_app_user(user).email()
-    else:
-        email = user.email
-
-    return email.split('@')[0]

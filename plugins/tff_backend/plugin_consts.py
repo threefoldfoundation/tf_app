@@ -19,3 +19,5 @@ NAMESPACE = u'tff_backend'
 
 KEY_ALGORITHM = u'ed25519'
 KEY_NAME = u'threefold'
+
+REQUIRED_IYO_SCOPES = u'user:see,user:keystore'

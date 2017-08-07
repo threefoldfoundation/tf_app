@@ -19,18 +19,20 @@ import json
 import logging
 
 from framework.plugin_loader import get_config
-from framework.utils import now
-from google.appengine.ext import ndb
+from framework.utils import now, try_or_defer
+from google.appengine.ext import ndb, deferred
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments
+from plugins.rogerthat_api.api import qr
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.messaging import AttachmentTO, Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, TYPE_FORM, \
     FormCallbackResultTypeTO, FormAcknowledgedCallbackResultTO, MessageCallbackResultTypeTO, TYPE_MESSAGE
-from plugins.tff_backend.bizz.iyo import get_iyo_organization_id, get_iyo_username
+from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
+from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.service import get_main_branding_hash
 from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE
@@ -67,22 +69,24 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 
     iyo_see_doc = create_see_document(cfg.iyo.organization_id, iyo_username, iyo_see_doc)
 
-    logging.debug('Storing order in the database')  # TODO: defer (model creation, qr creation)
+    # TODO: defer model qr creation
+    logging.debug('Storing order in the database')
     def trans():
-        order = NodeOrder(key=NodeOrder.create_key(),
-                          address=address,
+        order = NodeOrder(address=address,
                           app_user=create_app_user_by_email(user_details[0].email, user_details[0].app_id),
                           tos_iyo_see_id=iyo_see_doc.uniqueid,
                           name=name,
                           order_time=now(),
                           status=NodeOrder.STATUS_CREATED)
         order.put()
+        deferred.defer(_create_order_arrival_qr, order.id, _transactional=True)
         return order
 
     order = ndb.transaction(trans)
 
+    # TODO: Will it be easier to put this in a flow such that text changes don't require code to be deployed?
+    # ==> flow params to create tag (order id) + attachment (download url)
     logging.debug('Sending SIGN widget to app user')
-
     widget = SignTO()
     widget.algorithm = KEY_ALGORITHM
     widget.caption = u'Please enter your PIN code to digitally sign the terms and conditions'
@@ -127,7 +131,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
                       parent_message_key, result_key, service_identity, user_details):
 
     tag_dict = json.loads(tag)
-    order = NodeOrder.get_by_id(tag_dict['order_id'])
+    order = NodeOrder.create_key(tag_dict['order_id']).get()
 
     if answer_id != FormTO.POSITIVE:
         logging.info('Zero-Node order was canceled')
@@ -161,7 +165,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
 
     # TODO: send mail to TF support
 
-    logging.debug('Sending confirmation message')
+    logging.debug('Sending confirmation message')  # TODO: move to flow?
     message = MessageCallbackResultTypeTO()
     message.alert_flags = Message.ALERT_FLAG_VIBRATE
     message.answers = []
@@ -179,6 +183,30 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
     return result
 
 
+@returns()
+@arguments(order_id=(int,long))
+def _create_order_arrival_qr(order_id):
+    human_readable_id = NodeOrder.create_human_readable_id(order_id)
+    api_key = get_rogerthat_api_key()
+    qr_details = qr.create(api_key,
+                           description=u'Confirm arrival of order\n%s' % human_readable_id,
+                           tag=json.dumps({u'__rt__.tag': u'node_arrival',
+                                           u'order_id': order_id}),
+                           flow=u'node_arrival',
+                           branding=get_main_branding_hash())
+
+    try_or_defer(_store_order_arrival_qr, order_id, qr_details.image_uri)
+
+
+@returns()
+@arguments(order_id=(int, long), qr_image_uri=unicode)
+def _store_order_arrival_qr(order_id, qr_image_uri):
+    logging.info('Setting arrival QR code %s for order', qr_image_uri, order_id)
+    order = NodeOrder.create_key(order_id).get()
+    order.arrival_qr_code = qr_image_uri
+    order.put()
+
+
 @returns(FlowMemberResultCallbackResultTO)
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
@@ -186,4 +214,17 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
            flow_params=unicode)
 def node_arrived(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
                  flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    pass
+    tag_dict = json.loads(tag)
+    order_id = tag_dict['order_id']
+    try_or_defer(_store_order_arrival, order_id, now())
+    return None
+
+
+@returns()
+@arguments(order_id=(int, long), arrival_time=(int, long))
+def _store_order_arrival(order_id, arrival_time):
+    logging.info('Marking order %s as arrived', order_id)
+    order = NodeOrder.create_key(order_id).get()
+    order.arrival_time = now()
+    order.status = NodeOrder.STATUS_ARRIVED
+    order.put()

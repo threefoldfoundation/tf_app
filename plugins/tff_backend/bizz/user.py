@@ -15,31 +15,79 @@
 #
 # @@license_version:1.3@@
 
+import json
 import logging
 
-from mcfw.rpc import returns, arguments
-from plugins.rogerthat_api.to import UserDetailsTO
-from plugins.tff_backend.bizz.iyo import get_iyo_organization_id, get_iyo_username
-from plugins.tff_backend.plugin_consts import KEY_NAME
+from framework.bizz.session import create_session
+from google.appengine.ext import deferred
+from mcfw.rpc import returns, arguments, serialize_complex_value
+from plugins.its_you_online_auth.bizz.authentication import create_jwt, get_itsyouonline_client_from_jwt
+from plugins.rogerthat_api.api import system
+from plugins.rogerthat_api.to import UserDetailsTO, PublicKeyTO
+from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key
+from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
+from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, REQUIRED_IYO_SCOPES
+from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
 
 
 @returns()
-@arguments(user_detail=UserDetailsTO)
-def user_registered(user_detail):
-    # TODO: implementation
+@arguments(user_detail=UserDetailsTO, data=unicode)
+def user_registered(user_detail, data):
+    data = json.loads(data)
+    access_token = data.get('result', {}).get('access_token')
+    username = data.get('result', {}).get('info', {}).get('username')
+    if not access_token or not username:
+        return
+
     organization_id = get_iyo_organization_id()
-    username = get_iyo_username(user_detail)
+    jwt = create_jwt(access_token, scope=REQUIRED_IYO_SCOPES)
+    # Creation session such that the JWT is automatically up to date
+    create_session(username, REQUIRED_IYO_SCOPES, jwt)
 
     logging.info('Inviting user %s to IYO organization %s', username, organization_id)
-    logging.warn('TODO')
+    client = get_itsyouonline_client_from_jwt(jwt)
+    notification = None
+    client.api.organizations.AddOrganizationMember(notification, organization_id)
 
-    logging.info('Storing name and address in user_data')
-    logging.warn('TODO')
+    deferred.defer(store_name, username, jwt, user_detail)
+
+
+def store_name(username, jwt, user_detail):
+    logging.info('Getting the user\'s name from IYO')
+    client = get_itsyouonline_client_from_jwt(jwt)
+    iyo_user = client.api.users.GetUser(username)
+
+    logging.info('Storing name in user_data')  # used for pre-filling message flows
+    api_key = get_rogerthat_api_key()
+    user_data = system.get_user_data(api_key, user_detail.email, user_detail.app_id, ['name'])
+    if user_data.get('name'):
+        logging.debug('The name was already stored in user_data')
+    else:
+        user_data = dict(name='%s %s' % (iyo_user.firstname, iyo_user.lastname))
+        system.put_user_data(api_key, user_detail.email, user_data, user_detail.app_id)
 
 
 @returns()
 @arguments(user_detail=UserDetailsTO)
 def store_public_key(user_detail):
-    # TODO: implementation
     logging.info('Storing %s key in IYO', KEY_NAME)
-    logging.warn('TODO')
+
+    rt_key = PublicKeyTO()
+    for rt_key in user_detail.public_keys:
+        if rt_key.algorithm == KEY_ALGORITHM and rt_key.name == KEY_NAME:
+            break
+    else:
+        logging.warn('No key found with name "%s" and algorithm "%s" in %s', KEY_NAME, KEY_ALGORITHM,
+                     serialize_complex_value(user_detail, UserDetailsTO, False, skip_missing=True))
+        return
+
+    organization_id = get_iyo_organization_id()
+    username = get_iyo_username(user_detail)
+    key = IYOKeyStoreKey(key=rt_key.public_key,
+                         globalid=organization_id,
+                         username=username,
+                         label=KEY_NAME,
+                         keydata=IYOKeyStoreKeyData(comment=u'ThreeFold app',
+                                                    algorithm=rt_key.algorithm))
+    create_keystore_key(username, key)

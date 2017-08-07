@@ -16,20 +16,19 @@
 # @@license_version:1.3@@
 
 import httplib
-import json
 import logging
 
-from framework.bizz.authentication import get_current_session
 from mcfw.rpc import returns, arguments
-from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_jwt
-from plugins.tff_backend.utils import raise_http_exception
+from plugins.tff_backend.bizz.iyo.utils import get_iyo_client
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey
+from plugins.tff_backend.utils import raise_http_exception
+
 
 @returns(IYOKeyStoreKey)
 @arguments(username=unicode, data=IYOKeyStoreKey)
 def create_keystore_key(username, data):
-    jwt = get_current_session().jwt
-    result = get_itsyouonline_client_from_jwt(jwt).api.users.SaveKeyStoreKey(data, username)
+    client = get_iyo_client(username)
+    result = client.api.users.SaveKeyStoreKey(data, username)
     logging.debug('create_keystore_key %s %s', result.status_code, result.text)
     if result.status_code not in (httplib.CREATED, httplib.CONFLICT):
         raise_http_exception(result.status_code, result.text)

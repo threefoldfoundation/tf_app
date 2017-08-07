@@ -18,9 +18,8 @@
 import httplib
 import logging
 
-from framework.bizz.authentication import get_current_session
 from mcfw.rpc import returns, arguments
-from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_jwt
+from plugins.tff_backend.bizz.iyo.utils import get_iyo_client
 from plugins.tff_backend.to.iyo.see import IYOSeeDocument, IYOSeeDocumentView
 from plugins.tff_backend.utils import raise_http_exception
 
@@ -28,8 +27,8 @@ from plugins.tff_backend.utils import raise_http_exception
 @returns(IYOSeeDocument)
 @arguments(organization_id=unicode, username=unicode, uniqueid=unicode)
 def get_see_document(organization_id, username, uniqueid):
-    jwt = get_current_session().jwt
-    result = get_itsyouonline_client_from_jwt(jwt).api.users.GetSeeObject(uniqueid, username, organization_id)
+    client = get_iyo_client(username)
+    result = client.api.users.GetSeeObject(uniqueid, username, organization_id)
     logging.debug('get_see_document %s %s', result.status_code, result.text)
     if result.status_code != httplib.OK:
         raise_http_exception(result.status_code, result.text)
@@ -39,8 +38,8 @@ def get_see_document(organization_id, username, uniqueid):
 @returns(IYOSeeDocumentView)
 @arguments(organization_id=unicode, username=unicode)
 def get_see_documents(organization_id, username):
-    jwt = get_current_session().jwt
-    result = get_itsyouonline_client_from_jwt(jwt).api.users.ListSeeObjectsByOrganization(username, organization_id)
+    client = get_iyo_client(username)
+    result = client.api.users.ListSeeObjectsByOrganization(username, organization_id)
     logging.debug('get_see_documents %s %s', result.status_code, result.text)
     if result.status_code != httplib.OK:
         raise_http_exception(result.status_code, result.text)
@@ -50,8 +49,8 @@ def get_see_documents(organization_id, username):
 @returns(IYOSeeDocumentView)
 @arguments(organization_id=unicode, username=unicode, data=IYOSeeDocumentView)
 def create_see_document(organization_id, username, data):
-    jwt = get_current_session().jwt
-    result = get_itsyouonline_client_from_jwt(jwt).api.users.CreateSeeObject(data, username, organization_id)
+    client = get_iyo_client(username)
+    result = client.api.users.CreateSeeObject(data, username, organization_id)
     logging.debug('create_see_document %s %s', result.status_code, result.text)
     if result.status_code not in (httplib.CREATED, httplib.CONFLICT):
         raise_http_exception(result.status_code, result.text)
@@ -61,8 +60,8 @@ def create_see_document(organization_id, username, data):
 @returns(IYOSeeDocumentView)
 @arguments(organization_id=unicode, username=unicode, data=IYOSeeDocumentView)
 def update_see_document(organization_id, username, data):
-    jwt = get_current_session().jwt
-    result = get_itsyouonline_client_from_jwt(jwt).api.users.UpdateSeeObject(data, data.uniqueid, username, organization_id)
+    client = get_iyo_client(username)
+    result = client.api.users.UpdateSeeObject(data, data.uniqueid, username, organization_id)
     logging.debug('update_see_document %s %s', result.status_code, result.text)
     if result.status_code not in (httplib.CREATED,):
         raise_http_exception(result.status_code, result.text)
@@ -72,8 +71,8 @@ def update_see_document(organization_id, username, data):
 @returns(IYOSeeDocumentView)
 @arguments(organization_id=unicode, username=unicode, data=IYOSeeDocumentView)
 def sign_see_document(organization_id, username, data):
-    jwt = get_current_session().jwt
-    result = get_itsyouonline_client_from_jwt(jwt).api.users.SignSeeObject(data, data.version, data.uniqueid, username, organization_id)
+    client = get_iyo_client(username)
+    result = client.api.users.SignSeeObject(data, data.version, data.uniqueid, username, organization_id)
     logging.debug('sign_see_document %s %s', result.status_code, result.text)
     if result.status_code not in (httplib.CREATED,):
         raise_http_exception(result.status_code, result.text)
