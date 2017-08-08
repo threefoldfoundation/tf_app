@@ -69,7 +69,6 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 
     iyo_see_doc = create_see_document(cfg.iyo.organization_id, iyo_username, iyo_see_doc)
 
-    # TODO: defer model qr creation
     logging.debug('Storing order in the database')
     def trans():
         order = NodeOrder(address=address,
@@ -84,8 +83,6 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 
     order = ndb.transaction(trans)
 
-    # TODO: Will it be easier to put this in a flow such that text changes don't require code to be deployed?
-    # ==> flow params to create tag (order id) + attachment (download url)
     logging.debug('Sending SIGN widget to app user')
     widget = SignTO()
     widget.algorithm = KEY_ALGORITHM
@@ -165,7 +162,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
 
     # TODO: send mail to TF support
 
-    logging.debug('Sending confirmation message')  # TODO: move to flow?
+    logging.debug('Sending confirmation message')
     message = MessageCallbackResultTypeTO()
     message.alert_flags = Message.ALERT_FLAG_VIBRATE
     message.answers = []

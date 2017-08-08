@@ -30,7 +30,10 @@ class TffBackendPlugin(Plugin):
         rogerthat_api_plugin = get_plugin('rogerthat_api')
         rogerthat_api_plugin.subscribe('messaging.flow_member_result', rogerthat_callbacks.flow_member_result)
         rogerthat_api_plugin.subscribe('messaging.form_update', rogerthat_callbacks.form_update)
-        rogerthat_api_plugin.subscribe('friend.register_result', rogerthat_callbacks.register_result, trigger_only=True)
+        rogerthat_api_plugin.subscribe('friend.update', rogerthat_callbacks.friend_update)
+        rogerthat_api_plugin.subscribe('friend.register', rogerthat_callbacks.friend_register, trigger_only=True)
+        rogerthat_api_plugin.subscribe('friend.invite_result', rogerthat_callbacks.friend_invite_result,
+                                       trigger_only=True)
 
     def get_handlers(self, auth):
         return []

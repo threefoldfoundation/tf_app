@@ -28,6 +28,7 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemb
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed, node_arrived
 from plugins.tff_backend.bizz.user import user_registered, store_public_key
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
+from plugins.rogerthat_api.to.friends import ACCEPT_ID
 
 
 TAG_MAPPING = {'order_node': order_node,
@@ -74,9 +75,12 @@ def form_update(rt_settings, request_id, status, form_result, answer_id, member,
     return result and serialize_complex_value(result, FormAcknowledgedCallbackResultTO, False, skip_missing=True)
 
 
-def register_result(rt_settings, request_id, service_identity, user_details, origin, **kwargs):
-    user_details = log_and_parse_user_details(user_details)
-    return user_registered(user_details[0])
+def friend_register(rt_settings, request_id, params, response):
+    if response != ACCEPT_ID:
+        return
+
+    user_details = log_and_parse_user_details(params['user_details'])
+    return user_registered(user_details[0], params['data'])
 
 
 def friend_update(rt_settings, request_id, user_details, changed_properties, **kwargs):
@@ -85,3 +89,10 @@ def friend_update(rt_settings, request_id, user_details, changed_properties, **k
 
     user_details = log_and_parse_user_details(user_details)
     store_public_key(user_details[0])
+
+
+def friend_invite_result(rt_settings, request_id, user_details, **kwargs):
+    import pdb;pdb.set_trace()
+    user_details = log_and_parse_user_details(user_details)
+    if user_details[0].public_keys:
+        store_public_key(user_details[0])
