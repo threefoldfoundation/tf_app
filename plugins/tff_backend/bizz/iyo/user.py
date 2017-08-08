@@ -18,23 +18,15 @@
 import httplib
 import logging
 
-from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_client
-from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey
+from plugins.tff_backend.to.iyo.user import IYOUser
 from plugins.tff_backend.utils import raise_http_exception
 
 
-@returns(IYOKeyStoreKey)
-@arguments(username=unicode, data=IYOKeyStoreKey)
-def create_keystore_key(username, data):
+def get_user(username):
     client = get_iyo_client(username)
-    data = serialize_complex_value(data, IYOKeyStoreKey, False, skip_missing=True)
-    result = client.api.users.SaveKeyStoreKey(data, username)
-    logging.debug('create_keystore_key %s %s', result.status_code, result.text)
-    if result.status_code == httplib.CREATED:
-        return IYOKeyStoreKey(**result.json())
-    elif result.status_code == httplib.CONFLICT:
-        return None
-
-    raise_http_exception(result.status_code, result.text)
-
+    result = client.api.users.GetUser(username)
+    logging.debug('get_user %s %s', result.status_code, result.text)
+    if result.status_code != httplib.OK:
+        raise_http_exception(result.status_code, result.text)
+    return IYOUser(**result.json())

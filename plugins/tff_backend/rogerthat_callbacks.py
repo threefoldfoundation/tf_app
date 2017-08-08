@@ -17,9 +17,11 @@
 
 import logging
 
+from framework.utils import try_or_defer
 from mcfw.properties import object_factory
 from mcfw.rpc import parse_complex_value, serialize_complex_value
 from plugins.rogerthat_api.to import UserDetailsTO
+from plugins.rogerthat_api.to.friends import ACCEPT_ID
 from plugins.rogerthat_api.to.messaging import Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import FormResultTO
@@ -28,7 +30,6 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemb
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed, node_arrived
 from plugins.tff_backend.bizz.user import user_registered, store_public_key
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
-from plugins.rogerthat_api.to.friends import ACCEPT_ID
 
 
 TAG_MAPPING = {'order_node': order_node,
@@ -38,8 +39,10 @@ TAG_MAPPING = {'order_node': order_node,
 
 
 def log_and_parse_user_details(user_details):
-    logging.debug('Current user: %(email)s:%(app_id)s', user_details[0])
-    return parse_complex_value(UserDetailsTO, user_details, True)
+    is_list = isinstance(user_details, list)
+    user_detail = user_details[0] if is_list else user_details
+    logging.debug('Current user: %(email)s:%(app_id)s', user_detail)
+    return parse_complex_value(UserDetailsTO, user_details, is_list)
 
 
 def flow_member_result(rt_settings, request_id, message_flow_run_id, member, steps, end_id, end_message_flow_id,
@@ -87,12 +90,11 @@ def friend_update(rt_settings, request_id, user_details, changed_properties, **k
     if 'public_keys' not in changed_properties:
         return
 
-    user_details = log_and_parse_user_details(user_details)
-    store_public_key(user_details[0])
+    user_detail = log_and_parse_user_details(user_details)
+    try_or_defer(store_public_key, user_detail)
 
 
 def friend_invite_result(rt_settings, request_id, user_details, **kwargs):
-    import pdb;pdb.set_trace()
     user_details = log_and_parse_user_details(user_details)
     if user_details[0].public_keys:
-        store_public_key(user_details[0])
+        try_or_defer(store_public_key, user_details[0])

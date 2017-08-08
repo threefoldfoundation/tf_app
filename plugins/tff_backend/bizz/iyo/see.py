@@ -17,6 +17,7 @@
 
 import httplib
 import logging
+import urllib
 
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_client
@@ -75,7 +76,8 @@ def update_see_document(organization_id, username, doc):
 def sign_see_document(organization_id, username, doc):
     client = get_iyo_client(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
-    result = client.api.users.SignSeeObject(data, doc.version, doc.uniqueid, username, organization_id)
+    result = client.api.users.SignSeeObject(data, str(doc.version), urllib.quote(doc.uniqueid), username,
+                                            organization_id)
     logging.debug('sign_see_document %s %s', result.status_code, result.text)
     if result.status_code not in (httplib.CREATED,):
         raise_http_exception(result.status_code, result.text)

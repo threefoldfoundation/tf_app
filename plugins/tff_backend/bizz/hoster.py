@@ -22,7 +22,7 @@ from framework.plugin_loader import get_config
 from framework.utils import now, try_or_defer
 from google.appengine.ext import ndb, deferred
 from mcfw.properties import object_factory
-from mcfw.rpc import returns, arguments
+from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.rogerthat_api.api import qr
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.messaging import AttachmentTO, Message
@@ -36,7 +36,7 @@ from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organiz
 from plugins.tff_backend.bizz.service import get_main_branding_hash
 from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE
-from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView
+from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email
 
@@ -54,25 +54,28 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
         address = get_step_value(steps, 'message_address')
         name = get_step_value(steps, 'message_name')
 
+        order_key = NodeOrder.create_key()
+
         cfg = get_config(NAMESPACE)
         iyo_username = get_iyo_username(user_details[0])
         organization_id = get_iyo_organization_id()
 
-        logging.debug('Creating IYO SEE document')
         iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
                                          globalid=organization_id,
+                                         uniqueid=u'Zero-Node order %s' % NodeOrder.create_human_readable_id(order_key.id()),
                                          version=1,
                                          category=u'Terms and conditions',
                                          link=cfg.tos.order_node,
                                          content_type=u'application/pdf',
                                          markdown_short_description=u'Terms and conditions for ordering a Zero-Node',
                                          markdown_full_description=u'Terms and conditions for ordering a Zero-Node')
-
+        logging.debug('Creating IYO SEE document: %s', iyo_see_doc)
         iyo_see_doc = create_see_document(organization_id, iyo_username, iyo_see_doc)
 
         logging.debug('Storing order in the database')
         def trans():
-            order = NodeOrder(address=address,
+            order = NodeOrder(key=order_key,
+                              address=address,
                               app_user=create_app_user_by_email(user_details[0].email, user_details[0].app_id),
                               tos_iyo_see_id=iyo_see_doc.uniqueid,
                               name=name,
@@ -102,7 +105,7 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
         attachment = AttachmentTO()
         attachment.content_type = u'application/pdf'
         attachment.download_url = iyo_see_doc.link
-        attachment.name = u'Terms and conditions'
+        attachment.name = u' - '.join([iyo_see_doc.uniqueid, iyo_see_doc.category])
 
         message = FormCallbackResultTypeTO()
         message.alert_flags = Message.ALERT_FLAG_VIBRATE
@@ -152,11 +155,16 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         iyo_username = get_iyo_username(user_details[0])
 
         logging.debug('Getting IYO SEE document %s', order.tos_iyo_see_id)
-        iyo_see_doc = get_see_document(iyo_organization_id, iyo_username, order.tos_iyo_see_id).versions[-1]
-        iyo_see_doc.signature = message_signature
-        iyo_see_doc.keystore_label = KEY_NAME
+        doc = get_see_document(iyo_organization_id, iyo_username, order.tos_iyo_see_id)
+        doc_view = IYOSeeDocumentView(username=doc.username,
+                                      globalid=doc.globalid,
+                                      uniqueid=doc.uniqueid,
+                                      **serialize_complex_value(doc.versions[-1], IYOSeeDocumenVersion, False))
+
+        doc_view.signature = message_signature
+        doc_view.keystore_label = KEY_NAME
         logging.debug('Signing IYO SEE document')
-        sign_see_document(iyo_organization_id, iyo_username, iyo_see_doc)
+        sign_see_document(iyo_organization_id, iyo_username, doc_view)
 
         logging.debug('Storing signature in DB')
         order.status = NodeOrder.STATUS_SIGNED
@@ -173,7 +181,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         message.branding = get_main_branding_hash()
         message.dismiss_button_ui_flags = 0
         message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
-        message.message = u'Thank you. Your order has been placed successfully. It has ID "%s".\n\n' \
+        message.message = u'Thank you. Your order with ID "%s" has been placed successfully.\n\n' \
             u'You can check the status of your order using the "Node status" functionality.' % order.human_readable_id
         message.step_id = u'order_completed'
         message.tag = None
@@ -205,7 +213,7 @@ def _create_order_arrival_qr(order_id):
 @returns()
 @arguments(order_id=(int, long), qr_image_uri=unicode)
 def _store_order_arrival_qr(order_id, qr_image_uri):
-    logging.info('Setting arrival QR code %s for order', qr_image_uri, order_id)
+    logging.info('Setting arrival QR code %s for order %s', qr_image_uri, order_id)
     order = NodeOrder.create_key(order_id).get()
     order.arrival_qr_code = qr_image_uri
     order.put()
@@ -242,7 +250,7 @@ def _create_error_message(callback_result):
     message.branding = get_main_branding_hash()
     message.dismiss_button_ui_flags = 0
     message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
-    message.message = u'Oh no! An error occurred. How embarrassing...\n\nPlease try again later.'
+    message.message = u'Oh no! An error occurred.\nHow embarrassing :-(\n\nPlease try again later.'
     message.step_id = u'error'
     message.tag = None
 

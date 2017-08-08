@@ -21,6 +21,7 @@ import logging
 from framework.bizz.session import create_session
 from framework.plugin_loader import get_config
 from google.appengine.ext import deferred
+from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, get_itsyouonline_client_from_jwt
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
@@ -28,6 +29,7 @@ from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.to import UserDetailsTO, PublicKeyTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key
+from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
@@ -54,13 +56,17 @@ def user_registered(user_detail, data):
     notification = None
     client.api.organizations.AddOrganizationMember(notification, organization_id)
 
-    deferred.defer(store_name, username, jwt, user_detail)
+    deferred.defer(_store_name, username, jwt, user_detail)
 
 
-def store_name(username, jwt, user_detail):
+@returns()
+@arguments(username=unicode, jwt=unicode, user_detail=UserDetailsTO)
+def _store_name(username, jwt, user_detail):
     logging.info('Getting the user\'s name from IYO')
-    client = get_itsyouonline_client_from_jwt(jwt)
-    iyo_user = client.api.users.GetUser(username)
+    iyo_user = get_user(username)
+    if not iyo_user.firstname and not iyo_user.lastname:
+        logging.debug('There is no firstname and lastname in %s', iyo_user)
+        return
 
     logging.info('Storing name in user_data')  # used for pre-filling message flows
     api_key = get_rogerthat_api_key()
@@ -88,10 +94,15 @@ def store_public_key(user_detail):
 
     organization_id = get_iyo_organization_id()
     username = get_iyo_username(user_detail)
-    key = IYOKeyStoreKey(key=rt_key.public_key,
-                         globalid=organization_id,
-                         username=username,
-                         label=KEY_NAME,
-                         keydata=IYOKeyStoreKeyData(comment=u'ThreeFold app',
-                                                    algorithm=rt_key.algorithm))
-    create_keystore_key(username, key)
+    key = IYOKeyStoreKey()
+    key.key = rt_key.public_key
+    key.globalid = organization_id
+    key.username = username
+    key.label = KEY_NAME
+    key.keydata = IYOKeyStoreKeyData()
+    key.keydata.timestamp = MISSING
+    key.keydata.comment = u'ThreeFold app'
+    key.keydata.algorithm = rt_key.algorithm
+    result = create_keystore_key(username, key)
+    if result is None:
+        logging.warn('There was already a key with label "%s" in the user\'s KeyStore', key.label)
