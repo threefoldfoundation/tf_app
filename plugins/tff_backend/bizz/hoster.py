@@ -48,76 +48,80 @@ from plugins.tff_backend.utils.app import create_app_user_by_email
            flow_params=unicode)
 def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
                flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
+    try:
+        logging.info('Receiving order of Zero-Node')
 
-    logging.info('Receiving order of Zero-Node')
+        address = get_step_value(steps, 'message_address')
+        name = get_step_value(steps, 'message_name')
 
-    address = get_step_value(steps, 'message_address')
-    name = get_step_value(steps, 'message_name')
+        cfg = get_config(NAMESPACE)
+        iyo_username = get_iyo_username(user_details[0])
+        organization_id = get_iyo_organization_id()
 
-    cfg = get_config(NAMESPACE)
-    iyo_username = get_iyo_username(user_details[0])
+        logging.debug('Creating IYO SEE document')
+        iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
+                                         globalid=organization_id,
+                                         version=1,
+                                         category=u'Terms and conditions',
+                                         link=cfg.tos.order_node,
+                                         content_type=u'application/pdf',
+                                         markdown_short_description=u'Terms and conditions for ordering a Zero-Node',
+                                         markdown_full_description=u'Terms and conditions for ordering a Zero-Node')
 
-    logging.debug('Creating IYO SEE document')
-    iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
-                                     globalid=cfg.iyo.organization_id,
-                                     version=1,
-                                     category=u'Terms and conditions',
-                                     link=cfg.tos.order_node,
-                                     content_type=u'application/pdf',
-                                     markdown_short_description=u'Terms and conditions for ordering a Zero-Node',
-                                     markdown_full_description=u'Terms and conditions for ordering a Zero-Node')
+        iyo_see_doc = create_see_document(organization_id, iyo_username, iyo_see_doc)
 
-    iyo_see_doc = create_see_document(cfg.iyo.organization_id, iyo_username, iyo_see_doc)
+        logging.debug('Storing order in the database')
+        def trans():
+            order = NodeOrder(address=address,
+                              app_user=create_app_user_by_email(user_details[0].email, user_details[0].app_id),
+                              tos_iyo_see_id=iyo_see_doc.uniqueid,
+                              name=name,
+                              order_time=now(),
+                              status=NodeOrder.STATUS_CREATED)
+            order.put()
+            deferred.defer(_create_order_arrival_qr, order.id, _transactional=True)
+            return order
 
-    logging.debug('Storing order in the database')
-    def trans():
-        order = NodeOrder(address=address,
-                          app_user=create_app_user_by_email(user_details[0].email, user_details[0].app_id),
-                          tos_iyo_see_id=iyo_see_doc.uniqueid,
-                          name=name,
-                          order_time=now(),
-                          status=NodeOrder.STATUS_CREATED)
-        order.put()
-        deferred.defer(_create_order_arrival_qr, order.id, _transactional=True)
-        return order
+        order = ndb.transaction(trans)
 
-    order = ndb.transaction(trans)
+        logging.debug('Sending SIGN widget to app user')
+        widget = SignTO()
+        widget.algorithm = KEY_ALGORITHM
+        widget.caption = u'Please enter your PIN code to digitally sign the terms and conditions'
+        widget.key_name = KEY_NAME
+        widget.payload = u''
 
-    logging.debug('Sending SIGN widget to app user')
-    widget = SignTO()
-    widget.algorithm = KEY_ALGORITHM
-    widget.caption = u'Please enter your PIN code to digitally sign the terms and conditions'
-    widget.key_name = KEY_NAME
-    widget.payload = u''
+        form = SignFormTO()
+        form.negative_button = u'Abort'
+        form.negative_button_ui_flags = 0
+        form.positive_button = u'Accept'
+        form.positive_button_ui_flags = Message.UI_FLAG_EXPECT_NEXT_WAIT_5
+        form.type = SignTO.TYPE
+        form.widget = widget
 
-    form = SignFormTO()
-    form.negative_button = u'Abort'
-    form.negative_button_ui_flags = 0
-    form.positive_button = u'Accept'
-    form.positive_button_ui_flags = Message.UI_FLAG_EXPECT_NEXT_WAIT_5
-    form.type = SignTO.TYPE
-    form.widget = widget
+        attachment = AttachmentTO()
+        attachment.content_type = u'application/pdf'
+        attachment.download_url = iyo_see_doc.link
+        attachment.name = u'Terms and conditions'
 
-    attachment = AttachmentTO()
-    attachment.content_type = u'application/pdf'
-    attachment.download_url = iyo_see_doc.link
-    attachment.name = u'Terms and conditions'
+        message = FormCallbackResultTypeTO()
+        message.alert_flags = Message.ALERT_FLAG_VIBRATE
+        message.attachments = [attachment]
+        message.branding = get_main_branding_hash()
+        message.flags = 0
+        message.form = form
+        message.message = u'Please review the terms and conditions and press the "Sign" button to accept.'
+        message.step_id = u'sign_order_node_tos'
+        message.tag = json.dumps({u'__rt__.tag': u'sign_order_node_tos',
+                                  u'order_id': order.id}).decode('utf-8')
 
-    message = FormCallbackResultTypeTO()
-    message.alert_flags = Message.ALERT_FLAG_VIBRATE
-    message.attachments = [attachment]
-    message.branding = get_main_branding_hash()
-    message.flags = 0
-    message.form = form
-    message.message = u'Please review the terms and conditions and press the "Sign" button to accept.'
-    message.step_id = u'sign_order_node_tos'
-    message.tag = json.dumps({u'__rt__.tag': u'sign_order_node_tos',
-                              u'order_id': order.id}).decode('utf-8')
-
-    result = FlowMemberResultCallbackResultTO()
-    result.type = TYPE_FORM
-    result.value = message
-    return result
+        result = FlowMemberResultCallbackResultTO()
+        result.type = TYPE_FORM
+        result.value = message
+        return result
+    except:
+        logging.exception('An unexpected error occurred')
+        return _create_error_message(FlowMemberResultCallbackResultTO())
 
 
 @returns(FormAcknowledgedCallbackResultTO)
@@ -126,58 +130,61 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
            service_identity=unicode, user_details=[UserDetailsTO])
 def order_node_signed(status, form_result, answer_id, member, message_key, tag, received_timestamp, acked_timestamp,
                       parent_message_key, result_key, service_identity, user_details):
+    try:
+        tag_dict = json.loads(tag)
+        order = NodeOrder.create_key(tag_dict['order_id']).get()
 
-    tag_dict = json.loads(tag)
-    order = NodeOrder.create_key(tag_dict['order_id']).get()
+        if answer_id != FormTO.POSITIVE:
+            logging.info('Zero-Node order was canceled')
+            order.status = NodeOrder.STATUS_CANCELED
+            order.cancel_time = now()
+            order.put()
+            return None
 
-    if answer_id != FormTO.POSITIVE:
-        logging.info('Zero-Node order was canceled')
-        order.status = NodeOrder.STATUS_CANCELED
-        order.cancel_time = now()
+        logging.info('Received signature for Zero-Node order')
+
+        # signatures[0] : signature of the hash of the payload
+        # signatures[1] : signature of the hash of the message + the hash of the payload + the hash of all the attachments
+        signatures = form_result.result.get_value()
+        message_signature = signatures[1]
+
+        iyo_organization_id = get_iyo_organization_id()
+        iyo_username = get_iyo_username(user_details[0])
+
+        logging.debug('Getting IYO SEE document %s', order.tos_iyo_see_id)
+        iyo_see_doc = get_see_document(iyo_organization_id, iyo_username, order.tos_iyo_see_id).versions[-1]
+        iyo_see_doc.signature = message_signature
+        iyo_see_doc.keystore_label = KEY_NAME
+        logging.debug('Signing IYO SEE document')
+        sign_see_document(iyo_organization_id, iyo_username, iyo_see_doc)
+
+        logging.debug('Storing signature in DB')
+        order.status = NodeOrder.STATUS_SIGNED
+        order.signature = message_signature
+        order.sign_time = now()
         order.put()
-        return None
 
-    logging.info('Received signature for Zero-Node order')
+        # TODO: send mail to TF support
 
-    # signatures[0] : signature of the hash of the payload
-    # signatures[1] : signature of the hash of the message + the hash of the payload + the hash of all the attachments
-    signatures = form_result.result.get_value()
-    message_signature = signatures[1]
+        logging.debug('Sending confirmation message')
+        message = MessageCallbackResultTypeTO()
+        message.alert_flags = Message.ALERT_FLAG_VIBRATE
+        message.answers = []
+        message.branding = get_main_branding_hash()
+        message.dismiss_button_ui_flags = 0
+        message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
+        message.message = u'Thank you. Your order has been placed successfully. It has ID "%s".\n\n' \
+            u'You can check the status of your order using the "Node status" functionality.' % order.human_readable_id
+        message.step_id = u'order_completed'
+        message.tag = None
 
-    iyo_organization_id = get_iyo_organization_id()
-    iyo_username = get_iyo_username(user_details[0])
-
-    logging.debug('Getting IYO SEE document %s', order.tos_iyo_see_id)
-    iyo_see_doc = get_see_document(iyo_organization_id, iyo_username, order.tos_iyo_see_id).versions[-1]
-    iyo_see_doc.signature = message_signature
-    iyo_see_doc.keystore_label = KEY_NAME
-    logging.debug('Signing IYO SEE document')
-    sign_see_document(iyo_organization_id, iyo_username, iyo_see_doc)
-
-    logging.debug('Storing signature in DB')
-    order.status = NodeOrder.STATUS_SIGNED
-    order.signature = message_signature
-    order.sign_time = now()
-    order.put()
-
-    # TODO: send mail to TF support
-
-    logging.debug('Sending confirmation message')
-    message = MessageCallbackResultTypeTO()
-    message.alert_flags = Message.ALERT_FLAG_VIBRATE
-    message.answers = []
-    message.branding = get_main_branding_hash()
-    message.dismiss_button_ui_flags = 0
-    message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
-    message.message = u'Thank you. Your order has been placed successfully. It has ID "%s".\n\n' \
-        u'You can check the status of your order using the "Node status" functionality.' % order.human_readable_id
-    message.step_id = u'order_completed'
-    message.tag = None
-
-    result = FormAcknowledgedCallbackResultTO()
-    result.type = TYPE_MESSAGE
-    result.value = message
-    return result
+        result = FormAcknowledgedCallbackResultTO()
+        result.type = TYPE_MESSAGE
+        result.value = message
+        return result
+    except:
+        logging.exception('An unexpected error occurred')
+        return _create_error_message(FormAcknowledgedCallbackResultTO())
 
 
 @returns()
@@ -211,17 +218,34 @@ def _store_order_arrival_qr(order_id, qr_image_uri):
            flow_params=unicode)
 def node_arrived(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
                  flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    tag_dict = json.loads(tag)
-    order_id = tag_dict['order_id']
-    try_or_defer(_store_order_arrival, order_id, now())
+    try_or_defer(_store_order_arrival, tag, now())
     return None
 
 
 @returns()
-@arguments(order_id=(int, long), arrival_time=(int, long))
-def _store_order_arrival(order_id, arrival_time):
+@arguments(tag=unicode, arrival_time=(int, long))
+def _store_order_arrival(tag, arrival_time):
+    tag_dict = json.loads(tag)
+    order_id = tag_dict['order_id']
     logging.info('Marking order %s as arrived', order_id)
     order = NodeOrder.create_key(order_id).get()
     order.arrival_time = now()
     order.status = NodeOrder.STATUS_ARRIVED
     order.put()
+
+
+def _create_error_message(callback_result):
+    logging.debug('Sending error message')
+    message = MessageCallbackResultTypeTO()
+    message.alert_flags = Message.ALERT_FLAG_VIBRATE
+    message.answers = []
+    message.branding = get_main_branding_hash()
+    message.dismiss_button_ui_flags = 0
+    message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
+    message.message = u'Oh no! An error occurred. How embarrassing...\n\nPlease try again later.'
+    message.step_id = u'error'
+    message.tag = None
+
+    callback_result.type = TYPE_MESSAGE
+    callback_result.value = message
+    return callback_result

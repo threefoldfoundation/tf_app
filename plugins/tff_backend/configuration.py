@@ -34,3 +34,4 @@ class RogerthatConfiguration(object):
 
 class TffConfiguration(object):
     tos = typed_property('1', TOSConfiguration, False)
+    rogerthat = typed_property('2', RogerthatConfiguration, False)
