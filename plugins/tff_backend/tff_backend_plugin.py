@@ -15,19 +15,24 @@
 #
 # @@license_version:1.3@@
 
-from framework.plugin_loader import Plugin, get_plugin
 from mcfw.rpc import parse_complex_value
+
+from framework.plugin_loader import get_plugin, BrandingPlugin
+from framework.utils.plugins import Handler
+from plugins.rogerthat_api.rogerthat_api_plugin import RogerthatApiPlugin
 from plugins.tff_backend import rogerthat_callbacks
 from plugins.tff_backend.configuration import TffConfiguration
+from plugins.tff_backend.handlers.index import IndexPageHandler
 
 
-class TffBackendPlugin(Plugin):
+class TffBackendPlugin(BrandingPlugin):
 
     def __init__(self, configuration):
         super(TffBackendPlugin, self).__init__(configuration)
         self.configuration = parse_complex_value(TffConfiguration, configuration, False)
 
         rogerthat_api_plugin = get_plugin('rogerthat_api')
+        assert (isinstance(rogerthat_api_plugin, RogerthatApiPlugin))
         rogerthat_api_plugin.subscribe('messaging.flow_member_result', rogerthat_callbacks.flow_member_result)
         rogerthat_api_plugin.subscribe('messaging.form_update', rogerthat_callbacks.form_update)
         rogerthat_api_plugin.subscribe('friend.update', rogerthat_callbacks.friend_update)
@@ -36,4 +41,4 @@ class TffBackendPlugin(Plugin):
                                        trigger_only=True)
 
     def get_handlers(self, auth):
-        return []
+        yield Handler('/', IndexPageHandler)
