@@ -34,7 +34,7 @@ from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 
 TAG_MAPPING = {'order_node': order_node,
                'sign_order_node_tos': order_node_signed,
-               'node_arrived': node_arrived,
+               'node_arrival': node_arrived,
                }
 
 
@@ -94,7 +94,7 @@ def friend_update(rt_settings, request_id, user_details, changed_properties, **k
     try_or_defer(store_public_key, user_detail)
 
 
-def friend_invite_result(rt_settings, request_id, user_details, **kwargs):
-    user_details = log_and_parse_user_details(user_details)
+def friend_invite_result(rt_settings, request_id, params, response):
+    user_details = log_and_parse_user_details(params['user_details'])
     if user_details[0].public_keys:
         try_or_defer(store_public_key, user_details[0])

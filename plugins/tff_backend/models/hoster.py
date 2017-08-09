@@ -62,4 +62,7 @@ class NodeOrder(ndb.Model):
 
     @classmethod
     def create_human_readable_id(cls, order_id):
-        return '.'.join(chunks(str(order_id), 4))
+        id_str = str(order_id)
+        if len(id_str) % 4 == 0:
+            return '.'.join(chunks(id_str, 4))
+        return id_str
