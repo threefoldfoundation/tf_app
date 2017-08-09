@@ -28,6 +28,7 @@ class IndexPageHandler(webapp2.RequestHandler):
             render_logged_in_page(self)
         else:
             parameters = {
-                'lang': get_user_language()
+                'lang': get_user_language(),
+                'query_params': '?%s' % self.request.query if self.request.query else ''
             }
             render_page(self.response, 'unauthorized_index.html', template_parameters=parameters)
