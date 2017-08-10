@@ -3,21 +3,17 @@
 <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 {% endblock %}
 {% block content %}
-<div id="intro" class="section">
-  <div class="login-block">
-    <img class="homepage-image img-logo" src="/static/plugins/tff_backend/img/threefold.png">
-    <img class="homepage-image img-text" src="/static/plugins/tff_backend/img/threefold-connecting-the-dots.png">
-    <div>
-      <a class="btn btn-register" href="/register{{query_params}}">
-        <div class="button-title">{% translate lang, 'tff', 'i_am_new' %}</div>
-        <div class="button-subtitle">{% translate lang, 'tff', 'register_to_threefold' %}</div>
-      </a>
-      <a class="btn btn-login" href="/login{{query_params}}">
-        <div class="button-title">{% translate lang, 'tff', 'i_am_a_member' %}</div>
-        <div class="button-subtitle">{% translate lang, 'tff', 'sign_in_to_threefold' %}</div>
-      </a>
-    </div>
-  </div>
+<img class="homepage-image img-logo" src="/static/plugins/tff_backend/img/threefold.png">
+<img class="homepage-image img-text" src="/static/plugins/tff_backend/img/threefold-connecting-the-dots.png">
+<div>
+  <a class="btn btn-register" href="/register{{query_params}}">
+    <div class="button-title">{% translate lang, 'tff', 'i_am_new' %}</div>
+    <div class="button-subtitle">{% translate lang, 'tff', 'register_to_threefold' %}</div>
+  </a>
+  <a class="btn btn-login" href="/login{{query_params}}">
+    <div class="button-title">{% translate lang, 'tff', 'i_am_a_member' %}</div>
+    <div class="button-subtitle">{% translate lang, 'tff', 'sign_in_to_threefold' %}</div>
+  </a>
 </div>
 {% endblock %}
 
