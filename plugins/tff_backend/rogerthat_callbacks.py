@@ -79,7 +79,8 @@ def form_update(rt_settings, request_id, status, form_result, answer_id, member,
 
 
 def friend_register(rt_settings, request_id, params, response):
-    if response != ACCEPT_ID:
+    result = response if isinstance(response, basestring) else response['result']
+    if result != ACCEPT_ID:
         return
 
     user_details = log_and_parse_user_details(params['user_details'])
