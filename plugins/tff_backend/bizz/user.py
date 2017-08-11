@@ -83,7 +83,6 @@ def _store_name(username, jwt, user_detail):
 def store_public_key(user_detail):
     logging.info('Storing %s key in IYO', KEY_NAME)
 
-    rt_key = PublicKeyTO()
     for rt_key in user_detail.public_keys:
         if rt_key.algorithm == KEY_ALGORITHM and rt_key.name == KEY_NAME:
             break

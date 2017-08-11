@@ -25,7 +25,7 @@ from plugins.tff_backend.utils import raise_http_exception
 
 def get_user(username):
     client = get_iyo_client(username)
-    result = client.api.users.GetUser(username)
+    result = client.api.users.GetUserInformation(username)
     logging.debug('get_user %s %s', result.status_code, result.text)
     if result.status_code != httplib.OK:
         raise_http_exception(result.status_code, result.text)

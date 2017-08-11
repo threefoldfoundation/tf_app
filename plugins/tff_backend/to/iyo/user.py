@@ -14,24 +14,29 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
+from mcfw.properties import unicode_property, typed_property
 from plugins.tff_backend.to import TO, convert_to_unicode
-from mcfw.properties import unicode_property, unicode_list_property
+
+
+class PublicKey(TO):
+    label = unicode_property('label')
+    publickey = unicode_property('publickey')
+
+    def __init__(self, label=None, publickey=None):
+        self.label = label
+        self.publickey = publickey
 
 
 class IYOUser(TO):
     username = unicode_property('username')
     firstname = unicode_property('firstname')
     lastname = unicode_property('lastname')
-    publicKeys = unicode_list_property('publicKeys')
+    publicKeys = typed_property('publicKeys', PublicKey, True)  # type: list[PublicKey]
     expire = unicode_property('expire')
 
-    def __init__(self, username=None, firstname=None, lastname=None, public_keys=None, expire=None, **kwargs):
-        if public_keys is None:
-            public_keys = []
-
+    def __init__(self, username=None, firstname=None, lastname=None, publicKeys=None, expire=None, **kwargs):
         self.username = convert_to_unicode(username)
         self.firstname = convert_to_unicode(firstname)
         self.lastname = convert_to_unicode(lastname)
-        self.public_keys = map(convert_to_unicode, public_keys)
+        self.publicKeys = [PublicKey(**public_key) for public_key in (publicKeys or [])]
         self.expire = convert_to_unicode(expire)
