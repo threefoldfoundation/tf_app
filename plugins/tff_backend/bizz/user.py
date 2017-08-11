@@ -18,15 +18,16 @@
 import json
 import logging
 
+from google.appengine.ext import deferred
+
 from framework.bizz.session import create_session
 from framework.plugin_loader import get_config
-from google.appengine.ext import deferred
 from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, get_itsyouonline_client_from_jwt
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.api import system
-from plugins.rogerthat_api.to import UserDetailsTO, PublicKeyTO
+from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key
 from plugins.tff_backend.bizz.iyo.user import get_user
