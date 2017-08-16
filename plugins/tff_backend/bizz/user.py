@@ -49,7 +49,7 @@ def user_registered(user_detail, data):
     organization_id = get_iyo_organization_id()
     jwt = create_jwt(access_token, scope=iyo_config.required_scopes)
     # Creation session such that the JWT is automatically up to date
-    create_session(username, iyo_config.required_scopes, jwt)
+    create_session(username, iyo_config.required_scopes.split(','), jwt)
 
     logging.info('Inviting user %s to IYO organization %s', username, organization_id)
     client = get_itsyouonline_client_from_jwt(jwt)

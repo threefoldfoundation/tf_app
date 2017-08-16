@@ -92,7 +92,7 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
         widget.algorithm = KEY_ALGORITHM
         widget.caption = u'Please enter your PIN code to digitally sign the terms and conditions'
         widget.key_name = KEY_NAME
-        widget.payload = u''
+        widget.payload = cfg.tos.order_node
 
         form = SignFormTO()
         form.negative_button = u'Abort'
@@ -149,7 +149,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         # signatures[0] : signature of the hash of the payload
         # signatures[1] : signature of the hash of the message + the hash of the payload + the hash of all the attachments
         signatures = form_result.result.get_value()
-        message_signature = signatures[1]
+        payload_signature = signatures[0]
 
         iyo_organization_id = get_iyo_organization_id()
         iyo_username = get_iyo_username(user_details[0])
@@ -161,14 +161,14 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
                                       uniqueid=doc.uniqueid,
                                       **serialize_complex_value(doc.versions[-1], IYOSeeDocumenVersion, False))
 
-        doc_view.signature = message_signature
+        doc_view.signature = payload_signature
         doc_view.keystore_label = KEY_NAME
         logging.debug('Signing IYO SEE document')
         sign_see_document(iyo_organization_id, iyo_username, doc_view)
 
         logging.debug('Storing signature in DB')
         order.status = NodeOrder.STATUS_SIGNED
-        order.signature = message_signature
+        order.signature = payload_signature
         order.sign_time = now()
         order.put()
 

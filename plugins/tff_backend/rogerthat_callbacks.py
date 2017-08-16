@@ -79,12 +79,17 @@ def form_update(rt_settings, request_id, status, form_result, answer_id, member,
 
 
 def friend_register(rt_settings, request_id, params, response):
-    result = response if isinstance(response, basestring) else response['result']
-    if result != ACCEPT_ID:
-        return
+    # TODO: check if result == ACCEPT_ID. The code below doesn't work
+#     result = response if isinstance(response, basestring) else response['result']
+#     if result != ACCEPT_ID:
+#         return
 
     user_details = log_and_parse_user_details(params['user_details'])
     return user_registered(user_details[0], params['data'])
+
+
+def friend_invite(rt_settings, request_id, user_details, **kwargs):
+    return ACCEPT_ID
 
 
 def friend_update(rt_settings, request_id, user_details, changed_properties, **kwargs):
