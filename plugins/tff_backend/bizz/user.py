@@ -38,15 +38,18 @@ from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyDa
 @returns()
 @arguments(user_detail=UserDetailsTO, data=unicode)
 def user_registered(user_detail, data):
+    logging.info('User %s:%s registered', user_detail.email, user_detail.app_id)
     data = json.loads(data)
     access_token = data.get('result', {}).get('access_token')
     username = data.get('result', {}).get('info', {}).get('username')
     if not access_token or not username:
+        logging.warn('No access_token/username in %s', data)
         return
 
     iyo_config = get_config(IYO_AUTH_NAMESPACE)
 
     organization_id = get_iyo_organization_id()
+    logging.debug('Creating JWT')
     jwt = create_jwt(access_token, scope=iyo_config.required_scopes)
     # Creation session such that the JWT is automatically up to date
     create_session(username, iyo_config.required_scopes.split(','), jwt)
@@ -81,7 +84,7 @@ def _store_name(username, jwt, user_detail):
 @returns()
 @arguments(user_detail=UserDetailsTO)
 def store_public_key(user_detail):
-    logging.info('Storing %s key in IYO', KEY_NAME)
+    logging.info('Storing %s key in IYO for user %s:%s', KEY_NAME, user_detail.email, user_detail.app_id)
 
     for rt_key in user_detail.public_keys:
         if rt_key.algorithm == KEY_ALGORITHM and rt_key.name == KEY_NAME:
