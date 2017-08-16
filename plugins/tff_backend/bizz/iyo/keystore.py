@@ -30,7 +30,7 @@ def create_keystore_key(username, data):
     client = get_iyo_client(username)
     data = serialize_complex_value(data, IYOKeyStoreKey, False, skip_missing=True)
     result = client.api.users.SaveKeyStoreKey(data, username)
-    logging.debug('create_keystore_key %s %s', result.status_code, result.text)
+    logging.debug('users.SaveKeyStoreKey %s %s', result.status_code, result.text)
     if result.status_code == httplib.CREATED:
         return IYOKeyStoreKey(**result.json())
     elif result.status_code == httplib.CONFLICT:
@@ -38,3 +38,12 @@ def create_keystore_key(username, data):
 
     raise_http_exception(result.status_code, result.text)
 
+
+@returns([IYOKeyStoreKey])
+@arguments(username=unicode)
+def get_keystore(username):
+    result = get_iyo_client(username).api.users.GetKeyStore(username)
+    logging.debug('users.GetKeyStore %s %s', result.status_code, result.text)
+    if result.status_code == httplib.OK:
+        return [IYOKeyStoreKey(**key) for key in result.json()]
+    raise_http_exception(result.status_code, result.text)

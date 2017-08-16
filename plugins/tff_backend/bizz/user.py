@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
 import json
 import logging
 
@@ -29,7 +28,7 @@ from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAME
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key
+from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
 from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
@@ -105,4 +104,12 @@ def store_public_key(user_detail):
     key.keydata.algorithm = rt_key.algorithm
     result = create_keystore_key(username, key)
     if result is None:
-        logging.warn('There was already a key with label "%s" in the user\'s KeyStore', key.label)
+        # Already exists, retry with a different name
+        # Ensure we change the label so it doesn't conflict with previously generated keys
+        keystore = sorted(get_keystore(username), key=lambda x: x.label)
+        suffix = 2
+        for k in keystore:
+            if k.label.endswith(str(suffix)):
+                suffix += 1
+        key.label = u'%s %d' % (KEY_NAME, suffix)
+        create_keystore_key(username, key)
