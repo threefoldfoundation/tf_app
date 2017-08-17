@@ -78,7 +78,7 @@ def _store_name(username, jwt, user_detail):
         logging.debug('The name was already stored in user_data')
     else:
         user_data = dict(name='%s %s' % (iyo_user.firstname, iyo_user.lastname))
-        system.put_user_data(api_key, user_detail.email, user_data, user_detail.app_id)
+        system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
 
 
 @returns()
