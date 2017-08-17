@@ -70,7 +70,7 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
                                          markdown_short_description=u'Terms and conditions for ordering a Zero-Node',
                                          markdown_full_description=u'Terms and conditions for ordering a Zero-Node')
         logging.debug('Creating IYO SEE document: %s', iyo_see_doc)
-        iyo_see_doc = create_see_document(organization_id, iyo_username, iyo_see_doc)
+        iyo_see_doc = create_see_document(iyo_username, iyo_see_doc)
 
         logging.debug('Storing order in the database')
         def trans():

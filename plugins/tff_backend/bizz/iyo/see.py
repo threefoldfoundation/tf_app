@@ -29,7 +29,7 @@ from plugins.tff_backend.utils import raise_http_exception
 @arguments(organization_id=unicode, username=unicode, uniqueid=unicode)
 def get_see_document(organization_id, username, uniqueid):
     client = get_iyo_client(username)
-    result = client.api.users.GetSeeObject(uniqueid, username, organization_id)
+    result = client.api.users.GetSeeObject(uniqueid, organization_id, username)
     logging.debug('get_see_document %s %s', result.status_code, result.text)
     if result.status_code != httplib.OK:
         raise_http_exception(result.status_code, result.text)
@@ -48,11 +48,11 @@ def get_see_documents(organization_id, username):
 
 
 @returns(IYOSeeDocumentView)
-@arguments(organization_id=unicode, username=unicode, doc=IYOSeeDocumentView)
-def create_see_document(organization_id, username, doc):
+@arguments(username=unicode, doc=IYOSeeDocumentView)
+def create_see_document(username, doc):
     client = get_iyo_client(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
-    result = client.api.users.CreateSeeObject(data, username, organization_id)
+    result = client.api.users.CreateSeeObject(data, username)
     logging.debug('create_see_document %s %s', result.status_code, result.text)
     if result.status_code not in (httplib.CREATED, httplib.CONFLICT):
         raise_http_exception(result.status_code, result.text)
@@ -64,7 +64,7 @@ def create_see_document(organization_id, username, doc):
 def update_see_document(organization_id, username, doc):
     client = get_iyo_client(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
-    result = client.api.users.UpdateSeeObject(data, doc.uniqueid, username, organization_id)
+    result = client.api.users.UpdateSeeObject(data, doc.uniqueid, organization_id, username)
     logging.debug('update_see_document %s %s', result.status_code, result.text)
     if result.status_code not in (httplib.CREATED,):
         raise_http_exception(result.status_code, result.text)
@@ -76,8 +76,8 @@ def update_see_document(organization_id, username, doc):
 def sign_see_document(organization_id, username, doc):
     client = get_iyo_client(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
-    result = client.api.users.SignSeeObject(data, str(doc.version), urllib.quote(doc.uniqueid), username,
-                                            organization_id)
+    result = client.api.users.SignSeeObject(data, str(doc.version), urllib.quote(doc.uniqueid), organization_id,
+                                            username)
     logging.debug('sign_see_document %s %s', result.status_code, result.text)
     if result.status_code not in (httplib.CREATED,):
         raise_http_exception(result.status_code, result.text)
