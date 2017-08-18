@@ -17,13 +17,14 @@
 import json
 import logging
 
-from google.appengine.ext import deferred
-
 from framework.bizz.session import create_session
 from framework.plugin_loader import get_config
+from google.appengine.ext import deferred
 from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.its_you_online_auth.bizz.authentication import create_jwt, get_itsyouonline_client_from_jwt
+from plugins.its_you_online_auth.bizz.authentication import create_jwt, get_itsyouonline_client_from_jwt, \
+    decode_jwt_cached
+from plugins.its_you_online_auth.libs.itsyouonline.AddOrganizationMemberReqBody import AddOrganizationMemberReqBody
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.to import UserDetailsTO
@@ -51,13 +52,14 @@ def user_registered(user_detail, data):
     organization_id = get_iyo_organization_id()
     logging.debug('Creating JWT')
     jwt = create_jwt(access_token, scope=iyo_config.required_scopes)
+    scopes = decode_jwt_cached(jwt)['scope']
     # Creation session such that the JWT is automatically up to date
-    create_session(username, iyo_config.required_scopes.split(','), jwt)
+    create_session(username, scopes, jwt, secret=username)
 
     logging.info('Inviting user %s to IYO organization %s', username, organization_id)
     client = get_itsyouonline_client_from_jwt(jwt)
-    notification = None
-    client.api.organizations.AddOrganizationMember(notification, organization_id)
+    client.api.organizations.AddOrganizationMember(AddOrganizationMemberReqBody.create(username),
+                                                   organization_id)
 
     deferred.defer(_store_name, username, jwt, user_detail)
 
