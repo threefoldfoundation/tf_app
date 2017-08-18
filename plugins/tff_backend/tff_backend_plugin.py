@@ -15,18 +15,21 @@
 #
 # @@license_version:1.3@@
 
-from mcfw.rpc import parse_complex_value
-
+from framework.bizz.authentication import get_current_session
 from framework.plugin_loader import get_plugin, BrandingPlugin
-from framework.utils.plugins import Handler
+from framework.utils.plugins import Handler, Module
+from mcfw.consts import AUTHENTICATED
+from mcfw.restapi import rest_functions
+from mcfw.rpc import parse_complex_value
 from plugins.rogerthat_api.rogerthat_api_plugin import RogerthatApiPlugin
 from plugins.tff_backend import rogerthat_callbacks
+from plugins.tff_backend.api import nodes
+from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.index import IndexPageHandler
 
 
 class TffBackendPlugin(BrandingPlugin):
-
     def __init__(self, configuration):
         super(TffBackendPlugin, self).__init__(configuration)
         self.configuration = parse_complex_value(TffConfiguration, configuration, False)
@@ -43,3 +46,13 @@ class TffBackendPlugin(BrandingPlugin):
 
     def get_handlers(self, auth):
         yield Handler('/', IndexPageHandler)
+        for url, handler in rest_functions(nodes, authentication=AUTHENTICATED):
+            yield Handler(url=url, handler=handler)
+
+    def get_client_routes(self):
+        return ['/orders<route:.*>']
+
+    def get_modules(self):
+        perms = get_permissions_from_scopes(get_current_session().scopes)
+        if perms.admin:
+            yield Module(u'tff_orders', [], 1)

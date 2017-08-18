@@ -27,15 +27,13 @@ from plugins.tff_backend.utils import raise_http_exception
 @returns(IYOKeyStoreKey)
 @arguments(username=unicode, data=IYOKeyStoreKey)
 def create_keystore_key(username, data):
+    logging.info('create_keystore_key %s', data)
     client = get_iyo_client(username)
     data = serialize_complex_value(data, IYOKeyStoreKey, False, skip_missing=True)
     result = client.api.users.SaveKeyStoreKey(data, username)
     logging.debug('users.SaveKeyStoreKey %s %s', result.status_code, result.text)
     if result.status_code == httplib.CREATED:
         return IYOKeyStoreKey(**result.json())
-    elif result.status_code == httplib.CONFLICT:
-        return None
-
     raise_http_exception(result.status_code, result.text)
 
 

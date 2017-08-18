@@ -15,12 +15,14 @@
 #
 # @@license_version:1.3@@
 
-from framework.utils import chunks
 from google.appengine.ext import ndb
+
+from framework.models.common import NdbModel
+from framework.utils import chunks
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
-class NodeOrder(ndb.Model):
+class NodeOrder(NdbModel):
     STATUS_CANCELED = -1
     STATUS_CREATED = 0
     STATUS_SIGNED = 1
@@ -66,3 +68,15 @@ class NodeOrder(ndb.Model):
         if len(id_str) % 4 == 0:
             return '.'.join(chunks(id_str, 4))
         return id_str
+
+    @classmethod
+    def list(cls):
+        return cls.query(namespace=NAMESPACE).fetch()
+
+
+class PublicKeyMapping(NdbModel):
+    label = ndb.StringProperty()  # label on itsyou.online
+
+    @classmethod
+    def create_key(cls, public_key, user_email):
+        return ndb.Key(cls, public_key, cls, user_email, namespace=NAMESPACE)

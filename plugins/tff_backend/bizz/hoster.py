@@ -14,27 +14,29 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
+import base64
 import json
 import logging
 
+from google.appengine.ext import ndb, deferred
+
 from framework.plugin_loader import get_config
 from framework.utils import now, try_or_defer
-from google.appengine.ext import ndb, deferred
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.rogerthat_api.api import qr
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.messaging import AttachmentTO, Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
-from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO
+from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, TYPE_FORM, \
     FormCallbackResultTypeTO, FormAcknowledgedCallbackResultTO, MessageCallbackResultTypeTO, TYPE_MESSAGE
 from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.service import get_main_branding_hash
-from plugins.tff_backend.models.hoster import NodeOrder
+from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value
@@ -62,7 +64,8 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 
         iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
                                          globalid=organization_id,
-                                         uniqueid=u'Zero-Node order %s' % NodeOrder.create_human_readable_id(order_key.id()),
+                                         uniqueid=u'Zero-Node order %s' % NodeOrder.create_human_readable_id(
+                                             order_key.id()),
                                          version=1,
                                          category=u'Terms and conditions',
                                          link=cfg.tos.order_node,
@@ -73,6 +76,7 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
         iyo_see_doc = create_see_document(iyo_username, iyo_see_doc)
 
         logging.debug('Storing order in the database')
+
         def trans():
             order = NodeOrder(key=order_key,
                               address=address,
@@ -92,7 +96,7 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
         widget.algorithm = KEY_ALGORITHM
         widget.caption = u'Please enter your PIN code to digitally sign the terms and conditions'
         widget.key_name = KEY_NAME
-        widget.payload = cfg.tos.order_node
+        widget.payload = base64.b64encode(cfg.tos.order_node).decode('utf-8')
 
         form = SignFormTO()
         form.negative_button = u'Abort'
@@ -133,9 +137,27 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
            service_identity=unicode, user_details=[UserDetailsTO])
 def order_node_signed(status, form_result, answer_id, member, message_key, tag, received_timestamp, acked_timestamp,
                       parent_message_key, result_key, service_identity, user_details):
+    """
+    Args:
+        status (int)
+        form_result (FormResultTO)
+        answer_id (unicode)
+        member (unicode)
+        message_key (unicode)
+        tag (unicode)
+        received_timestamp (int)
+        acked_timestamp (int)
+        parent_message_key (unicode)
+        result_key (unicode)
+        service_identity (unicode)
+        user_details(list[UserDetailsTO])
+
+    Returns:
+        FormAcknowledgedCallbackResultTO
+    """
     try:
         tag_dict = json.loads(tag)
-        order = NodeOrder.create_key(tag_dict['order_id']).get()
+        order = NodeOrder.create_key(tag_dict['order_id']).get()  # type: NodeOrder
 
         if answer_id != FormTO.POSITIVE:
             logging.info('Zero-Node order was canceled')
@@ -146,10 +168,9 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
 
         logging.info('Received signature for Zero-Node order')
 
-        # signatures[0] : signature of the hash of the payload
-        # signatures[1] : signature of the hash of the message + the hash of the payload + the hash of all the attachments
-        signatures = form_result.result.get_value()
-        payload_signature = signatures[0]
+        sign_result = form_result.result.get_value()
+        assert isinstance(sign_result, SignWidgetResultTO)
+        message_signature = sign_result.payload_signature
 
         iyo_organization_id = get_iyo_organization_id()
         iyo_username = get_iyo_username(user_details[0])
@@ -160,16 +181,18 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
                                       globalid=doc.globalid,
                                       uniqueid=doc.uniqueid,
                                       **serialize_complex_value(doc.versions[-1], IYOSeeDocumenVersion, False))
-
-        doc_view.signature = payload_signature
-        doc_view.keystore_label = KEY_NAME
+        doc_view.signature = message_signature
+        keystore_label = get_publickey_label(sign_result.public_key.public_key, user_details[0])
+        if not keystore_label:
+            return _create_error_message(FormAcknowledgedCallbackResultTO())
+        doc_view.keystore_label = keystore_label
         logging.debug('Signing IYO SEE document')
         sign_see_document(iyo_organization_id, iyo_username, doc_view)
 
         logging.debug('Storing signature in DB')
-        order.status = NodeOrder.STATUS_SIGNED
-        order.signature = payload_signature
-        order.sign_time = now()
+        order.populate(status=NodeOrder.STATUS_SIGNED,
+                       signature=message_signature,
+                       sign_time=now())
         order.put()
 
         # TODO: send mail to TF support
@@ -182,21 +205,40 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         message.dismiss_button_ui_flags = 0
         message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
         message.message = u'Thank you. Your order with ID "%s" has been placed successfully.\n\n' \
-            u'You can check the status of your order using the "Node status" functionality.' % order.human_readable_id
+                          u'You can check the status of your order using' \
+                          u' the "Node status" functionality.' % order.human_readable_id
         message.step_id = u'order_completed'
         message.tag = None
 
         result = FormAcknowledgedCallbackResultTO()
         result.type = TYPE_MESSAGE
         result.value = message
+        # todo invite to users.hosters organization
         return result
     except:
         logging.exception('An unexpected error occurred')
         return _create_error_message(FormAcknowledgedCallbackResultTO())
 
 
+def get_publickey_label(public_key, user_details):
+    # type: (unicode, UserDetailsTO) -> unicode
+    mapping = PublicKeyMapping.create_key(public_key, user_details.email).get()
+    if mapping:
+        return mapping.label
+    else:
+        logging.error('No PublicKeyMapping found! falling back to doing a request to itsyou.online')
+        keystore = get_keystore(get_iyo_username(user_details))
+        results = filter(lambda key: key == public_key, keystore)
+        if len(results):
+            return results[0].label
+        else:
+            logging.error('Could not find label for public key %s on itsyou.online', public_key)
+            return None
+
+
+
 @returns()
-@arguments(order_id=(int,long))
+@arguments(order_id=(int, long))
 def _create_order_arrival_qr(order_id):
     human_readable_id = NodeOrder.create_human_readable_id(order_id)
     api_key = get_rogerthat_api_key()
@@ -228,6 +270,12 @@ def node_arrived(message_flow_run_id, member, steps, end_id, end_message_flow_id
                  flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     try_or_defer(_store_order_arrival, tag, now())
     return None
+
+
+@returns([NodeOrder])
+@arguments()
+def get_node_orders():
+    return NodeOrder.list()
 
 
 @returns()

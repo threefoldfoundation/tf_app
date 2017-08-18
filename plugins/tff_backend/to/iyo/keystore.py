@@ -19,6 +19,7 @@
 from mcfw.properties import unicode_property, typed_property
 from plugins.tff_backend.to import convert_to_unicode, TO
 
+
 class IYOKeyStoreKeyData(TO):
     timestamp = unicode_property('1')
     comment = unicode_property('2')
@@ -38,7 +39,7 @@ class IYOKeyStoreKey(TO):
     keydata = typed_property('5', IYOKeyStoreKeyData, False)
 
     def __init__(self, key=None, globalid=None, username=None, label=None,
-                keydata=None, **kwargs):
+                 keydata=None, **kwargs):
         self.key = convert_to_unicode(key)
         self.globalid = convert_to_unicode(globalid)
         self.username = convert_to_unicode(username)

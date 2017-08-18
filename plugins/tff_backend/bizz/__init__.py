@@ -15,7 +15,7 @@
 #
 # @@license_version:1.3@@
 
-from framework.plugin_loader import get_plugin, get_config
+from framework.plugin_loader import get_config
 from mcfw.consts import DEBUG
 from plugins.tff_backend.plugin_consts import NAMESPACE
 

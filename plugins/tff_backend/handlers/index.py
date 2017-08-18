@@ -20,6 +20,8 @@ import webapp2
 from framework.bizz.authentication import get_current_session
 from framework.bizz.i18n import get_user_language
 from framework.handlers import render_logged_in_page, render_page
+from framework.plugin_loader import get_plugin
+from plugins.its_you_online_auth.its_you_online_auth_plugin import ItsYouOnlineAuthPlugin
 
 
 class IndexPageHandler(webapp2.RequestHandler):
@@ -27,8 +29,12 @@ class IndexPageHandler(webapp2.RequestHandler):
         if get_current_session():
             render_logged_in_page(self)
         else:
+            query = self.request.query if self.request.query else ''
+            if not self.request.GET.get('source'):
+                plugin = get_plugin('its_you_online_auth')  # type: ItsYouOnlineAuthPlugin
+                query += '&scope=user:memberof:%s' % plugin.configuration.root_organization.name
             parameters = {
                 'lang': get_user_language(),
-                'query_params': '?%s' % self.request.query if self.request.query else ''
+                'query_params': '?%s' % query
             }
             render_page(self.response, 'unauthorized_index.html', template_parameters=parameters)
