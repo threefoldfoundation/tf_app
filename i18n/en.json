@@ -1,10 +1,18 @@
 {
+  "Threefold Foundation": "Threefold Foundation",
   "tff": {
+    "arrived": "Arrived",
+    "canceled": "Canceled",
+    "created": "Created",
     "i_am_a_member": "I am a member",
     "i_am_new": "I am new here",
+    "order_detail": "Order detail",
+    "orders": "Orders",
     "register_to_threefold": "Register to threefold",
+    "sent": "Sent",
     "sign_in_to_threefold": "Sign in to threefold",
-    "threefold": "Threefold",
-    "thats_an_error": "That's an error"
+    "signed": "Signed",
+    "thats_an_error": "That's an error",
+    "threefold": "Threefold"
   }
 }

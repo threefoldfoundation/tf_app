@@ -18,11 +18,9 @@
 import json
 import re
 
-from mcfw.rpc import returns, arguments
 from mcfw.exceptions import HttpException
-from plugins.rogerthat_api.to import UserDetailsTO
+from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.to.messaging.flow import BaseFlowStepTO
-from plugins.rogerthat_api.to.messaging.forms import FormResultTO
 
 HUMAN_READABLE_TAG_REGEX = re.compile('(.*?)\\s*\\{.*\\}')
 

@@ -15,10 +15,11 @@
 #
 # @@license_version:1.3@@
 
+from google.appengine.api import users
+
 from framework.bizz.authentication import get_current_session
 from framework.models.session import Session
 from framework.plugin_loader import get_config
-from google.appengine.api import users
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_jwt
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE

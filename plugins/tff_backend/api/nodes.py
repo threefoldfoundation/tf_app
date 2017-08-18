@@ -14,20 +14,14 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+from mcfw.restapi import rest
+from mcfw.rpc import returns, arguments
+from plugins.tff_backend.bizz.authentication import Scopes
+from plugins.tff_backend.bizz.hoster import get_node_orders
 
 
-from mcfw.rpc import serialize_complex_value
-
-
-def convert_to_unicode(v):
-    if v is None:
-        return None
-    if isinstance(v, unicode):
-        return v
-    return unicode(v)
-
-
-class TO(object):
-    def __repr__(self):
-        # useful when debugging
-        return repr(serialize_complex_value(self, type(self), False, skip_missing=True))
+@rest('/orders', 'get', Scopes.ADMIN)
+@returns([dict])
+@arguments()
+def api_get_node_orders():
+    return [order.to_dict() for order in get_node_orders()]

@@ -16,11 +16,12 @@
 # @@license_version:1.3@@
 
 from google.appengine.api import users
+
 from mcfw.properties import azzert
 from mcfw.rpc import returns, arguments
 
-
 APP_ID_ROGERTHAT = u"rogerthat"
+
 
 @returns(users.User)
 @arguments(app_user=users.User)

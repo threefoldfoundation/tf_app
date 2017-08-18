@@ -1,0 +1,8 @@
+<md-list>
+  <md-list-item *ngFor="let order of (orders$ | async)"
+                [routerLink]="order.id">
+    <h4 md-line>{{ order.name }}</h4>
+    <p md-line>{{ order.app_user}}</p>
+    <p md-line>{{ getStatusString(order) }}</p>
+  </md-list-item>
+</md-list>
