@@ -1,7 +1,7 @@
 import { Action } from '@ngrx/store';
-import { type } from '../../core/utils/type';
-import { ApiErrorResponse } from '../../sample/interfaces/rpc.interfaces';
 import { NodeOrder } from '../interfaces/index';
+import { type } from '../../../framework/client/core/utils/type';
+import { ApiErrorResponse } from '../../../framework/client/sample/interfaces/rpc.interfaces';
 
 const category = '[TFF]';
 

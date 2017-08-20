@@ -1,4 +1,4 @@
-import { Config, PluginConfig } from '../../core/utils/config';
+import { Config, PluginConfig } from '../../../framework/client/core/utils/config';
 
 export class TffConfig extends PluginConfig {
   public static NAME: string = 'tff_backend';

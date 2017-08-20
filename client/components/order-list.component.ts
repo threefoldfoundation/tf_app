@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { IAppState } from '../../ngrx/state/app.state';
 import { Observable } from 'rxjs/Observable';
 import { NodeOrder, NodeOrderStatuses } from '../interfaces/nodes.interfaces';
 import { TranslateService } from '@ngx-translate/core';
 import { getOrders } from '../tff.state';
 import { GetOrdersAction } from '../actions/threefold.action';
+import { IAppState } from '../../../framework/client/ngrx/state/app.state';
 
 @Component({
   moduleId: module.id,

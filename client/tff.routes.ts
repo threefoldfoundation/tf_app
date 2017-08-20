@@ -1,6 +1,6 @@
 import { MetaGuard } from '@ngx-meta/core';
-import { OrderListComponent } from '../frameworks/tff-backend/index';
-import { Route } from '../components/app.routes';
+import { OrderListComponent } from './components/index';
+import { Route } from '../../framework/client/app.routes';
 
 export const TffRoutes: Route[] = [
   { path: '', redirectTo: 'orders', pathMatch: 'full' },
