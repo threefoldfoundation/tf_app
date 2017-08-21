@@ -72,7 +72,7 @@ def _invite_user(username):
     client = get_itsyouonline_client()
     try:
         client.api.organizations.AddOrganizationMember(AddOrganizationMemberReqBody.create(username),
-                                                       get_iyo_organization_id())
+                                                       organization_id)
     except HTTPError as e:
         if e.response.status_code != httplib.CONFLICT:
             raise e
@@ -87,13 +87,14 @@ def _store_name(username, user_detail):
         logging.debug('There is no firstname and lastname in %s', repr(iyo_user))
         return
 
-    logging.info('Storing name in user_data')  # used for pre-filling message flows
+    name = '%s %s' % (iyo_user.firstname, iyo_user.lastname)
+    logging.info('Storing name "%s" in user_data', name)  # used for pre-filling message flows
     api_key = get_rogerthat_api_key()
     user_data = system.get_user_data(api_key, user_detail.email, user_detail.app_id, ['name'])
     if user_data.get('name'):
         logging.debug('The name was already stored in user_data')
     else:
-        user_data = dict(name='%s %s' % (iyo_user.firstname, iyo_user.lastname))
+        user_data = dict(name=name)
         system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
 
 
