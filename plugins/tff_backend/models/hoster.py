@@ -18,7 +18,7 @@
 from google.appengine.ext import ndb
 
 from framework.models.common import NdbModel
-from framework.utils import chunks
+from framework.utils import chunks, now
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -28,6 +28,8 @@ class NodeOrder(NdbModel):
     STATUS_SIGNED = 1
     STATUS_SENT = 2
     STATUS_ARRIVED = 3
+
+    NODE_ORDERS_PER_PAGE = 50
 
     app_user = ndb.UserProperty()
     name = ndb.StringProperty(indexed=False)
@@ -42,6 +44,11 @@ class NodeOrder(NdbModel):
     send_time = ndb.IntegerProperty()
     arrival_time = ndb.IntegerProperty()
     cancel_time = ndb.IntegerProperty()
+    modification_time = ndb.IntegerProperty()
+    arrival_qr_code_url = ndb.StringProperty()
+
+    def _pre_put_hook(self):
+        self.modification_time = now()
 
     @property
     def iyo_username(self):
@@ -70,8 +77,19 @@ class NodeOrder(NdbModel):
         return id_str
 
     @classmethod
+    def get_by_id(cls, id, parent=None, **ctx_options):
+        return super(NodeOrder, cls).get_by_id(id, parent=parent, namespace=NAMESPACE, **ctx_options)
+
+    @classmethod
     def list(cls):
-        return cls.query(namespace=NAMESPACE).fetch()
+        return cls.query(namespace=NAMESPACE)
+
+    @classmethod
+    def fetch_page(cls, cursor=None):
+        # type: (unicode) -> tuple[list[NodeOrder], ndb.Cursor, bool]
+        return cls.list() \
+            .order(-cls.modification_time) \
+            .fetch_page(cls.NODE_ORDERS_PER_PAGE, start_cursor=ndb.Cursor(urlsafe=cursor))
 
 
 class PublicKeyMapping(NdbModel):

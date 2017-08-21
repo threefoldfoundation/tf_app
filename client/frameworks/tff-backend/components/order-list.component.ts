@@ -1,38 +1,23 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { IAppState } from '../../ngrx/state/app.state';
-import { Observable } from 'rxjs/Observable';
-import { NodeOrder, NodeOrderStatuses } from '../interfaces/nodes.interfaces';
-import { TranslateService } from '@ngx-translate/core';
-import { getOrders } from '../tff.state';
-import { GetOrdersAction } from '../actions/threefold.action';
+import { ApiRequestStatus, ORDER_STATUSES } from '../interfaces/index';
+import { NodeOrderListPerStatus, NodeOrderStatuses } from '../interfaces/nodes.interfaces';
 
 @Component({
   moduleId: module.id,
-  selector: 'order-list',
+  selector: 'tff-order-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'order-list.component.html'
+  templateUrl: 'order-list.component.html',
+  styles: [ `.orders-content {
+    padding: 16px;
+  }` ]
 })
-export class OrderListComponent implements OnInit {
-  orders$: Observable<NodeOrder[]>;
-  STATUSES = {
-    [NodeOrderStatuses.CANCELED]: 'tff.canceled',
-    [NodeOrderStatuses.CREATED]: 'tff.created',
-    [NodeOrderStatuses.SIGNED]: 'tff.signed',
-    [NodeOrderStatuses.SENT]: 'tff.sent',
-    [NodeOrderStatuses.ARRIVED]: 'tff.arrived',
-  };
+export class OrderListComponent {
+  @Input() orders: NodeOrderListPerStatus;
+  @Input() status: ApiRequestStatus;
+  @Output() onLoadMore = new EventEmitter<string>();
 
-  constructor(private store: Store<IAppState>,
-              private translate: TranslateService) {
-  }
-
-  ngOnInit() {
-    this.store.dispatch(new GetOrdersAction());
-    this.orders$ = this.store.let(getOrders);
-  }
-
-  getStatusString(order: NodeOrder): string {
-    return this.translate.instant(this.STATUSES[ order.status ]);
+  getStatusString(status: NodeOrderStatuses): string {
+    return ORDER_STATUSES[ status ];
   }
 }

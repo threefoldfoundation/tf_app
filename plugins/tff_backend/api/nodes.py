@@ -14,14 +14,30 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.authentication import Scopes
-from plugins.tff_backend.bizz.hoster import get_node_orders
+from plugins.tff_backend.bizz.hoster import get_node_order, get_node_orders, put_node_order
+from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO
 
 
 @rest('/orders', 'get', Scopes.ADMIN)
-@returns([dict])
-@arguments()
-def api_get_node_orders():
-    return [order.to_dict() for order in get_node_orders()]
+@returns(NodeOrderListTO)
+@arguments(cursor=unicode)
+def api_get_node_orders(cursor=None):
+    return NodeOrderListTO.from_query(*get_node_orders(cursor))
+
+
+@rest('/orders/<order_id:[^/]+>', 'get', Scopes.ADMIN)
+@returns(NodeOrderTO)
+@arguments(order_id=unicode)
+def api_get_node_order(order_id):
+    return NodeOrderTO.from_model(get_node_order(long(order_id)))
+
+
+@rest('/orders/<order_id:[^/]+>', 'put', Scopes.ADMIN)
+@returns(NodeOrderTO)
+@arguments(order_id=unicode, data=NodeOrderTO)
+def api_put_node_order(order_id, data):
+    return NodeOrderTO.from_model(put_node_order(long(order_id), data))
