@@ -15,18 +15,14 @@
 #
 # @@license_version:1.3@@
 
-import httplib
 import logging
 
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_client
 from plugins.tff_backend.to.iyo.user import IYOUser
-from plugins.tff_backend.utils import raise_http_exception
+from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_username
 
 
 def get_user(username):
-    client = get_iyo_client(username)
+    client = get_itsyouonline_client_from_username(username)
     result = client.api.users.GetUserInformation(username)
     logging.debug('get_user %s %s', result.status_code, result.text)
-    if result.status_code != httplib.OK:
-        raise_http_exception(result.status_code, result.text)
     return IYOUser(**result.json())

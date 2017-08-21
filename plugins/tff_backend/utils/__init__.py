@@ -71,13 +71,3 @@ def set_flag(flag, value):
 
 def unset_flag(flag, value):
     return value & ~flag
-
-
-def raise_http_exception(status_code, result_text):
-    try:
-        err = json.loads(result_text)
-        e = HttpException(err.get('error'), err)
-    except ValueError:
-        e = HttpException(result_text)
-    e.http_code = status_code
-    raise e

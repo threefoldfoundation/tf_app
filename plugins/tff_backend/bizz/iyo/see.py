@@ -20,65 +20,61 @@ import logging
 import urllib
 
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_client
+from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_username
 from plugins.tff_backend.to.iyo.see import IYOSeeDocument, IYOSeeDocumentView
-from plugins.tff_backend.utils import raise_http_exception
+from requests.exceptions import HTTPError
 
 
 @returns(IYOSeeDocument)
 @arguments(organization_id=unicode, username=unicode, uniqueid=unicode)
 def get_see_document(organization_id, username, uniqueid):
-    client = get_iyo_client(username)
+    client = get_itsyouonline_client_from_username(username)
     result = client.api.users.GetSeeObject(uniqueid, organization_id, username)
     logging.debug('get_see_document %s %s', result.status_code, result.text)
-    if result.status_code != httplib.OK:
-        raise_http_exception(result.status_code, result.text)
     return IYOSeeDocument(**result.json())
 
 
 @returns(IYOSeeDocumentView)
 @arguments(organization_id=unicode, username=unicode)
 def get_see_documents(organization_id, username):
-    client = get_iyo_client(username)
+    client = get_itsyouonline_client_from_username(username)
     result = client.api.users.ListSeeObjectsByOrganization(username, organization_id)
     logging.debug('get_see_documents %s %s', result.status_code, result.text)
-    if result.status_code != httplib.OK:
-        raise_http_exception(result.status_code, result.text)
     return [IYOSeeDocumentView(**d) for d in result.json()]
 
 
 @returns(IYOSeeDocumentView)
 @arguments(username=unicode, doc=IYOSeeDocumentView)
 def create_see_document(username, doc):
-    client = get_iyo_client(username)
+    client = get_itsyouonline_client_from_username(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
-    result = client.api.users.CreateSeeObject(data, username)
+    try:
+        result = client.api.users.CreateSeeObject(data, username)
+    except HTTPError as e:
+        if e.response.status_code == httplib.CONFLICT:
+            result = e.response
+        else:
+            raise e
     logging.debug('create_see_document %s %s', result.status_code, result.text)
-    if result.status_code not in (httplib.CREATED, httplib.CONFLICT):
-        raise_http_exception(result.status_code, result.text)
     return IYOSeeDocumentView(**result.json())
 
 
 @returns(IYOSeeDocumentView)
 @arguments(organization_id=unicode, username=unicode, doc=IYOSeeDocumentView)
 def update_see_document(organization_id, username, doc):
-    client = get_iyo_client(username)
+    client = get_itsyouonline_client_from_username(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
     result = client.api.users.UpdateSeeObject(data, doc.uniqueid, organization_id, username)
     logging.debug('update_see_document %s %s', result.status_code, result.text)
-    if result.status_code not in (httplib.CREATED,):
-        raise_http_exception(result.status_code, result.text)
     return IYOSeeDocumentView(**result.json())
 
 
 @returns(IYOSeeDocumentView)
 @arguments(organization_id=unicode, username=unicode, doc=IYOSeeDocumentView)
 def sign_see_document(organization_id, username, doc):
-    client = get_iyo_client(username)
+    client = get_itsyouonline_client_from_username(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
     result = client.api.users.SignSeeObject(data, str(doc.version), urllib.quote(doc.uniqueid), organization_id,
                                             username)
     logging.debug('sign_see_document %s %s', result.status_code, result.text)
-    if result.status_code not in (httplib.CREATED,):
-        raise_http_exception(result.status_code, result.text)
     return IYOSeeDocumentView(**result.json())

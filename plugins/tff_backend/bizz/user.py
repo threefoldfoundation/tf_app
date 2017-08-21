@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+import httplib
 import json
 import logging
 
@@ -22,20 +23,20 @@ from framework.plugin_loader import get_config
 from google.appengine.ext import deferred
 from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.its_you_online_auth.bizz.authentication import create_jwt, get_itsyouonline_client_from_jwt, \
-    decode_jwt_cached
+from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client
 from plugins.its_you_online_auth.libs.itsyouonline.AddOrganizationMemberReqBody import AddOrganizationMemberReqBody
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.authentication import Roles
+from plugins.tff_backend.bizz.authentication import Organization
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
 from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
+from requests.exceptions import HTTPError
 
 
 @returns()
@@ -51,27 +52,39 @@ def user_registered(user_detail, data):
 
     iyo_config = get_config(IYO_AUTH_NAMESPACE)
 
-    organization_id = '%s.%s' % (get_iyo_organization_id(), Roles.DEFAULT)
     logging.debug('Creating JWT')
     jwt = create_jwt(access_token, scope=iyo_config.required_scopes)
-    scopes = decode_jwt_cached(jwt)['scope']
+    decoded_jwt = decode_jwt_cached(jwt)
+    logging.debug('Decoded JWT: %s', decoded_jwt)
+    scopes = decoded_jwt['scope']
     # Creation session such that the JWT is automatically up to date
     create_session(username, scopes, jwt, secret=username)
-    logging.info('Inviting user %s to IYO organization %s', username, organization_id)
-    client = get_itsyouonline_client_from_jwt(jwt)
-    client.api.organizations.AddOrganizationMember(AddOrganizationMemberReqBody.create(username),
-                                                   organization_id)
 
-    deferred.defer(_store_name, username, jwt, user_detail)
+    deferred.defer(_invite_user, username)
+    deferred.defer(_store_name, username, user_detail)
 
 
 @returns()
-@arguments(username=unicode, jwt=unicode, user_detail=UserDetailsTO)
-def _store_name(username, jwt, user_detail):
+@arguments(username=unicode)
+def _invite_user(username):
+    organization_id = Organization.DEFAULT_USER
+    logging.info('Inviting user %s to IYO organization %s', username, organization_id)
+    client = get_itsyouonline_client()
+    try:
+        client.api.organizations.AddOrganizationMember(AddOrganizationMemberReqBody.create(username),
+                                                       get_iyo_organization_id())
+    except HTTPError as e:
+        if e.response.status_code != httplib.CONFLICT:
+            raise e
+
+
+@returns()
+@arguments(username=unicode, user_detail=UserDetailsTO)
+def _store_name(username, user_detail):
     logging.info('Getting the user\'s name from IYO')
     iyo_user = get_user(username)
     if not iyo_user.firstname and not iyo_user.lastname:
-        logging.debug('There is no firstname and lastname in %s', iyo_user)
+        logging.debug('There is no firstname and lastname in %s', repr(iyo_user))
         return
 
     logging.info('Storing name in user_data')  # used for pre-filling message flows
@@ -98,6 +111,7 @@ def store_public_key(user_detail):
         for iyo_key in keystore:
             if iyo_key.key == rt_key.public_key:
                 saved_keys.append(iyo_key.key)
+                break
 
     for rt_key in user_detail.public_keys:
         if rt_key not in saved_keys:

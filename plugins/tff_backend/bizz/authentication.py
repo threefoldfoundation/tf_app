@@ -39,14 +39,22 @@ class PermissionType(object):
     USERS = 'users'
 
 
+class Organization(object):
+    ADMIN = '%s.admins' % ROOT_ORGANIZATION
+    DEFAULT_USER = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.DEFAULT)
+    HOSTER = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.HOSTER)
+    INVESTOR = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.INVESTOR)
+    AMBASSADOR = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.AMBASSADORS)
+
+
 class Scope(object):
-    _root_scope = 'user:memberof:%s' % ROOT_ORGANIZATION
-    ROOT_ADMIN = _root_scope
-    ADMIN = '%s.admins' % _root_scope
-    DEFAULT_USER = '%s.users.%s' % (_root_scope, Roles.DEFAULT)
-    HOSTER = '%s.users.%s' % (_root_scope, Roles.HOSTER)
-    INVESTOR = '%s.users.%s' % (_root_scope, Roles.INVESTOR)
-    AMBASSADOR = '%s.users.%s' % (_root_scope, Roles.AMBASSADORS)
+    _memberof = 'user:memberof:%s'
+    ROOT_ADMIN = _memberof % ROOT_ORGANIZATION
+    ADMIN = _memberof % Organization.ADMIN
+    DEFAULT_USER = _memberof % Organization.DEFAULT_USER
+    HOSTER = _memberof % Organization.HOSTER
+    INVESTOR = _memberof % Organization.INVESTOR
+    AMBASSADOR = _memberof % Organization.AMBASSADOR
 
 
 class Scopes(object):
