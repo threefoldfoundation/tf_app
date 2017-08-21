@@ -230,7 +230,7 @@ def get_publickey_label(public_key, user_details):
     else:
         logging.error('No PublicKeyMapping found! falling back to doing a request to itsyou.online')
         keystore = get_keystore(get_iyo_username(user_details))
-        results = filter(lambda key: key == public_key, keystore)
+        results = filter(lambda key: public_key in key, keystore)  # some stuff is prepended to the key
         if len(results):
             return results[0].label
         else:
