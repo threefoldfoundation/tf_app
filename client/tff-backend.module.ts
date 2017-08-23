@@ -5,10 +5,10 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MdButtonModule, MdIconModule, MdInputModule, MdListModule } from '@angular/material';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
-import { MultilingualModule } from '../i18n/multilingual.module';
 import { TFF_COMPONENTS, TFF_PROVIDERS } from './services/index';
 import { TffEffects } from './effects/tff.effect';
 import { TimestampPipe } from "./pipes/timestamp.pipe";
+import { MultilingualModule } from '../../framework/client/i18n/multilingual.module';
 
 const MATERIAL_IMPORTS = [
   MdButtonModule, MdInputModule, MdListModule, MdIconModule

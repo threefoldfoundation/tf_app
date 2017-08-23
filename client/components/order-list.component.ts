@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { IAppState } from '../../ngrx/state/app.state';
 import { ApiRequestStatus, ORDER_STATUSES } from '../interfaces/index';
 import { NodeOrderListPerStatus, NodeOrderStatuses } from '../interfaces/nodes.interfaces';
 

@@ -1,4 +1,4 @@
-import { ApiErrorResponse } from '../../sample/interfaces/rpc.interfaces';
+import { ApiErrorResponse } from '../../../framework/client/sample/interfaces/rpc.interfaces';
 
 export interface ApiRequestStatus {
   loading: boolean;

@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs/Observable';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
-import { ApiErrorResponse } from '../../sample/interfaces/rpc.interfaces';
+import { ApiErrorResponse } from '../../../framework/client/sample/interfaces/rpc.interfaces';
 import { HttpResponse } from '@angular/common/http';
 
 export function transformErrorResponse(response: HttpResponse<ApiErrorResponse>): ApiRequestStatus {
