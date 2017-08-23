@@ -15,33 +15,28 @@
 #
 # @@license_version:1.3@@
 
-import httplib
 import logging
 
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_client
+from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_username
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey
-from plugins.tff_backend.utils import raise_http_exception
 
 
 @returns(IYOKeyStoreKey)
 @arguments(username=unicode, data=IYOKeyStoreKey)
 def create_keystore_key(username, data):
     logging.info('create_keystore_key %s', data)
-    client = get_iyo_client(username)
+    client = get_itsyouonline_client_from_username(username)
     data = serialize_complex_value(data, IYOKeyStoreKey, False, skip_missing=True)
     result = client.api.users.SaveKeyStoreKey(data, username)
     logging.debug('users.SaveKeyStoreKey %s %s', result.status_code, result.text)
-    if result.status_code == httplib.CREATED:
-        return IYOKeyStoreKey(**result.json())
-    raise_http_exception(result.status_code, result.text)
+    return IYOKeyStoreKey(**result.json())
 
 
 @returns([IYOKeyStoreKey])
 @arguments(username=unicode)
 def get_keystore(username):
-    result = get_iyo_client(username).api.users.GetKeyStore(username)
+    client = get_itsyouonline_client_from_username(username)
+    result = client.api.users.GetKeyStore(username)
     logging.debug('users.GetKeyStore %s %s', result.status_code, result.text)
-    if result.status_code == httplib.OK:
-        return [IYOKeyStoreKey(**key) for key in result.json()]
-    raise_http_exception(result.status_code, result.text)
+    return [IYOKeyStoreKey(**key) for key in result.json()]

@@ -1,6 +1,7 @@
 import { MetaGuard } from '@ngx-meta/core';
-import { OrderListComponent } from './components/index';
 import { Route } from '../../framework/client/app.routes';
+import { OrderDetailPageComponent } from './components/order-detail-page.component';
+import { OrderListPageComponent } from './components/order-list-page.component';
 
 export const TffRoutes: Route[] = [
   { path: '', redirectTo: 'orders', pathMatch: 'full' },
@@ -14,12 +15,12 @@ export const TffRoutes: Route[] = [
         title: 'tff.orders',
       }
     },
-    component: OrderListComponent
+    component: OrderListPageComponent
   },
   {
-    path: 'orders/:order_id',
+    path: 'orders/:orderId',
     canActivate: [ MetaGuard ],
     data: { meta: { title: 'tff.order_detail' } },
-    component: OrderListComponent // todo detail component
+    component: OrderDetailPageComponent
   },
 ];

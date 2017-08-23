@@ -22,6 +22,7 @@ from google.appengine.ext import ndb, deferred
 
 from framework.plugin_loader import get_config
 from framework.utils import now, try_or_defer
+from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.rogerthat_api.api import qr
@@ -39,6 +40,7 @@ from plugins.tff_backend.bizz.service import get_main_branding_hash
 from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
+from plugins.tff_backend.to.nodes import NodeOrderTO
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email
 
@@ -228,7 +230,7 @@ def get_publickey_label(public_key, user_details):
     else:
         logging.error('No PublicKeyMapping found! falling back to doing a request to itsyou.online')
         keystore = get_keystore(get_iyo_username(user_details))
-        results = filter(lambda key: key == public_key, keystore)
+        results = filter(lambda key: public_key in key, keystore)  # some stuff is prepended to the key
         if len(results):
             return results[0].label
         else:
@@ -257,7 +259,7 @@ def _create_order_arrival_qr(order_id):
 def _store_order_arrival_qr(order_id, qr_image_uri):
     logging.info('Setting arrival QR code %s for order %s', qr_image_uri, order_id)
     order = NodeOrder.create_key(order_id).get()
-    order.arrival_qr_code = qr_image_uri
+    order.arrival_qr_code_url = qr_image_uri
     order.put()
 
 
@@ -272,10 +274,42 @@ def node_arrived(message_flow_run_id, member, steps, end_id, end_message_flow_id
     return None
 
 
-@returns([NodeOrder])
-@arguments()
-def get_node_orders():
-    return NodeOrder.list()
+@returns(tuple)
+@arguments(cursor=unicode)
+def get_node_orders(cursor=None):
+    return NodeOrder.fetch_page(cursor)
+
+
+@returns(NodeOrder)
+@arguments(order_id=(int, long))
+def get_node_order(order_id):
+    order = NodeOrder.get_by_id(order_id)
+    if not order:
+        raise HttpNotFoundException('order_not_found')
+    return order
+
+
+@returns(NodeOrder)
+@arguments(order_id=(int, long), order=NodeOrderTO)
+def put_node_order(order_id, order):
+    # type: (long, NodeOrderTO) -> NodeOrder
+    order_model = NodeOrder.get_by_id(order_id)  # type: NodeOrder
+    if not order_model:
+        raise HttpNotFoundException('order_not_found')
+    if order_model.status == NodeOrder.STATUS_CANCELED:
+        raise HttpBadRequestException('order_canceled')
+    if order.status not in (NodeOrder.STATUS_CANCELED, NodeOrder.STATUS_SENT):
+        raise HttpBadRequestException('invalid_status')
+    # Only support updating the status for now
+    if order_model.status != order.status:
+        order_model.status = order.status
+        # todo: send message to user ?
+        if order_model.status == NodeOrder.STATUS_CANCELED:
+            order_model.cancel_time = now()
+        elif order_model.status == NodeOrder.STATUS_SENT:
+            order_model.send_time = now()
+    order_model.put()
+    return order_model
 
 
 @returns()

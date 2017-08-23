@@ -1,8 +1,14 @@
-<md-list>
-  <md-list-item *ngFor="let order of (orders$ | async)"
-                [routerLink]="order.id">
-    <h4 md-line>{{ order.name }}</h4>
-    <p md-line>{{ order.app_user}}</p>
-    <p md-line>{{ getStatusString(order) }}</p>
-  </md-list-item>
-</md-list>
+<md-nav-list *ngIf="orders" class="orders-content">
+  <div *ngFor="let ordersPerType of orders.results">
+    <h2>{{ getStatusString(ordersPerType.type) | translate }}</h2>
+    <md-list-item *ngFor="let order of ordersPerType.orders" [routerLink]="order.id">
+      <h4 md-line>{{ 'tff.node_order_x' | translate : { orderId: order.id } }}</h4>
+      <p md-line>{{ order.order_time | timestamp }} {{ order.name }}</p>
+      <p md-line>{{ 'tff.modified_on' | translate}} {{ order.modification_time | timestamp }}</p>
+    </md-list-item>
+    <md-divider></md-divider>
+  </div>
+  <button md-button *ngIf="orders.more" (click)="onLoadMore.emit(orders.cursor)">
+    {{ 'tff.load_more' | translate }}
+  </button>
+</md-nav-list>
