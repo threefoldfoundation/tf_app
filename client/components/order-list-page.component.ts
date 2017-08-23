@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { IAppState } from '../../ngrx/state/app.state';
 import { Observable } from 'rxjs/Observable';
 import { NodeOrder, NodeOrderListPerStatus, NodeOrderStatuses } from '../interfaces/nodes.interfaces';
 import { getOrders, getOrdersStatus } from '../tff.state';
 import { GetOrdersAction } from '../actions/threefold.action';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import * as _ from 'lodash';
+import { IAppState } from '../../../framework/client/ngrx/state/app.state';
 
 @Component({
   moduleId: module.id,
