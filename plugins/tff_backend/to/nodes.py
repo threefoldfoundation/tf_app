@@ -46,7 +46,7 @@ class NodeOrderTO(TO):
 
     @classmethod
     def from_model(cls, model):
-        # type: (NodeOrder) -> NodeOrderTO
+        assert isinstance(model, NodeOrder)
         return cls(**model.to_dict())
 
 
@@ -69,5 +69,6 @@ class NodeOrderListTO(PaginatedResultTO):
     @classmethod
     def from_query(cls, models, cursor, more):
         # type: (list[NodeOrder], ndb.Cursor, bool) -> object
+        assert isinstance(cursor, ndb.Cursor)
         orders = [NodeOrderTO.from_model(model) for model in models]
         return cls(cursor.to_websafe_string().decode('utf-8'), more, orders)

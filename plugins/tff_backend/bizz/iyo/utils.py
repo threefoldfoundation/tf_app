@@ -15,8 +15,9 @@
 #
 # @@license_version:1.3@@
 
-from framework.plugin_loader import get_config
 from google.appengine.api import users
+
+from framework.plugin_loader import get_config
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.to import UserDetailsTO

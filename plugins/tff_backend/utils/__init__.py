@@ -18,7 +18,6 @@
 import json
 import re
 
-from mcfw.exceptions import HttpException
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.to.messaging.flow import BaseFlowStepTO
 

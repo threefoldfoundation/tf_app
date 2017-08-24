@@ -238,7 +238,6 @@ def get_publickey_label(public_key, user_details):
             return None
 
 
-
 @returns()
 @arguments(order_id=(int, long))
 def _create_order_arrival_qr(order_id):

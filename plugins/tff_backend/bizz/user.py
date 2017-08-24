@@ -18,9 +18,10 @@ import httplib
 import json
 import logging
 
+from google.appengine.ext import deferred
+
 from framework.bizz.session import create_session
 from framework.plugin_loader import get_config
-from google.appengine.ext import deferred
 from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client

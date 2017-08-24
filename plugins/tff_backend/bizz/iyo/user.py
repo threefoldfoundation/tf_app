@@ -17,8 +17,8 @@
 
 import logging
 
-from plugins.tff_backend.to.iyo.user import IYOUser
 from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_username
+from plugins.tff_backend.to.iyo.user import IYOUser
 
 
 def get_user(username):

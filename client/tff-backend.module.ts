@@ -8,11 +8,11 @@ import { EffectsModule } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { TFF_COMPONENTS, TFF_PROVIDERS } from './services/index';
 import { TffEffects } from './effects/tff.effect';
-import { TimestampPipe } from "./pipes/timestamp.pipe";
+import { TimestampPipe } from './pipes/timestamp.pipe';
 import { MultilingualModule } from '../../framework/client/i18n/multilingual.module';
 import { TffRoutes } from './tff.routes';
 import { IAppState } from '../../framework/client/ngrx/state/app.state';
-import { AddRoutesAction } from "../../framework/client/sidebar/index";
+import { AddRoutesAction } from '../../framework/client/sidebar/index';
 
 const MATERIAL_IMPORTS = [
   MdButtonModule, MdInputModule, MdListModule, MdIconModule
