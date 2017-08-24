@@ -7,6 +7,7 @@ import { GetOrdersAction } from '../actions/threefold.action';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import * as _ from 'lodash';
 import { IAppState } from '../../../framework/client/ngrx/state/app.state';
+import 'rxjs/add/operator/first';
 
 @Component({
   moduleId: module.id,
@@ -34,7 +35,7 @@ export class OrderListPageComponent implements OnInit {
         }))
         .value()
     });
-    this.store.let(getOrders).subscribe(orders => {
+    this.store.let(getOrders).first().subscribe(orders => {
       if (!orders.results.length) {
         this.store.dispatch(new GetOrdersAction(null));
       }

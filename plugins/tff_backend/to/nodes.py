@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+from types import NoneType
+
 from google.appengine.ext import ndb
 
 from mcfw.properties import long_property, unicode_property, typed_property, bool_property
@@ -69,6 +71,6 @@ class NodeOrderListTO(PaginatedResultTO):
     @classmethod
     def from_query(cls, models, cursor, more):
         # type: (list[NodeOrder], ndb.Cursor, bool) -> object
-        assert isinstance(cursor, ndb.Cursor)
+        assert isinstance(cursor, (ndb.Cursor, NoneType))
         orders = [NodeOrderTO.from_model(model) for model in models]
-        return cls(cursor.to_websafe_string().decode('utf-8'), more, orders)
+        return cls(cursor and cursor.to_websafe_string().decode('utf-8'), more, orders)
