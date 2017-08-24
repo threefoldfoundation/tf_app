@@ -1,7 +1,7 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpModule } from '@angular/http';
 import { MdButtonModule, MdIconModule, MdInputModule, MdListModule } from '@angular/material';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
@@ -23,7 +23,7 @@ const MATERIAL_IMPORTS = [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    HttpClientModule,
+    HttpModule,
     RouterModule,
     MultilingualModule,
     RouterModule.forChild(TffRoutes),

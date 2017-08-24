@@ -1,27 +1,31 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
 import { NodeOrder, NodeOrderList } from '../interfaces/nodes.interfaces';
 import { TffConfig } from './tff-config.service';
+import { Http } from '@angular/http';
+import { Observable } from 'rxjs/Observable';
 
 @Injectable()
 export class TffService {
 
-  constructor(private http: HttpClient) {
+  constructor(private http: Http) {
   }
 
-  getNodeOrders(cursor: string | null) {
-    let params = new HttpParams();
+  getNodeOrders(cursor: string | null): Observable<NodeOrderList> {
+    let params = new URLSearchParams();
     if (cursor) {
-      params = params.set('cursor', cursor);
+      params.append('cursor', cursor);
     }
-    return this.http.get<NodeOrderList>(`${TffConfig.API_URL}/orders`, { params });
+    return this.http.get(`${TffConfig.API_URL}/orders`, { params })
+      .map(response => response.json());
   }
 
-  getNodeOrder(orderId: string) {
-    return this.http.get<NodeOrder>(`${TffConfig.API_URL}/orders/${orderId}`);
+  getNodeOrder(orderId: string): Observable<NodeOrder> {
+    return this.http.get(`${TffConfig.API_URL}/orders/${orderId}`)
+      .map(response => response.json());
   }
 
-  updateNodeOrder(nodeOrder: NodeOrder) {
-    return this.http.put<NodeOrder>(`${TffConfig.API_URL}/orders/${nodeOrder.id}`, nodeOrder);
+  updateNodeOrder(nodeOrder: NodeOrder): Observable<NodeOrder> {
+    return this.http.put(`${TffConfig.API_URL}/orders/${nodeOrder.id}`, nodeOrder)
+      .map(response => response.json());
   }
 }

@@ -1,17 +1,18 @@
+import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
-import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
-import { ApiErrorResponse } from '../../../framework/client/sample/interfaces/rpc.interfaces';
-import { HttpResponse } from '@angular/common/http';
+import { ApiError, ApiRequestStatus } from '../interfaces/rpc.interfaces';
 
-export function transformErrorResponse(response: HttpResponse<ApiErrorResponse>): ApiRequestStatus {
-  let apiError = response.body;
-  if (!apiError) {
-    // Not a json response
+export function transformErrorResponse(response: Response): ApiRequestStatus {
+  let apiError: ApiError;
+  try {
+    apiError = response.json();
+  } catch (ignored) {
+    // Most likely a non-json response
     apiError = {
       status_code: response.status,
       error: response.statusText,
       data: {
-        response: response.body,
+        response: response.text(),
       },
     };
   }
@@ -22,6 +23,6 @@ export function transformErrorResponse(response: HttpResponse<ApiErrorResponse>)
   };
 }
 
-export function handleApiError(action: any, response: HttpResponse<ApiErrorResponse>) {
+export function handleApiError(action: any, response: Response) {
   return Observable.of(new action(transformErrorResponse(response)));
 }
