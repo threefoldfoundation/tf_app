@@ -20,7 +20,7 @@ import logging
 import urllib
 
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_username
+from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username
 from plugins.tff_backend.to.iyo.see import IYOSeeDocument, IYOSeeDocumentView
 from requests.exceptions import HTTPError
 

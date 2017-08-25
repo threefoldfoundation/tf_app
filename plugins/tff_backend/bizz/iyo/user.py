@@ -17,7 +17,7 @@
 
 import logging
 
-from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_username
+from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username
 from plugins.tff_backend.to.iyo.user import IYOUser
 
 

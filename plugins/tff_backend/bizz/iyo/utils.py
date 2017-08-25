@@ -17,8 +17,11 @@
 
 from google.appengine.api import users
 
+from framework.bizz.authentication import get_current_session
+from framework.models.session import Session
 from framework.plugin_loader import get_config
 from mcfw.rpc import returns, arguments
+from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_jwt
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.utils.app import get_human_user_from_app_user
@@ -40,3 +43,12 @@ def get_iyo_username(user):
         email = user.email
 
     return email.split('@')[0]
+
+
+def get_itsyouonline_client_from_username(username):
+    session = get_current_session()
+    if not session:
+        session = Session.create_key(username).get()
+    jwt = session and session.jwt
+    client = get_itsyouonline_client_from_jwt(jwt)
+    return client
