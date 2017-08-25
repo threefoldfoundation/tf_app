@@ -10,7 +10,7 @@
     <p>{{ 'tff.status' | translate}}: {{ getOrderStatus() }}</p>
     <p>{{ 'tff.modification_time' | translate }}: {{ nodeOrder.modification_time | timestamp }}</p>
     <p>{{ 'tff.order_time' | translate }}: {{ nodeOrder.order_time | timestamp }}</p>
-    <p *ngIf="[statuses.SENT, statuses.ARRIVED].includes(nodeOrder.status)">
+    <p *ngIf="[statuses.SENT, statuses.ARRIVED].includes(nodeOrder.status) && nodeOrder.send_time">
       {{ 'tff.send_time' | translate }}: {{ nodeOrder.send_time | timestamp }}
     </p>
     <p *ngIf="nodeOrder.status === statuses.ARRIVED">
