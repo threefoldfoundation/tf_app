@@ -18,7 +18,7 @@
     </p>
     <p *ngIf="nodeOrder.status === statuses.CANCELED">
       {{ 'tff.cancel_time' | translate }}: {{ nodeOrder.cancel_time | timestamp }}</p>
-    <div *ngIf="nodeOrder.status === statuses.SENT">
+    <div *ngIf="[statuses.SIGNED, statuses.SENT].includes(nodeOrder.status)">
       <img [src]="nodeOrder.arrival_qr_code_url" style="max-width: 400px;"/>
     </div>
     <button *ngIf="canCancel()" md-button (click)="cancelOrder()" color="warn">{{ 'tff.cancel_order' | translate }}
