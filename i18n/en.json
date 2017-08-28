@@ -1,0 +1,32 @@
+{
+  "Threefold Foundation": "Threefold Foundation",
+  "tff": {
+    "address": "Address",
+    "arrival_time": "Arrival time",
+    "arrived": "Arrived",
+    "back": "Back",
+    "cancel_order": "Cancel order",
+    "cancel_time": "Cancel time",
+    "canceled": "Canceled",
+    "created": "Created",
+    "i_am_a_member": "I am a member",
+    "i_am_new": "I am new here",
+    "load_more": "Load more",
+    "mark_as_sent": "Mark as sent",
+    "modification_time": "Modification time",
+    "modified_on": "Modified on",
+    "name": "name",
+    "node_order_x": "Node order {{ orderId }}",
+    "order_detail": "Order detail",
+    "order_time": "Order time",
+    "orders": "Orders",
+    "register_to_threefold": "Register to threefold",
+    "send_time": "Send time",
+    "sent": "Sent",
+    "sign_in_to_threefold": "Sign in to threefold",
+    "signed": "Signed",
+    "status": "Status",
+    "thats_an_error": "That's an error",
+    "threefold": "Threefold"
+  }
+}

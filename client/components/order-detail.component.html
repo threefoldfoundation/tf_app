@@ -1,0 +1,28 @@
+<div class="order-content">
+  <button md-button [routerLink]="['..']">
+    <md-icon>arrow_back</md-icon>
+    {{ 'tff.back' | translate }}
+  </button>
+  <div *ngIf="nodeOrder">
+    <h2>{{ 'tff.node_order_x' | translate : {orderId: nodeOrder.id} }}</h2>
+    <p>{{ 'tff.name' | translate}}: {{ nodeOrder.name }}</p>
+    <p>{{ 'tff.address' | translate}}: {{ nodeOrder.address }}</p>
+    <p>{{ 'tff.status' | translate}}: {{ getOrderStatus() }}</p>
+    <p>{{ 'tff.modification_time' | translate }}: {{ nodeOrder.modification_time | timestamp }}</p>
+    <p>{{ 'tff.order_time' | translate }}: {{ nodeOrder.order_time | timestamp }}</p>
+    <p *ngIf="[statuses.SENT, statuses.ARRIVED].includes(nodeOrder.status) && nodeOrder.send_time">
+      {{ 'tff.send_time' | translate }}: {{ nodeOrder.send_time | timestamp }}
+    </p>
+    <p *ngIf="nodeOrder.status === statuses.ARRIVED">
+      {{ 'tff.arrival_time' | translate }}: {{ nodeOrder.arrival_time | timestamp }}
+    </p>
+    <p *ngIf="nodeOrder.status === statuses.CANCELED">
+      {{ 'tff.cancel_time' | translate }}: {{ nodeOrder.cancel_time | timestamp }}</p>
+    <div *ngIf="[statuses.SIGNED, statuses.SENT].includes(nodeOrder.status)">
+      <img [src]="nodeOrder.arrival_qr_code_url" style="max-width: 400px;"/>
+    </div>
+    <button *ngIf="canCancel()" md-button (click)="cancelOrder()" color="warn">{{ 'tff.cancel_order' | translate }}
+    </button>
+    <button *ngIf="canMarkAsSent()" md-button (click)="markAsSent()">{{ 'tff.mark_as_sent' | translate }}</button>
+  </div>
+</div>
