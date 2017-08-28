@@ -62,7 +62,6 @@ def user_registered(user_detail, data):
     create_session(username, scopes, jwt, secret=username)
 
     deferred.defer(_invite_user, username)
-    deferred.defer(_store_name, username, user_detail)
 
 
 @returns()
@@ -81,7 +80,7 @@ def _invite_user(username):
 
 @returns()
 @arguments(username=unicode, user_detail=UserDetailsTO)
-def _store_name(username, user_detail):
+def store_name(username, user_detail):
     logging.info('Getting the user\'s name from IYO')
     iyo_user = get_user(username)
     if not iyo_user.firstname and not iyo_user.lastname:

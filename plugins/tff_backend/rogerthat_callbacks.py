@@ -28,8 +28,9 @@ from plugins.rogerthat_api.to.messaging.forms import FormResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     FormAcknowledgedCallbackResultTO
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed, node_arrived
-from plugins.tff_backend.bizz.user import user_registered, store_public_key
+from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_name
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
+
 
 TAG_MAPPING = {'order_node': order_node,
                'sign_order_node_tos': order_node_signed,
@@ -98,6 +99,8 @@ def friend_update(rt_settings, request_id, user_details, changed_properties, **k
 
 
 def friend_invite_result(rt_settings, request_id, params, response):
-    user_details = log_and_parse_user_details(params['user_details'])
-    if user_details[0].public_keys:
-        try_or_defer(store_public_key, user_details[0])
+    user_detail = log_and_parse_user_details(params['user_details'])[0]
+    username = user_detail.email.split('@')[0]
+    if user_detail.public_keys:
+        try_or_defer(store_public_key, user_detail)
+    try_or_defer(store_name, username, user_detail)
