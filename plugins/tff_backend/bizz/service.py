@@ -55,4 +55,4 @@ def get_role_id_by_name(api_key, role_name):
             return role.id
 
     logging.debug('Role "%s" not found. Creating...', role_name)
-    return system.put_role(api_key, role_name, RoleTO.TYPE_SYNCED)
+    return system.put_role(api_key, role_name, RoleTO.TYPE_MANAGED)
