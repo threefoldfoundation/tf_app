@@ -15,9 +15,13 @@
 #
 # @@license_version:1.3@@
 
+import logging
+
 from mcfw.cache import cached
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.api import system
+from plugins.rogerthat_api.to import BaseMemberTO, UserDetailsTO
+from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 
 
@@ -28,3 +32,27 @@ def get_main_branding_hash():
     api_key = get_rogerthat_api_key()
     si = system.get_identity(api_key)
     return si.description_branding
+
+
+@returns(unicode)
+@arguments(user_detail=UserDetailsTO, role_name=unicode)
+def add_user_to_role(user_detail, role_name):
+    logging.info('Adding user to role "%s"', role_name)
+    api_key = get_rogerthat_api_key()
+    role_id = get_role_id_by_name(api_key, role_name)
+    member = BaseMemberTO()
+    member.member = user_detail.email
+    member.app_id = user_detail.app_id
+    system.add_role_member(api_key, role_id, member)
+
+
+@cached(version=1, lifetime=86400, request=True, memcache=True)
+@returns(long)
+@arguments(api_key=unicode, role_name=unicode)
+def get_role_id_by_name(api_key, role_name):
+    for role in system.list_roles(api_key):
+        if role.name == role_name:
+            return role.id
+
+    logging.debug('Role "%s" not found. Creating...', role_name)
+    return system.put_role(api_key, role_name, RoleTO.TYPE_SYNCED)

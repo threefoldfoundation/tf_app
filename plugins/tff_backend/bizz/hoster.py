@@ -18,10 +18,9 @@ import base64
 import json
 import logging
 
-from google.appengine.ext import ndb, deferred
-
 from framework.plugin_loader import get_config
 from framework.utils import now, try_or_defer
+from google.appengine.ext import ndb, deferred
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -33,10 +32,11 @@ from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormRes
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, TYPE_FORM, \
     FormCallbackResultTypeTO, FormAcknowledgedCallbackResultTO, MessageCallbackResultTypeTO, TYPE_MESSAGE
 from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz.authentication import Roles
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
-from plugins.tff_backend.bizz.service import get_main_branding_hash
+from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
@@ -164,6 +164,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         FormAcknowledgedCallbackResultTO
     """
     try:
+        user_detail = user_details[0]
         tag_dict = json.loads(tag)
         order = NodeOrder.create_key(tag_dict['order_id']).get()  # type: NodeOrder
 
@@ -181,7 +182,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         message_signature = sign_result.payload_signature
 
         iyo_organization_id = get_iyo_organization_id()
-        iyo_username = get_iyo_username(user_details[0])
+        iyo_username = get_iyo_username(user_detail)
 
         logging.debug('Getting IYO SEE document %s', order.tos_iyo_see_id)
         doc = get_see_document(iyo_organization_id, iyo_username, order.tos_iyo_see_id)
@@ -190,7 +191,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
                                       uniqueid=doc.uniqueid,
                                       **serialize_complex_value(doc.versions[-1], IYOSeeDocumenVersion, False))
         doc_view.signature = message_signature
-        keystore_label = get_publickey_label(sign_result.public_key.public_key, user_details[0])
+        keystore_label = get_publickey_label(sign_result.public_key.public_key, user_detail)
         if not keystore_label:
             return _create_error_message(FormAcknowledgedCallbackResultTO())
         doc_view.keystore_label = keystore_label
@@ -204,6 +205,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         order.put()
 
         # TODO: send mail to TF support
+        deferred.defer(add_user_to_role, user_detail, Roles.HOSTER)
 
         logging.debug('Sending confirmation message')
         message = MessageCallbackResultTypeTO()
