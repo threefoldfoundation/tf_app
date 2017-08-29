@@ -33,7 +33,10 @@ class NodeOrder(NdbModel):
 
     app_user = ndb.UserProperty()
     name = ndb.StringProperty(indexed=False)
-    address = ndb.StringProperty(indexed=False)
+    email = ndb.StringProperty(indexed=False)
+    phone = ndb.StringProperty(indexed=False)
+    billing_address = ndb.StringProperty(indexed=False)
+    shipping_address = ndb.StringProperty(indexed=False)
 
     status = ndb.IntegerProperty(default=STATUS_CREATED)
     tos_iyo_see_id = ndb.StringProperty(indexed=False)

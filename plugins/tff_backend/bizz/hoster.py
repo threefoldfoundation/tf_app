@@ -55,8 +55,11 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
     try:
         logging.info('Receiving order of Zero-Node')
 
-        address = get_step_value(steps, 'message_address')
         name = get_step_value(steps, 'message_name')
+        email = get_step_value(steps, 'message_email')
+        phone = get_step_value(steps, 'message_phone')
+        billing_address = get_step_value(steps, 'message_billing_address')
+        shipping_address = get_step_value(steps, 'message_shipping_address')
 
         order_key = NodeOrder.create_key()
 
@@ -81,10 +84,13 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 
         def trans():
             order = NodeOrder(key=order_key,
-                              address=address,
                               app_user=create_app_user_by_email(user_details[0].email, user_details[0].app_id),
                               tos_iyo_see_id=iyo_see_doc.uniqueid,
                               name=name,
+                              email=email,
+                              phone=phone,
+                              billing_address=billing_address,
+                              shipping_address=shipping_address,
                               order_time=now(),
                               status=NodeOrder.STATUS_CREATED)
             order.put()

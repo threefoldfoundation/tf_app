@@ -27,7 +27,10 @@ class NodeOrderTO(TO):
     id = long_property('id')
     app_user = unicode_property('app_user')
     name = unicode_property('name')
-    address = unicode_property('address')
+    email = unicode_property('email')
+    phone = unicode_property('phone')
+    billing_address = unicode_property('billing_address')
+    shipping_address = unicode_property('shipping_address')
     status = long_property('status')
     tos_iyo_see_id = unicode_property('tos_iyo_see_id')
     signature_payload = unicode_property('signature_payload')
@@ -40,9 +43,11 @@ class NodeOrderTO(TO):
     modification_time = long_property('modification_time')
     arrival_qr_code_url = unicode_property('arrival_qr_code_url')
 
-    def __init__(self, id=None, app_user=None, name=None, address=None, status=None, tos_iyo_see_id=None,
-                 signature_payload=None, signature=None, order_time=None, sign_time=None, send_time=None,
-                 arrival_time=None, cancel_time=None, modification_time=None, arrival_qr_code_url=None):
+    def __init__(self, id=None, app_user=None, name=None, email=None, phone=None,
+                 billing_address=None, shipping_address=None, status=None, tos_iyo_see_id=None,
+                 signature_payload=None, signature=None, order_time=None, sign_time=None,
+                 send_time=None,  arrival_time=None, cancel_time=None, modification_time=None,
+                 arrival_qr_code_url=None):
         for prop, val in locals().iteritems():
             setattr(self, prop, val)
 
