@@ -80,21 +80,32 @@ def _invite_user(username):
 
 @returns()
 @arguments(username=unicode, user_detail=UserDetailsTO)
-def store_name(username, user_detail):
-    logging.info('Getting the user\'s name from IYO')
+def store_iyo_info_in_userdata(username, user_detail):
+    logging.info('Getting the user\'s info from IYO')
     iyo_user = get_user(username)
-    if not iyo_user.firstname and not iyo_user.lastname:
-        logging.debug('There is no firstname and lastname in %s', repr(iyo_user))
-        return
 
-    name = '%s %s' % (iyo_user.firstname, iyo_user.lastname)
-    logging.info('Storing name "%s" in user_data', name)  # used for pre-filling message flows
     api_key = get_rogerthat_api_key()
-    user_data = system.get_user_data(api_key, user_detail.email, user_detail.app_id, ['name'])
-    if user_data.get('name'):
-        logging.debug('The name was already stored in user_data')
-    else:
-        user_data = dict(name=name)
+    user_data_keys = ['name', 'email', 'phone', 'address']
+    current_user_data = system.get_user_data(api_key, user_detail.email, user_detail.app_id, user_data_keys)
+
+    user_data = dict()
+    if not current_user_data.get('name') and iyo_user.firstname and iyo_user.lastname:
+        user_data['name'] = u'%s %s' % (iyo_user.firstname, iyo_user.lastname)
+
+    if not current_user_data.get('email') and iyo_user.validatedemailaddresses:
+        user_data['email'] = iyo_user.validatedemailaddresses[0].emailaddress
+
+    if not current_user_data.get('phone') and iyo_user.validatedphonenumbers:
+        user_data['phone'] = iyo_user.validatedphonenumbers[0].phonenumber
+
+    if not current_user_data.get('address') and iyo_user.addresses:
+        user_data['address'] = u'%s %s' % (iyo_user.addresses[0].street, iyo_user.addresses[0].nr)
+        user_data['address'] += u'\n%s %s' % (iyo_user.addresses[0].postalcode, iyo_user.addresses[0].city)
+        user_data['address'] += u'\n%s' % iyo_user.addresses[0].country
+        if iyo_user.addresses[0].other
+            user_data['address'] += u'\n\n%s' % iyo_user.addresses[0].other
+
+    if user_data:
         system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
 
 
