@@ -102,7 +102,7 @@ def store_iyo_info_in_userdata(username, user_detail):
         user_data['address'] = u'%s %s' % (iyo_user.addresses[0].street, iyo_user.addresses[0].nr)
         user_data['address'] += u'\n%s %s' % (iyo_user.addresses[0].postalcode, iyo_user.addresses[0].city)
         user_data['address'] += u'\n%s' % iyo_user.addresses[0].country
-        if iyo_user.addresses[0].other
+        if iyo_user.addresses[0].other:
             user_data['address'] += u'\n\n%s' % iyo_user.addresses[0].other
 
     if user_data:
