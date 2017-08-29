@@ -27,7 +27,7 @@ from plugins.tff_backend.api import nodes
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.index import IndexPageHandler
-
+from plugins.tff_backend.handlers.cna import CNAHandler
 
 class TffBackendPlugin(BrandingPlugin):
     def __init__(self, configuration):
@@ -45,7 +45,7 @@ class TffBackendPlugin(BrandingPlugin):
                                        trigger_only=True)
 
     def get_handlers(self, auth):
-        yield Handler('/', IndexPageHandler)
+        yield Handler('/', CNAHandler)
         for url, handler in rest_functions(nodes, authentication=AUTHENTICATED):
             yield Handler(url=url, handler=handler)
 

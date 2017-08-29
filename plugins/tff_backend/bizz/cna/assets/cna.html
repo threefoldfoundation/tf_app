@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width"/>
+    <style>
+        .clearfix {
+            *zoom: 1;
+        }
+
+        .clearfix:before,
+        .clearfix:after {
+            display: table;
+            line-height: 0;
+            content: "";
+        }
+
+        .clearfix:after {
+            clear: both;
+        }
+
+        .bordered td {
+            border: 0.3pt solid black;
+        }
+
+        .no-border-bottom {
+            border-bottom: none;
+        }
+
+        .no-border-top {
+            border-top: none;
+        }
+
+        .text-bold {
+            font-weight: bold;
+        }
+
+        @page {
+            margin: 2cm;
+            margin-bottom: 3.5cm;
+            @frame header_frame {
+                -pdf-frame-content: headerContent;
+                left: 50pt; width: 512pt; top: 50pt; height: 40pt;
+            }
+            @frame footer_frame {
+                -pdf-frame-content: footerContent;
+                bottom: 2cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 1cm;
+            }
+        }
+
+        .logo {
+            zoom: 80%;
+        }
+    </style>
+</head>
+
+<body>
+<!-- <style> -->
+
+<div id="headerContent" align="center">
+    <img class="logo" src="{{ logo_path }}" width="200" height="200"/>
+    <h1>Internal Token Offering - Investment Agreement</h1>
+</div>
+<div id="footerContent" align="right">
+    <pdf:pagenumber> / <pdf:pagecount>
+</div>
+
+<div id="p1">
+    <h2>Content page 1</h2>
+    <p>{{ param_1 }}</p>
+</div>
+
+<pdf:nextpage/>
+<div id="p2">
+    <h2>Content page 2</h2>
+    <<p>{{ param_2 }}</p>
+</div>
+
+<pdf:nextpage/>
+<div id="p3">
+    <h2>Content page 3</h2>
+    <p>{{ param_3 }}</p>
+</div>
+</body>
+</html>
