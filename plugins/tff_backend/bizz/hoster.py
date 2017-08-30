@@ -43,6 +43,7 @@ from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVers
 from plugins.tff_backend.to.nodes import NodeOrderTO
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email
+from plugins.tff_backend.bizz.cna import create_cna_pdf
 
 
 @returns(FlowMemberResultCallbackResultTO)
@@ -60,6 +61,9 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
         phone = get_step_value(steps, 'message_phone')
         billing_address = get_step_value(steps, 'message_billing_address')
         shipping_address = get_step_value(steps, 'message_shipping_address')
+
+        pdf_contents = create_cna_pdf(name)
+        # todo store pdf on IPFS
 
         order_key = NodeOrder.create_key()
 

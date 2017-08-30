@@ -11,12 +11,10 @@ except ImportError:
 ASSETS_FOLDER = os.path.join(os.path.dirname(__file__), 'assets')
 JINJA_ENVIRONMENT = jinja2.Environment(loader=jinja2.FileSystemLoader([ASSETS_FOLDER]))
 
-def get_cna_stream():
+def create_cna_pdf(name):
     template_variables = {
         'logo_path': 'assets/logo.jpg',
-        'param_1': 'A',
-        'param_2': 'B',
-        'param_3': 'C'
+        'name': name
     }
 
     source_html = JINJA_ENVIRONMENT.get_template('cna.html').render(template_variables)
