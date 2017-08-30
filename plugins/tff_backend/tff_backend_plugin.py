@@ -28,7 +28,6 @@ from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.index import IndexPageHandler
 
-
 class TffBackendPlugin(BrandingPlugin):
     def __init__(self, configuration):
         super(TffBackendPlugin, self).__init__(configuration)
