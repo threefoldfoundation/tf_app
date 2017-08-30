@@ -26,7 +26,9 @@ from plugins.tff_backend import rogerthat_callbacks
 from plugins.tff_backend.api import nodes
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes
 from plugins.tff_backend.configuration import TffConfiguration
+from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
+
 
 class TffBackendPlugin(BrandingPlugin):
     def __init__(self, configuration):
@@ -37,6 +39,7 @@ class TffBackendPlugin(BrandingPlugin):
         assert (isinstance(rogerthat_api_plugin, RogerthatApiPlugin))
         rogerthat_api_plugin.subscribe('messaging.flow_member_result', rogerthat_callbacks.flow_member_result)
         rogerthat_api_plugin.subscribe('messaging.form_update', rogerthat_callbacks.form_update)
+        rogerthat_api_plugin.subscribe('friend.is_in_roles', rogerthat_callbacks.friend_is_in_roles)
         rogerthat_api_plugin.subscribe('friend.update', rogerthat_callbacks.friend_update)
         rogerthat_api_plugin.subscribe('friend.invite', rogerthat_callbacks.friend_invite)
         rogerthat_api_plugin.subscribe('friend.register', rogerthat_callbacks.friend_register, trigger_only=True)
@@ -47,6 +50,8 @@ class TffBackendPlugin(BrandingPlugin):
         yield Handler('/', IndexPageHandler)
         for url, handler in rest_functions(nodes, authentication=AUTHENTICATED):
             yield Handler(url=url, handler=handler)
+        if auth == Handler.AUTH_ADMIN:
+            yield Handler(url='/admin/cron/tff_backend/rebuild_synced_roles', handler=RebuildSyncedRolesHandler)
 
     def get_client_routes(self):
         return ['/orders<route:.*>']

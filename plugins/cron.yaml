@@ -1,0 +1,4 @@
+cron:
+- description: Rebuild synced roles
+  url: /admin/cron/tff_backend/rebuild_synced_roles
+  schedule: every day 02:00
