@@ -80,8 +80,8 @@ class NodeOrder(NdbModel):
         return id_str
 
     @classmethod
-    def get_by_id(cls, id, parent=None, **ctx_options):
-        return super(NodeOrder, cls).get_by_id(id, parent=parent, namespace=NAMESPACE, **ctx_options)
+    def get_by_id(cls, ids, parent=None, **ctx_options):
+        return super(NodeOrder, cls).get_by_id(ids, parent=parent, namespace=NAMESPACE, **ctx_options)
 
     @classmethod
     def list(cls):

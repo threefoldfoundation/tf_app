@@ -20,19 +20,21 @@ import logging
 
 from framework.plugin_loader import get_config
 from framework.utils import now, try_or_defer
+from google.appengine.api import users
 from google.appengine.ext import ndb, deferred
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.rogerthat_api.api import qr
+from plugins.rogerthat_api.api import qr, messaging
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.messaging import AttachmentTO, Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
-from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, TYPE_FORM, \
-    FormCallbackResultTypeTO, FormAcknowledgedCallbackResultTO, MessageCallbackResultTypeTO, TYPE_MESSAGE
+from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
+    FormAcknowledgedCallbackResultTO, MessageCallbackResultTypeTO, TYPE_MESSAGE
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Roles
+from plugins.tff_backend.bizz.cna import create_cna_pdf
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
@@ -42,9 +44,8 @@ from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.to.nodes import NodeOrderTO
 from plugins.tff_backend.utils import get_step_value
-from plugins.tff_backend.utils.app import create_app_user_by_email
-from plugins.tff_backend.bizz.cna import create_cna_pdf
-import ipfsapi
+from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+
 
 @returns()
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
@@ -65,18 +66,18 @@ def _order_node(app_user, steps):
     billing_address = get_step_value(steps, 'message_billing_address')
     shipping_address = get_step_value(steps, 'message_shipping_address')
 
-    logging.debug('Creating CNA document')
-    pdf_contents = create_cna_pdf(name)
-    logging.debug('Stroring IPFS document')
-    api = ipfsapi.connect("https://gateway.ipfs.io", 443, "api/v0")
-    ipfs_res = api.block_put(pdf_contents)
-    logging.debug('IPFS result: %s', ipfs_res)
+# TODO: create in ipfs
+#     logging.debug('Creating CNA document')
+#     pdf_contents = create_cna_pdf(name)
+#     logging.debug('Stroring IPFS document')
+#     api = ipfsapi.connect("https://gateway.ipfs.io", 443, "api/v0")
+#     ipfs_res = api.block_put(pdf_contents)
+#     logging.debug('IPFS result: %s', ipfs_res)
     cfg = get_config(NAMESPACE)
     ipfs_link = cfg.tos.order_node
 
-    order_key = NodeOrder.create_key()
-
     logging.debug('Storing order in the database')
+    order_key = NodeOrder.create_key()
     def trans():
         order = NodeOrder(key=order_key,
                           app_user=app_user,
@@ -117,20 +118,21 @@ def _order_node_iyo_see(app_user, order_key, ipfs_link):
         order = order_key.get()
         order.tos_iyo_see_id = iyo_see_doc.uniqueid
         order.put()
-        deferred.defer(_send_order_node_sign_message, order_key.id(), ipfs_link, attachment_name, _transactional=True)
+        deferred.defer(_send_order_node_sign_message, app_user, order_key.id(), ipfs_link, attachment_name,
+                       _transactional=True)
 
     ndb.transaction(trans)
 
 
 @returns()
-@arguments(order_id=(int, long), ipfs_link=unicode, attachment_name=unicode)
-def _send_order_node_sign_message(order_id, ipfs_link, attachment_name):
+@arguments(app_user=users.User, order_id=(int, long), ipfs_link=unicode, attachment_name=unicode)
+def _send_order_node_sign_message(app_user, order_id, ipfs_link, attachment_name):
     logging.debug('Sending SIGN widget to app user')
     widget = SignTO()
     widget.algorithm = KEY_ALGORITHM
     widget.caption = u'Please enter your PIN code to digitally sign the terms and conditions'
     widget.key_name = KEY_NAME
-    widget.payload = base64.b64encode(cfg.tos.order_node).decode('utf-8')
+    widget.payload = base64.b64encode(ipfs_link).decode('utf-8')
 
     form = SignFormTO()
     form.negative_button = u'Abort'
@@ -145,17 +147,20 @@ def _send_order_node_sign_message(order_id, ipfs_link, attachment_name):
     attachment.download_url = ipfs_link
     attachment.name = attachment_name
 
-    message = FormCallbackResultTypeTO()
-    message.alert_flags = Message.ALERT_FLAG_VIBRATE
-    message.attachments = [attachment]
-    message.branding = get_main_branding_hash()
-    message.flags = 0
-    message.form = form
-    message.message = u'Please review the terms and conditions and press the "Sign" button to accept.'
-    message.step_id = u'sign_order_node_tos'
-    message.tag = json.dumps({u'__rt__.tag': u'sign_order_node_tos',
-                              u'order_id': order_id}).decode('utf-8')
-
+    member_user, app_id = get_app_user_tuple(app_user)
+    messaging.send_form(api_key=get_rogerthat_api_key(),
+                        parent_message_key=None,
+                        member=member_user.email(),
+                        message=u'Please review the terms and conditions and press the "Sign" button to accept.',
+                        form=form,
+                        flags=0,
+                        alert_flags=Message.ALERT_FLAG_VIBRATE,
+                        branding=get_main_branding_hash(),
+                        tag=json.dumps({u'__rt__.tag': u'sign_order_node_tos',
+                                        u'order_id': order_id}).decode('utf-8'),
+                        attachments=[attachment],
+                        app_id=app_id,
+                        step_id=u'sign_order_node_tos')
 
 @returns(FormAcknowledgedCallbackResultTO)
 @arguments(status=int, form_result=FormResultTO, answer_id=unicode, member=unicode, message_key=unicode, tag=unicode,
@@ -197,7 +202,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
 
         sign_result = form_result.result.get_value()
         assert isinstance(sign_result, SignWidgetResultTO)
-        message_signature = sign_result.payload_signature
+        payload_signature = sign_result.payload_signature
 
         iyo_organization_id = get_iyo_organization_id()
         iyo_username = get_iyo_username(user_detail)
@@ -208,7 +213,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
                                       globalid=doc.globalid,
                                       uniqueid=doc.uniqueid,
                                       **serialize_complex_value(doc.versions[-1], IYOSeeDocumenVersion, False))
-        doc_view.signature = message_signature
+        doc_view.signature = payload_signature
         keystore_label = get_publickey_label(sign_result.public_key.public_key, user_detail)
         if not keystore_label:
             return _create_error_message(FormAcknowledgedCallbackResultTO())
@@ -218,7 +223,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
 
         logging.debug('Storing signature in DB')
         order.populate(status=NodeOrder.STATUS_SIGNED,
-                       signature=message_signature,
+                       signature=payload_signature,
                        sign_time=now())
         order.put()
 
@@ -241,7 +246,6 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         result = FormAcknowledgedCallbackResultTO()
         result.type = TYPE_MESSAGE
         result.value = message
-        # todo invite to users.hosters organization
         return result
     except:
         logging.exception('An unexpected error occurred')
@@ -255,8 +259,8 @@ def get_publickey_label(public_key, user_details):
         return mapping.label
     else:
         logging.error('No PublicKeyMapping found! falling back to doing a request to itsyou.online')
-        keystore = get_keystore(get_iyo_username(user_details))
-        results = filter(lambda key: public_key in key, keystore)  # some stuff is prepended to the key
+        iyo_keys = get_keystore(get_iyo_username(user_details))
+        results = filter(lambda k: public_key in k.key, iyo_keys)  # some stuff is prepended to the key
         if len(results):
             return results[0].label
         else:

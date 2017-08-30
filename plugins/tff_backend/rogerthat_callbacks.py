@@ -28,14 +28,17 @@ from plugins.rogerthat_api.to.messaging.forms import FormResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     FormAcknowledgedCallbackResultTO
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed, node_arrived
-from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_iyo_info_in_userdata
+from plugins.tff_backend.bizz.investor import invest, investment_agreement_signed
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_iyo_info_in_userdata
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 
 
 TAG_MAPPING = {'order_node': order_node,
                'sign_order_node_tos': order_node_signed,
                'node_arrival': node_arrived,
+               'invest': invest,
+               'sign_investment_agreement': investment_agreement_signed,
                }
 
 

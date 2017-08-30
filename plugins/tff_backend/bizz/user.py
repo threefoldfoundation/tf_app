@@ -23,7 +23,7 @@ from google.appengine.ext import deferred
 from framework.bizz.session import create_session
 from framework.plugin_loader import get_config
 from mcfw.consts import MISSING
-from mcfw.rpc import returns, arguments, serialize_complex_value
+from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client
 from plugins.its_you_online_auth.libs.itsyouonline.AddOrganizationMemberReqBody import AddOrganizationMemberReqBody
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
@@ -38,6 +38,7 @@ from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
 from requests.exceptions import HTTPError
+from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
 
 @returns()
@@ -114,25 +115,22 @@ def store_iyo_info_in_userdata(username, user_detail):
 def store_public_key(user_detail):
     # type: (UserDetailsTO) -> None
     logging.info('Storing %s key in IYO for user %s:%s', KEY_NAME, user_detail.email, user_detail.app_id)
-    username = get_iyo_username(user_detail)
-    keystore = get_keystore(username)
-    used_labels = [key.label for key in keystore]
-    saved_keys = []
 
     for rt_key in user_detail.public_keys:
-        for iyo_key in keystore:
-            if iyo_key.key == rt_key.public_key:
-                saved_keys.append(iyo_key.key)
-                break
-
-    for rt_key in user_detail.public_keys:
-        if rt_key not in saved_keys:
-            # we found the new key
+        if rt_key.name == KEY_NAME and rt_key.algorithm == KEY_ALGORITHM:
             break
     else:
-        logging.error('No new key to store starting with name "%s" and algorithm "%s" in %s', KEY_NAME, KEY_ALGORITHM,
-                      serialize_complex_value(user_detail, UserDetailsTO, False, skip_missing=True))
+        raise PermanentTaskFailure('No key with name "%s" and algorithm "%s" in %s'
+                                   % (KEY_NAME, KEY_ALGORITHM, repr(user_detail)))
+
+    username = get_iyo_username(user_detail)
+    keys = get_keystore(username)
+    if any(True for iyo_key in keys if iyo_key.key == rt_key.public_key):
+        logging.info('No new key to store starting with name "%s" and algorithm "%s" in %s',
+                     KEY_NAME, KEY_ALGORITHM, repr(user_detail))
         return
+
+    used_labels = [key.label for key in keys]
     label = KEY_NAME
     suffix = 2
     while label in used_labels:
