@@ -44,103 +44,117 @@ from plugins.tff_backend.to.nodes import NodeOrderTO
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email
 from plugins.tff_backend.bizz.cna import create_cna_pdf
+import ipfsapi
 
-
-@returns(FlowMemberResultCallbackResultTO)
+@returns()
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
            flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
            flow_params=unicode)
 def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
                flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    try:
-        logging.info('Receiving order of Zero-Node')
+    app_user = create_app_user_by_email(user_details[0].email, user_details[0].app_id)
+    deferred.defer(_order_node, app_user, steps)
 
-        name = get_step_value(steps, 'message_name')
-        email = get_step_value(steps, 'message_email')
-        phone = get_step_value(steps, 'message_phone')
-        billing_address = get_step_value(steps, 'message_billing_address')
-        shipping_address = get_step_value(steps, 'message_shipping_address')
 
-        pdf_contents = create_cna_pdf(name)
-        # todo store pdf on IPFS
+def _order_node(app_user, steps):
+    logging.info('Receiving order of Zero-Node')
+    name = get_step_value(steps, 'message_name')
+    email = get_step_value(steps, 'message_email')
+    phone = get_step_value(steps, 'message_phone')
+    billing_address = get_step_value(steps, 'message_billing_address')
+    shipping_address = get_step_value(steps, 'message_shipping_address')
 
-        order_key = NodeOrder.create_key()
+    logging.debug('Creating CNA document')
+    pdf_contents = create_cna_pdf(name)
+    logging.debug('Stroring IPFS document')
+    api = ipfsapi.connect("https://gateway.ipfs.io", 443, "api/v0")
+    ipfs_res = api.block_put(pdf_contents)
+    logging.debug('IPFS result: %s', ipfs_res)
+    cfg = get_config(NAMESPACE)
+    ipfs_link = cfg.tos.order_node
 
-        cfg = get_config(NAMESPACE)
-        iyo_username = get_iyo_username(user_details[0])
-        organization_id = get_iyo_organization_id()
+    order_key = NodeOrder.create_key()
 
-        iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
-                                         globalid=organization_id,
-                                         uniqueid=u'Zero-Node order %s' % NodeOrder.create_human_readable_id(
-                                             order_key.id()),
-                                         version=1,
-                                         category=u'Terms and conditions',
-                                         link=cfg.tos.order_node,
-                                         content_type=u'application/pdf',
-                                         markdown_short_description=u'Terms and conditions for ordering a Zero-Node',
-                                         markdown_full_description=u'Terms and conditions for ordering a Zero-Node')
-        logging.debug('Creating IYO SEE document: %s', iyo_see_doc)
-        iyo_see_doc = create_see_document(iyo_username, iyo_see_doc)
+    logging.debug('Storing order in the database')
+    def trans():
+        order = NodeOrder(key=order_key,
+                          app_user=app_user,
+                          tos_iyo_see_id=None,
+                          name=name,
+                          email=email,
+                          phone=phone,
+                          billing_address=billing_address,
+                          shipping_address=shipping_address,
+                          order_time=now(),
+                          status=NodeOrder.STATUS_CREATED)
+        order.put()
+        deferred.defer(_create_order_arrival_qr, order_key.id(), _transactional=True)
+        deferred.defer(_order_node_iyo_see, app_user, order_key, ipfs_link, _transactional=True)
 
-        logging.debug('Storing order in the database')
+    ndb.transaction(trans)
 
-        def trans():
-            order = NodeOrder(key=order_key,
-                              app_user=create_app_user_by_email(user_details[0].email, user_details[0].app_id),
-                              tos_iyo_see_id=iyo_see_doc.uniqueid,
-                              name=name,
-                              email=email,
-                              phone=phone,
-                              billing_address=billing_address,
-                              shipping_address=shipping_address,
-                              order_time=now(),
-                              status=NodeOrder.STATUS_CREATED)
-            order.put()
-            deferred.defer(_create_order_arrival_qr, order.id, _transactional=True)
-            return order
+def _order_node_iyo_see(app_user, order_key, ipfs_link):
+    iyo_username = get_iyo_username(app_user)
+    organization_id = get_iyo_organization_id()
 
-        order = ndb.transaction(trans)
+    iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
+                                     globalid=organization_id,
+                                     uniqueid=u'Zero-Node order %s' % NodeOrder.create_human_readable_id(
+                                         order_key.id()),
+                                     version=1,
+                                     category=u'Terms and conditions',
+                                     link=ipfs_link,
+                                     content_type=u'application/pdf',
+                                     markdown_short_description=u'Terms and conditions for ordering a Zero-Node',
+                                     markdown_full_description=u'Terms and conditions for ordering a Zero-Node')
+    logging.debug('Creating IYO SEE document: %s', iyo_see_doc)
+    iyo_see_doc = create_see_document(iyo_username, iyo_see_doc)
 
-        logging.debug('Sending SIGN widget to app user')
-        widget = SignTO()
-        widget.algorithm = KEY_ALGORITHM
-        widget.caption = u'Please enter your PIN code to digitally sign the terms and conditions'
-        widget.key_name = KEY_NAME
-        widget.payload = base64.b64encode(cfg.tos.order_node).decode('utf-8')
+    attachment_name = u' - '.join([iyo_see_doc.uniqueid, iyo_see_doc.category])
 
-        form = SignFormTO()
-        form.negative_button = u'Abort'
-        form.negative_button_ui_flags = 0
-        form.positive_button = u'Accept'
-        form.positive_button_ui_flags = Message.UI_FLAG_EXPECT_NEXT_WAIT_5
-        form.type = SignTO.TYPE
-        form.widget = widget
+    def trans():
+        order = order_key.get()
+        order.tos_iyo_see_id = iyo_see_doc.uniqueid
+        order.put()
+        deferred.defer(_send_order_node_sign_message, order_key.id(), ipfs_link, attachment_name, _transactional=True)
 
-        attachment = AttachmentTO()
-        attachment.content_type = u'application/pdf'
-        attachment.download_url = iyo_see_doc.link
-        attachment.name = u' - '.join([iyo_see_doc.uniqueid, iyo_see_doc.category])
+    ndb.transaction(trans)
 
-        message = FormCallbackResultTypeTO()
-        message.alert_flags = Message.ALERT_FLAG_VIBRATE
-        message.attachments = [attachment]
-        message.branding = get_main_branding_hash()
-        message.flags = 0
-        message.form = form
-        message.message = u'Please review the terms and conditions and press the "Sign" button to accept.'
-        message.step_id = u'sign_order_node_tos'
-        message.tag = json.dumps({u'__rt__.tag': u'sign_order_node_tos',
-                                  u'order_id': order.id}).decode('utf-8')
 
-        result = FlowMemberResultCallbackResultTO()
-        result.type = TYPE_FORM
-        result.value = message
-        return result
-    except:
-        logging.exception('An unexpected error occurred')
-        return _create_error_message(FlowMemberResultCallbackResultTO())
+@returns()
+@arguments(order_id=(int, long), ipfs_link=unicode, attachment_name=unicode)
+def _send_order_node_sign_message(order_id, ipfs_link, attachment_name):
+    logging.debug('Sending SIGN widget to app user')
+    widget = SignTO()
+    widget.algorithm = KEY_ALGORITHM
+    widget.caption = u'Please enter your PIN code to digitally sign the terms and conditions'
+    widget.key_name = KEY_NAME
+    widget.payload = base64.b64encode(cfg.tos.order_node).decode('utf-8')
+
+    form = SignFormTO()
+    form.negative_button = u'Abort'
+    form.negative_button_ui_flags = 0
+    form.positive_button = u'Accept'
+    form.positive_button_ui_flags = Message.UI_FLAG_EXPECT_NEXT_WAIT_5
+    form.type = SignTO.TYPE
+    form.widget = widget
+
+    attachment = AttachmentTO()
+    attachment.content_type = u'application/pdf'
+    attachment.download_url = ipfs_link
+    attachment.name = attachment_name
+
+    message = FormCallbackResultTypeTO()
+    message.alert_flags = Message.ALERT_FLAG_VIBRATE
+    message.attachments = [attachment]
+    message.branding = get_main_branding_hash()
+    message.flags = 0
+    message.form = form
+    message.message = u'Please review the terms and conditions and press the "Sign" button to accept.'
+    message.step_id = u'sign_order_node_tos'
+    message.tag = json.dumps({u'__rt__.tag': u'sign_order_node_tos',
+                              u'order_id': order_id}).decode('utf-8')
 
 
 @returns(FormAcknowledgedCallbackResultTO)
