@@ -13,13 +13,13 @@ JINJA_ENVIRONMENT = jinja2.Environment(loader=jinja2.FileSystemLoader([ASSETS_FO
 
 def get_cna_stream():
     template_variables = {
-        'logo_path': 'assets/logo.png',
+        'logo_path': 'assets/logo.jpg',
         'param_1': 'A',
         'param_2': 'B',
         'param_3': 'C'
     }
 
-    source_html = JINJA_ENVIRONMENT.get_template('assets/cna.html').render(template_variables)
+    source_html = JINJA_ENVIRONMENT.get_template('cna.html').render(template_variables)
 
     output_stream = StringIO()
     pisa.CreatePDF(src=source_html, dest=output_stream, path='%s' % ASSETS_FOLDER)

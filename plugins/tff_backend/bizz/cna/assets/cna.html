@@ -37,14 +37,18 @@
 
         @page {
             margin: 2cm;
+            margin-top: 5.5cm;
             margin-bottom: 3.5cm;
             @frame header_frame {
                 -pdf-frame-content: headerContent;
-                left: 50pt; width: 512pt; top: 50pt; height: 40pt;
+                top: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 3cm;
             }
             @frame footer_frame {
                 -pdf-frame-content: footerContent;
-                bottom: 2cm;
+                bottom: 1cm;
                 margin-left: 2cm;
                 margin-right: 2cm;
                 height: 1cm;
@@ -52,7 +56,12 @@
         }
 
         .logo {
-            zoom: 80%;
+            zoom: 16%;
+        }
+
+        .title {
+            margin-top: 25pt;
+            font-size: 15pt;
         }
     </style>
 </head>
@@ -61,22 +70,23 @@
 <!-- <style> -->
 
 <div id="headerContent" align="center">
-    <img class="logo" src="{{ logo_path }}" width="200" height="200"/>
-    <h1>Internal Token Offering - Investment Agreement</h1>
+    <img class="logo" src="{{ logo_path }}" width="895" height="222"/>
+    <p class="title">Internal Token Offering - Investment Agreement</p>
 </div>
-<div id="footerContent" align="right">
-    <pdf:pagenumber> / <pdf:pagecount>
+<div id="footerContent" align="left">
+    Document Version 1.1
 </div>
 
 <div id="p1">
-    <h2>Content page 1</h2>
-    <p>{{ param_1 }}</p>
+    <p>This Investment Agreement (hereinafter referred to as the <b>“Agreemeent“</b>) is entered into on this NNth day of JULY 2017 (the <b>“Effective Date“</b>), by and between:</p>
+    <p><b>Investor</b>,</p>
+    <p>(when a corporate entity)</p>
 </div>
 
 <pdf:nextpage/>
 <div id="p2">
     <h2>Content page 2</h2>
-    <<p>{{ param_2 }}</p>
+    <p>{{ param_2 }}</p>
 </div>
 
 <pdf:nextpage/>
