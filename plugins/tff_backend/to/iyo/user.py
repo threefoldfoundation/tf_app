@@ -83,6 +83,7 @@ class IYOUser(TO):
         self.lastname = convert_to_unicode(lastname)
         self.publicKeys = [PublicKey(**public_key) for public_key in (publicKeys or [])]
         self.expire = convert_to_unicode(expire)
-        self.validatedEmailAddresses = [EmailAddress(**email_address) for email_address in (validatedEmailAddresses or [])]
+        self.validatedEmailAddresses = [EmailAddress(**email_address) for email_address in
+                                        (validatedEmailAddresses or [])]
         self.validatedPhoneNumbers = [Phonenumber(**phone_number) for phone_number in (validatedPhoneNumbers or [])]
         self.addresses = [Address(**address) for address in (addresses or [])]

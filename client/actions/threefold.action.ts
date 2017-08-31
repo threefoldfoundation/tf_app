@@ -2,7 +2,7 @@ import { Action } from '@ngrx/store';
 import { NodeOrder } from '../interfaces/index';
 import { type } from '../../../framework/client/core/utils/type';
 import { ApiErrorResponse } from '../../../framework/client/sample/interfaces/rpc.interfaces';
-import { NodeOrderList } from '../interfaces/nodes.interfaces';
+import { GetNodeOrdersPayload, NodeOrderList } from '../interfaces/nodes.interfaces';
 
 const category = '[TFF]';
 
@@ -22,7 +22,7 @@ export const TffActionTypes = {
 export class GetOrdersAction implements Action {
   type = TffActionTypes.GET_ORDERS;
 
-  constructor(public payload: string | null) {
+  constructor(public payload: GetNodeOrdersPayload) {
   }
 }
 

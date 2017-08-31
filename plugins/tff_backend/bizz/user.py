@@ -18,15 +18,14 @@ import httplib
 import json
 import logging
 
-from requests.exceptions import HTTPError
+from google.appengine.ext import deferred
+from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
 from framework.bizz.session import create_session
 from framework.plugin_loader import get_config
-from google.appengine.ext import deferred
-from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments
-from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client,\
+from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
     has_access_to_organization
 from plugins.its_you_online_auth.libs.itsyouonline.AddOrganizationMemberReqBody import AddOrganizationMemberReqBody
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
@@ -41,6 +40,7 @@ from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_
 from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
+from requests.exceptions import HTTPError
 
 
 @returns()

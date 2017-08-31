@@ -18,10 +18,11 @@ import base64
 import json
 import logging
 
+from google.appengine.api import users, urlfetch
+from google.appengine.ext import ndb, deferred
+
 from framework.plugin_loader import get_config
 from framework.utils import now, try_or_defer
-from google.appengine.api import users
-from google.appengine.ext import ndb, deferred
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -33,19 +34,19 @@ from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormRes
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     FormAcknowledgedCallbackResultTO, MessageCallbackResultTypeTO, TYPE_MESSAGE
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.authentication import Roles
 from plugins.tff_backend.bizz.agreements import create_hosting_agreement_pdf
+from plugins.tff_backend.bizz.authentication import Roles
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
-from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping
+from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping, NodeOrderStatus
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.to.nodes import NodeOrderTO
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-from google.appengine.api import urlfetch
+
 
 from poster.encode import multipart_encode, MultipartParam
 
@@ -78,9 +79,9 @@ def _order_node(app_user, steps, retry_count):
 
     params = []
     params.append(MultipartParam("FileItem1",
-        filename=pdf_name,
-        filetype='application/pdf',
-        value=pdf_contents))
+                                 filename=pdf_name,
+                                 filetype='application/pdf',
+                                 value=pdf_contents))
 
     payloadgen, headers = multipart_encode(params)
     payload = str().join(payloadgen)
@@ -113,12 +114,13 @@ def _order_node(app_user, steps, retry_count):
                           billing_address=billing_address,
                           shipping_address=shipping_address,
                           order_time=now(),
-                          status=NodeOrder.STATUS_CREATED)
+                          status=NodeOrderStatus.CREATED)
         order.put()
         deferred.defer(_create_order_arrival_qr, order_key.id(), _transactional=True)
         deferred.defer(_order_node_iyo_see, app_user, order_key, ipfs_link, _transactional=True)
 
     ndb.transaction(trans)
+
 
 def _order_node_iyo_see(app_user, order_key, ipfs_link):
     iyo_username = get_iyo_username(app_user)
@@ -187,6 +189,7 @@ def _send_order_node_sign_message(app_user, order_id, ipfs_link, attachment_name
                         app_id=app_id,
                         step_id=u'sign_order_node_tos')
 
+
 @returns(FormAcknowledgedCallbackResultTO)
 @arguments(status=int, form_result=FormResultTO, answer_id=unicode, member=unicode, message_key=unicode, tag=unicode,
            received_timestamp=int, acked_timestamp=int, parent_message_key=unicode, result_key=unicode,
@@ -218,7 +221,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
 
         if answer_id != FormTO.POSITIVE:
             logging.info('Zero-Node order was canceled')
-            order.status = NodeOrder.STATUS_CANCELED
+            order.status = NodeOrderStatus.CANCELED
             order.cancel_time = now()
             order.put()
             return None
@@ -247,7 +250,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         sign_see_document(iyo_organization_id, iyo_username, doc_view)
 
         logging.debug('Storing signature in DB')
-        order.populate(status=NodeOrder.STATUS_SIGNED,
+        order.populate(status=NodeOrderStatus.SIGNED,
                        signature=payload_signature,
                        sign_time=now())
         order.put()
@@ -329,9 +332,9 @@ def node_arrived(message_flow_run_id, member, steps, end_id, end_message_flow_id
 
 
 @returns(tuple)
-@arguments(cursor=unicode)
-def get_node_orders(cursor=None):
-    return NodeOrder.fetch_page(cursor)
+@arguments(cursor=unicode, status=(int, long))
+def get_node_orders(cursor=None, status=None):
+    return NodeOrder.fetch_page(cursor, status)
 
 
 @returns(NodeOrder)
@@ -350,17 +353,17 @@ def put_node_order(order_id, order):
     order_model = NodeOrder.get_by_id(order_id)  # type: NodeOrder
     if not order_model:
         raise HttpNotFoundException('order_not_found')
-    if order_model.status == NodeOrder.STATUS_CANCELED:
+    if order_model.status == NodeOrderStatus.CANCELED:
         raise HttpBadRequestException('order_canceled')
-    if order.status not in (NodeOrder.STATUS_CANCELED, NodeOrder.STATUS_SENT):
+    if order.status not in (NodeOrderStatus.CANCELED, NodeOrderStatus.SENT):
         raise HttpBadRequestException('invalid_status')
     # Only support updating the status for now
     if order_model.status != order.status:
         order_model.status = order.status
         # todo: send message to user ?
-        if order_model.status == NodeOrder.STATUS_CANCELED:
+        if order_model.status == NodeOrderStatus.CANCELED:
             order_model.cancel_time = now()
-        elif order_model.status == NodeOrder.STATUS_SENT:
+        elif order_model.status == NodeOrderStatus.SENT:
             order_model.send_time = now()
     order_model.put()
     return order_model
@@ -374,7 +377,7 @@ def _store_order_arrival(tag, arrival_time):
     logging.info('Marking order %s as arrived', order_id)
     order = NodeOrder.create_key(order_id).get()
     order.arrival_time = now()
-    order.status = NodeOrder.STATUS_ARRIVED
+    order.status = NodeOrderStatus.ARRIVED
     order.put()
 
 

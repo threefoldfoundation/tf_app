@@ -1,6 +1,6 @@
 import os
-import jinja2
 
+import jinja2
 from xhtml2pdf import pisa
 
 try:
@@ -10,6 +10,7 @@ except ImportError:
 
 ASSETS_FOLDER = os.path.join(os.path.dirname(__file__), 'assets')
 JINJA_ENVIRONMENT = jinja2.Environment(loader=jinja2.FileSystemLoader([ASSETS_FOLDER]))
+
 
 def create_hosting_agreement_pdf(name):
     template_variables = {
@@ -25,6 +26,7 @@ def create_hosting_agreement_pdf(name):
     output_stream.close()
 
     return pdf_contents
+
 
 def create_token_agreement_pdf(name):
     template_variables = {

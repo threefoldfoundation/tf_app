@@ -1,7 +1,7 @@
 import { initialTffState, ITffState } from '../states/index';
 import * as actions from '../actions/threefold.action';
 import { apiRequestLoading, apiRequestSuccess } from '../interfaces/rpc.interfaces';
-import { NodeOrderList } from '../interfaces/nodes.interfaces';
+import { GetNodeOrdersPayload, NodeOrderList } from '../interfaces/nodes.interfaces';
 
 export function tffReducer(state: ITffState = initialTffState,
                            action: actions.TffActions): ITffState {
@@ -9,6 +9,7 @@ export function tffReducer(state: ITffState = initialTffState,
     case actions.TffActionTypes.GET_ORDERS:
       return Object.assign({}, state, {
         ordersStatus: apiRequestLoading,
+        orders: (<GetNodeOrdersPayload>action.payload).cursor ? state.orders : initialTffState.orders
       });
     case actions.TffActionTypes.GET_ORDERS_COMPLETE:
       return Object.assign({}, state, {

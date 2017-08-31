@@ -35,7 +35,6 @@ from plugins.tff_backend.bizz.user import user_registered, store_public_key, sto
     is_user_in_roles
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 
-
 TAG_MAPPING = {'order_node': order_node,
                'sign_order_node_tos': order_node_signed,
                'node_arrival': node_arrived,
