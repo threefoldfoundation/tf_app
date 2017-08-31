@@ -267,7 +267,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
         message.message = u'Thank you. Your order with ID "%s" has been placed successfully.\n\n' \
                           u'You can check the status of your order using' \
-                          u' the "Node status" functionality.' % order.human_readable_id
+                          u' the "Check on node transit" functionality.' % order.human_readable_id
         message.step_id = u'order_completed'
         message.tag = None
 
