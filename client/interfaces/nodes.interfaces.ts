@@ -33,13 +33,9 @@ export interface NodeOrderList {
   results: NodeOrder[];
 }
 
-export interface NodeOrderListPerStatus {
+export interface GetNodeOrdersPayload {
   cursor: string | null;
-  more: boolean;
-  results: {
-    type: NodeOrderStatuses;
-    orders: NodeOrder[];
-  }[];
+  status: NodeOrderStatuses;
 }
 
 export const ORDER_STATUSES = {

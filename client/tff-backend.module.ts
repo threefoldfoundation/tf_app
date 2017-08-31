@@ -2,7 +2,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
-import { MdButtonModule, MdIconModule, MdInputModule, MdListModule } from '@angular/material';
+import { MdButtonModule, MdIconModule, MdInputModule, MdListModule, MdSelectModule } from '@angular/material';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
@@ -13,9 +13,10 @@ import { MultilingualModule } from '../../framework/client/i18n/multilingual.mod
 import { TffRoutes } from './tff.routes';
 import { IAppState } from '../../framework/client/ngrx/state/app.state';
 import { AddRoutesAction } from '../../framework/client/sidebar/index';
+import 'rxjs/add/operator/first';
 
 const MATERIAL_IMPORTS = [
-  MdButtonModule, MdInputModule, MdListModule, MdIconModule
+  MdButtonModule, MdInputModule, MdListModule, MdIconModule, MdSelectModule
 ];
 
 @NgModule({

@@ -43,12 +43,8 @@ class NodeOrderTO(TO):
     modification_time = long_property('modification_time')
     arrival_qr_code_url = unicode_property('arrival_qr_code_url')
 
-    def __init__(self, id=None, app_user=None, name=None, email=None, phone=None,
-                 billing_address=None, shipping_address=None, status=None, tos_iyo_see_id=None,
-                 signature_payload=None, signature=None, order_time=None, sign_time=None,
-                 send_time=None,  arrival_time=None, cancel_time=None, modification_time=None,
-                 arrival_qr_code_url=None):
-        for prop, val in locals().iteritems():
+    def __init__(self, **kwargs):
+        for prop, val in kwargs.iteritems():
             setattr(self, prop, val)
 
     @classmethod

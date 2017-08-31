@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { NodeOrder, NodeOrderList } from '../interfaces/nodes.interfaces';
+import { Http, RequestOptions, URLSearchParams } from '@angular/http';
+import { GetNodeOrdersPayload, NodeOrder, NodeOrderList } from '../interfaces/nodes.interfaces';
 import { TffConfig } from './tff-config.service';
-import { Http } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 
 @Injectable()
@@ -10,12 +10,14 @@ export class TffService {
   constructor(private http: Http) {
   }
 
-  getNodeOrders(cursor: string | null): Observable<NodeOrderList> {
+  getNodeOrders(payload: GetNodeOrdersPayload): Observable<NodeOrderList> {
     let params = new URLSearchParams();
-    if (cursor) {
-      params.append('cursor', cursor);
+    if (payload.cursor) {
+      params.set('cursor', payload.cursor);
     }
-    return this.http.get(`${TffConfig.API_URL}/orders`, { params })
+    params.set('status', payload.status.toString());
+
+    return this.http.get(`${TffConfig.API_URL}/orders`, new RequestOptions({ params }))
       .map(response => response.json());
   }
 

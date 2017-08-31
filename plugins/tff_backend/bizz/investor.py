@@ -3,11 +3,10 @@ import httplib
 import json
 import logging
 
-from requests.exceptions import HTTPError
+from google.appengine.ext import deferred, ndb
 
 from framework.plugin_loader import get_config
 from framework.utils import now
-from google.appengine.ext import deferred, ndb
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.rogerthat_api.api import messaging
@@ -28,7 +27,7 @@ from plugins.tff_backend.plugin_consts import NAMESPACE, KEY_ALGORITHM, KEY_NAME
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-
+from requests.exceptions import HTTPError
 
 # TODO: make this configurable in a settings page or cron #31
 PRICE_PER_TOKEN = {
@@ -59,6 +58,7 @@ def _invest(user_detail, steps):
 
     logging.debug('Storing Investment Agreement in the datastore')
     agreement_key = InvestmentAgreement.create_key()
+
     def trans():
         agreement = InvestmentAgreement(key=agreement_key,
                                         creation_time=now(),
@@ -156,7 +156,7 @@ def _send_ito_agreement_sign_message(agreement_key, app_user, ipfs_link, attachm
 @arguments(status=int, form_result=FormResultTO, answer_id=unicode, member=unicode, message_key=unicode, tag=unicode,
            received_timestamp=int, acked_timestamp=int, parent_message_key=unicode, result_key=unicode,
            service_identity=unicode, user_details=[UserDetailsTO])
-def investment_agreement_signed(status, form_result, answer_id, member, message_key, tag, received_timestamp, 
+def investment_agreement_signed(status, form_result, answer_id, member, message_key, tag, received_timestamp,
                                 acked_timestamp, parent_message_key, result_key, service_identity, user_details):
     """
     Args:

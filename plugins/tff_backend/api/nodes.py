@@ -24,9 +24,9 @@ from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO
 
 @rest('/orders', 'get', Scopes.ADMIN)
 @returns(NodeOrderListTO)
-@arguments(cursor=unicode)
-def api_get_node_orders(cursor=None):
-    return NodeOrderListTO.from_query(*get_node_orders(cursor))
+@arguments(cursor=unicode, status=(int, long))
+def api_get_node_orders(cursor=None, status=None):
+    return NodeOrderListTO.from_query(*get_node_orders(cursor, status))
 
 
 @rest('/orders/<order_id:[^/]+>', 'get', Scopes.ADMIN)

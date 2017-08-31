@@ -1,6 +1,7 @@
+from google.appengine.ext import ndb
+
 from framework.models.common import NdbModel
 from framework.utils import now
-from google.appengine.ext import ndb
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 

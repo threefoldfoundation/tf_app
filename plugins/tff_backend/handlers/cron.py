@@ -1,6 +1,7 @@
+import webapp2
+
 from plugins.rogerthat_api.api import friends
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-import webapp2
 
 
 class RebuildSyncedRolesHandler(webapp2.RequestHandler):
