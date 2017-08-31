@@ -46,8 +46,6 @@ from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVers
 from plugins.tff_backend.to.nodes import NodeOrderTO
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-
-
 from poster.encode import multipart_encode, MultipartParam
 
 @returns()
@@ -95,7 +93,7 @@ def _order_node(app_user, steps, retry_count):
         method=urlfetch.POST,
         headers=headers)
 
-    if data.status_code != 200:
+    if result.status_code != 200:
         logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
         deferred.defer(_order_node, app_user, steps, retry_count + 1, _countdown=retry_count)
         return;
