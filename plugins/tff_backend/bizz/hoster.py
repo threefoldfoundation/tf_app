@@ -45,7 +45,8 @@ from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVers
 from plugins.tff_backend.to.nodes import NodeOrderTO
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-
+from plugins.tff_backend.bizz.cna import create_cna_pdf
+from google.appengine.api import urlfetch
 
 @returns()
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
@@ -66,18 +67,41 @@ def _order_node(app_user, steps):
     billing_address = get_step_value(steps, 'message_billing_address')
     shipping_address = get_step_value(steps, 'message_shipping_address')
 
-# TODO: create in ipfs
-#     logging.debug('Creating CNA document')
-#     pdf_contents = create_cna_pdf(name)
-#     logging.debug('Stroring IPFS document')
-#     api = ipfsapi.connect("https://gateway.ipfs.io", 443, "api/v0")
-#     ipfs_res = api.block_put(pdf_contents)
-#     logging.debug('IPFS result: %s', ipfs_res)
+    order_key = NodeOrder.create_key()
+
+    logging.debug('Creating CNA document')
+    pdf_contents = create_cna_pdf(name)
+    logging.debug('Stroring IPFS document')
+
+    pdf_name = 'zero_node_%s.pdf' % order_key.id()
+
+    params = []
+    params.append(MultipartParam("FileItem1",
+        filename=pdf_name,
+        filetype='application/pdf',
+        value=pdf_contents))
+
+    payloadgen, headers = multipart_encode(params)
+    payload = str().join(payloadgen)
+
     cfg = get_config(NAMESPACE)
-    ipfs_link = cfg.tos.order_node
+    headers['Authorization'] = cfg.ipfs.secret
+
+    result = urlfetch.fetch(
+        url=u"https://ipfs.threefoldtoken.com/api/files",
+        payload=body,
+        method=urlfetch.POST,
+        headers=headers)
+
+    if data.status_code != 200:
+        logging.error(u"Failed to create IPFS document with name %s", pdf_name)
+        deferred.defer(_order_node, app_user, steps)
+        return;
+
+    ipfs_link = u'https://gateway.ipfs.io/ipfs/%s' % json.loads(result.content)['Hash']
 
     logging.debug('Storing order in the database')
-    order_key = NodeOrder.create_key()
+
     def trans():
         order = NodeOrder(key=order_key,
                           app_user=app_user,

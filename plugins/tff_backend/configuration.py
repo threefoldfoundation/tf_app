@@ -32,6 +32,11 @@ class RogerthatConfiguration(object):
     prod = typed_property('2', RogerthatKeysConfiguration, False)
 
 
+class IPFSConfiguration(object):
+    secret = unicode_property('1')
+
+
 class TffConfiguration(object):
     tos = typed_property('1', TOSConfiguration, False)
     rogerthat = typed_property('2', RogerthatConfiguration, False)
+    ipfs = typed_property('3', IPFSConfiguration, False)

@@ -4,4 +4,3 @@ html2text==2015.11.4
 reportlab==3.1.44
 html5lib==0.999
 xhtml2pdf==0.0.6
-ipfsapi==0.4.2.post1
