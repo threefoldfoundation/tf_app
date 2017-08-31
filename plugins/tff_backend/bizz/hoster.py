@@ -70,7 +70,9 @@ def _order_node(app_user, steps, retry_count):
     order_key = NodeOrder.create_key()
 
     logging.debug('Creating Hosting agreement')
-    pdf_contents = create_hosting_agreement_pdf(name)
+    effective_date = u"TODO effective_date"
+    address = u"TODO address"
+    pdf_contents = create_hosting_agreement_pdf(effective_date, name, address)
     logging.debug('Storing IPFS document')
 
     pdf_name = 'zero_node_%s.pdf' % order_key.id()

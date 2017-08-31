@@ -7,7 +7,7 @@
         body {
             font-size: 9pt;
         }
-        
+
         .clearfix {
             *zoom: 1;
         }
@@ -73,10 +73,10 @@
         <img class="logo" src="{{ logo_path }}" width="895" height="222"/>
         <p class="title">HOSTING SERVICES AGREEMENT</p>
     </div>
-    <p><b>THIS AGREEMENT</b> effective as of __TODO__</p>
+    <p><b>THIS AGREEMENT</b> effective as of <b>{{ effective_date }}</b></p>
     <p><b>BETWEEN</b></p>
-    <p>__TODO__ [FULL NAME],</p>
-    <p>residing at __TODO__ [ADDRESS] (hereinafter referred to as “Host”)</p>
+    <p><b>{{ full_name }}</b> [FULL NAME],</p>
+    <p>residing at <b>{{ address }}</b> [ADDRESS] (hereinafter referred to as “Host”)</p>
     <p><b>and</b></p>
     <p>BETTERTOKEN BVBA, a company incorporated under Belgian law with registered office at B-9080 Lochristi,
         Antwerpsesteenweg 19, and registered with the Crossroads Bank of Enterprises under company number
@@ -150,7 +150,7 @@
     <p>13. Counterparts</p>
     <p>This Agreement may be executed in counterparts in the same form and such parts so executed shall together
         form one original document and be read and construed as if one copy of the Agreement had been executed.</p>
-    <p>In witness whereof, the parties hereto have executed this Agreement effective this __TODO__ day of __TODO__ 2017.</p>
+    <p>In witness whereof, the parties hereto have executed this Agreement effective this <b>{{ effective_date }}</b>.</p>
 
     <table style="padding:0.2em; margin-top: 10em;">
         <thead>
@@ -165,8 +165,8 @@
                     <td>Sign:</td>
                 </tr>
                 <tr>
-                    <td>Name:	__TODO__</td>
-                    <td>Name:	__TODO__</td>
+                    <td>Name: <b>__TODO__</b></td>
+                    <td>Name: <b>{{ full_name }}</b></td>
                 </tr>
                 <tr>
                     <td>Special proxy-holder</td>
