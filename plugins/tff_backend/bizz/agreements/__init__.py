@@ -11,13 +11,28 @@ except ImportError:
 ASSETS_FOLDER = os.path.join(os.path.dirname(__file__), 'assets')
 JINJA_ENVIRONMENT = jinja2.Environment(loader=jinja2.FileSystemLoader([ASSETS_FOLDER]))
 
-def create_cna_pdf(name):
+def create_hosting_agreement_pdf(name):
     template_variables = {
         'logo_path': 'assets/logo.jpg',
         'name': name
     }
 
-    source_html = JINJA_ENVIRONMENT.get_template('cna.html').render(template_variables)
+    source_html = JINJA_ENVIRONMENT.get_template('hosting.html').render(template_variables)
+
+    output_stream = StringIO()
+    pisa.CreatePDF(src=source_html, dest=output_stream, path='%s' % ASSETS_FOLDER)
+    pdf_contents = output_stream.getvalue()
+    output_stream.close()
+
+    return pdf_contents
+
+def create_token_agreement_pdf(name):
+    template_variables = {
+        'logo_path': 'assets/logo.jpg',
+        'name': name
+    }
+
+    source_html = JINJA_ENVIRONMENT.get_template('token.html').render(template_variables)
 
     output_stream = StringIO()
     pisa.CreatePDF(src=source_html, dest=output_stream, path='%s' % ASSETS_FOLDER)

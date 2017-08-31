@@ -34,7 +34,7 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemb
     FormAcknowledgedCallbackResultTO, MessageCallbackResultTypeTO, TYPE_MESSAGE
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Roles
-from plugins.tff_backend.bizz.cna import create_cna_pdf
+from plugins.tff_backend.bizz.agreements import create_hosting_agreement_pdf
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
@@ -45,7 +45,6 @@ from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVers
 from plugins.tff_backend.to.nodes import NodeOrderTO
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-from plugins.tff_backend.bizz.cna import create_cna_pdf
 from google.appengine.api import urlfetch
 
 @returns()
@@ -56,10 +55,10 @@ from google.appengine.api import urlfetch
 def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
                flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     app_user = create_app_user_by_email(user_details[0].email, user_details[0].app_id)
-    deferred.defer(_order_node, app_user, steps)
+    deferred.defer(_order_node, app_user, steps, 0)
 
 
-def _order_node(app_user, steps):
+def _order_node(app_user, steps, retry_count):
     logging.info('Receiving order of Zero-Node')
     name = get_step_value(steps, 'message_name')
     email = get_step_value(steps, 'message_email')
@@ -69,9 +68,9 @@ def _order_node(app_user, steps):
 
     order_key = NodeOrder.create_key()
 
-    logging.debug('Creating CNA document')
-    pdf_contents = create_cna_pdf(name)
-    logging.debug('Stroring IPFS document')
+    logging.debug('Creating Hosting agreement')
+    pdf_contents = create_hosting_agreement_pdf(name)
+    logging.debug('Storing IPFS document')
 
     pdf_name = 'zero_node_%s.pdf' % order_key.id()
 
@@ -94,8 +93,8 @@ def _order_node(app_user, steps):
         headers=headers)
 
     if data.status_code != 200:
-        logging.error(u"Failed to create IPFS document with name %s", pdf_name)
-        deferred.defer(_order_node, app_user, steps)
+        logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
+        deferred.defer(_order_node, app_user, steps, retry_count + 1, _countdown=retry_count)
         return;
 
     ipfs_link = u'https://gateway.ipfs.io/ipfs/%s' % json.loads(result.content)['Hash']
