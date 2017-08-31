@@ -47,6 +47,8 @@ from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from google.appengine.api import urlfetch
 
+from poster.encode import multipart_encode, MultipartParam
+
 @returns()
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
@@ -88,7 +90,7 @@ def _order_node(app_user, steps, retry_count):
 
     result = urlfetch.fetch(
         url=u"https://ipfs.threefoldtoken.com/api/files",
-        payload=body,
+        payload=payload,
         method=urlfetch.POST,
         headers=headers)
 
