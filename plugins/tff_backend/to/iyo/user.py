@@ -71,19 +71,19 @@ class IYOUser(TO):
     lastname = unicode_property('lastname')
     publicKeys = typed_property('publicKeys', PublicKey, True)  # type: list[PublicKey]
     expire = unicode_property('expire')
-    validatedEmailAddresses = typed_property('validatedemailaddresses', EmailAddress, True)
-    validatedPhoneNumbers = typed_property('validatedphonenumbers', Phonenumber, True)
+    validatedemailaddresses = typed_property('validatedemailaddresses', EmailAddress, True)
+    validatedphonenumbers = typed_property('validatedphonenumbers', Phonenumber, True)
     addresses = typed_property('addresses', Address, True)
 
     def __init__(self, username=None, firstname=None, lastname=None, publicKeys=None,
-                 expire=None, validatedEmailAddresses=None, validatedPhoneNumbers=None,
+                 expire=None, validatedemailaddresses=None, validatedphonenumbers=None,
                  addresses=None, **kwargs):
         self.username = convert_to_unicode(username)
         self.firstname = convert_to_unicode(firstname)
         self.lastname = convert_to_unicode(lastname)
         self.publicKeys = [PublicKey(**public_key) for public_key in (publicKeys or [])]
         self.expire = convert_to_unicode(expire)
-        self.validatedEmailAddresses = [EmailAddress(**email_address) for email_address in
-                                        (validatedEmailAddresses or [])]
-        self.validatedPhoneNumbers = [Phonenumber(**phone_number) for phone_number in (validatedPhoneNumbers or [])]
+        self.validatedemailaddresses = [EmailAddress(**email_address) for email_address in
+                                        (validatedemailaddresses or [])]
+        self.validatedphonenumbers = [Phonenumber(**phone_number) for phone_number in (validatedphonenumbers or [])]
         self.addresses = [Address(**address) for address in (addresses or [])]
