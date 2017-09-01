@@ -9,8 +9,9 @@ export class TodoListService {
     const listIds: string[] = rogerthat.user.data.todo_lists;
     if (listIds && listIds.length) {
       for (const list of listIds) {
-        if (rogerthat.user.data[ list ]) {
-          todoLists.push(<TodoList>rogerthat.user.data[ list ]);
+        const listKey = 'todo_' + list;
+        if (rogerthat.user.data[ listKey ]) {
+          todoLists.push(<TodoList>rogerthat.user.data[ listKey ]);
         }
       }
     }

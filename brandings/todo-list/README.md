@@ -6,7 +6,7 @@ Run `node_modules/ionic/bin/ionic serve`
 
 ## Production build
 
-Run `npm run build:prod`. A `todo-list.zip` file will be generated in this folder.
+Run `npm run build:zip`. A `todo-list.zip` file will be generated in this folder.
 
 ## Other tools
 
@@ -27,7 +27,7 @@ To test it, either upload it as a branding on your rogerthat server or add this 
       },
       user: {
         data: {
-          todo_lists: ['todo_list1', 'todo_list2'],
+          todo_lists: ['list1', 'list2'],
           todo_list1: {
             id: 'list1',
             name: 'ITO todos',
