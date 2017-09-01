@@ -1,0 +1,20 @@
+<ion-tabs *ngIf="todoLists?.length; else noLists">
+  <ion-tab [root]="tabComponent" [tabTitle]="list.name" *ngFor="let list of todoLists" [rootParams]="list"></ion-tab>
+</ion-tabs>
+<ng-template #noLists>
+  <ion-header>
+    <ion-navbar>
+      <ion-buttons left>
+        <button ion-button="bar-button" (click)="close()" class="back-button show-back-button back-button-md">
+          <ion-icon name="arrow-back" class="back-button-icon-md"></ion-icon>
+        </button>
+      </ion-buttons>
+      <ion-title>{{ 'todo' | translate }}</ion-title>
+    </ion-navbar>
+  </ion-header>
+
+  <ion-content padding>
+    <h2>{{ 'all_done' | translate }}</h2>
+    <p>{{ 'no_work_to_finish' | translate }}</p>
+  </ion-content>
+</ng-template>
