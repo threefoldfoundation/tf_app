@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+
 import base64
 import json
 import logging
@@ -47,6 +48,7 @@ from plugins.tff_backend.to.nodes import NodeOrderTO
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from poster.encode import multipart_encode, MultipartParam
+
 
 @returns()
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
@@ -98,7 +100,7 @@ def _order_node(app_user, steps, retry_count):
     if result.status_code != 200:
         logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
         deferred.defer(_order_node, app_user, steps, retry_count + 1, _countdown=retry_count)
-        return;
+        return
 
     ipfs_link = u'https://gateway.ipfs.io/ipfs/%s' % json.loads(result.content)['Hash']
 
