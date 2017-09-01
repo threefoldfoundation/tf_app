@@ -28,6 +28,8 @@ from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVers
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from requests.exceptions import HTTPError
+from plugins.tff_backend.bizz.todo import update_investor_progress
+from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 
 # TODO: make this configurable in a settings page or cron #31
 PRICE_PER_TOKEN = {
@@ -220,6 +222,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
 
         # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.INVESTOR)
+        deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.FLOW_SIGN)
 
         logging.debug('Sending confirmation message')
         message = MessageCallbackResultTypeTO()

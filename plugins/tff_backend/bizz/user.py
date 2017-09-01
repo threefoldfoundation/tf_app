@@ -164,6 +164,9 @@ def is_user_in_roles(user_detail, roles):
     organization_id = get_iyo_organization_id()
     result = []
     for role in roles:
+        organization_id = Organization.get_by_role_name(role.name)
+        if not organization_id:
+            continue
         if has_access_to_organization(client, organization_id, username):
             result.append(role.id)
     return result

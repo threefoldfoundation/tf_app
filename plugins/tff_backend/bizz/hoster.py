@@ -48,7 +48,8 @@ from plugins.tff_backend.to.nodes import NodeOrderTO
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from poster.encode import multipart_encode, MultipartParam
-
+from plugins.tff_backend.bizz.todo import update_hoster_progress
+from plugins.tff_backend.bizz.todo.hoster import HosterSteps
 
 @returns()
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
@@ -258,6 +259,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
 
         # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.HOSTER)
+        deferred.defer(update_hoster_progress, user_detail.email, user_detail.app_id, HosterSteps.FLOW_SIGN)
 
         logging.debug('Sending confirmation message')
         message = MessageCallbackResultTypeTO()
@@ -366,6 +368,9 @@ def put_node_order(order_id, order):
             order_model.cancel_time = now()
         elif order_model.status == NodeOrderStatus.SENT:
             order_model.send_time = now()
+            human_user, app_id = get_app_user_tuple(order.app_user)
+            deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_SENT)
+
     order_model.put()
     return order_model
 
@@ -380,6 +385,9 @@ def _store_order_arrival(tag, arrival_time):
     order.arrival_time = now()
     order.status = NodeOrderStatus.ARRIVED
     order.put()
+
+    human_user, app_id = get_app_user_tuple(order.app_user)
+    deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_DELIVERY_CONFIRMED)
 
 
 def _create_error_message(callback_result):
