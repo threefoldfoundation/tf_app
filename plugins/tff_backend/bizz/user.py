@@ -161,7 +161,6 @@ def store_public_key(user_detail):
 def is_user_in_roles(user_detail, roles):
     client = get_itsyouonline_client()
     username = get_iyo_username(user_detail)
-    organization_id = get_iyo_organization_id()
     result = []
     for role in roles:
         organization_id = Organization.get_by_role_name(role.name)
