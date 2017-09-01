@@ -61,7 +61,10 @@ def create_token_agreement_pdf(full_name, address, amount, currency_full, curren
         'currency_short': currency_short
     }
 
-    source_html = JINJA_ENVIRONMENT.get_template('token.html').render(template_variables)
+    html_file = 'token.html'
+    if currency_short == 'BTC':
+        html_file = 'token_btc.html'
+    source_html = JINJA_ENVIRONMENT.get_template(html_file).render(template_variables)
 
     output_stream = StringIO()
     pisa.CreatePDF(src=source_html, dest=output_stream, path='%s' % ASSETS_FOLDER)

@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width"/>
+    <style>
+        body {
+            font-size: 8pt;
+        }
+        .ol-alpha {
+            list-style-type: lower-alpha;
+        }
+
+        .clearfix {
+            *zoom: 1;
+        }
+
+        .clearfix:before,
+        .clearfix:after {
+            display: table;
+            line-height: 0;
+            content: "";
+        }
+
+        .clearfix:after {
+            clear: both;
+        }
+
+        .bordered td {
+            border: 0.3pt solid black;
+        }
+
+        .no-border-bottom {
+            border-bottom: none;
+        }
+
+        .no-border-top {
+            border-top: none;
+        }
+
+        .text-bold {
+            font-weight: bold;
+        }
+
+        @page {
+            margin: 2cm;
+            margin-top: 5cm;
+            margin-bottom: 3.5cm;
+            @frame header_frame {
+                -pdf-frame-content: headerContent;
+                top: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 3cm;
+            }
+            @frame footer_frame {
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 1cm;
+            }
+        }
+
+        .logo {
+            zoom: 16%;
+        }
+
+        .title {
+            margin-top: 25pt;
+            font-size: 15pt;
+        }
+    </style>
+</head>
+
+<body>
+<!-- <style> -->
+
+<div id="headerContent" align="center">
+    <img class="logo" src="{{ logo_path }}" width="895" height="222"/>
+    <p class="title">Internal Token Offering - Investment Agreement</p>
+</div>
+<div id="footerContent" align="left">
+    Document Version 1.1
+</div>
+
+<div>
+    <p>This Investment Agreement (hereinafter referred to as the <b>“Agreemeent“</b>) is entered into on <b>{{ effective_date }}</b> (the <b>“Effective Date“</b>), by and between:</p>
+    <p><b>Investor</b>,</p>
+    <p><b>{{ full_name }}</b>,</p>
+    <p>residing at <b>{{ address }}</b>;,</p>
+    <p>hereinafter referred to as the “<b>Investor</b>”;</p>
+    <p>and</p>
+    <p><b>Green IT Globe Holdings FZC</b>, a free zone establishment with License No: 17194 with its principal place of business at Q1-07-038/B SAIF Zone, United Arab Emirates, PO Box 514608; hereinafter referred
+        to as the “<b>Company</b>”;</p>
+    <p>Collectively referred to in this Agreement as the “<b>Parties</b>”, each referred to as a “<b>Party</b>”.</p>
+
+    <p><b>WHEREAS</b></p>
+    <p>Before its Public Token Offering (PTO), the Threefold Foundation is launching an Internal Token Offering (ITO) for friends, family
+        and ambassadors. This ITO will be structured as a loan note issued by the Company which is convertible into ThreeFold Tokens
+        pursuant to the terms and conditions of the present Agreement.</p>
+
+    <p><b>THEREFORE, IT HAS BEEN AGREED AS FOLLOWS:</b></p>
+    <p><b>1. Amount</b></p>
+    <p>The Investor will make available to the Company a principal amount of <b>{{ amount }}</b>  BitCoins
+        as a convertible loan (the “<b>Loan</b>”).</p>
+    <p>The Loan will be paid by the Investor by wire transfer to the Company’s BitCoin wallet hosted by BitOasis Technologies
+        FZE, at the following digital address: 3GTf7gWhvWqfsurxXpEj6DU7SVoLM3wC6A (the “<b>Wallet</b>”) within 3 business days
+        as from the date of this agreement.</p>
+    <p>The Company undertakes to use the Loan in view of financing the ThreeFold Foundation and the executing the the ThreeFold Foundation’s mission.</p>
+
+    <p><b>2. Term of the Agreement – Conversion – Redemption</b></p>
+    <p>On the day on which the Bitcoin payment has been received by the Company in its Wallet, the Loan will be converted
+        in United Arab Emirates Dirham (AED) first at the conversion rate quoted on the website of BitOasis Technologies FZE,
+        and then immediately thereafter from AED in US Dollars at the conversion rate quoted on the website of Oanda.com,
+        both on such date at 11.59 PM Gulf Standard Time. The corresponding amount of the Loan expressed in US Dollars is
+        hereinafter referred to as the “<b>USD Loan</b>”.</p>
+    <p>On the occurrence of the ThreeFold Foundation’s Public Token Offering (“PTO”), the Investor, in its sole discretion, may
+        convert all (but not less than all) the unpaid principal amount of the USD Loan and any accrued interests into
+        ThreeFold Tokens at a discount of 50% (fifty percent) of the Token price achieved on the closing of ThreeFold
+        Foundation’s PTO. The total convertible amount will be rounded down to the nearest corresponding multiple of the
+        discounted Threefold Token Price. The balance (if any) will be converted in BitCoin on the date of the PTO (at the then
+        current conversion rate) and repaid to the Investor.</p>
+    <p>The capital of the USD Loan and any accrued interests will in any event either be redeemed or converted within one
+        year as from the Effective Date (the “<b>Redemption Date</b>” or “<b>Conversion Date</b>”). In case of redemption, the USD
+        Loan will be converted in BitCoin on the date of the redemption (at the then current conversion rate quoted on the
+        website of BitOasis Technologies FZE at the time the redemption is initiated, minus any applicable fees) and repaid to
+        the Investor.</p>
+
+    <p><b>3. Interest</b></p>
+    <p>The Investor is entitled to an interest payment of 2% (two per cent) per year on the outstanding capital, starting as from the
+        Effective Date. Interests are capitalized at the Conversion Date or Redemption Date.</p>
+    <p>Interest payments are made together with the redemption of the capital of the Loan or the conversion of the Loan.</p>
+    <p>In the event a (pre-) payment or conversion takes place, the interest payments are calculated on a pro rata temporis basis.</p>
+    <p><b>4. Lock-up Period</b></p>
+    <p>Without consent from the Foundation, Internal Token Offering investors will not be allowed to sell their Tokens for a period of six months after the date of this Agreement..</p>
+    <p><b>5. Default</b></p>
+    <p>The Investor may terminate the loan forthwith and without any prior written notice in case of any of the following events, which will each constitute an “Event of Default” by the Company:</p>
+    <ol class="ol-alpha">
+      <li>the appointment of a receiver over any material part of the assets or undertakings of the Company, which results in a
+          suspension of payments, or an attachment (“beslag”) being made on a material part of the Company’s assets or undertakings, or
+          any bankruptcy, insolvency, judicial reorganization or similar legal action instituted by or against the Company; or</li>
+      <li>the occurrence of any other event which would have a materially adverse effect on the Company’s ability to comply with any of its obligations under this Agreement;</li>
+    </ol>
+    <p>Upon an Event of Default, the Investor may, at any time thereafter, by notice to the Company, declare that the Loan together with
+        accrued interest and all amounts payable under the Loan by the Company are immediately due and payable.</p>
+    <p><b>6. Withholding</b></p>
+    <p>If the Company, in accordance with applicable tax law, is obliged to retain a withholding or any other similar tax or deduction on
+        the payment of interest or the repayment of the principal amount under the Loan, the Company will immediately notify the
+        Investor, withhold the applicable tax, pay this tax to the competent authorities before any penalties or interests are due and pay
+        the remaining amount to the Investor. If the Investor has to pay the above-mentioned withholding tax or penalties or interests in
+        connection therewith, due to a fault or negligence of the Company, the Company will reimburse the Investor upon first request
+        for the damages suffered. If the Company pays the above-mentioned withholding tax or penalties or interests connected
+        therewith, it will provide the Investor with the official tax receipts evidencing the payment, or certified copies thereof, as soon as it has received them.</p>
+    <p><b>7. Assignment</b></p>
+    <p>The Investor agrees that the Company may assign the Agreement in its discretion provided notice of such assignment is provided within 15 days thereof.
+    <p><b>8. Amendments</b></p>
+    <p>No amendment modifying, adding to or omitting from, or terminating this Agreement will be binding upon a Party unless made in writing and signed by or in the name of the Parties involved.
+    <p><b>9. Partial Invalidity</b></p>
+    <p>The nullity of one of the provisions of this Agreement shall have no bearing on the validity of the other provision of this Agreement.</p>
+    <p>In such case the Parties to this Agreement shall in good faith negotiate on the provisions of this Agreement so that the same
+        economic balance between the rights and obligations of the Parties to this Agreement are safeguarded to the same extent as if
+        the invalid provision had been valid.</p>
+    <p><b>10. Governing Law</b></p>
+    <p>This Agreement is subject to Belgian law.</p>
+    <p><b>11. Jurisdiction</b></p>
+    <p>Any dispute which may arise between the Parties in relation to the validity, the interpretation or the execution of this Agreement will be submitted to the exclusive jurisdiction of the Courts of Gent, Belgium.</p>
+    <p>Signed in ______________ [PLACE] on ___________ [DATE], in two originals, each of the Parties acknowledging having received one original.</p>
+
+    <table style="padding:0.2em; margin-top: 10em;">
+        <thead>
+            <tr>
+                <td style="width:50%;">The Company</td>
+                <td style="width:50%;">The Investor</td>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <td>Green IT Globe Holdings FZC</td>
+                    <td>{{ full_name }}</td>
+                </tr>
+                <tr>
+                    <td>Represented by Kristof De Spiegeleer</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Managing Director</td>
+                    <td></td>
+                </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
