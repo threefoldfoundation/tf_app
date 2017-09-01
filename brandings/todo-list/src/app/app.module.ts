@@ -17,7 +17,7 @@ import { I18nPluralPipe } from '@angular/common';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
-  return new TranslateHttpLoader(http);
+  return new TranslateHttpLoader(http, 'assets/i18n/');
 }
 
 
@@ -36,7 +36,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         provide: TranslateLoader,
         useFactory: HttpLoaderFactory,
         deps: [ HttpClient ]
-      }
+      },
     })
   ],
   bootstrap: [ IonicApp ],

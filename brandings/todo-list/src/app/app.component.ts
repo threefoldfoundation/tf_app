@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewEncapsulation } from '@angular/core';
 import { Platform } from 'ionic-angular';
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
@@ -8,27 +8,29 @@ import { RogerthatService } from '../services/rogerthat.service';
 import { HomePageComponent } from '../pages/home/home-page.component';
 
 @Component({
-  templateUrl: 'app.html',
   encapsulation: ViewEncapsulation.None,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush, // Everything else uses OnPush
+  templateUrl: 'app.html',
 })
 export class TodoListAppComponent {
   rootPage: any = HomePageComponent;
+  platformReady = false;
 
   constructor(private platform: Platform,
               private statusBar: StatusBar,
               private splashScreen: SplashScreen,
               private translate: TranslateService,
-              private rogerthatService: RogerthatService) {
+              private rogerthatService: RogerthatService,
+              private cdRef: ChangeDetectorRef) {
     translate.setDefaultLang('en');
     platform.ready().then(() => {
-      console.timeEnd('loaded');
-      // Okay, so the platform is ready and our plugins are available.
-      // Here you can do any higher level native things you might need.
-      statusBar.styleDefault();
-      splashScreen.hide();
       rogerthat.callbacks.ready(() => {
+        console.timeEnd('loaded');
+        statusBar.styleDefault();
+        splashScreen.hide();
         this.rogerthatService.initialize();
+        this.platformReady = true;
+        this.cdRef.detectChanges();
       });
     });
   }
