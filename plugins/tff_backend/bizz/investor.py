@@ -45,10 +45,12 @@ PRICE_PER_TOKEN = {
            flow_params=unicode)
 def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
            flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    deferred.defer(_invest, user_details[0], steps)
+
+    agreement_key = InvestmentAgreement.create_key()
+    deferred.defer(_invest, agreement_key, user_details[0], steps)
 
 
-def _invest(user_detail, steps):
+def _invest(agreement_key, user_detail, steps):
     app_user = create_app_user_by_email(user_detail.email, user_detail.app_id)
     logging.info('User %s wants to invest', app_user)
 
@@ -57,7 +59,6 @@ def _invest(user_detail, steps):
     token_count = int(get_step_value(steps, 'message_get_order_size_ITO'))
 
     logging.debug('Storing Investment Agreement in the datastore')
-    agreement_key = InvestmentAgreement.create_key()
 
     def trans():
         agreement = InvestmentAgreement(key=agreement_key,

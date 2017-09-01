@@ -58,18 +58,17 @@ from poster.encode import multipart_encode, MultipartParam
 def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
                flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     app_user = create_app_user_by_email(user_details[0].email, user_details[0].app_id)
-    deferred.defer(_order_node, app_user, steps, 0)
+    order_key = NodeOrder.create_key()
+    deferred.defer(_order_node, order_key, app_user, steps, 0)
 
 
-def _order_node(app_user, steps, retry_count):
+def _order_node(order_key, app_user, steps, retry_count):
     logging.info('Receiving order of Zero-Node')
     name = get_step_value(steps, 'message_name')
     email = get_step_value(steps, 'message_email')
     phone = get_step_value(steps, 'message_phone')
     billing_address = get_step_value(steps, 'message_billing_address')
     shipping_address = get_step_value(steps, 'message_shipping_address')
-
-    order_key = NodeOrder.create_key()
 
     logging.debug('Creating Hosting agreement')
     effective_date = u"TODO effective_date"
@@ -99,7 +98,7 @@ def _order_node(app_user, steps, retry_count):
 
     if result.status_code != 200:
         logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
-        deferred.defer(_order_node, app_user, steps, retry_count + 1, _countdown=retry_count)
+        deferred.defer(_order_node, order_key, app_user, steps, retry_count + 1, _countdown=retry_count)
         return
 
     ipfs_link = u'https://gateway.ipfs.io/ipfs/%s' % json.loads(result.content)['Hash']
