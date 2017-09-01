@@ -228,7 +228,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         message.branding = get_main_branding_hash()
         message.dismiss_button_ui_flags = 0
         message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
-        message.message = u'Thank you. TODO...'
+        message.message = u'Thank you. We successfully received your digital signature. We have stored a copy of this agreement in your ItsYou.Online SEE account.'
         message.step_id = u'investment_agreement_accepted'
         message.tag = None
 
