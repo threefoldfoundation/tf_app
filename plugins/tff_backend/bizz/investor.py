@@ -82,20 +82,20 @@ def _invest(agreement_key, user_detail, steps, retry_count):
     app_user = create_app_user_by_email(user_detail.email, user_detail.app_id)
     logging.info('User %s wants to invest', app_user)
 
+    name = get_step_value(steps, 'message_name')
+    billing_address = get_step_value(steps, 'message_billing_address')
     referrer = get_step_value(steps, 'message_get_referral')[0]
     currency = get_step_value(steps, 'message_get_currency')
     token_count = int(get_step_value(steps, 'message_get_order_size_ITO'))
 
     logging.debug('Creating Token agreement')
-    full_name = u"todo flow"
-    address = u"todo flow"
     pdf_name = 'token_%s.pdf' % agreement_key.id()
 
     amount = token_count * PRICE_PER_TOKEN[currency]
     currency_full = FULL_CURRENCY_NAMES[currency]
     currency_short = currency.replace("_cur", "")
 
-    pdf_contents = create_token_agreement_pdf(full_name, address, token_count, currency, amount, currency_full, currency_short)
+    pdf_contents = create_token_agreement_pdf(name, billing_address, token_count, currency, amount, currency_full, currency_short)
     ipfs_link = store_pdf(pdf_name, pdf_contents)
     if not ipfs_link:
         logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
