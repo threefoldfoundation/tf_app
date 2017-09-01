@@ -47,9 +47,10 @@ from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVers
 from plugins.tff_backend.to.nodes import NodeOrderTO
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-from poster.encode import multipart_encode, MultipartParam
+
 from plugins.tff_backend.bizz.todo import update_hoster_progress
 from plugins.tff_backend.bizz.todo.hoster import HosterSteps
+from plugins.tff_backend.bizz.ipfs import store_pdf
 
 @returns()
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
@@ -72,37 +73,13 @@ def _order_node(order_key, app_user, steps, retry_count):
     shipping_address = get_step_value(steps, 'message_shipping_address')
 
     logging.debug('Creating Hosting agreement')
-    effective_date = u"TODO effective_date"
-    address = u"TODO address"
-    pdf_contents = create_hosting_agreement_pdf(effective_date, name, address)
-    logging.debug('Storing IPFS document')
-
-    pdf_name = 'zero_node_%s.pdf' % order_key.id()
-
-    params = []
-    params.append(MultipartParam("FileItem1",
-                                 filename=pdf_name,
-                                 filetype='application/pdf',
-                                 value=pdf_contents))
-
-    payloadgen, headers = multipart_encode(params)
-    payload = str().join(payloadgen)
-
-    cfg = get_config(NAMESPACE)
-    headers['Authorization'] = cfg.ipfs.secret
-
-    result = urlfetch.fetch(
-        url=u"https://ipfs.threefoldtoken.com/api/files",
-        payload=payload,
-        method=urlfetch.POST,
-        headers=headers)
-
-    if result.status_code != 200:
+    pdf_name = 'node_%s.pdf' % order_key.id()
+    pdf_contents = create_hosting_agreement_pdf(name, billing_address)
+    ipfs_link = store_pdf(pdf_name, pdf_contents)
+    if not ipfs_link:
         logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
         deferred.defer(_order_node, order_key, app_user, steps, retry_count + 1, _countdown=retry_count)
         return
-
-    ipfs_link = u'https://gateway.ipfs.io/ipfs/%s' % json.loads(result.content)['Hash']
 
     logging.debug('Storing order in the database')
 

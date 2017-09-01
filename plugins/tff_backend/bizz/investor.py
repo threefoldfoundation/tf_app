@@ -1,3 +1,20 @@
+# -*- coding: utf-8 -*-
+# Copyright 2017 GIG Technology NV
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# @@license_version:1.3@@
+
 import base64
 import httplib
 import json
@@ -17,6 +34,7 @@ from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormRes
 from plugins.rogerthat_api.to.messaging.service_callback_results import FormAcknowledgedCallbackResultTO, \
     MessageCallbackResultTypeTO, TYPE_MESSAGE
 from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz.agreements import create_token_agreement_pdf
 from plugins.tff_backend.bizz.authentication import Roles
 from plugins.tff_backend.bizz.hoster import get_publickey_label, _create_error_message
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
@@ -30,6 +48,7 @@ from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user
 from requests.exceptions import HTTPError
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
+from plugins.tff_backend.bizz.ipfs import store_pdf
 
 # TODO: make this configurable in a settings page or cron #31
 PRICE_PER_TOKEN = {
@@ -38,6 +57,13 @@ PRICE_PER_TOKEN = {
     'BTC_cur': 0.00116,
     'ETH_cur': 0.01485
 }
+FULL_CURRENCY_NAMES = {
+    'USD_cur': 'dollar',
+    'EUR_cur': 'euro',
+    'BTC_cur': 'bitcoin',
+    'ETH_cur': 'ether'
+}
+
 
 
 @returns()
@@ -49,16 +75,32 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
            flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
 
     agreement_key = InvestmentAgreement.create_key()
-    deferred.defer(_invest, agreement_key, user_details[0], steps)
+    deferred.defer(_invest, agreement_key, user_details[0], steps, 0)
 
 
-def _invest(agreement_key, user_detail, steps):
+def _invest(agreement_key, user_detail, steps, retry_count):
     app_user = create_app_user_by_email(user_detail.email, user_detail.app_id)
     logging.info('User %s wants to invest', app_user)
 
     referrer = get_step_value(steps, 'message_get_referral')[0]
     currency = get_step_value(steps, 'message_get_currency')
     token_count = int(get_step_value(steps, 'message_get_order_size_ITO'))
+
+    logging.debug('Creating Token agreement')
+    full_name = u"todo flow"
+    address = u"todo flow"
+    pdf_name = 'token_%s.pdf' % agreement_key.id()
+
+    amount = token_count * PRICE_PER_TOKEN[currency]
+    currency_full = FULL_CURRENCY_NAMES[currency]
+    currency_short = currency.replace("_cur", "")
+
+    pdf_contents = create_token_agreement_pdf(full_name, address, token_count, currency, amount, currency_full, currency_short)
+    ipfs_link = store_pdf(pdf_name, pdf_contents)
+    if not ipfs_link:
+        logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
+        deferred.defer(_invest, agreement_key, user_detail, steps, retry_count + 1, _countdown=retry_count)
+        return
 
     logging.debug('Storing Investment Agreement in the datastore')
 
@@ -72,16 +114,9 @@ def _invest(agreement_key, user_detail, steps):
                                         referrer=create_app_user_by_email(referrer, user_detail.app_id),
                                         status=InvestmentAgreement.STATUS_CREATED)
         agreement.put()
-        deferred.defer(_create_investment_agreement, agreement.key, app_user, _transactional=True)
+        deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, ipfs_link, _transactional=True)
 
     ndb.transaction(trans)
-
-
-def _create_investment_agreement(agreement_key, app_user):
-    # TODO: create in ipfs
-    cfg = get_config(NAMESPACE)
-    ipfs_link = cfg.tos.order_node
-    deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, ipfs_link)
 
 
 def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, ipfs_link):

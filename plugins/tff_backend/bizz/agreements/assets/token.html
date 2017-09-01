@@ -85,15 +85,10 @@
 </div>
 
 <div>
-    <p>This Investment Agreement (hereinafter referred to as the <b>“Agreemeent“</b>) is entered into on this NNth day of JULY 2017 (the <b>“Effective Date“</b>), by and between:</p>
+    <p>This Investment Agreement (hereinafter referred to as the <b>“Agreemeent“</b>) is entered into on <b>{{ effective_date }}</b> (the <b>“Effective Date“</b>), by and between:</p>
     <p><b>Investor</b>,</p>
-    <p><i>(when a corporate entity)</i></p>
-    <p>a limited liability company with registered office at</p>
-    <p><b>{{ address }}</b>  ADDRESS, and registered with the __TODO__ REGISTRY</p>
-    <p>NAME under company number __TODO__  COMPANY NUMBER;</p>
-    <i>(OR when an individual)</i></p>
-    <p><b>{{ full_name }}</b> [FULL NAME],</p>
-    <p>residing at <b>{{ address }}</b> [ADDRESS];,</p>
+    <p><b>{{ full_name }}</b>,</p>
+    <p>residing at <b>{{ address }}</b>;,</p>
     <p>hereinafter referred to as the “<b>Investor</b>”;</p>
     <p>and</p>
     <p><b>BetterToken BVBA</b>, a limited liability company with registered office at Antwerpsesteenweg 19, 9080 Lochristi, Belgium, and
@@ -108,7 +103,7 @@
 
     <p><b>THEREFORE, IT HAS BEEN AGREED AS FOLLOWS:</b></p>
     <p><b>1. Amount</b></p>
-    <p>The Investor will make available to the Company a principal amount of <b>{{ amount_dollars }}</b> dollars (<b>{{ amount_usd }}</b> USD) as a convertible loan (the “<b>Loan</b>”).</p>
+    <p>The Investor will make available to the Company a principal amount of <b>{{ amount }}</b> {{ currency_full }} (<b>{{ amount }}</b> {{ currency_short }}) as a convertible loan (the “<b>Loan</b>”).</p>
     <p>The Loan will be paid by the Investor by wire transfer to the Company’s ING bank account; IBAN: BE89363032208585; BIC BBRUBEBB within 3 business days as from the date of this agreement.</p>
     <p>The Company undertakes to use the Loan in view of executing its Business Plan.</p>
     <p><b>2. Term of the Agreement – Conversion – Redemption</b></p>
@@ -167,15 +162,15 @@
         <tbody>
                 <tr>
                     <td>BetterToken BVBA</td>
-                    <td>NAME or NAME COMPANY:</td>
+                    <td>{{ full_name }}</td>
                 </tr>
                 <tr>
                     <td>Represented by Kristof De Spiegeleer</td>
-                    <td>(When a legal entity) Represented by NAME:</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td>Managing Director</td>
-                    <td>TITLE:</td>
+                    <td></td>
                 </tr>
         </tbody>
     </table>

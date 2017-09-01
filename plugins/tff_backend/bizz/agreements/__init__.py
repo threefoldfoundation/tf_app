@@ -1,5 +1,22 @@
-import os
+# -*- coding: utf-8 -*-
+# Copyright 2017 GIG Technology NV
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# @@license_version:1.3@@
 
+import os
+import time
 import jinja2
 
 from xhtml2pdf import pisa
@@ -12,11 +29,13 @@ except ImportError:
 ASSETS_FOLDER = os.path.join(os.path.dirname(__file__), 'assets')
 JINJA_ENVIRONMENT = jinja2.Environment(loader=jinja2.FileSystemLoader([ASSETS_FOLDER]))
 
+def _get_effective_date():
+    return time.strftime('%d %b %Y',time.gmtime())
 
-def create_hosting_agreement_pdf(effective_date, full_name, address):
+def create_hosting_agreement_pdf(full_name, address):
     template_variables = {
         'logo_path': 'assets/logo.jpg',
-        'effective_date': effective_date,
+        'effective_date': _get_effective_date(),
         'full_name': full_name,
         'address': address
     }
@@ -31,13 +50,15 @@ def create_hosting_agreement_pdf(effective_date, full_name, address):
     return pdf_contents
 
 
-def create_token_agreement_pdf(full_name, address, amount_dollars, amount_usd):
+def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short):
     template_variables = {
         'logo_path': 'assets/logo.jpg',
+        'effective_date': _get_effective_date(),
         'full_name': full_name,
         'address': address,
-        'amount_dollars': amount_dollars,
-        'amount_usd': amount_usd
+        'amount': amount,
+        'currency_full': currency_full,
+        'currency_short': currency_short
     }
 
     source_html = JINJA_ENVIRONMENT.get_template('token.html').render(template_variables)
