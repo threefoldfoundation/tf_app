@@ -65,7 +65,6 @@ class Organization(object):
         return None
 
 
-
 class Scope(object):
     _memberof = 'user:memberof:%s'
     ROOT_ADMIN = _memberof % ROOT_ORGANIZATION

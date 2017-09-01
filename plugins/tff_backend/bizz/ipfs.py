@@ -19,9 +19,11 @@ import json
 import logging
 
 from google.appengine.api import urlfetch
+
 from framework.plugin_loader import get_config
-from poster.encode import multipart_encode, MultipartParam
 from plugins.tff_backend.plugin_consts import NAMESPACE
+from poster.encode import multipart_encode, MultipartParam
+
 
 def store_pdf(pdf_name, pdf_contents):
     logging.debug('Storing IPFS document')

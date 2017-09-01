@@ -17,6 +17,7 @@
 
 import os
 import time
+
 import jinja2
 
 from xhtml2pdf import pisa
@@ -29,8 +30,10 @@ except ImportError:
 ASSETS_FOLDER = os.path.join(os.path.dirname(__file__), 'assets')
 JINJA_ENVIRONMENT = jinja2.Environment(loader=jinja2.FileSystemLoader([ASSETS_FOLDER]))
 
+
 def _get_effective_date():
-    return time.strftime('%d %b %Y',time.gmtime())
+    return time.strftime('%d %b %Y', time.gmtime())
+
 
 def create_hosting_agreement_pdf(full_name, address):
     template_variables = {

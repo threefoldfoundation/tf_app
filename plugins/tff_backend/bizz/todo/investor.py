@@ -17,6 +17,7 @@
 
 import logging
 
+
 class InvestorSteps(object):
     DOWNLOAD = 'DOWNLOAD'
     ITO_INVITES = 'ITO_INVITES'

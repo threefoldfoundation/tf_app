@@ -17,6 +17,7 @@
 
 import logging
 
+
 class HosterSteps(object):
     DOWNLOAD = 'DOWNLOAD'
     REGISTER_IYO = 'REGISTER_IYO'

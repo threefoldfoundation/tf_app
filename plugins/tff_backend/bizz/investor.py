@@ -22,7 +22,6 @@ import logging
 
 from google.appengine.ext import deferred, ndb
 
-from framework.plugin_loader import get_config
 from framework.utils import now
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -37,18 +36,18 @@ from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agreements import create_token_agreement_pdf
 from plugins.tff_backend.bizz.authentication import Roles
 from plugins.tff_backend.bizz.hoster import get_publickey_label, _create_error_message
+from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
+from plugins.tff_backend.bizz.todo import update_investor_progress
+from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.models.investor import InvestmentAgreement
-from plugins.tff_backend.plugin_consts import NAMESPACE, KEY_ALGORITHM, KEY_NAME
+from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from requests.exceptions import HTTPError
-from plugins.tff_backend.bizz.todo import update_investor_progress
-from plugins.tff_backend.bizz.todo.investor import InvestorSteps
-from plugins.tff_backend.bizz.ipfs import store_pdf
 
 # TODO: make this configurable in a settings page or cron #31
 PRICE_PER_TOKEN = {
@@ -65,7 +64,6 @@ FULL_CURRENCY_NAMES = {
 }
 
 
-
 @returns()
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
@@ -73,7 +71,6 @@ FULL_CURRENCY_NAMES = {
            flow_params=unicode)
 def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
            flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-
     agreement_key = InvestmentAgreement.create_key()
     deferred.defer(_invest, agreement_key, user_details[0], steps, 0)
 
@@ -95,7 +92,8 @@ def _invest(agreement_key, user_detail, steps, retry_count):
     currency_full = FULL_CURRENCY_NAMES[currency]
     currency_short = currency.replace("_cur", "")
 
-    pdf_contents = create_token_agreement_pdf(name, billing_address, token_count, currency, amount, currency_full, currency_short)
+    pdf_contents = create_token_agreement_pdf(name, billing_address, token_count, currency, amount, currency_full,
+                                              currency_short)
     ipfs_link = store_pdf(pdf_name, pdf_contents)
     if not ipfs_link:
         logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
@@ -114,7 +112,8 @@ def _invest(agreement_key, user_detail, steps, retry_count):
                                         referrer=create_app_user_by_email(referrer, user_detail.app_id),
                                         status=InvestmentAgreement.STATUS_CREATED)
         agreement.put()
-        deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, ipfs_link, _transactional=True)
+        deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, ipfs_link,
+                       _transactional=True)
 
     ndb.transaction(trans)
 
@@ -266,7 +265,8 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         message.branding = get_main_branding_hash()
         message.dismiss_button_ui_flags = 0
         message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
-        message.message = u'Thank you. We successfully received your digital signature. We have stored a copy of this agreement in your ItsYou.Online SEE account.'
+        message.message = u'Thank you. We successfully received your digital signature.' \
+                          u' We have stored a copy of this agreement in your ItsYou.Online SEE account.'
         message.step_id = u'investment_agreement_accepted'
         message.tag = None
 

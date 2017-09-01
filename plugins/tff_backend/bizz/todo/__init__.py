@@ -15,16 +15,13 @@
 #
 # @@license_version:1.3@@
 
-import logging
-
-from google.appengine.api import users
 from mcfw.rpc import returns, arguments
 
 from plugins.rogerthat_api.api import system
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.utils.app import get_app_user_tuple
 from plugins.tff_backend.bizz.todo.hoster import HosterSteps
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
+
 
 @returns()
 @arguments(email=unicode, app_id=unicode, step=unicode)
