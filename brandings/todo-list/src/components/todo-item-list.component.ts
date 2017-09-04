@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
-import { TodoListItem } from '../interfaces/todo-list.interfaces';
+import { TodoList } from '../interfaces/todo-list.interfaces';
 
 @Component({
   selector: 'todo-item-list',
@@ -10,7 +10,7 @@ import { TodoListItem } from '../interfaces/todo-list.interfaces';
 
 export class TodoItemListComponent implements OnChanges {
 
-  @Input() items: TodoListItem[];
+  @Input() todoList: TodoList;
 
   itemsLeft: number = 0;
   itemLeftMap = {
@@ -20,8 +20,9 @@ export class TodoItemListComponent implements OnChanges {
   };
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.items) {
-      this.itemsLeft = (<TodoListItem[]>changes.items.currentValue).filter(item => !item.checked).length;
+    if (changes.todoList) {
+      const list = <TodoList>changes.todoList.currentValue;
+      this.itemsLeft = list.items.length - list.doneCount;
     }
   }
 }

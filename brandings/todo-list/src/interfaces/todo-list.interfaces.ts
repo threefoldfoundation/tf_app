@@ -8,4 +8,5 @@ export interface TodoList {
   id: string;
   name: string;
   items: TodoListItem[];
+  doneCount: number;
 }

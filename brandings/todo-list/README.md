@@ -22,10 +22,12 @@ To test it, either upload it as a branding on your rogerthat server or add this 
   if (typeof rogerthat === 'undefined') {
     rogerthat = {
       callbacks: {
-        ready: function () {
+        ready: function (callback) {
+          this._ready = callback;
         }
       },
       user: {
+        language: 'en',
         data: {
           todo_lists: ['list1', 'list2'],
           todo_list1: {
@@ -58,5 +60,6 @@ To test it, either upload it as a branding on your rogerthat server or add this 
       }
     };
   }
+  setTimeout(() => rogerthat.callbacks._ready(), 250);
 </script>
 ```
