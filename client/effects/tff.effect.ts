@@ -1,13 +1,10 @@
-// angular
 import { Injectable } from '@angular/core';
 import { Actions, Effect } from '@ngrx/effects';
-// libs
 import { Action } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
-// module
-import { TffService } from '../services/tff.service';
+import { handleApiError } from '../../../framework/client/rpc/rpc.service';
 import * as actions from '../actions/threefold.action';
-import { handleApiError } from '../services/rpc.service';
+import { TffService } from '../services/tff.service';
 
 @Injectable()
 export class TffEffects {
