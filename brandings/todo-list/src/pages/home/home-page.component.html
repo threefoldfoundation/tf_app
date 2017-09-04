@@ -1,0 +1,21 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button="bar-button" (click)="close()" class="back-button show-back-button back-button-md">
+        <ion-icon name="arrow-back" class="back-button-icon-md"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{ 'todo' | translate }}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding>
+  <ion-list *ngIf="todoLists?.length">
+    <button ion-item text-wrap *ngFor="let item of todoLists" (click)="showDetails(item)">
+      {{ item.name }} <span>({{ item.doneCount }}/{{ item.items.length }})</span>
+    </button>
+  </ion-list>
+  <div *ngIf="todoLists?.length === 0">
+    <h2>{{ 'all_done' | translate }}</h2>
+    <p>{{ 'no_work_to_finish' | translate }}</p>
+  </div>
+</ion-content>

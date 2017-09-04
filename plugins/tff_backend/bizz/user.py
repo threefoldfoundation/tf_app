@@ -19,16 +19,19 @@ import json
 import logging
 
 from google.appengine.ext import deferred
+from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
 from framework.bizz.session import create_session
 from framework.plugin_loader import get_config
 from mcfw.consts import MISSING
-from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client
+from mcfw.rpc import returns, arguments
+from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
+    has_access_to_organization
 from plugins.its_you_online_auth.libs.itsyouonline.AddOrganizationMemberReqBody import AddOrganizationMemberReqBody
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.to import UserDetailsTO
+from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Organization
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
@@ -62,7 +65,6 @@ def user_registered(user_detail, data):
     create_session(username, scopes, jwt, secret=username)
 
     deferred.defer(_invite_user, username)
-    deferred.defer(_store_name, username, user_detail)
 
 
 @returns()
@@ -81,21 +83,32 @@ def _invite_user(username):
 
 @returns()
 @arguments(username=unicode, user_detail=UserDetailsTO)
-def _store_name(username, user_detail):
-    logging.info('Getting the user\'s name from IYO')
+def store_iyo_info_in_userdata(username, user_detail):
+    logging.info('Getting the user\'s info from IYO')
     iyo_user = get_user(username)
-    if not iyo_user.firstname and not iyo_user.lastname:
-        logging.debug('There is no firstname and lastname in %s', repr(iyo_user))
-        return
 
-    name = '%s %s' % (iyo_user.firstname, iyo_user.lastname)
-    logging.info('Storing name "%s" in user_data', name)  # used for pre-filling message flows
     api_key = get_rogerthat_api_key()
-    user_data = system.get_user_data(api_key, user_detail.email, user_detail.app_id, ['name'])
-    if user_data.get('name'):
-        logging.debug('The name was already stored in user_data')
-    else:
-        user_data = dict(name=name)
+    user_data_keys = ['name', 'email', 'phone', 'address']
+    current_user_data = system.get_user_data(api_key, user_detail.email, user_detail.app_id, user_data_keys)
+
+    user_data = dict()
+    if not current_user_data.get('name') and iyo_user.firstname and iyo_user.lastname:
+        user_data['name'] = u'%s %s' % (iyo_user.firstname, iyo_user.lastname)
+
+    if not current_user_data.get('email') and iyo_user.validatedemailaddresses:
+        user_data['email'] = iyo_user.validatedemailaddresses[0].emailaddress
+
+    if not current_user_data.get('phone') and iyo_user.validatedphonenumbers:
+        user_data['phone'] = iyo_user.validatedphonenumbers[0].phonenumber
+
+    if not current_user_data.get('address') and iyo_user.addresses:
+        user_data['address'] = u'%s %s' % (iyo_user.addresses[0].street, iyo_user.addresses[0].nr)
+        user_data['address'] += u'\n%s %s' % (iyo_user.addresses[0].postalcode, iyo_user.addresses[0].city)
+        user_data['address'] += u'\n%s' % iyo_user.addresses[0].country
+        if iyo_user.addresses[0].other:
+            user_data['address'] += u'\n\n%s' % iyo_user.addresses[0].other
+
+    if user_data:
         system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
 
 
@@ -104,25 +117,22 @@ def _store_name(username, user_detail):
 def store_public_key(user_detail):
     # type: (UserDetailsTO) -> None
     logging.info('Storing %s key in IYO for user %s:%s', KEY_NAME, user_detail.email, user_detail.app_id)
-    username = get_iyo_username(user_detail)
-    keystore = get_keystore(username)
-    used_labels = [key.label for key in keystore]
-    saved_keys = []
 
     for rt_key in user_detail.public_keys:
-        for iyo_key in keystore:
-            if iyo_key.key == rt_key.public_key:
-                saved_keys.append(iyo_key.key)
-                break
-
-    for rt_key in user_detail.public_keys:
-        if rt_key not in saved_keys:
-            # we found the new key
+        if rt_key.name == KEY_NAME and rt_key.algorithm == KEY_ALGORITHM:
             break
     else:
-        logging.error('No new key to store starting with name "%s" and algorithm "%s" in %s', KEY_NAME, KEY_ALGORITHM,
-                      serialize_complex_value(user_detail, UserDetailsTO, False, skip_missing=True))
+        raise PermanentTaskFailure('No key with name "%s" and algorithm "%s" in %s'
+                                   % (KEY_NAME, KEY_ALGORITHM, repr(user_detail)))
+
+    username = get_iyo_username(user_detail)
+    keys = get_keystore(username)
+    if any(True for iyo_key in keys if iyo_key.key == rt_key.public_key):
+        logging.info('No new key to store starting with name "%s" and algorithm "%s" in %s',
+                     KEY_NAME, KEY_ALGORITHM, repr(user_detail))
         return
+
+    used_labels = [key.label for key in keys]
     label = KEY_NAME
     suffix = 2
     while label in used_labels:
@@ -144,3 +154,18 @@ def store_public_key(user_detail):
     mapping = PublicKeyMapping(key=mapping_key)
     mapping.label = result.label
     mapping.put()
+
+
+@returns([(int, long)])
+@arguments(user_detail=UserDetailsTO, roles=[RoleTO])
+def is_user_in_roles(user_detail, roles):
+    client = get_itsyouonline_client()
+    username = get_iyo_username(user_detail)
+    result = []
+    for role in roles:
+        organization_id = Organization.get_by_role_name(role.name)
+        if not organization_id:
+            continue
+        if has_access_to_organization(client, organization_id, username):
+            result.append(role.id)
+    return result

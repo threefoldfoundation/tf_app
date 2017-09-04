@@ -18,10 +18,6 @@
 from mcfw.properties import unicode_property, typed_property
 
 
-class TOSConfiguration(object):
-    order_node = unicode_property('1')
-
-
 class RogerthatKeysConfiguration(object):
     api_key = unicode_property('1')
     sik = unicode_property('2')
@@ -32,6 +28,10 @@ class RogerthatConfiguration(object):
     prod = typed_property('2', RogerthatKeysConfiguration, False)
 
 
+class IPFSConfiguration(object):
+    secret = unicode_property('1')
+
+
 class TffConfiguration(object):
-    tos = typed_property('1', TOSConfiguration, False)
-    rogerthat = typed_property('2', RogerthatConfiguration, False)
+    rogerthat = typed_property('1', RogerthatConfiguration, False)
+    ipfs = typed_property('2', IPFSConfiguration, False)

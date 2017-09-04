@@ -10,7 +10,10 @@ export interface NodeOrder {
   id: number;
   app_user: string;
   name: string;
-  address: string;
+  email: string;
+  phone: string;
+  billing_address: string;
+  shipping_address: string;
   status: NodeOrderStatuses;
   tos_iyo_see_id: string;
   signature_payload: string | null;
@@ -30,13 +33,9 @@ export interface NodeOrderList {
   results: NodeOrder[];
 }
 
-export interface NodeOrderListPerStatus {
+export interface GetNodeOrdersPayload {
   cursor: string | null;
-  more: boolean;
-  results: {
-    type: NodeOrderStatuses;
-    orders: NodeOrder[];
-  }[];
+  status: NodeOrderStatuses;
 }
 
 export const ORDER_STATUSES = {

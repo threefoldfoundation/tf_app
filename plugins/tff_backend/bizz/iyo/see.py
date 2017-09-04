@@ -15,14 +15,12 @@
 #
 # @@license_version:1.3@@
 
-import httplib
 import logging
 import urllib
 
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username
 from plugins.tff_backend.to.iyo.see import IYOSeeDocument, IYOSeeDocumentView
-from requests.exceptions import HTTPError
 
 
 @returns(IYOSeeDocument)
@@ -48,13 +46,7 @@ def get_see_documents(organization_id, username):
 def create_see_document(username, doc):
     client = get_itsyouonline_client_from_username(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
-    try:
-        result = client.api.users.CreateSeeObject(data, username)
-    except HTTPError as e:
-        if e.response.status_code == httplib.CONFLICT:
-            result = e.response
-        else:
-            raise e
+    result = client.api.users.CreateSeeObject(data, username)
     logging.debug('create_see_document %s %s', result.status_code, result.text)
     return IYOSeeDocumentView(**result.json())
 

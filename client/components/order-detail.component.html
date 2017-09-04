@@ -6,7 +6,10 @@
   <div *ngIf="nodeOrder">
     <h2>{{ 'tff.node_order_x' | translate : {orderId: nodeOrder.id} }}</h2>
     <p>{{ 'tff.name' | translate}}: {{ nodeOrder.name }}</p>
-    <p>{{ 'tff.address' | translate}}: {{ nodeOrder.address }}</p>
+    <p>{{ 'tff.email' | translate}}: {{ nodeOrder.email }}</p>
+    <p>{{ 'tff.phone' | translate}}: {{ nodeOrder.phone }}</p>
+    <p>{{ 'tff.billing_address' | translate}}: {{ nodeOrder.billing_address }}</p>
+    <p>{{ 'tff.shipping_address' | translate}}: {{ nodeOrder.shipping_address }}</p>
     <p>{{ 'tff.status' | translate}}: {{ getOrderStatus() }}</p>
     <p>{{ 'tff.modification_time' | translate }}: {{ nodeOrder.modification_time | timestamp }}</p>
     <p>{{ 'tff.order_time' | translate }}: {{ nodeOrder.order_time | timestamp }}</p>

@@ -31,6 +31,7 @@ class Roles(object):
     ADMINS = 'admins'
     DEFAULT = 'default'
     HOSTER = 'hosters'
+    INVITED = 'invited'
     INVESTOR = 'investors'
     AMBASSADORS = 'ambassadors'
 
@@ -43,8 +44,25 @@ class Organization(object):
     ADMIN = '%s.admins' % ROOT_ORGANIZATION
     DEFAULT_USER = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.DEFAULT)
     HOSTER = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.HOSTER)
+    INVITED = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.INVITED)
     INVESTOR = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.INVESTOR)
     AMBASSADOR = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.AMBASSADORS)
+
+    @staticmethod
+    def get_by_role_name(role_name):
+        if Roles.ADMINS == role_name:
+            return Organization.ADMIN
+        if Roles.DEFAULT == role_name:
+            return Organization.DEFAULT_USER
+        if Roles.HOSTER == role_name:
+            return Organization.HOSTER
+        if Roles.INVITED == role_name:
+            return Organization.INVITED
+        if Roles.INVESTOR == role_name:
+            return Organization.INVESTOR
+        if Roles.AMBASSADORS == role_name:
+            return Organization.AMBASSADOR
+        return None
 
 
 class Scope(object):
@@ -53,6 +71,7 @@ class Scope(object):
     ADMIN = _memberof % Organization.ADMIN
     DEFAULT_USER = _memberof % Organization.DEFAULT_USER
     HOSTER = _memberof % Organization.HOSTER
+    INVITED = _memberof % Organization.INVITED
     INVESTOR = _memberof % Organization.INVESTOR
     AMBASSADOR = _memberof % Organization.AMBASSADOR
 
@@ -61,12 +80,13 @@ class Scopes(object):
     ADMIN = [Scope.ADMIN, Scope.ROOT_ADMIN]
     DEFAULT_USER = [Scope.DEFAULT_USER]
     HOSTER = DEFAULT_USER + [Scope.HOSTER]
+    INVITED = DEFAULT_USER + [Scope.INVITED]
     INVESTOR = DEFAULT_USER + [Scope.INVESTOR]
     AMBASSADOR = DEFAULT_USER + [Scope.AMBASSADOR]
 
 
 SCOPE_ROLES = {
-    PermissionType.USERS: [Roles.DEFAULT, Roles.HOSTER, Roles.INVESTOR, Roles.AMBASSADORS]
+    PermissionType.USERS: [Roles.DEFAULT, Roles.HOSTER, Roles.INVITED, Roles.INVESTOR, Roles.AMBASSADORS]
 }
 
 

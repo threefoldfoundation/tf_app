@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width"/>
+    <style>
+        body {
+            font-size: 9pt;
+        }
+
+        .clearfix {
+            *zoom: 1;
+        }
+
+        .clearfix:before,
+        .clearfix:after {
+            display: table;
+            line-height: 0;
+            content: "";
+        }
+
+        .clearfix:after {
+            clear: both;
+        }
+
+        .bordered td {
+            border: 0.3pt solid black;
+        }
+
+        .no-border-bottom {
+            border-bottom: none;
+        }
+
+        .no-border-top {
+            border-top: none;
+        }
+
+        .text-bold {
+            font-weight: bold;
+        }
+
+        @page {
+            margin: 2cm;
+            margin-bottom: 3.5cm;
+            @frame footer_frame {
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 1cm;
+            }
+        }
+
+        .logo {
+            zoom: 16%;
+        }
+
+        .title {
+            margin-top: 25pt;
+            font-size: 15pt;
+        }
+    </style>
+</head>
+
+<body>
+<!-- <style> -->
+<div id="footerContent" align="left">
+    Document Version 1.1
+</div>
+
+<div id="p1">
+    <div id="headerContent" align="center">
+        <img class="logo" src="{{ logo_path }}" width="895" height="222"/>
+        <p class="title">HOSTING SERVICES AGREEMENT</p>
+    </div>
+    <p><b>THIS AGREEMENT</b> effective as of <b>{{ effective_date }}</b></p>
+    <p><b>BETWEEN</b></p>
+    <p><b>{{ full_name }}</b>,</p>
+    <p>residing at <b>{{ address }}</b> (hereinafter referred to as “Host”)</p>
+    <p><b>and</b></p>
+    <p>BETTERTOKEN BVBA, a company incorporated under Belgian law with registered office at B-9080 Lochristi,
+        Antwerpsesteenweg 19, and registered with the Crossroads Bank of Enterprises under company number
+        0666.708.318 (hereinafter referred to as “Company”)</p>
+    <p><b>WHEREAS</b></p>
+    <p>The Company is building its first blockchain running on a grid of connected devices called ThreeFold Nodes. In
+        order to achieve a geographical spread of this grid, the Company wishes to host the ThreeFold Nodes with various hosters.</p>
+    <p>Host is willing to host one ThreeFold Node in exchange for a certain amount of ThreeFold Tokens, all as set out hereinafter.</p>
+    <p><b>NOW THEREFORE</b> in consideration of the premises, mutual covenants and agreements herein and other good
+        and valuable consideration, the sufficiency of which is hereby acknowledged, the parties agree as follows:</p>
+    <p>1. Definitions</p>
+    <p>- ‘<i>Software</i>’ means the software running on the Threefold Node, consisting of the Company’s Zero-OS, blockchain and related software.</p>
+    <p>- ‘<i>ThreeFold Node</i>’ means the hardware provided by the Company to the Hoster in view of its hosting pursuant to this Agreement.</p>
+    <p>- ‘<i>ThreeFold Token</i>’ means the digital currency developed and issued by the ThreeFold Foundation, consisting
+        of a smart contract digital token representing a pro rata fractional economic interest in the ThreeFold Foundation (the Token).</p>
+    <p>2. Delivery and Services</p>
+    <p>The Company shall ship one ThreeFold Node to the Host. Company is and remains the owner of the ThreeFold Node.</p>
+    <p>Host shall provide the following services to the Company:</p>
+    <ul>
+        <li>physically hosting the Threefold Node in a secure indoor environment;</li>
+        <li>keeping the Threefold Node plugged into an electrical grid at the required service voltage;</li>
+        <li>keeping the Threefold Node connected to the required network infrastructure (i.e. broadband internet connectivity);</li>
+    </ul>
+</div>
+
+<pdf:nextpage/>
+<div id="p2">
+    <p>3. Consideration</p>
+    <p>In consideration for the Services provided, the Company agrees to grant six (6) ThreeFold Tokens per year to Host.
+    The ThreeFold Tokens will be granted at the end of each relevant year on the anniversary date of this Agreement, provided the Host has duly completed its obligations set out under section 2 above.</p>
+    <p>4. Term of this Agreement</p>
+    <p>This Agreement is entered into for 5 years, unless terminated by either party in accordance with section 9 herein (the “Term”).</p>
+    <p>5. Limitation</p>
+    <p>The Host undertakes not to host more than one ThreeFold Node per address and/or physical location, and not to connect more than one ThreeFold Node to each individual internet connection.</p>
+    <p>6. Third Party Software Prohibited</p>
+    <p>The Host is strictly prohibited from installing any third party software on the ThreeFold Node without the express written authorization of the Company.</p>
+    <p>7. Content</p>
+    <p>The Company acknowledges that responsibility for all content included in the ThreeFold Node (the “Content”)
+        is the sole and exclusive responsibility of the Company or the Company’s customers, and that Host will not be
+        held responsible in any way for any copyright infringement or violation, or the violation of any other person’s
+        rights or the violation of any laws, including but not limited to infringement or misappropriation of copyright,
+        trademark or other property right of any person or entity, arising or relating to the Content.</p>
+    <p>8. Intellectual Property Rights</p>
+    <p>The Company owns and shall continue to own all proprietary rights, title and interest  in ThreeFold Node and the Software running on it.</p>
+    <p>9. Representations, Warranties and Indemnifications</p>
+    <p>OTHER THAN THE EXPRESS WARRANTIES STATED IN THIS AGREEMENT, THE COMPANY MAKES NO OTHER
+        REPRESENTATIONS OR WARRANTIES HEREUNDER OF ANY KIND, EITHER EXPRESS OR IMPLIED, IN RELATION TO
+        THE THREEFOLD NODE AND/OR THE SOFTWARE, INCLUDING BUT NOT LIMITED TO ANY WARRANTY OF
+        MERCHANTABILITY AND/OR FITNESS FOR ANY PARTICULAR PURPOSE. IN NO EVENT SHALL THE COMPANY BE
+        LIABLE, DIRECTLY OR INDIRECTLY, FOR ANY SPECIAL OR CONSEQUENTIAL OR INCIDENTAL DAMAGES
+        INCLUDING BUT NOT LIMITED TO LOSS OF ANTICIPATED PROFITS, LOSS OF REVENUE OR LOSS OF DATA.</p>
+    <p>10. Termination</p>
+    <p>Either party may terminate this Agreement at anytime on thirty (30) days written notice to the other.
+    In addition thereto,  the Company can immediately terminate this Agreement and withdraw the ThreeFold
+    Node in the event of a material breach of the Hoster of any provisions of this Agreement, or when the
+    Company, in the sole discretion, determines that: (i) the Host is using or allowing, authorizing or assisting the
+    ThreeFold Node to be used for illegal purposes; or (ii) the Host downloads or installs third party software to
+    the ThreeFold Node without the express written authorization of the Company.</p>
+
+</div>
+
+<pdf:nextpage/>
+<div id="p3">
+    <p>Upon termination of this Agreement the Host will immediately return the ThreeFold Node to the Company.</p>
+    <p>11. Assignment</p>
+    <p>The Host agrees that the Company may assign or otherwise transfer this Agreement provided that the
+        Company informs the Host of such assignment or transfer in writing within 15 days. The Host may not assign
+        or otherwise transfer this Agreement without the prior written consent of the Company.</p>
+    <p>12. Governing Law</p>
+    <p>This Agreement shall be governed by and construed in accordance with Belgian law.</p>
+    <p>13. Counterparts</p>
+    <p>This Agreement may be executed in counterparts in the same form and such parts so executed shall together
+        form one original document and be read and construed as if one copy of the Agreement had been executed.</p>
+    <p>In witness whereof, the parties hereto have executed this Agreement effective this <b>{{ effective_date }}</b>.</p>
+
+
+    <table style="padding:0.2em; margin-top: 10em;">
+        <thead>
+            <tr>
+                <td style="width:50%;">The Company</td>
+                <td style="width:50%;">The Host</td>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <td>BetterToken BVBA</td>
+                    <td>{{ full_name }}</td>
+                </tr>
+                <tr>
+                    <td>Represented by Kristof De Spiegeleer</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Managing Director</td>
+                    <td></td>
+                </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

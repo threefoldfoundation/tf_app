@@ -17,25 +17,30 @@
 
 from google.appengine.ext import ndb
 
+from enum import Enum
 from framework.models.common import NdbModel
 from framework.utils import chunks, now
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
-class NodeOrder(NdbModel):
-    STATUS_CANCELED = -1
-    STATUS_CREATED = 0
-    STATUS_SIGNED = 1
-    STATUS_SENT = 2
-    STATUS_ARRIVED = 3
+class NodeOrderStatus(Enum):
+    CANCELED = -1
+    CREATED = 0
+    SIGNED = 1
+    SENT = 2
+    ARRIVED = 3
 
+
+class NodeOrder(NdbModel):
     NODE_ORDERS_PER_PAGE = 50
 
     app_user = ndb.UserProperty()
     name = ndb.StringProperty(indexed=False)
-    address = ndb.StringProperty(indexed=False)
-
-    status = ndb.IntegerProperty(default=STATUS_CREATED)
+    email = ndb.StringProperty(indexed=False)
+    phone = ndb.StringProperty(indexed=False)
+    billing_address = ndb.StringProperty(indexed=False)
+    shipping_address = ndb.StringProperty(indexed=False)
+    status = ndb.IntegerProperty(default=NodeOrderStatus.CREATED)
     tos_iyo_see_id = ndb.StringProperty(indexed=False)
     signature_payload = ndb.StringProperty(indexed=False)
     signature = ndb.StringProperty(indexed=False)
@@ -85,9 +90,15 @@ class NodeOrder(NdbModel):
         return cls.query(namespace=NAMESPACE)
 
     @classmethod
-    def fetch_page(cls, cursor=None):
+    def list_by_status(cls, status):
+        return cls.query(namespace=NAMESPACE) \
+            .filter(cls.status == status)
+
+    @classmethod
+    def fetch_page(cls, cursor=None, status=None):
         # type: (unicode) -> tuple[list[NodeOrder], ndb.Cursor, bool]
-        return cls.list() \
+        qry = cls.list_by_status(status) if status else cls.list()
+        return qry \
             .order(-cls.modification_time) \
             .fetch_page(cls.NODE_ORDERS_PER_PAGE, start_cursor=ndb.Cursor(urlsafe=cursor))
 

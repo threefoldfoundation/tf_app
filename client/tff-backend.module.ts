@@ -2,7 +2,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MdButtonModule, MdIconModule, MdInputModule, MdListModule } from '@angular/material';
+import { MdButtonModule, MdIconModule, MdInputModule, MdListModule, MdSelectModule } from '@angular/material';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
@@ -13,9 +13,10 @@ import { TffEffects } from './effects/tff.effect';
 import { TimestampPipe } from './pipes/timestamp.pipe';
 import { TFF_COMPONENTS, TFF_PROVIDERS } from './services/index';
 import { TffRoutes } from './tff.routes';
+import 'rxjs/add/operator/first';
 
 const MATERIAL_IMPORTS = [
-  MdButtonModule, MdInputModule, MdListModule, MdIconModule,
+  MdButtonModule, MdInputModule, MdListModule, MdIconModule, MdSelectModule
 ];
 
 @NgModule({
