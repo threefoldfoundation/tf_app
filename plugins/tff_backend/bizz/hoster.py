@@ -344,7 +344,7 @@ def put_node_order(order_id, order):
             order_model.cancel_time = now()
         elif order_model.status == NodeOrderStatus.SENT:
             order_model.send_time = now()
-            human_user, app_id = get_app_user_tuple(order.app_user)
+            human_user, app_id = get_app_user_tuple(order_model.app_user)
             deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_SENT)
 
     order_model.put()
@@ -357,8 +357,8 @@ def _store_order_arrival(tag, arrival_time):
     tag_dict = json.loads(tag)
     order_id = tag_dict['order_id']
     logging.info('Marking order %s as arrived', order_id)
-    order = NodeOrder.create_key(order_id).get()
-    order.arrival_time = now()
+    order = NodeOrder.create_key(order_id).get()  # type: NodeOrder
+    order.arrival_time = arrival_time
     order.status = NodeOrderStatus.ARRIVED
     order.put()
 
