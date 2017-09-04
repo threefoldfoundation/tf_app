@@ -90,24 +90,15 @@ SCOPE_ROLES = {
 }
 
 
-class RoleScope(object):
-    value = None
-    role = None
-
-    def __init__(self, value, role):
-        self.value = value
-        self.role = role
-
-
 class UserPermissions(object):
-    users = []  # type: list of RoleScope
+    users = []  # type: list of unicode
     admin = False
 
     def __init__(self, admin, users):
         """
         Args:
             admin (boolean)
-            users (list of RoleScope)
+            users (list of unicode)
         """
         self.admin = admin
         self.users = users
@@ -124,6 +115,6 @@ def get_permissions_from_scopes(scopes):
         # e.g. {root_org}.users.hosters
         if users_re:
             groups = users_re.groups()
-            users.append(RoleScope(groups[1], groups[2]))
+            users.append(groups[0])
             continue
     return UserPermissions(admin, users)

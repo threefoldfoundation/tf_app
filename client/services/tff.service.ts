@@ -16,7 +16,7 @@ export class TffService {
       params = params.set('cursor', payload.cursor);
     }
     params = params.set('status', payload.status.toString());
-    return this.http.get<NodeOrderList>(`${TffConfig.API_URL}/orders`,{ params });
+    return this.http.get<NodeOrderList>(`${TffConfig.API_URL}/orders`, { params });
   }
 
   getNodeOrder(orderId: string): Observable<NodeOrder> {
