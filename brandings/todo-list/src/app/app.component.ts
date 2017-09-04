@@ -6,6 +6,8 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 import { TranslateService } from '@ngx-translate/core';
 import { RogerthatService } from '../services/rogerthat.service';
 import { HomePageComponent } from '../pages/home/home-page.component';
+import { TodoListService } from '../services/todo-list.service';
+import { TodoListPageComponent } from '../pages/todo-list/todo-list-page.component';
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -21,6 +23,7 @@ export class TodoListAppComponent {
               private splashScreen: SplashScreen,
               private translate: TranslateService,
               private rogerthatService: RogerthatService,
+              private todoListService: TodoListService,
               private cdRef: ChangeDetectorRef) {
     translate.setDefaultLang('en');
     platform.ready().then(() => {
@@ -31,6 +34,10 @@ export class TodoListAppComponent {
         this.rogerthatService.initialize();
         this.platformReady = true;
         this.cdRef.detectChanges();
+        const todoLists = this.todoListService.getTodoLists();
+        if (todoLists.length === 1) {
+          this.rootPage = TodoListPageComponent;
+        }
       });
     });
   }

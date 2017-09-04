@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@
 
 import { TodoList } from '../../interfaces/todo-list.interfaces';
 import { TodoListService } from '../../services/todo-list.service';
-import { Platform } from 'ionic-angular';
+import { NavController, Platform } from 'ionic-angular';
 import { TodoListPageComponent } from '../todo-list/todo-list-page.component';
 
 @Component({
@@ -12,11 +12,11 @@ import { TodoListPageComponent } from '../todo-list/todo-list-page.component';
   templateUrl: 'home-page.component.html',
 })
 export class HomePageComponent implements OnInit {
-  tabComponent = TodoListPageComponent;
   todoLists: TodoList[] = [];
 
   constructor(private todoListService: TodoListService,
-              private platform: Platform) {
+              private platform: Platform,
+              private nav: NavController) {
   }
 
   ngOnInit() {
@@ -25,5 +25,9 @@ export class HomePageComponent implements OnInit {
 
   close() {
     this.platform.exitApp();
+  }
+
+  showDetails(todoList: TodoList) {
+    this.nav.push(TodoListPageComponent, { todoList });
   }
 }

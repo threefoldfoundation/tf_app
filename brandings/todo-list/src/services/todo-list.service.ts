@@ -11,7 +11,9 @@ export class TodoListService {
       for (const list of listIds) {
         const listKey = 'todo_' + list;
         if (rogerthat.user.data[ listKey ]) {
-          todoLists.push(<TodoList>rogerthat.user.data[ listKey ]);
+          let todoList = <TodoList>rogerthat.user.data[ listKey ];
+          todoList.doneCount = todoList.items.filter(item => item.checked).length;
+          todoLists.push(todoList);
         }
       }
     }
