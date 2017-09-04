@@ -1,0 +1,17 @@
+<div class="investment-agreement-content">
+  <button md-button [routerLink]="['..']">
+    <md-icon>arrow_back</md-icon>
+    {{ 'tff.back' | translate }}
+  </button>
+  <div *ngIf="investmentAgreement">
+    <h2>{{ 'tff.investment_agreement_x' | translate : { investmentAgreementId: investmentAgreement.id } }}</h2>
+    <p>{{ investmentAgreement.amount | currency : investmentAgreement.currency }}</p>
+    <p>{{ 'tff.status' | translate}}: {{ getStatus() }}</p>
+    <p>{{ 'tff.user' | translate}}: {{ investmentAgreement.app_user }}</p>
+    <p>{{ 'tff.modification_time' | translate }}: {{ investmentAgreement.modification_time | timestamp }}</p>
+    <p>{{ 'tff.created' | translate }}: {{ investmentAgreement.creation_time | timestamp }}</p>
+    <p *ngIf="investmentAgreement.status === statuses.CANCELED">
+      {{ 'tff.cancel_time' | translate }}: {{ investmentAgreement.cancel_time | timestamp }}</p>
+    <button *ngIf="canMarkAsPaid" md-button (click)="markAsPaid()">{{ 'tff.mark_as_sent' | translate }}</button>
+  </div>
+</div>

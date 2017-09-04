@@ -19,29 +19,25 @@ from types import NoneType
 from google.appengine.ext import ndb
 
 from mcfw.properties import long_property, unicode_property, typed_property
-from plugins.tff_backend.models.hoster import NodeOrder
+from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.to import TO, PaginatedResultTO
 
 
-class NodeOrderTO(TO):
+class InvestmentAgreementTO(TO):
     id = long_property('id')
     app_user = unicode_property('app_user')
-    name = unicode_property('name')
-    email = unicode_property('email')
-    phone = unicode_property('phone')
-    billing_address = unicode_property('billing_address')
-    shipping_address = unicode_property('shipping_address')
-    status = long_property('status')
-    tos_iyo_see_id = unicode_property('tos_iyo_see_id')
+    referrer = unicode_property('referrer')
+    amount = long_property('amount')
+    currency = unicode_property('currency')
+    iyo_see_id = unicode_property('iyo_see_id')
     signature_payload = unicode_property('signature_payload')
     signature = unicode_property('signature')
-    order_time = long_property('order_time')
+    status = long_property('status')
+    creation_time = long_property('creation_time')
     sign_time = long_property('sign_time')
-    send_time = long_property('send_time')
-    arrival_time = long_property('arrival_time')
+    paid_time = long_property('paid_time')
     cancel_time = long_property('cancel_time')
     modification_time = long_property('modification_time')
-    arrival_qr_code_url = unicode_property('arrival_qr_code_url')
 
     def __init__(self, **kwargs):
         for prop, val in kwargs.iteritems():
@@ -49,20 +45,20 @@ class NodeOrderTO(TO):
 
     @classmethod
     def from_model(cls, model):
-        assert isinstance(model, NodeOrder)
+        assert isinstance(model, InvestmentAgreement)
         return cls(**model.to_dict())
 
 
-class NodeOrderListTO(PaginatedResultTO):
-    results = typed_property('results', NodeOrderTO, True)
+class InvestmentAgreementListTO(PaginatedResultTO):
+    results = typed_property('results', InvestmentAgreementTO, True)
 
     def __init__(self, cursor=None, more=False, results=None):
-        super(NodeOrderListTO, self).__init__(cursor, more)
+        super(InvestmentAgreementListTO, self).__init__(cursor, more)
         self.results = results or []
 
     @classmethod
     def from_query(cls, models, cursor, more):
-        # type: (list[NodeOrder], ndb.Cursor, bool) -> object
+        # type: (list[InvestmentAgreementListTO], ndb.Cursor, bool) -> object
         assert isinstance(cursor, (ndb.Cursor, NoneType))
-        orders = [NodeOrderTO.from_model(model) for model in models]
+        orders = [InvestmentAgreementTO.from_model(model) for model in models]
         return cls(cursor and cursor.to_websafe_string().decode('utf-8'), more, orders)

@@ -14,8 +14,7 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
-
+from mcfw.properties import unicode_property, bool_property
 from mcfw.rpc import serialize_complex_value
 
 
@@ -31,3 +30,12 @@ class TO(object):
     def __repr__(self):
         # useful when debugging
         return repr(serialize_complex_value(self, type(self), False, skip_missing=True))
+
+
+class PaginatedResultTO(TO):
+    cursor = unicode_property('cursor')
+    more = bool_property('more')
+
+    def __init__(self, cursor=None, more=False):
+        self.cursor = cursor
+        self.more = more

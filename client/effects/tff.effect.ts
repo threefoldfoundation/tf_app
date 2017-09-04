@@ -27,6 +27,24 @@ export class TffEffects {
       .map(payload => new actions.UpdateOrderCompleteAction(payload))
       .catch(err => handleApiError(actions.UpdateOrderFailedAction, err)));
 
+  @Effect() getInvestmentAgreements$: Observable<Action> = this.actions$
+    .ofType(actions.TffActionTypes.GET_INVESTMENT_AGREEMENTS)
+    .switchMap((action) => this.tffService.getInvestmentAgreements(action.payload)
+      .map(payload => new actions.GetInvestmentAgreementsCompleteAction(payload))
+      .catch(err => handleApiError(actions.GetInvestmentAgreementsFailedAction, err)));
+
+  @Effect() getInvestmentAgreement$: Observable<Action> = this.actions$
+    .ofType(actions.TffActionTypes.GET_INVESTMENT_AGREEMENT)
+    .switchMap((action) => this.tffService.getInvestmentAgreement(action.payload)
+      .map(payload => new actions.GetInvestmentAgreementCompleteAction(payload))
+      .catch(err => handleApiError(actions.GetInvestmentAgreementFailedAction, err)));
+
+  @Effect() updateInvestmentAgreement$: Observable<Action> = this.actions$
+    .ofType(actions.TffActionTypes.UPDATE_INVESTMENT_AGREEMENT)
+    .switchMap((action) => this.tffService.updateInvestmentAgreement(action.payload)
+      .map(payload => new actions.UpdateInvestmentAgreementCompleteAction(payload))
+      .catch(err => handleApiError(actions.UpdateInvestmentAgreementFailedAction, err)));
+
   constructor(private actions$: Actions,
               private tffService: TffService) {
   }

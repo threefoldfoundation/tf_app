@@ -1,0 +1,22 @@
+<div class="investment-agreements-content">
+  <md-select [(ngModel)]="status" (ngModelChange)="onStatusChange()">
+    <md-option *ngFor="let status of statuses" [value]="status.value">{{ status.label | translate }}</md-option>
+  </md-select>
+  <h2>{{ getStatusString() | translate }}</h2>
+  <md-nav-list *ngIf="investmentAgreements">
+    <md-list-item *ngFor="let investmentAgreement of investmentAgreements.results"
+                  [routerLink]="investmentAgreement.id">
+      <h4 mdLine>
+        {{ 'tff.investment_agreement_x' | translate : { investmentAgreementId: investmentAgreement.id } }}
+      </h4>
+      <p mdLine>
+        {{ investmentAgreement.amount | currency : investmentAgreement.currency }}
+        - {{ investmentAgreement.creation_time | timestamp }}
+      </p>
+      <p mdLine>{{ 'tff.modified_on' | translate}} {{ investmentAgreement.modification_time | timestamp }}</p>
+    </md-list-item>
+    <button md-button *ngIf="investmentAgreements.more" (click)="loadMore()">
+      {{ 'tff.load_more' | translate }}
+    </button>
+  </md-nav-list>
+</div>

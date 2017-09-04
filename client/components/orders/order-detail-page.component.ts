@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { GetOrderAction, ResetNodeOrderAction, UpdateOrderAction } from '../actions/threefold.action';
-import { getOrder, getOrderStatus, updateOrderStatus } from '../tff.state';
+import { GetOrderAction, ResetNodeOrderAction, UpdateOrderAction } from '../../actions/threefold.action';
+import { getOrder, getOrderStatus, updateOrderStatus } from '../../tff.state';
 import { Observable } from 'rxjs/Observable';
-import { NodeOrder } from '../interfaces/nodes.interfaces';
-import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
-import { IAppState } from '../../../framework/client/ngrx/state/app.state';
+import { NodeOrder } from '../../interfaces/nodes.interfaces';
+import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
+import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 
 @Component({
   moduleId: module.id,

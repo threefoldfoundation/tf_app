@@ -19,10 +19,13 @@ import base64
 import httplib
 import json
 import logging
+from types import NoneType
 
+from google.appengine.api import users
 from google.appengine.ext import deferred, ndb
 
 from framework.utils import now
+from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.rogerthat_api.api import messaging
@@ -43,7 +46,8 @@ from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.models.investor import InvestmentAgreement
-from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME
+from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID
+from plugins.tff_backend.to.investor import InvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
@@ -83,17 +87,16 @@ def _invest(agreement_key, user_detail, steps, retry_count):
     billing_address = get_step_value(steps, 'message_billing_address')
     referrer = get_step_value(steps, 'message_get_referral')[0]
     currency = get_step_value(steps, 'message_get_currency')
-    token_count = int(get_step_value(steps, 'message_get_order_size_ITO'))
+    amount = int(get_step_value(steps, 'message_get_order_size_ITO'))
 
     logging.debug('Creating Token agreement')
     pdf_name = 'token_%s.pdf' % agreement_key.id()
 
-    amount = token_count * PRICE_PER_TOKEN[currency]
+    amount = amount * PRICE_PER_TOKEN[currency]
     currency_full = FULL_CURRENCY_NAMES[currency]
     currency_short = currency.replace("_cur", "")
 
-    pdf_contents = create_token_agreement_pdf(name, billing_address, token_count, currency, amount, currency_full,
-                                              currency_short)
+    pdf_contents = create_token_agreement_pdf(name, billing_address, amount, currency_full, currency_short)
     ipfs_link = store_pdf(pdf_name, pdf_contents)
     if not ipfs_link:
         logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
@@ -106,9 +109,8 @@ def _invest(agreement_key, user_detail, steps, retry_count):
         agreement = InvestmentAgreement(key=agreement_key,
                                         creation_time=now(),
                                         app_user=app_user,
-                                        token_count=token_count,
+                                        amount=amount,
                                         currency=currency,
-                                        currency_rate=PRICE_PER_TOKEN[currency],
                                         referrer=create_app_user_by_email(referrer, user_detail.app_id),
                                         status=InvestmentAgreement.STATUS_CREATED)
         agreement.put()
@@ -187,6 +189,42 @@ def _send_ito_agreement_sign_message(agreement_key, app_user, ipfs_link, attachm
                         attachments=[attachment],
                         app_id=app_id,
                         step_id=u'sign_investment_agreement')
+
+
+def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
+    logging.debug('Sending SIGN widget to payment admin %s', admin_app_user)
+
+    agreement = agreement_key.get()  # type: InvestmentAgreement
+    widget = SignTO()
+    widget.algorithm = KEY_ALGORITHM
+    widget.caption = u"""Enter your pin code to mark investment %s as paid.
+- from: %s\n
+- amount: %s %s""" % (agreement_key.id(), agreement.iyo_username, agreement.amount, agreement.currency)
+    widget.key_name = KEY_NAME
+    widget.payload = base64.b64encode(str(agreement_key.id())).decode('utf-8')
+
+    form = SignFormTO()
+    form.negative_button = u'Abort'
+    form.negative_button_ui_flags = 0
+    form.positive_button = u'Accept'
+    form.positive_button_ui_flags = Message.UI_FLAG_EXPECT_NEXT_WAIT_5
+    form.type = SignTO.TYPE
+    form.widget = widget
+
+    member_user, app_id = get_app_user_tuple(admin_app_user)
+    messaging.send_form(api_key=get_rogerthat_api_key(),
+                        parent_message_key=None,
+                        member=member_user.email(),
+                        message=u'Sign to mark this investment as paid.',
+                        form=form,
+                        flags=0,
+                        alert_flags=Message.ALERT_FLAG_VIBRATE,
+                        branding=get_main_branding_hash(),
+                        tag=json.dumps({u'__rt__.tag': u'sign_investment_agreement_admin',
+                                        u'agreement_id': agreement_key.id()}).decode('utf-8'),
+                        attachments=[],
+                        app_id=app_id,
+                        step_id=u'sign_investment_agreement_admin')
 
 
 @returns(FormAcknowledgedCallbackResultTO)
@@ -277,3 +315,52 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
     except:
         logging.exception('An unexpected error occurred')
         return _create_error_message(FormAcknowledgedCallbackResultTO())
+
+
+@returns(NoneType)
+@arguments(status=int, form_result=FormResultTO, answer_id=unicode, member=unicode, message_key=unicode, tag=unicode,
+           received_timestamp=int, acked_timestamp=int, parent_message_key=unicode, result_key=unicode,
+           service_identity=unicode, user_details=[UserDetailsTO])
+def investment_agreement_signed_by_admin(status, form_result, answer_id, member, message_key, tag, received_timestamp,
+                                         acked_timestamp, parent_message_key, result_key, service_identity,
+                                         user_details):
+    # todo: assign coins to user
+    pass
+
+
+@returns(tuple)
+@arguments(cursor=unicode, status=(int, long))
+def get_investment_agreements(cursor=None, status=None):
+    return InvestmentAgreement.fetch_page(cursor, status)
+
+
+@returns(InvestmentAgreement)
+@arguments(agreement_id=(int, long))
+def get_investment_agreement(agreement_id):
+    agreement = InvestmentAgreement.get_by_id(agreement_id)
+    if not agreement:
+        raise HttpNotFoundException('investment_agreement_not_found')
+    return agreement
+
+
+@returns(InvestmentAgreement)
+@arguments(agreement_id=(int, long), agreement=InvestmentAgreementTO, admin_user=users.User)
+def put_investment_agreement(agreement_id, agreement, admin_user):
+    admin_app_user = create_app_user_by_email(admin_user.email(), THREEFOLD_APP_ID)
+    # type: (long, InvestmentAgreement, users.User) -> InvestmentAgreement
+    agreement_model = InvestmentAgreement.get_by_id(agreement_id)  # type: InvestmentAgreement
+    if not agreement_model:
+        raise HttpNotFoundException('investment_agreement_not_found')
+    if agreement_model.status == InvestmentAgreement.STATUS_CANCELED:
+        raise HttpBadRequestException('order_canceled')
+    if agreement_model.status != InvestmentAgreement.STATUS_PAID:
+        raise HttpBadRequestException('invalid_status')
+    # Only support updating the status for now
+    agreement_model.status = agreement.status
+    if agreement_model.status == InvestmentAgreement.STATUS_CANCELED:
+        agreement_model.cancel_time = now()
+    elif agreement_model.status == InvestmentAgreement.STATUS_PAID:
+        agreement_model.paid_time = now()
+        deferred.defer(_send_ito_agreement_to_admin, agreement_model.key, admin_app_user)
+    agreement_model.put()
+    return agreement_model

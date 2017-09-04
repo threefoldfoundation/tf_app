@@ -6,6 +6,7 @@ from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
 class InvestmentAgreement(NdbModel):
+    PER_PAGE = 50
     STATUS_CANCELED = -1
     STATUS_CREATED = 0
     STATUS_SIGNED = 1
@@ -13,9 +14,8 @@ class InvestmentAgreement(NdbModel):
 
     app_user = ndb.UserProperty()
     referrer = ndb.UserProperty(indexed=False)
-    token_count = ndb.IntegerProperty(indexed=False)
+    amount = ndb.IntegerProperty(indexed=False)
     currency = ndb.StringProperty(indexed=False)
-    currency_rate = ndb.FloatProperty(indexed=False)
 
     iyo_see_id = ndb.StringProperty(indexed=False)
     signature_payload = ndb.StringProperty(indexed=False)
@@ -45,3 +45,24 @@ class InvestmentAgreement(NdbModel):
         if subscription_id is None:
             subscription_id = cls.allocate_ids(1)[0]
         return ndb.Key(cls, subscription_id, namespace=NAMESPACE)
+
+    @classmethod
+    def get_by_id(cls, id, parent=None, **ctx_options):
+        return super(InvestmentAgreement, cls).get_by_id(id, parent=parent, namespace=NAMESPACE, **ctx_options)
+
+    @classmethod
+    def list(cls):
+        return cls.query(namespace=NAMESPACE)
+
+    @classmethod
+    def list_by_status(cls, status):
+        return cls.query(namespace=NAMESPACE) \
+            .filter(cls.status == status)
+
+    @classmethod
+    def fetch_page(cls, cursor=None, status=None):
+        # type: (unicode) -> tuple[list[InvestmentAgreement], ndb.Cursor, bool]
+        qry = cls.list_by_status(status) if status else cls.list()
+        return qry \
+            .order(-cls.modification_time) \
+            .fetch_page(cls.PER_PAGE, start_cursor=ndb.Cursor(urlsafe=cursor))

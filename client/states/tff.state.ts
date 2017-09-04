@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs/Observable';
-import { NodeOrder, NodeOrderList } from '../interfaces/nodes.interfaces';
-import { apiRequestInitial, ApiRequestStatus } from '../interfaces/rpc.interfaces';
+import { InvestmentAgreement, InvestmentAgreementList, NodeOrder, NodeOrderList } from '../interfaces/index';
+import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
 
 export interface ITffState {
   orders: NodeOrderList;
@@ -8,6 +8,11 @@ export interface ITffState {
   order: NodeOrder | null;
   orderStatus: ApiRequestStatus;
   updateOrderStatus: ApiRequestStatus;
+  investmentAgreements: InvestmentAgreementList;
+  investmentAgreementsStatus: ApiRequestStatus;
+  investmentAgreement: InvestmentAgreement | null;
+  investmentAgreementStatus: ApiRequestStatus;
+  updateInvestmentAgreementStatus: ApiRequestStatus;
 }
 
 export const initialTffState: ITffState = {
@@ -19,7 +24,16 @@ export const initialTffState: ITffState = {
   ordersStatus: apiRequestInitial,
   order: null,
   orderStatus: apiRequestInitial,
-  updateOrderStatus: apiRequestInitial
+  updateOrderStatus: apiRequestInitial,
+  investmentAgreements: {
+    cursor: null,
+    more: false,
+    results: []
+  },
+  investmentAgreementsStatus: apiRequestInitial,
+  investmentAgreement: null,
+  investmentAgreementStatus: apiRequestInitial,
+  updateInvestmentAgreementStatus: apiRequestInitial,
 };
 
 export function getOrders(state$: Observable<ITffState>) {
@@ -40,4 +54,24 @@ export function getOrderStatus(state$: Observable<ITffState>) {
 
 export function updateOrderStatus(state$: Observable<ITffState>) {
   return state$.select(state => state.updateOrderStatus);
+}
+
+export function getInvestmentAgreements(state$: Observable<ITffState>) {
+  return state$.select(state => state.investmentAgreements);
+}
+
+export function getInvestmentAgreementsStatus(state$: Observable<ITffState>) {
+  return state$.select(state => state.investmentAgreementsStatus);
+}
+
+export function getInvestmentAgreement(state$: Observable<ITffState>) {
+  return state$.select(state => state.investmentAgreement);
+}
+
+export function getInvestmentAgreementStatus(state$: Observable<ITffState>) {
+  return state$.select(state => state.investmentAgreementStatus);
+}
+
+export function updateInvestmentAgreementStatus(state$: Observable<ITffState>) {
+  return state$.select(state => state.updateInvestmentAgreementStatus);
 }

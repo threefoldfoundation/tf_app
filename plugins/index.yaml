@@ -4,3 +4,9 @@ indexes:
   - name: status
   - name: modification_time
     direction: desc
+
+- kind: InvestmentAgreement
+  properties:
+  - name: status
+  - name: modification_time
+    direction: desc

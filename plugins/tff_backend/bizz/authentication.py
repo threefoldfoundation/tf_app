@@ -19,6 +19,7 @@ from __future__ import unicode_literals
 
 import re
 
+from enum import Enum
 from framework.plugin_loader import get_config
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_NAMESPACE
 
@@ -29,11 +30,22 @@ USERS_REGEX = re.compile('^user:memberof:%s.users.(default|hosters|investors|amb
 
 class Roles(object):
     ADMINS = 'admins'
+    PAYMENT_ADMIN = 'payment-admin'
     DEFAULT = 'default'
     HOSTER = 'hosters'
     INVITED = 'invited'
     INVESTOR = 'investors'
     AMBASSADORS = 'ambassadors'
+
+
+class PluginRoles(Enum):
+    ADMINS = 'tff-admins'
+    PAYMENT_ADMIN = 'tff-payment-admin'
+    DEFAULT = 'tff-default'
+    HOSTER = 'tff-hosters'
+    INVITED = 'tff-invited'
+    INVESTOR = 'tff-investors'
+    AMBASSADORS = 'tff-ambassadors'
 
 
 class PermissionType(object):
@@ -42,6 +54,7 @@ class PermissionType(object):
 
 class Organization(object):
     ADMIN = '%s.admins' % ROOT_ORGANIZATION
+    PAYMENT_ADMIN = '%s.payment-admins' % ROOT_ORGANIZATION
     DEFAULT_USER = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.DEFAULT)
     HOSTER = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.HOSTER)
     INVITED = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.INVITED)
@@ -52,6 +65,8 @@ class Organization(object):
     def get_by_role_name(role_name):
         if Roles.ADMINS == role_name:
             return Organization.ADMIN
+        if Roles.PAYMENT_ADMIN == role_name:
+            return Organization.PAYMENT_ADMIN
         if Roles.DEFAULT == role_name:
             return Organization.DEFAULT_USER
         if Roles.HOSTER == role_name:
@@ -69,6 +84,7 @@ class Scope(object):
     _memberof = 'user:memberof:%s'
     ROOT_ADMIN = _memberof % ROOT_ORGANIZATION
     ADMIN = _memberof % Organization.ADMIN
+    PAYMENT_ADMIN = _memberof % Organization.PAYMENT_ADMIN
     DEFAULT_USER = _memberof % Organization.DEFAULT_USER
     HOSTER = _memberof % Organization.HOSTER
     INVITED = _memberof % Organization.INVITED
@@ -78,6 +94,7 @@ class Scope(object):
 
 class Scopes(object):
     ADMIN = [Scope.ADMIN, Scope.ROOT_ADMIN]
+    PAYMENT_ADMIN = [Scope.PAYMENT_ADMIN]
     DEFAULT_USER = [Scope.DEFAULT_USER]
     HOSTER = DEFAULT_USER + [Scope.HOSTER]
     INVITED = DEFAULT_USER + [Scope.INVITED]
@@ -93,28 +110,46 @@ SCOPE_ROLES = {
 class UserPermissions(object):
     users = []  # type: list of unicode
     admin = False
+    payment_admin = False
 
-    def __init__(self, admin, users):
+    def __init__(self, admin, payment_admin, users):
         """
         Args:
             admin (boolean)
+            payment_admin (boolean)
             users (list of unicode)
         """
         self.admin = admin
+        self.payment_admin = payment_admin
         self.users = users
 
 
 def get_permissions_from_scopes(scopes):
     admin = False
+    payment_admin = False
     users = []
     for scope in scopes:
         if scope == Scope.ADMIN or scope == Scope.ROOT_ADMIN:
             admin = True
             continue
+        if scope == Scope.PAYMENT_ADMIN:
+            payment_admin = True
         users_re = USERS_REGEX.match(scope)
         # e.g. {root_org}.users.hosters
         if users_re:
             groups = users_re.groups()
             users.append(groups[0])
             continue
-    return UserPermissions(admin, users)
+    return UserPermissions(admin, payment_admin, users)
+
+
+def get_permission_strings(scopes):
+    perms = []
+    permissions = get_permissions_from_scopes(scopes)
+    if permissions.admin:
+        perms.append(PluginRoles.ADMINS)
+    if permissions.payment_admin:
+        perms.append(PluginRoles.PAYMENT_ADMIN)
+    for perm in permissions.users:
+        perms.append('tff-%s' % perm)
+    return perms

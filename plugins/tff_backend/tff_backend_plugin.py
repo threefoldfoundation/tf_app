@@ -23,8 +23,8 @@ from mcfw.restapi import rest_functions
 from mcfw.rpc import parse_complex_value
 from plugins.rogerthat_api.rogerthat_api_plugin import RogerthatApiPlugin
 from plugins.tff_backend import rogerthat_callbacks
-from plugins.tff_backend.api import nodes
-from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes
+from plugins.tff_backend.api import nodes, investor
+from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
@@ -50,13 +50,19 @@ class TffBackendPlugin(BrandingPlugin):
         yield Handler('/', IndexPageHandler)
         for url, handler in rest_functions(nodes, authentication=AUTHENTICATED):
             yield Handler(url=url, handler=handler)
+        for url, handler in rest_functions(investor, authentication=AUTHENTICATED):
+            yield Handler(url=url, handler=handler)
         if auth == Handler.AUTH_ADMIN:
             yield Handler(url='/admin/cron/tff_backend/rebuild_synced_roles', handler=RebuildSyncedRolesHandler)
 
     def get_client_routes(self):
-        return ['/orders<route:.*>']
+        return ['/orders<route:.*>', 'investment-agreements<route:.*>']
 
     def get_modules(self):
         perms = get_permissions_from_scopes(get_current_session().scopes)
-        if perms.admin:
+        if perms.admin or perms.payment_admin:
             yield Module(u'tff_orders', [], 1)
+            yield Module(u'tff_investment_agreements', [], 1)
+
+    def get_permissions(self):
+        return get_permission_strings(get_current_session().scopes)

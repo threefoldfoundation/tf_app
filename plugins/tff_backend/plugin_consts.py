@@ -19,3 +19,5 @@ NAMESPACE = u'tff_backend'
 
 KEY_ALGORITHM = u'ed25519'
 KEY_NAME = u'threefold'
+
+THREEFOLD_APP_ID = u'em-be-threefold-token'

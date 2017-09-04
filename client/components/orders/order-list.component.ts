@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
-import { ApiRequestStatus, ORDER_STATUSES } from '../interfaces/index';
-import { GetNodeOrdersPayload, NodeOrderList, NodeOrderStatuses } from '../interfaces/nodes.interfaces';
+import { GetNodeOrdersPayload, NodeOrderList, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/index';
+import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 
 @Component({
   moduleId: module.id,

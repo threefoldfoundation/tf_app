@@ -1,2 +1,2 @@
 export * from './nodes.interfaces';
-export * from './rpc.interfaces';
+export * from './investment-agreements.interfaces';

@@ -29,7 +29,7 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemb
     FormAcknowledgedCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed, node_arrived
-from plugins.tff_backend.bizz.investor import invest, investment_agreement_signed
+from plugins.tff_backend.bizz.investor import invest, investment_agreement_signed, investment_agreement_signed_by_admin
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_iyo_info_in_userdata, \
     is_user_in_roles
@@ -40,6 +40,7 @@ TAG_MAPPING = {'order_node': order_node,
                'node_arrival': node_arrived,
                'invest': invest,
                'sign_investment_agreement': investment_agreement_signed,
+               'sign_investment_agreement_admin': investment_agreement_signed_by_admin,
                }
 
 
