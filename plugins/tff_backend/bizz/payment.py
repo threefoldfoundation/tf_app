@@ -33,7 +33,7 @@ from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.tff_backend.consts.payment import TOKEN_TFF, TOKEN_TYPE_A, TOKEN_TYPE_B, TOKEN_TYPE_C, \
-    TOKEN_TYPE_D, TOKEN_TFF_CONTRIBUTOR, PROVIDER_ID
+    TOKEN_TYPE_D, TOKEN_TFF_CONTRIBUTOR
 from plugins.tff_backend.models.payment import ThreeFoldWallet, ThreeFoldTransaction, \
     ThreeFoldPendingTransaction, ThreeFoldBlockHeight
 from plugins.tff_backend.plugin_consts import NAMESPACE

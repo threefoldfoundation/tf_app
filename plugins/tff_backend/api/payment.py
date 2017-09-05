@@ -25,7 +25,7 @@ from google.appengine.ext import ndb
 from mcfw.consts import MISSING
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
-from plugins.rogerthat_api.to.payment import PaymentProviderAssetTO, PaymentAssetBalanceTO, PaymentProviderTransactionTO,\
+from plugins.tff_backend.to.payment import PaymentProviderAssetTO, PaymentAssetBalanceTO, PaymentProviderTransactionTO,\
     GetPaymentTransactionsResponseTO
 from plugins.tff_backend.bizz.payment import get_asset_ids, get_token_from_asset_id, get_balance, get_transactions,\
     get_asset_id_from_token, get_app_user_from_asset_id, get_transaction_of_type_pending
