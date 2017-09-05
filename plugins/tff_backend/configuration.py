@@ -23,15 +23,10 @@ class RogerthatKeysConfiguration(object):
     sik = unicode_property('2')
 
 
-class RogerthatConfiguration(object):
-    dev = typed_property('1', RogerthatKeysConfiguration, False)
-    prod = typed_property('2', RogerthatKeysConfiguration, False)
-
-
 class IPFSConfiguration(object):
     secret = unicode_property('1')
 
 
 class TffConfiguration(object):
-    rogerthat = typed_property('1', RogerthatConfiguration, False)
+    rogerthat = typed_property('1', RogerthatKeysConfiguration, False)
     ipfs = typed_property('2', IPFSConfiguration, False)
