@@ -57,7 +57,9 @@ def user_registered(user_detail, data):
     iyo_config = get_config(IYO_AUTH_NAMESPACE)
 
     logging.debug('Creating JWT')
-    jwt = create_jwt(access_token, scope=iyo_config.required_scopes)
+    scopes = iyo_config.required_scopes.split(',')
+    scopes.append('offline_access')
+    jwt = create_jwt(access_token, scope=','.join(scopes))
     decoded_jwt = decode_jwt_cached(jwt)
     logging.debug('Decoded JWT: %s', decoded_jwt)
     scopes = decoded_jwt['scope']
