@@ -338,8 +338,6 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
     
     def trans():
         agreement = InvestmentAgreement.create_key(tag_dict['agreement_id']).get()  # type: InvestmentAgreement
-        # todo: assign coins to user
-    
         agreement.status = InvestmentAgreement.STATUS_PAID
         agreement.paid_time = now()
         agreement.put()
