@@ -17,6 +17,7 @@
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
+from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
 class ThreeFoldBlockHeight(ndb.Model):
@@ -26,7 +27,7 @@ class ThreeFoldBlockHeight(ndb.Model):
 
     @classmethod
     def create_key(cls):
-        return ndb.Key(cls, u"TFFBlockHeight")
+        return ndb.Key(cls, u"TFFBlockHeight", namespace=NAMESPACE)
 
     @staticmethod
     def get_block_height():
@@ -51,7 +52,12 @@ class ThreeFoldWallet(ndb.Model):
 
     @classmethod
     def create_key(cls, app_user):
-        return ndb.Key(cls, app_user.email())
+        return ndb.Key(cls, app_user.email(), namespace=NAMESPACE)
+    
+    @classmethod
+    def query(cls, *args, **kwargs):
+        kwargs['namespace'] = NAMESPACE
+        return super(ThreeFoldWallet, cls).query(*args, **kwargs)
 
     @classmethod
     def list_update_needed(cls, now_):
@@ -78,6 +84,15 @@ class ThreeFoldTransaction(ndb.Model):
     @property
     def id(self):
         return self.key.id()
+    
+    @classmethod
+    def create_new(cls):
+        return cls(namespace=NAMESPACE)
+    
+    @classmethod
+    def query(cls, *args, **kwargs):
+        kwargs['namespace'] = NAMESPACE
+        return super(ThreeFoldTransaction, cls).query(*args, **kwargs)
 
     @classmethod
     def list_by_user(cls, app_user, token):
@@ -120,7 +135,12 @@ class ThreeFoldPendingTransaction(ndb.Model):
 
     @classmethod
     def create_key(cls, transaction_id):
-        return ndb.Key(cls, u"%s" % transaction_id)
+        return ndb.Key(cls, u"%s" % transaction_id, namespace=NAMESPACE)
+    
+    @classmethod
+    def query(cls, *args, **kwargs):
+        kwargs['namespace'] = NAMESPACE
+        return super(ThreeFoldPendingTransaction, cls).query(*args, **kwargs)
 
     @classmethod
     def count_pending(cls):

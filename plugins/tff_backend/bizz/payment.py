@@ -238,7 +238,7 @@ def _migrate_pending_transactions(keys):
         bh.height = height
         bh.put()
 
-        new_transaction = ThreeFoldTransaction()
+        new_transaction = ThreeFoldTransaction.create_new()
         new_transaction.timestamp = now()
         new_transaction.height = height
         new_transaction.unlock_timestamps = pt.unlock_timestamps

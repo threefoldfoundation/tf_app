@@ -152,8 +152,6 @@ def api_create_transaction(data):
     def trans():
         pt_key = ThreeFoldPendingTransaction.create_key(data.id)
         pt = pt_key.get()
-        
-        
         if not pt:
             pt = ThreeFoldPendingTransaction(key=pt_key,
                                              timestamp=now())
