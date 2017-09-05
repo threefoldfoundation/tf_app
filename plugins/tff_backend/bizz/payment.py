@@ -314,7 +314,7 @@ def get_spendable_amount_of_transaction(transaction):
 
 @returns()
 @arguments(app_user=users.User, token_type=unicode, amount=(int, long), memo=unicode)
-def _transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None):
+def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None):
     if TOKEN_TYPE_A == token_type:
         token = TOKEN_TFF
         unlock_timestamps = [0]

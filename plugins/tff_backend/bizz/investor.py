@@ -21,13 +21,12 @@ import json
 import logging
 from types import NoneType
 
-from google.appengine.api import users
-
-from framework.utils import now
-from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from requests.exceptions import HTTPError
 
+from framework.utils import now
+from google.appengine.api import users
 from google.appengine.ext import deferred, ndb
+from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.rogerthat_api.api import messaging, system
@@ -44,9 +43,11 @@ from plugins.tff_backend.bizz.hoster import get_publickey_label, _create_error_m
 from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
+from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
+from plugins.tff_backend.consts.payment import TOKEN_TYPE_B
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID
 from plugins.tff_backend.to.investor import InvestmentAgreementTO
@@ -326,7 +327,6 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         return _create_error_message(FormAcknowledgedCallbackResultTO())
 
 
-@ndb.transactional()
 @returns(NoneType)
 @arguments(status=int, form_result=FormResultTO, answer_id=unicode, member=unicode, message_key=unicode, tag=unicode,
            received_timestamp=int, acked_timestamp=int, parent_message_key=unicode, result_key=unicode,
@@ -335,15 +335,22 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
                                          acked_timestamp, parent_message_key, result_key, service_identity,
                                          user_details):
     tag_dict = json.loads(tag)
-    agreement = InvestmentAgreement.create_key(tag_dict['agreement_id']).get()  # type: InvestmentAgreement
-    # todo: assign coins to user
-
-    agreement.status = InvestmentAgreement.STATUS_PAID
-    agreement.paid_time = now()
-    agreement.put()
-    user_email, app_id, = get_app_user_tuple(agreement.app_user)
-    deferred.defer(update_investor_progress, user_email.email(), app_id, InvestorSteps.ASSIGN_TOKENS,
-                   _transactional=True)
+    
+    def trans():
+        agreement = InvestmentAgreement.create_key(tag_dict['agreement_id']).get()  # type: InvestmentAgreement
+        # todo: assign coins to user
+    
+        agreement.status = InvestmentAgreement.STATUS_PAID
+        agreement.paid_time = now()
+        agreement.put()
+        user_email, app_id, = get_app_user_tuple(agreement.app_user)
+        deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TOKEN_TYPE_B, agreement.amount, 
+                       _transactional=True)
+        deferred.defer(update_investor_progress, user_email.email(), app_id, InvestorSteps.ASSIGN_TOKENS,
+                       _transactional=True)
+        
+    
+    ndb.transaction(trans)
 
 
 @returns(tuple)
