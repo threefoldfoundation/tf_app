@@ -18,15 +18,23 @@
 from mcfw.properties import unicode_property, typed_property
 
 
-class RogerthatKeysConfiguration(object):
+class RogerthatConfiguration(object):
     api_key = unicode_property('1')
     sik = unicode_property('2')
+    url = unicode_property('3')
+    payment_secret = unicode_property('4')
 
 
 class IPFSConfiguration(object):
     secret = unicode_property('1')
+    
+    
+class BacklogConfiguration(object):
+    url = unicode_property('1')
+    secret = unicode_property('1')
 
 
 class TffConfiguration(object):
-    rogerthat = typed_property('1', RogerthatKeysConfiguration, False)
+    rogerthat = typed_property('1', RogerthatConfiguration, False)
     ipfs = typed_property('2', IPFSConfiguration, False)
+    backlog = typed_property('3', BacklogConfiguration, False)

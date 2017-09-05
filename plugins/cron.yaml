@@ -2,3 +2,8 @@ cron:
 - description: Rebuild synced roles
   url: /admin/cron/tff_backend/rebuild_synced_roles
   schedule: every day 02:00
+
+  
+- description: Payment sync transactions
+  url: /admin/cron/tff_backend/payment/sync
+  schedule: every 30 minutes
