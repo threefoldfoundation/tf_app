@@ -111,11 +111,14 @@ def sync_payment_asset(app_user, asset_id):
     args = dict()
     args["app_user"] = app_user.email()
     args["asset_id"] = asset_id
+    
+    headers = {}
+    headers['Authorization'] = cfg.rogerthat.payment_secret
 
     urlfetch.fetch(
         url=u"%s/payments/callbacks/threefold/sync?%s" % (cfg.rogerthat.url, urlencode(args)),
         method=urlfetch.GET,
-        headers=cfg.rogerthat.payment_secret,
+        headers=headers,
         deadline=10)
 
 

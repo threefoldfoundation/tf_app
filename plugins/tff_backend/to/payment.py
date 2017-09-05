@@ -60,3 +60,6 @@ class GetPaymentTransactionsResponseTO(object):
     cursor = unicode_property('1', default=None)
     transactions = typed_property('2', PaymentProviderTransactionTO, True)
     
+    
+class CreateTransactionResponseTO(object):
+    status = unicode_property('1')
