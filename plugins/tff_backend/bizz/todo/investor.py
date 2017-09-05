@@ -58,8 +58,7 @@ class InvestorSteps(object):
 
     @classmethod
     def should_archive(cls, step):
-        return False
-        # return cls.ASSIGN_TOKENS == step
+        return cls.ASSIGN_TOKENS == step
 
     @classmethod
     def get_name_for_step(cls, step):

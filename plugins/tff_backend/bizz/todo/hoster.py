@@ -29,6 +29,19 @@ class HosterSteps(object):
     NODE_DELIVERY_ACCEPTED = 'NODE_DELIVERY_ACCEPTED'
     NODE_DELIVERY_CONFIRMED = 'NODE_DELIVERY_CONFIRMED'
     NODE_POWERED = 'NODE_POWERED'
+    
+    DESCRIPTIONS = {
+        DOWNLOAD: 'Download the ThreeFold app',
+        REGISTER_IYO: 'Register on ItsYou.Online',
+        FLOW_INIT: 'Initiate “become a hoster process” in the TF app',
+        FLOW_SIGN: 'Sign the hoster agreement',
+        FLOW_ADDRESS: 'Share shipping address, telephone number, name with shipping company',
+        PAY: 'Pay for your tokens',
+        NODE_SENT: 'Receive confirmation of sending',
+        NODE_DELIVERY_ACCEPTED: 'Accept node from delivery service',
+        NODE_DELIVERY_CONFIRMED: 'Confirm delivery of node',
+        NODE_POWERED: 'Hook up node to internet and power',
+    }
 
     @classmethod
     def all(cls):
@@ -49,29 +62,9 @@ class HosterSteps(object):
 
     @classmethod
     def get_name_for_step(cls, step):
-        if cls.DOWNLOAD == step:
-            return 'Download the ThreeFold app'
-        if cls.REGISTER_IYO == step:
-            return 'Register on ItsYou.Online'
-        if cls.FLOW_INIT == step:
-            return 'Initiate “become a hoster process” in the TF app'
-        if cls.FLOW_SIGN == step:
-            return 'Sign the hoster agreement'
-        if cls.FLOW_ADDRESS == step:
-            return 'Share shipping address, telephone number, name with shipping company'
-        if cls.PAY == step:
-            return 'Pay for your tokens'
-        if cls.NODE_SENT == step:
-            return 'Receive confirmation of sending'
-        if cls.NODE_DELIVERY_ACCEPTED == step:
-            return 'Accept node from delivery service'
-        if cls.NODE_DELIVERY_CONFIRMED == step:
-            return 'Confirm delivery of node'
-        if cls.NODE_POWERED == step:
-            return 'Hook up node to internet and power'
-
-        logging.error("Hoster step name '%s' not set", step)
-        return step
+        if step not in cls.DESCRIPTIONS:
+            logging.error('Hoster description for step \'%s\' not set', step)
+        return cls.DESCRIPTIONS.get(step, step)
 
     @classmethod
     def get_progress(cls, last_checked_step):
@@ -81,14 +74,15 @@ class HosterSteps(object):
             if not checked and step == last_checked_step:
                 checked = True
 
-            item = {}
-            item['id'] = step
-            item['name'] = cls.get_name_for_step(step)
-            item['checked'] = checked
+            item = {
+                'id': step,
+                'name': cls.get_name_for_step(step),
+                'checked': checked
+            }
             items.append(item)
 
-        d = {}
-        d['id'] = 'hoster'
-        d['name'] = 'Become a hoster'
-        d['items'] = list(reversed(items))
-        return d
+        return {
+            'id': 'hoster',
+            'name': 'Become an hoster',
+            'items': list(reversed(items))
+        }
