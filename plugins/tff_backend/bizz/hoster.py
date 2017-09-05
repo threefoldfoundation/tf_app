@@ -19,14 +19,13 @@ import base64
 import json
 import logging
 
+from framework.utils import now, try_or_defer
 from google.appengine.api import users
 from google.appengine.ext import ndb, deferred
-
-from framework.utils import now, try_or_defer
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.rogerthat_api.api import qr, messaging
+from plugins.rogerthat_api.api import qr, messaging, system
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.messaging import AttachmentTO, Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
@@ -47,7 +46,7 @@ from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping, NodeO
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.to.nodes import NodeOrderTO
-from plugins.tff_backend.utils import get_step_value
+from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 
 
@@ -58,18 +57,35 @@ from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user
            flow_params=unicode)
 def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
                flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    app_user = create_app_user_by_email(user_details[0].email, user_details[0].app_id)
+    
     order_key = NodeOrder.create_key()
-    deferred.defer(_order_node, order_key, app_user, steps, 0)
+    deferred.defer(_order_node, order_key, user_details[0].email, user_details[0].app_id, steps, 0)
 
 
-def _order_node(order_key, app_user, steps, retry_count):
+def _order_node(order_key, email, app_id, steps, retry_count):
     logging.info('Receiving order of Zero-Node')
-    name = get_step_value(steps, 'message_name')
-    email = get_step_value(steps, 'message_email')
-    phone = get_step_value(steps, 'message_phone')
-    billing_address = get_step_value(steps, 'message_billing_address')
-    shipping_address = get_step_value(steps, 'message_shipping_address')
+    app_user = create_app_user_by_email(email, app_id)
+    
+    overview_step = get_step(steps, 'message_overview')
+    if overview_step and overview_step.answer_id == u"button_use":
+        api_key = get_rogerthat_api_key()
+        user_data_keys = ['name', 'email', 'phone', 'billing_address', 'shipping_address', 'address']
+        current_user_data = system.get_user_data(api_key, email, app_id, user_data_keys)
+        name = current_user_data['name']
+        email = current_user_data['email']
+        phone = current_user_data['phone']
+        if current_user_data['billing_address']:
+            billing_address = current_user_data['billing_address']
+            shipping_address = current_user_data['shipping_address']
+        else:
+            billing_address = current_user_data['address']
+            shipping_address = current_user_data['address']
+    else:
+        name = get_step_value(steps, 'message_name')
+        email = get_step_value(steps, 'message_email')
+        phone = get_step_value(steps, 'message_phone')
+        billing_address = get_step_value(steps, 'message_billing_address')
+        shipping_address = get_step_value(steps, 'message_shipping_address')
 
     logging.debug('Creating Hosting agreement')
     pdf_name = 'node_%s.pdf' % order_key.id()
@@ -77,7 +93,7 @@ def _order_node(order_key, app_user, steps, retry_count):
     ipfs_link = store_pdf(pdf_name, pdf_contents)
     if not ipfs_link:
         logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
-        deferred.defer(_order_node, order_key, app_user, steps, retry_count + 1, _countdown=retry_count)
+        deferred.defer(_order_node, order_key, email, app_id, steps, retry_count + 1, _countdown=retry_count)
         return
 
     logging.debug('Storing order in the database')
