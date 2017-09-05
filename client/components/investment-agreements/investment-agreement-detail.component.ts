@@ -30,7 +30,7 @@ export class InvestmentAgreementDetailComponent {
   @Input()
   set canMarkAsPaid(input: boolean) {
     this._canMarkAsPaid = input;
-  };
+  }
 
   constructor(private translate: TranslateService) {
   }
