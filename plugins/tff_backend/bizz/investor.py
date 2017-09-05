@@ -22,13 +22,15 @@ import logging
 from types import NoneType
 
 from google.appengine.api import users
-from google.appengine.ext import deferred, ndb
 
 from framework.utils import now
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
+from requests.exceptions import HTTPError
+
+from google.appengine.ext import deferred, ndb
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.rogerthat_api.api import messaging
+from plugins.rogerthat_api.api import messaging, system
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.messaging import Message, AttachmentTO
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
@@ -49,9 +51,9 @@ from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID
 from plugins.tff_backend.to.investor import InvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
-from plugins.tff_backend.utils import get_step_value
+from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-from requests.exceptions import HTTPError
+
 
 FULL_CURRENCY_NAMES = {
     'USD_cur': 'dollar',
@@ -72,15 +74,26 @@ FULL_CURRENCY_NAMES = {
 def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
            flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     agreement_key = InvestmentAgreement.create_key()
-    deferred.defer(_invest, agreement_key, user_details[0], steps, 0)
+    deferred.defer(_invest, agreement_key, user_details[0].email, user_details[0].app_id, steps, 0)
 
 
-def _invest(agreement_key, user_detail, steps, retry_count):
-    app_user = create_app_user_by_email(user_detail.email, user_detail.app_id)
+def _invest(agreement_key, email, app_id, steps, retry_count):
+    app_user = create_app_user_by_email(email, app_id)
     logging.info('User %s wants to invest', app_user)
 
-    name = get_step_value(steps, 'message_name')
-    billing_address = get_step_value(steps, 'message_billing_address')
+    overview_step = get_step(steps, 'message_overview')
+    if overview_step and overview_step.answer_id == u"button_use":
+        api_key = get_rogerthat_api_key()
+        user_data_keys = ['name', 'billing_address', 'address']
+        current_user_data = system.get_user_data(api_key, email, app_id, user_data_keys)
+        name = current_user_data['name']
+        if current_user_data['billing_address']:
+            billing_address = current_user_data['billing_address']
+        else:
+            billing_address = current_user_data['address']
+    else:
+        name = get_step_value(steps, 'message_name')
+        billing_address = get_step_value(steps, 'message_billing_address')
     referrer = get_step_value(steps, 'message_get_referral')[0]
     currency = get_step_value(steps, 'message_get_currency')
     amount = int(get_step_value(steps, 'message_get_order_size_ITO'))
@@ -95,7 +108,7 @@ def _invest(agreement_key, user_detail, steps, retry_count):
     ipfs_link = store_pdf(pdf_name, pdf_contents)
     if not ipfs_link:
         logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
-        deferred.defer(_invest, agreement_key, user_detail, steps, retry_count + 1, _countdown=retry_count)
+        deferred.defer(_invest, agreement_key, email, app_id, steps, retry_count + 1, _countdown=retry_count)
         return
 
     logging.debug('Storing Investment Agreement in the datastore')
@@ -106,7 +119,7 @@ def _invest(agreement_key, user_detail, steps, retry_count):
                                         app_user=app_user,
                                         amount=amount,
                                         currency=currency_short,
-                                        referrer=create_app_user_by_email(referrer, user_detail.app_id),
+                                        referrer=create_app_user_by_email(referrer, app_id),
                                         status=InvestmentAgreement.STATUS_CREATED)
         agreement.put()
         deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, ipfs_link,
