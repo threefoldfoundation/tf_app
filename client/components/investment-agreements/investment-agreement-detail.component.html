@@ -8,6 +8,9 @@
     <p>{{ investmentAgreement.amount | currency : investmentAgreement.currency }}</p>
     <p>{{ 'tff.status' | translate}}: {{ getStatus() }}</p>
     <p>{{ 'tff.user' | translate}}: {{ investmentAgreement.app_user }}</p>
+    <p *ngIf="investmentAgreement.paid_time">
+      {{ 'tff.paid_time' | translate }}: {{ investmentAgreement.paid_time | timestamp }}
+    </p>
     <p>{{ 'tff.modification_time' | translate }}: {{ investmentAgreement.modification_time | timestamp }}</p>
     <p>{{ 'tff.created' | translate }}: {{ investmentAgreement.creation_time | timestamp }}</p>
     <p *ngIf="investmentAgreement.status === statuses.CANCELED">

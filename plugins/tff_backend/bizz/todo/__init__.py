@@ -73,8 +73,7 @@ def _remove_list(email, app_id, list_id):
     todo_lists = current_user_data.get('todo_lists') or []
     if list_id in todo_lists:
         todo_lists.remove(list_id)
-        user_data = {}
-        user_data['todo_lists'] = todo_lists
+        user_data = {'todo_lists': todo_lists}
         system.put_user_data(api_key, email, app_id, user_data)
 
     system.del_user_data(api_key, email, app_id, ['todo_%s' % list_id])

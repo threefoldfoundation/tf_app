@@ -49,6 +49,8 @@ def get_itsyouonline_client_from_username(username):
     session = get_current_session()
     if not session:
         session = Session.create_key(username).get()
-    jwt = session and session.jwt
+    if not session:
+        raise Exception('No session found for %s' % username)
+    jwt = session.jwt
     client = get_itsyouonline_client_from_jwt(jwt)
     return client

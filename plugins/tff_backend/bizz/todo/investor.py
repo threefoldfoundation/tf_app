@@ -30,6 +30,19 @@ class InvestorSteps(object):
     PAY_PROCESS = 'PAY_PROCESS'
     ASSIGN_TOKENS = 'ASSIGN_TOKENS'
 
+    DESCRIPTIONS = {
+        DOWNLOAD: 'Download the ThreeFold app',
+        ITO_INVITES: 'Get invited to join the \'threefold - invited\' group on itsyou.online',
+        ITO_INVITES_ACCEPTED: 'Accept invitation in IYO',
+        FLOW_INIT: 'Initiate “join ITO” in the TF app',
+        FLOW_AMOUNT: 'Select currency and how much you want to invest',
+        FLOW_SIGN: 'Sign the ITO agreement',
+        ITO_INVESTORS: 'Get added to the \'investors\' group on itsyou.online',
+        PAY: 'We send you payment information',
+        PAY_PROCESS: 'We process the payment',
+        ASSIGN_TOKENS: 'Tokens are assigned',
+    }
+
     @classmethod
     def all(cls):
         return [cls.DOWNLOAD,
@@ -45,33 +58,14 @@ class InvestorSteps(object):
 
     @classmethod
     def should_archive(cls, step):
-        return cls.ASSIGN_TOKENS == step
+        return False
+        # return cls.ASSIGN_TOKENS == step
 
     @classmethod
     def get_name_for_step(cls, step):
-        if cls.DOWNLOAD == step:
-            return 'Download the ThreeFold app'
-        if cls.ITO_INVITES == step:
-            return 'Get invited to join the IYO.ITOinvited group'
-        if cls.ITO_INVITES_ACCEPTED == step:
-            return 'Accept invitation in IYO'
-        if cls.FLOW_INIT == step:
-            return 'Initiate “join ITO” in the TF app'
-        if cls.FLOW_AMOUNT == step:
-            return 'Select currency, amount of tokens'
-        if cls.FLOW_SIGN == step:
-            return 'Sign the ITO agreement'
-        if cls.ITO_INVESTORS == step:
-            return 'Get added to the IYO.ITOinvestors group'
-        if cls.PAY == step:
-            return 'Make payment'
-        if cls.PAY_PROCESS == step:
-            return 'We process payment'
-        if cls.ASSIGN_TOKENS == step:
-            return 'Tokens are assigned'
-
-        logging.error("Investor step name '%s' not set", step)
-        return step
+        if step not in cls.DESCRIPTIONS:
+            logging.error('Investor description for step \'%s\' not set', step)
+        return cls.DESCRIPTIONS.get(step, step)
 
     @classmethod
     def get_progress(cls, last_checked_step):
@@ -81,14 +75,15 @@ class InvestorSteps(object):
             if not checked and step == last_checked_step:
                 checked = True
 
-            item = {}
-            item['id'] = step
-            item['name'] = cls.get_name_for_step(step)
-            item['checked'] = checked
+            item = {
+                'id': step,
+                'name': cls.get_name_for_step(step),
+                'checked': checked
+            }
             items.append(item)
 
-        d = {}
-        d['id'] = 'investor'
-        d['name'] = 'Become an investor'
-        d['items'] = list(reversed(items))
-        return d
+        return {
+            'id': 'investor',
+            'name': 'Become an investor',
+            'items': list(reversed(items))
+        }

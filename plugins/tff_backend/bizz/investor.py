@@ -53,13 +53,6 @@ from plugins.tff_backend.utils import get_step_value
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from requests.exceptions import HTTPError
 
-# TODO: make this configurable in a settings page or cron #31
-PRICE_PER_TOKEN = {
-    'USD_cur': 5.0,
-    'EUR_cur': 4.2,
-    'BTC_cur': 0.00116,
-    'ETH_cur': 0.01485
-}
 FULL_CURRENCY_NAMES = {
     'USD_cur': 'dollar',
     'EUR_cur': 'euro',
@@ -92,7 +85,6 @@ def _invest(agreement_key, user_detail, steps, retry_count):
     logging.debug('Creating Token agreement')
     pdf_name = 'token_%s.pdf' % agreement_key.id()
 
-    amount = amount * PRICE_PER_TOKEN[currency]
     currency_full = FULL_CURRENCY_NAMES[currency]
     currency_short = currency.replace("_cur", "")
 
@@ -110,7 +102,7 @@ def _invest(agreement_key, user_detail, steps, retry_count):
                                         creation_time=now(),
                                         app_user=app_user,
                                         amount=amount,
-                                        currency=currency,
+                                        currency=currency_short,
                                         referrer=create_app_user_by_email(referrer, user_detail.app_id),
                                         status=InvestmentAgreement.STATUS_CREATED)
         agreement.put()
@@ -197,9 +189,7 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
     agreement = agreement_key.get()  # type: InvestmentAgreement
     widget = SignTO()
     widget.algorithm = KEY_ALGORITHM
-    widget.caption = u"""Enter your pin code to mark investment %s as paid.
-- from: %s\n
-- amount: %s %s""" % (agreement_key.id(), agreement.iyo_username, agreement.amount, agreement.currency)
+    widget.caption = u'Sign to mark this investment as paid.'
     widget.key_name = KEY_NAME
     widget.payload = base64.b64encode(str(agreement_key.id())).decode('utf-8')
 
@@ -212,10 +202,13 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
     form.widget = widget
 
     member_user, app_id = get_app_user_tuple(admin_app_user)
+    message = u"""Enter your pin code to mark investment %s as paid.
+- from: %s\n
+- amount: %s %s""" % (agreement_key.id(), agreement.iyo_username, agreement.amount, agreement.currency)
     messaging.send_form(api_key=get_rogerthat_api_key(),
                         parent_message_key=None,
                         member=member_user.email(),
-                        message=u'Sign to mark this investment as paid.',
+                        message=message,
                         form=form,
                         flags=0,
                         alert_flags=Message.ALERT_FLAG_VIBRATE,
@@ -294,7 +287,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
 
         # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.INVESTOR)
-        deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.FLOW_SIGN)
+        deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.PAY)
 
         logging.debug('Sending confirmation message')
         message = MessageCallbackResultTypeTO()
@@ -317,6 +310,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         return _create_error_message(FormAcknowledgedCallbackResultTO())
 
 
+@ndb.transactional()
 @returns(NoneType)
 @arguments(status=int, form_result=FormResultTO, answer_id=unicode, member=unicode, message_key=unicode, tag=unicode,
            received_timestamp=int, acked_timestamp=int, parent_message_key=unicode, result_key=unicode,
@@ -324,8 +318,16 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
 def investment_agreement_signed_by_admin(status, form_result, answer_id, member, message_key, tag, received_timestamp,
                                          acked_timestamp, parent_message_key, result_key, service_identity,
                                          user_details):
+    tag_dict = json.loads(tag)
+    agreement = InvestmentAgreement.create_key(tag_dict['agreement_id']).get()  # type: InvestmentAgreement
     # todo: assign coins to user
-    pass
+
+    agreement.status = InvestmentAgreement.STATUS_PAID
+    agreement.paid_time = now()
+    agreement.put()
+    user_email, app_id, = get_app_user_tuple(agreement.app_user)
+    deferred.defer(update_investor_progress, user_email.email(), app_id, InvestorSteps.ASSIGN_TOKENS,
+                   _transactional=True)
 
 
 @returns(tuple)
@@ -353,13 +355,13 @@ def put_investment_agreement(agreement_id, agreement, admin_user):
         raise HttpNotFoundException('investment_agreement_not_found')
     if agreement_model.status == InvestmentAgreement.STATUS_CANCELED:
         raise HttpBadRequestException('order_canceled')
-    if agreement_model.status != InvestmentAgreement.STATUS_PAID:
+    if agreement_model.status != InvestmentAgreement.STATUS_SIGNED:
         raise HttpBadRequestException('invalid_status')
     # Only support updating the status for now
     agreement_model.status = agreement.status
     if agreement_model.status == InvestmentAgreement.STATUS_CANCELED:
         agreement_model.cancel_time = now()
-    elif agreement_model.status == InvestmentAgreement.STATUS_PAID:
+    elif agreement_model.status == InvestmentAgreement.STATUS_SIGNED:
         agreement_model.paid_time = now()
         deferred.defer(_send_ito_agreement_to_admin, agreement_model.key, admin_app_user)
     agreement_model.put()

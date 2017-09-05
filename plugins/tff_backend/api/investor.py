@@ -14,8 +14,10 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+
 from google.appengine.api import users
 
+from framework.bizz.authentication import get_current_session
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.authentication import Scopes
@@ -33,14 +35,15 @@ def api_get_investment_agreements(cursor=None, status=None):
 
 @rest('/investment-agreements/<agreement_id:[^/]+>', 'get', Scopes.ADMIN)
 @returns(InvestmentAgreementTO)
-@arguments(agreement_id=unicode)
+@arguments(agreement_id=(int, long))
 def api_get_investment_agreement(agreement_id):
-    return InvestmentAgreementTO.from_model(get_investment_agreement(long(agreement_id)))
+    return InvestmentAgreementTO.from_model(get_investment_agreement(agreement_id))
 
 
 @rest('/investment-agreements/<agreement_id:[^/]+>', 'put', Scopes.PAYMENT_ADMIN)
 @returns(InvestmentAgreementTO)
-@arguments(agreement_id=unicode, data=InvestmentAgreementTO)
+@arguments(agreement_id=(int, long), data=InvestmentAgreementTO)
 def api_put_investment_agreement(agreement_id, data):
-    agreement = put_investment_agreement(long(agreement_id), data, users.get_current_user())
+    user = users.User('%s@itsyou.online' % get_current_session().user_id)
+    agreement = put_investment_agreement(agreement_id, data, user)
     return InvestmentAgreementTO.from_model(agreement)
