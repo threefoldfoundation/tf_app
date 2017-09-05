@@ -25,8 +25,7 @@ from plugins.rogerthat_api.rogerthat_api_plugin import RogerthatApiPlugin
 from plugins.tff_backend import rogerthat_callbacks
 from plugins.tff_backend.api import nodes, investor, payment
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings
-from plugins.tff_backend.api import nodes, 
-from plugins.tff_backend.configuration import TffConfiguration
+from plugins.tff_backend.configuration import TffConfiguration 
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 
