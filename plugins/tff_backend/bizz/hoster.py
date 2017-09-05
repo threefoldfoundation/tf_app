@@ -260,7 +260,9 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         message.branding = get_main_branding_hash()
         message.dismiss_button_ui_flags = 0
         message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
-        message.message = u'Thank you. Your order with ID "%s" has been placed successfully.\n\n' \
+        message.message = u'Thank you. We successfully received your digital signature.' \
+                          u' We have stored a copy of this agreement in your ItsYou.Online SEE account.\n\n' \
+                          u'Your order with ID "%s" has been placed successfully.\n' \
                           u'You can check the status of your order using' \
                           u' the "Check on node transit" functionality.' % order.human_readable_id
         message.step_id = u'order_completed'
