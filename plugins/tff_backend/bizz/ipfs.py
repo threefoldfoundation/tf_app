@@ -43,7 +43,8 @@ def store_pdf(pdf_name, pdf_contents):
         url=u"https://ipfs.threefoldtoken.com/api/files",
         payload=payload,
         method=urlfetch.POST,
-        headers=headers)
+        headers=headers,
+        deadline=10)
 
     if result.status_code != 200:
         return None

@@ -18,15 +18,15 @@
 from framework.bizz.authentication import get_current_session
 from framework.plugin_loader import get_plugin, BrandingPlugin
 from framework.utils.plugins import Handler, Module
-from mcfw.consts import AUTHENTICATED
+from mcfw.consts import AUTHENTICATED, NOT_AUTHENTICATED
 from mcfw.restapi import rest_functions
 from mcfw.rpc import parse_complex_value
 from plugins.rogerthat_api.rogerthat_api_plugin import RogerthatApiPlugin
 from plugins.tff_backend import rogerthat_callbacks
-from plugins.tff_backend.api import nodes
+from plugins.tff_backend.api import nodes, payment
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes
 from plugins.tff_backend.configuration import TffConfiguration
-from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler
+from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 
 
@@ -48,10 +48,16 @@ class TffBackendPlugin(BrandingPlugin):
 
     def get_handlers(self, auth):
         yield Handler('/', IndexPageHandler)
+        
         for url, handler in rest_functions(nodes, authentication=AUTHENTICATED):
             yield Handler(url=url, handler=handler)
+            
+        for url, handler in rest_functions(payment, authentication=NOT_AUTHENTICATED):
+            yield Handler(url=url, handler=handler)
+            
         if auth == Handler.AUTH_ADMIN:
             yield Handler(url='/admin/cron/tff_backend/rebuild_synced_roles', handler=RebuildSyncedRolesHandler)
+            yield Handler(url='/admin/cron/tff_backend/payment/sync', handler=PaymentSyncHandler)
 
     def get_client_routes(self):
         return ['/orders<route:.*>']

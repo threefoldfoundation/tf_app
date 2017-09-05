@@ -26,12 +26,20 @@ class RogerthatKeysConfiguration(object):
 class RogerthatConfiguration(object):
     dev = typed_property('1', RogerthatKeysConfiguration, False)
     prod = typed_property('2', RogerthatKeysConfiguration, False)
+    url = unicode_property('3')
+    payment_secret = unicode_property('4')
 
 
 class IPFSConfiguration(object):
+    secret = unicode_property('1')
+    
+    
+class BacklogConfiguration(object):
+    url = unicode_property('1')
     secret = unicode_property('1')
 
 
 class TffConfiguration(object):
     rogerthat = typed_property('1', RogerthatConfiguration, False)
     ipfs = typed_property('2', IPFSConfiguration, False)
+    backlog = typed_property('3', BacklogConfiguration, False)

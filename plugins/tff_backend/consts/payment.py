@@ -15,20 +15,12 @@
 #
 # @@license_version:1.3@@
 
-from google.appengine.ext import deferred
-from plugins.rogerthat_api.api import friends
-from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.payment import sync_transactions, sync_wallets
-import webapp2
+PROVIDER_ID= u"threefold"
 
+TOKEN_TFF = u"TFF"
+TOKEN_TFF_CONTRIBUTOR = u"TFFC"
 
-class RebuildSyncedRolesHandler(webapp2.RequestHandler):
-    def get(self):
-        api_key = get_rogerthat_api_key()
-        friends.rebuild_synced_roles(api_key, members=[], service_identities=[])
-
-
-class PaymentSyncHandler(webapp2.RequestHandler):
-    def get(self):
-        deferred.defer(sync_transactions)
-        deferred.defer(sync_wallets)
+TOKEN_TYPE_A = u"TFF_A"
+TOKEN_TYPE_B = u"TFF_B"
+TOKEN_TYPE_C = u"TFF_C"
+TOKEN_TYPE_D = u"TFF_D"
