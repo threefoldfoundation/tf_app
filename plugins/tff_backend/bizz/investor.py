@@ -56,6 +56,9 @@ from requests.exceptions import HTTPError
 FULL_CURRENCY_NAMES = {
     'USD_cur': 'dollar',
     'EUR_cur': 'euro',
+    'YEN_cur': 'yen',
+    'UAE_cur': 'dirham',
+    'GBP_cur': 'pound',
     'BTC_cur': 'bitcoin',
     'ETH_cur': 'ether'
 }
