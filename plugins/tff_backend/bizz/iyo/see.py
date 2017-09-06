@@ -24,10 +24,13 @@ from plugins.tff_backend.to.iyo.see import IYOSeeDocument, IYOSeeDocumentView
 
 
 @returns(IYOSeeDocument)
-@arguments(organization_id=unicode, username=unicode, uniqueid=unicode)
-def get_see_document(organization_id, username, uniqueid):
+@arguments(organization_id=unicode, username=unicode, uniqueid=unicode, version=unicode)
+def get_see_document(organization_id, username, uniqueid, version=u"latest"):
     client = get_itsyouonline_client_from_username(username)
-    result = client.api.users.GetSeeObject(uniqueid, organization_id, username)
+    query_params = {
+        'version': version
+    }
+    result = client.api.users.GetSeeObject(uniqueid, organization_id, username, query_params=query_params)
     logging.debug('get_see_document %s %s', result.status_code, result.text)
     return IYOSeeDocument(**result.json())
 

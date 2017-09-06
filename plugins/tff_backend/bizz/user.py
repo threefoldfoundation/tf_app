@@ -38,13 +38,13 @@ from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Organization
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
-from plugins.tff_backend.bizz.iyo.see import get_see_documents
+from plugins.tff_backend.bizz.iyo.see import get_see_documents, get_see_document
 from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
-from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView
+from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocument
 
 
 @returns()
@@ -186,10 +186,13 @@ def iyo_see_load(params, user_detail):
         iyo_organization_id = get_iyo_organization_id()
         iyo_username = get_iyo_username(user_detail)
         
-        # jsondata = json.loads(params)
-        
-        see_documents = get_see_documents(iyo_organization_id, iyo_username)
-        r.result = json.dumps(serialize_complex_value(see_documents, IYOSeeDocumentView, True))
+        jsondata = json.loads(params)
+        if jsondata.get("type") == u"detail":
+            see_document = get_see_document(iyo_organization_id, iyo_username, jsondata["uniqueid"], u"all")
+            r.result = json.dumps(serialize_complex_value(see_document, IYOSeeDocument, False))
+        else:
+            see_documents = get_see_documents(iyo_organization_id, iyo_username)
+            r.result = json.dumps(serialize_complex_value(see_documents, IYOSeeDocumentView, True))
         r.error = None 
     except:
         logging.error("iyo.see.load exception occurred", exc_info=True)
