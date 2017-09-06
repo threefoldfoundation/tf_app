@@ -1,7 +1,7 @@
 import { initialTffState, ITffState } from '../states/index';
 import * as actions from '../actions/threefold.action';
-import { GetNodeOrdersPayload, NodeOrderList } from '../interfaces/nodes.interfaces';
-import { GetInvestmentAgreementsPayload, InvestmentAgreementList } from '../interfaces/investment-agreements.interfaces';
+import { UpdateGlobalStatsCompleteAction } from '../actions/threefold.action';
+import { GetInvestmentAgreementsPayload, GetNodeOrdersPayload, InvestmentAgreementList, NodeOrderList } from '../interfaces/index';
 import { apiRequestLoading, apiRequestSuccess } from '../../../framework/client/rpc/rpc.interfaces';
 
 export function tffReducer(state: ITffState = initialTffState,
@@ -95,16 +95,65 @@ export function tffReducer(state: ITffState = initialTffState,
       });
     case actions.TffActionTypes.UPDATE_INVESTMENT_AGREEMENT:
       return Object.assign({}, state, {
-        updateinvestmentAgreementStatus: apiRequestLoading,
+        updateInvestmentAgreementStatus: apiRequestLoading,
       });
     case actions.TffActionTypes.UPDATE_INVESTMENT_AGREEMENT_COMPLETE:
       return Object.assign({}, state, {
         investmentAgreement: action.payload,
-        updateinvestmentAgreementStatus: apiRequestSuccess,
+        updateInvestmentAgreementStatus: apiRequestSuccess,
       });
     case actions.TffActionTypes.UPDATE_INVESTMENT_AGREEMENT_FAILED:
       return Object.assign({}, state, {
-        updateinvestmentAgreementStatus: action.payload,
+        updateInvestmentAgreementStatus: action.payload,
+      });
+    case actions.TffActionTypes.GET_GLOBAL_STATS_LIST:
+      return Object.assign({}, state, {
+        globalStatsListStatus: apiRequestLoading,
+      });
+    case actions.TffActionTypes.GET_GLOBAL_STATS_LIST_COMPLETE:
+      return Object.assign({}, state, {
+        globalStatsList: action.payload,
+        globalStatsListStatus: apiRequestSuccess,
+      });
+    case actions.TffActionTypes.GET_GLOBAL_STATS_LIST_FAILED:
+      return Object.assign({}, state, {
+        globalStatsListStatus: action.payload,
+      });
+    case actions.TffActionTypes.RESET_GLOBAL_STATS:
+      return Object.assign({}, state, {
+        globalStats: null,
+      });
+    case actions.TffActionTypes.GET_GLOBAL_STATS:
+      return Object.assign({}, state, {
+        globalStats: initialTffState.globalStats,
+        globalStatsListStatus: apiRequestLoading,
+      });
+    case actions.TffActionTypes.GET_GLOBAL_STATS_COMPLETE:
+      return Object.assign({}, state, {
+        globalStats: action.payload,
+        globalStatsListStatus: apiRequestSuccess,
+      });
+    case actions.TffActionTypes.GET_GLOBAL_STATS_FAILED:
+      return Object.assign({}, state, {
+        globalStatsListStatus: action.payload,
+      });
+    case actions.TffActionTypes.UPDATE_GLOBAL_STATS:
+      return Object.assign({}, state, {
+        updateGlobalStatsListStatus: apiRequestLoading,
+      });
+    case actions.TffActionTypes.UPDATE_GLOBAL_STATS_COMPLETE:
+      const updateStatsAction = (<UpdateGlobalStatsCompleteAction>action).payload;
+      return Object.assign({}, state, {
+        globalStats: action.payload,
+        globalStatsList: state.globalStatsList ? [
+          ...state.globalStatsList.filter(gs => gs.id !== updateStatsAction.id),
+          updateStatsAction
+        ] : [],
+        updateGlobalStatsListStatus: apiRequestSuccess,
+      });
+    case actions.TffActionTypes.UPDATE_GLOBAL_STATS_FAILED:
+      return Object.assign({}, state, {
+        updateGlobalStatsListStatus: action.payload,
       });
     default:
       return state;

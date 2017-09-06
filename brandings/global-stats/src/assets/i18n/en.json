@@ -1,0 +1,8 @@
+{
+  "current_value": "Current value: {{ value }}",
+  "currently_x_unlocked": "There are currently {{ unlocked }} out of {{ total }} tokens unlocked.",
+  "error": "Error",
+  "global_stats": "Global stats",
+  "market_cap": "Market cap: {{ value }}",
+  "x_tokens_raised": "{{ count }} tokens raised"
+}

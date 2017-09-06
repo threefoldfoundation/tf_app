@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
+import json
 import logging
 
 from framework.utils import try_or_defer
@@ -28,13 +28,14 @@ from plugins.rogerthat_api.to.messaging.forms import FormResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     FormAcknowledgedCallbackResultTO, SendApiCallCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
+from plugins.tff_backend.api.rogerthat.global_stats import api_list_global_stats
+from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed, node_arrived
 from plugins.tff_backend.bizz.investor import invest, investment_agreement_signed, investment_agreement_signed_by_admin
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_iyo_info_in_userdata, \
     is_user_in_roles, iyo_see_load
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
-
 
 TAG_MAPPING = {
     'order_node': order_node,
@@ -46,7 +47,8 @@ TAG_MAPPING = {
 }
 
 API_METHOD_MAPPING = {
-    'iyo.see.load': iyo_see_load 
+    'global_stats.list': api_list_global_stats,
+    'iyo.see.load': iyo_see_load
 }
 
 
@@ -125,10 +127,24 @@ def friend_is_in_roles(rt_settings, request_id, service_identity, user_details, 
 
 
 def system_api_call(rt_settings, request_id, method, params, user_details, **kwargs):
-    f = API_METHOD_MAPPING.get(method)
-    if not f:
-        return None
-    
-    result = f(params, user_details)
-    
-    return result and serialize_complex_value(result, SendApiCallCallbackResultTO, False, skip_missing=True)
+    if method not in API_METHOD_MAPPING:
+        logging.warn('Ignoring unknown api call: %s', method)
+        return
+    response = SendApiCallCallbackResultTO(error=None, result=None)
+    try:
+        params = json.loads(params) if params else params
+        result = API_METHOD_MAPPING[method](params=params, user_details=user_details)
+        if result is not None:
+            is_list = isinstance(result, list)
+            if is_list and result:
+                _type = type(result[0])
+            else:
+                _type = type(result)
+            result = serialize_complex_value(result, _type, is_list)
+            response.result = json.dumps(result).decode('utf-8')
+    except ApiCallException as e:
+        response.error = e.message
+    except:
+        logging.exception('Unhandled API call exception')
+        response.error = 'An unknown error has occurred. Please try again later.'
+    return serialize_complex_value(response, SendApiCallCallbackResultTO, False)

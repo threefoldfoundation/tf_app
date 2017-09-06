@@ -32,6 +32,7 @@ class NodeOrderStatus(Enum):
 
 
 class NodeOrder(NdbModel):
+    NAMESPACE = NAMESPACE
     NODE_ORDERS_PER_PAGE = 50
 
     app_user = ndb.UserProperty()
@@ -82,16 +83,12 @@ class NodeOrder(NdbModel):
         return id_str
 
     @classmethod
-    def get_by_id(cls, id, parent=None, **ctx_options):
-        return super(NodeOrder, cls).get_by_id(id, parent=parent, namespace=NAMESPACE, **ctx_options)
-
-    @classmethod
     def list(cls):
-        return cls.query(namespace=NAMESPACE)
+        return cls.query()
 
     @classmethod
     def list_by_status(cls, status):
-        return cls.query(namespace=NAMESPACE) \
+        return cls.query() \
             .filter(cls.status == status)
 
     @classmethod
@@ -104,6 +101,7 @@ class NodeOrder(NdbModel):
 
 
 class PublicKeyMapping(NdbModel):
+    NAMESPACE = NAMESPACE
     label = ndb.StringProperty()  # label on itsyou.online
 
     @classmethod

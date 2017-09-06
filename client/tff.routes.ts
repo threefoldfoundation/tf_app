@@ -1,6 +1,8 @@
 import { MetaGuard } from '@ngx-meta/core';
 import { Route } from '../../framework/client/app.routes';
 import {
+  GlobalStatsDetailPageComponent,
+  GlobalStatsListPageComponent,
   InvestmentAgreementDetailPageComponent,
   InvestmentAgreementListPageComponent,
   OrderDetailPageComponent,
@@ -44,5 +46,23 @@ export const TffRoutes: Route[] = [
     canActivate: [ MetaGuard ],
     data: { meta: { title: 'tff.investment_agreement_detail' } },
     component: InvestmentAgreementDetailPageComponent
+  },
+  {
+    path: 'global-stats',
+    canActivate: [ MetaGuard ],
+    data: {
+      icon: 'poll',
+      id: 'tff_global_stats',
+      meta: {
+        title: 'tff.global_stats',
+      }
+    },
+    component: GlobalStatsListPageComponent
+  },
+  {
+    path: 'global-stats/:globalStatsId',
+    canActivate: [ MetaGuard ],
+    data: { meta: { title: 'tff.global_stats' } },
+    component: GlobalStatsDetailPageComponent
   },
 ];

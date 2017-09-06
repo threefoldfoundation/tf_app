@@ -10,6 +10,7 @@
     "canceled": "Canceled",
     "created": "Created",
     "email": "Email",
+    "global_stats": "Global stats",
     "i_am_a_member": "I am a member",
     "i_am_new": "I am new here",
     "investment_agreement_detail": "Investment agreement detail",
@@ -29,6 +30,7 @@
     "paid_time": "Paid time",
     "phone": "Phone",
     "register_to_threefold": "Register to threefold",
+    "save": "Save",
     "send_time": "Send time",
     "sent": "Sent",
     "shipping_address": "Shipping address",
@@ -37,6 +39,10 @@
     "status": "Status",
     "thats_an_error": "That's an error",
     "threefold": "Threefold",
-    "user": "User"
+    "total_tokens": "Total tokens",
+    "unlocked_tokens": "Unlocked tokens",
+    "user": "User",
+    "value_in_dollars": "Value in dollars",
+    "x_tokens": "{{ count }} tokens"
   }
 }

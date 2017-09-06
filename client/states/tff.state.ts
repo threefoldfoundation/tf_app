@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs/Observable';
-import { InvestmentAgreement, InvestmentAgreementList, NodeOrder, NodeOrderList } from '../interfaces/index';
+import { GlobalStats, InvestmentAgreement, InvestmentAgreementList, NodeOrder, NodeOrderList } from '../interfaces/index';
 import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
 
 export interface ITffState {
@@ -13,6 +13,11 @@ export interface ITffState {
   investmentAgreement: InvestmentAgreement | null;
   investmentAgreementStatus: ApiRequestStatus;
   updateInvestmentAgreementStatus: ApiRequestStatus;
+  globalStatsList: GlobalStats[];
+  globalStatsListStatus: ApiRequestStatus;
+  globalStats: GlobalStats | null;
+  globalStatsStatus: ApiRequestStatus;
+  updateGlobalStatsStatus: ApiRequestStatus;
 }
 
 export const initialTffState: ITffState = {
@@ -34,6 +39,11 @@ export const initialTffState: ITffState = {
   investmentAgreement: null,
   investmentAgreementStatus: apiRequestInitial,
   updateInvestmentAgreementStatus: apiRequestInitial,
+  globalStatsList: [],
+  globalStatsListStatus: apiRequestInitial,
+  globalStats: null,
+  globalStatsStatus: apiRequestInitial,
+  updateGlobalStatsStatus: apiRequestInitial,
 };
 
 export function getOrders(state$: Observable<ITffState>) {
@@ -74,4 +84,24 @@ export function getInvestmentAgreementStatus(state$: Observable<ITffState>) {
 
 export function updateInvestmentAgreementStatus(state$: Observable<ITffState>) {
   return state$.select(state => state.updateInvestmentAgreementStatus);
+}
+
+export function getGlobalStatsList(state$: Observable<ITffState>) {
+  return state$.select(state => state.globalStatsList);
+}
+
+export function getGlobalStatsListStatus(state$: Observable<ITffState>) {
+  return state$.select(state => state.globalStatsListStatus);
+}
+
+export function getGlobalStats(state$: Observable<ITffState>) {
+  return state$.select(state => state.globalStats);
+}
+
+export function getGlobalStatsStatus(state$: Observable<ITffState>) {
+  return state$.select(state => state.globalStatsStatus);
+}
+
+export function updateGlobalStatsStatus(state$: Observable<ITffState>) {
+  return state$.select(state => state.updateGlobalStatsStatus);
 }

@@ -6,6 +6,7 @@ from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
 class InvestmentAgreement(NdbModel):
+    NAMESPACE = NAMESPACE
     PER_PAGE = 50
     STATUS_CANCELED = -1
     STATUS_CREATED = 0
@@ -47,16 +48,12 @@ class InvestmentAgreement(NdbModel):
         return ndb.Key(cls, subscription_id, namespace=NAMESPACE)
 
     @classmethod
-    def get_by_id(cls, id, parent=None, **ctx_options):
-        return super(InvestmentAgreement, cls).get_by_id(id, parent=parent, namespace=NAMESPACE, **ctx_options)
-
-    @classmethod
     def list(cls):
-        return cls.query(namespace=NAMESPACE)
+        return cls.query()
 
     @classmethod
     def list_by_status(cls, status):
-        return cls.query(namespace=NAMESPACE) \
+        return cls.query() \
             .filter(cls.status == status)
 
     @classmethod

@@ -305,7 +305,6 @@ export interface Rogerthat {
   camera: RogerthatCamera;
   context: (successCallback: (result: any) => void,
             errorCallback: (error: RogerthatError) => void) => void;
-  payments: RogerthatPayments;
   features: RogerthatFeatures;
   message: RogerthatMessage;
   service: RogerthatService;

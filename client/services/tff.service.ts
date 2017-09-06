@@ -1,9 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
 import {
   GetInvestmentAgreementsPayload,
   GetNodeOrdersPayload,
+  GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
   NodeOrder,
@@ -26,7 +26,7 @@ export class TffService {
     return this.http.get<NodeOrderList>(`${TffConfig.API_URL}/orders`, { params });
   }
 
-  getNodeOrder(orderId: string): Observable<NodeOrder> {
+  getNodeOrder(orderId: string) {
     return this.http.get<NodeOrder>(`${TffConfig.API_URL}/orders/${orderId}`);
   }
 
@@ -43,11 +43,23 @@ export class TffService {
     return this.http.get<InvestmentAgreementList>(`${TffConfig.API_URL}/investment-agreements`, { params });
   }
 
-  getInvestmentAgreement(agreementId: string): Observable<InvestmentAgreement> {
+  getInvestmentAgreement(agreementId: string) {
     return this.http.get<InvestmentAgreement>(`${TffConfig.API_URL}/investment-agreements/${agreementId}`);
   }
 
   updateInvestmentAgreement(agreement: InvestmentAgreement) {
     return this.http.put<InvestmentAgreement>(`${TffConfig.API_URL}/investment-agreements/${agreement.id}`, agreement);
+  }
+
+  getGlobalStatsList() {
+    return this.http.get<GlobalStats[]>(`${TffConfig.API_URL}/global-stats`);
+  }
+
+  getGlobalStats(statsId: string) {
+    return this.http.get<GlobalStats>(`${TffConfig.API_URL}/global-stats/${statsId}`);
+  }
+
+  updateGlobalStats(stats: GlobalStats) {
+    return this.http.put<GlobalStats>(`${TffConfig.API_URL}/global-stats/${stats.id}`, stats);
   }
 }

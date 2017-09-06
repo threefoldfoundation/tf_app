@@ -19,24 +19,23 @@ import httplib
 import json
 import logging
 
-from requests.exceptions import HTTPError
+from google.appengine.ext import deferred
+from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
 from framework.bizz.session import create_session
 from framework.plugin_loader import get_config
-from google.appengine.ext import deferred
-from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 from mcfw.consts import MISSING
-from mcfw.rpc import returns, arguments, serialize_complex_value
+from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
     has_access_to_organization
 from plugins.its_you_online_auth.libs.itsyouonline.AddOrganizationMemberReqBody import AddOrganizationMemberReqBody
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.to import UserDetailsTO
-from plugins.rogerthat_api.to.messaging.service_callback_results import SendApiCallCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Organization
+from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
 from plugins.tff_backend.bizz.iyo.see import get_see_documents, get_see_document
 from plugins.tff_backend.bizz.iyo.user import get_user
@@ -45,6 +44,7 @@ from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocument
+from requests.exceptions import HTTPError
 
 
 @returns()
@@ -177,25 +177,17 @@ def is_user_in_roles(user_detail, roles):
     return result
 
 
-@returns(SendApiCallCallbackResultTO)
-@arguments(params=unicode, user_detail=UserDetailsTO)
+@returns((IYOSeeDocument, IYOSeeDocumentView))
+@arguments(params=dict, user_detail=UserDetailsTO)
 def iyo_see_load(params, user_detail):
     logging.debug("Received IYO.SEE load call with params: %s", params)
-    r = SendApiCallCallbackResultTO()
     try:
         iyo_organization_id = get_iyo_organization_id()
         iyo_username = get_iyo_username(user_detail)
-        
-        jsondata = json.loads(params)
-        if jsondata.get("type") == u"detail":
-            see_document = get_see_document(iyo_organization_id, iyo_username, jsondata["uniqueid"], u"all")
-            r.result = json.dumps(serialize_complex_value(see_document, IYOSeeDocument, False))
+        if params.get("type") == u"detail":
+            return get_see_document(iyo_organization_id, iyo_username, params["uniqueid"], u"all")
         else:
-            see_documents = get_see_documents(iyo_organization_id, iyo_username)
-            r.result = json.dumps(serialize_complex_value(see_documents, IYOSeeDocumentView, True))
-        r.error = None 
+            return get_see_documents(iyo_organization_id, iyo_username)
     except:
-        logging.error("iyo.see.load exception occurred", exc_info=True)
-        r.result = None
-        r.error = u'An unknown error has occurred'
-    return r
+        logging.error('iyo.see.load exception occurred', exc_info=True)
+        raise ApiCallException(u'Could not load itsyou.online see documents. Please try again later.')

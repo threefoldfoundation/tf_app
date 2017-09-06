@@ -1,0 +1,29 @@
+<div class="default-component-padding">
+  <button md-button [routerLink]="['..']">
+    <md-icon>arrow_back</md-icon>
+    {{ 'tff.back' | translate }}
+  </button>
+  <div *ngIf="globalStats" style="padding-top: 16px;">
+    <form fxLayout="column" (submit)="form.form.valid ? save() : void(0)" #form="ngForm">
+      <md-form-field>
+        <input mdInput [(ngModel)]="globalStats.name" [placeholder]="'tff.name' | translate" name="name" required>
+      </md-form-field>
+      <md-form-field>
+        <input mdInput [(ngModel)]="globalStats.token_count" [placeholder]="'tff.total_tokens' | translate"
+               name="token_count" type="number" required>
+      </md-form-field>
+      <md-form-field>
+        <input mdInput [(ngModel)]="globalStats.unlocked_count" [placeholder]="'tff.unlocked_tokens' | translate"
+               name="unlocked_tokens" type="number" required>
+      </md-form-field>
+      <md-form-field>
+        <input mdInput [(ngModel)]="globalStats.value" [placeholder]="'tff.value_in_dollars' | translate" name="value"
+               type="number" required>
+        <md-icon mdSuffix>attach_money</md-icon>
+      </md-form-field>
+      <div>
+        <button color="primary" md-raised-button [disabled]="!form.form.valid">{{ 'tff.save' | translate }}</button>
+      </div>
+    </form>
+  </div>
+</div>

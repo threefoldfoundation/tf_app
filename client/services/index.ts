@@ -1,6 +1,9 @@
 import { TffService } from './tff.service';
 import { TffConfig } from './tff-config.service';
 import {
+  GlobalStatsDetailComponent,
+  GlobalStatsDetailPageComponent,
+  GlobalStatsListPageComponent,
   InvestmentAgreementDetailComponent,
   InvestmentAgreementDetailPageComponent,
   InvestmentAgreementListComponent,
@@ -17,14 +20,17 @@ export const TFF_PROVIDERS: any[] = [
 ];
 
 export const TFF_COMPONENTS: any[] = [
-  OrderListComponent,
-  OrderListPageComponent,
-  OrderDetailComponent,
-  OrderDetailPageComponent,
+  GlobalStatsDetailComponent,
+  GlobalStatsDetailPageComponent,
+  GlobalStatsListPageComponent,
   InvestmentAgreementDetailComponent,
   InvestmentAgreementDetailPageComponent,
   InvestmentAgreementListComponent,
   InvestmentAgreementListPageComponent,
+  OrderDetailComponent,
+  OrderDetailPageComponent,
+  OrderListComponent,
+  OrderListPageComponent
 ];
 
 export * from './tff-config.service';

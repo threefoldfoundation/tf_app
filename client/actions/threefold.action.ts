@@ -1,13 +1,15 @@
 import { Action } from '@ngrx/store';
-import { NodeOrder } from '../interfaces/index';
-import { type } from '../../../framework/client/core/utils/type';
-import { ApiErrorResponse } from '../../../framework/client/sample/interfaces/rpc.interfaces';
-import { GetNodeOrdersPayload, NodeOrderList } from '../interfaces/nodes.interfaces';
 import {
   GetInvestmentAgreementsPayload,
+  GetNodeOrdersPayload,
+  GlobalStats,
   InvestmentAgreement,
-  InvestmentAgreementList
-} from '../interfaces/investment-agreements.interfaces';
+  InvestmentAgreementList,
+  NodeOrder,
+  NodeOrderList
+} from '../interfaces/index';
+import { type } from '../../../framework/client/core/utils/type';
+import { ApiErrorResponse } from '../../../framework/client/sample/interfaces/rpc.interfaces';
 
 const category = '[TFF]';
 
@@ -32,6 +34,16 @@ export const TffActionTypes = {
   UPDATE_INVESTMENT_AGREEMENT: type(`${category} Update investment agreement`),
   UPDATE_INVESTMENT_AGREEMENT_COMPLETE: type(`${category} Update investment agreement success `),
   UPDATE_INVESTMENT_AGREEMENT_FAILED: type(`${category} Update investment agreement failed`),
+  GET_GLOBAL_STATS_LIST: type(`${category} Get global stats list`),
+  GET_GLOBAL_STATS_LIST_COMPLETE: type(`${category} Get global stats list success `),
+  GET_GLOBAL_STATS_LIST_FAILED: type(`${category} Get global stats list failed`),
+  RESET_GLOBAL_STATS: type(`${category} Reset global stats`),
+  GET_GLOBAL_STATS: type(`${category} Get global stats`),
+  GET_GLOBAL_STATS_COMPLETE: type(`${category} Get global stats success `),
+  GET_GLOBAL_STATS_FAILED: type(`${category} Get global stats failed`),
+  UPDATE_GLOBAL_STATS: type(`${category} Update global stats`),
+  UPDATE_GLOBAL_STATS_COMPLETE: type(`${category} Update global stats success `),
+  UPDATE_GLOBAL_STATS_FAILED: type(`${category} Update global stats failed`),
 };
 
 export class GetOrdersAction implements Action {
@@ -168,6 +180,71 @@ export class UpdateInvestmentAgreementFailedAction implements Action {
   }
 }
 
+export class GetGlobalStatsListAction implements Action {
+  type = TffActionTypes.GET_GLOBAL_STATS_LIST;
+  payload: null = null;
+}
+
+export class GetGlobalStatsListCompleteAction implements Action {
+  type = TffActionTypes.GET_GLOBAL_STATS_LIST_COMPLETE;
+
+  constructor(public payload: GlobalStats[]) {
+  }
+}
+
+export class GetGlobalStatsListFailedAction implements Action {
+  type = TffActionTypes.GET_GLOBAL_STATS_LIST_FAILED;
+
+  constructor(public payload: ApiErrorResponse) {
+  }
+}
+
+export class ResetGlobalStatsAction implements Action {
+  type = TffActionTypes.RESET_GLOBAL_STATS;
+}
+
+export class GetGlobalStatsAction implements Action {
+  type = TffActionTypes.GET_GLOBAL_STATS;
+
+  constructor(public payload: string) {
+  }
+}
+
+export class GetGlobalStatsCompleteAction implements Action {
+  type = TffActionTypes.GET_GLOBAL_STATS_COMPLETE;
+
+  constructor(public payload: GlobalStats) {
+  }
+}
+
+export class GetGlobalStatsFailedAction implements Action {
+  type = TffActionTypes.GET_GLOBAL_STATS_FAILED;
+
+  constructor(public payload: ApiErrorResponse) {
+  }
+}
+
+export class UpdateGlobalStatsAction implements Action {
+  type = TffActionTypes.UPDATE_GLOBAL_STATS;
+
+  constructor(public payload: GlobalStats) {
+  }
+}
+
+export class UpdateGlobalStatsCompleteAction implements Action {
+  type = TffActionTypes.UPDATE_GLOBAL_STATS_COMPLETE;
+
+  constructor(public payload: GlobalStats) {
+  }
+}
+
+export class UpdateGlobalStatsFailedAction implements Action {
+  type = TffActionTypes.UPDATE_GLOBAL_STATS_FAILED;
+
+  constructor(public payload: ApiErrorResponse) {
+  }
+}
+
 export type TffActions
   = GetOrdersAction
   | GetOrdersCompleteAction
@@ -186,4 +263,13 @@ export type TffActions
   | GetInvestmentAgreementFailedAction
   | UpdateInvestmentAgreementAction
   | UpdateInvestmentAgreementCompleteAction
-  | UpdateInvestmentAgreementFailedAction;
+  | UpdateInvestmentAgreementFailedAction
+  | GetGlobalStatsListAction
+  | GetGlobalStatsListCompleteAction
+  | GetGlobalStatsListFailedAction
+  | GetGlobalStatsAction
+  | GetGlobalStatsCompleteAction
+  | GetGlobalStatsFailedAction
+  | UpdateGlobalStatsAction
+  | UpdateGlobalStatsCompleteAction
+  | UpdateGlobalStatsFailedAction;
