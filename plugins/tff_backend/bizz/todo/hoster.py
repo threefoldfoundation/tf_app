@@ -29,7 +29,7 @@ class HosterSteps(object):
     NODE_DELIVERY_ACCEPTED = 'NODE_DELIVERY_ACCEPTED'
     NODE_DELIVERY_CONFIRMED = 'NODE_DELIVERY_CONFIRMED'
     NODE_POWERED = 'NODE_POWERED'
-    
+
     DESCRIPTIONS = {
         DOWNLOAD: 'Download the ThreeFold app',
         REGISTER_IYO: 'Register on ItsYou.Online',

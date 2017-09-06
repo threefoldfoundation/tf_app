@@ -4,7 +4,7 @@
     {{ 'tff.back' | translate }}
   </button>
   <div *ngIf="globalStats" style="padding-top: 16px;">
-    <form fxLayout="column" (submit)="form.form.valid ? save() : void(0)" #form="ngForm">
+    <form fxLayout="column" (submit)="save(form)" #form="ngForm">
       <md-form-field>
         <input mdInput [(ngModel)]="globalStats.name" [placeholder]="'tff.name' | translate" name="name" required>
       </md-form-field>

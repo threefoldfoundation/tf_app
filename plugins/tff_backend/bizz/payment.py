@@ -15,20 +15,20 @@
 #
 # @@license_version:1.3@@
 
-from datetime import datetime
 import hashlib
 import hmac
 import json
 import logging
 import time
 import uuid
+from datetime import datetime
 
-from dateutil.relativedelta import relativedelta
-
-from framework.plugin_loader import get_config
-from framework.utils import now, get_epoch_from_datetime, urlencode
 from google.appengine.api import urlfetch, users
 from google.appengine.ext import deferred, ndb
+
+from dateutil.relativedelta import relativedelta
+from framework.plugin_loader import get_config
+from framework.utils import now, get_epoch_from_datetime, urlencode
 from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.exceptions import BusinessException
@@ -49,8 +49,8 @@ def get_asset_id_from_token(app_user, token):
 @arguments(asset_id=unicode)
 def get_app_user_from_asset_id(asset_id):
     return users.User(asset_id.rsplit(u":", 1)[0])
-    
-    
+
+
 @returns(unicode)
 @arguments(asset_id=unicode)
 def get_token_from_asset_id(asset_id):
@@ -86,7 +86,6 @@ def get_balance(app_user, token):
             else:
                 total_description_details.append((unlock_timestamp, unlock_amount))
 
-
         spendable_amount = unlocked_amount - amount_spent
 
         available_balance += spendable_amount
@@ -98,7 +97,9 @@ def get_balance(app_user, token):
         total_description += u"\n\n|Date|#%s|" % token
         total_description += u"\n|---|---:|"
         for (unlock_timestamp, unlock_amount) in sorted(total_description_details, key=lambda tup: tup[0]):
-            total_description += u"\n|%s|%s|" % (time.strftime("%a %d %b %Y %H:%M:%S GMT", time.localtime(unlock_timestamp)), u'{:0,.2f}'.format(unlock_amount / 100.0))
+            date = time.strftime("%a %d %b %Y %H:%M:%S GMT", time.localtime(unlock_timestamp))
+            amount = u'{:0,.2f}'.format(unlock_amount / 100.0)
+            total_description += u"\n|%s|%s|" % (date, amount)
     else:
         total_description = None
 
@@ -107,13 +108,12 @@ def get_balance(app_user, token):
 
 def sync_payment_asset(app_user, asset_id):
     cfg = get_config(NAMESPACE)
-    
+
     args = dict()
     args["app_user"] = app_user.email()
     args["asset_id"] = asset_id
-    
-    headers = {}
-    headers['Authorization'] = cfg.rogerthat.payment_secret
+
+    headers = {'Authorization': cfg.rogerthat.payment_secret}
 
     urlfetch.fetch(
         url=u"%s/payments/callbacks/threefold/sync?%s" % (cfg.rogerthat.url, urlencode(args)),
@@ -169,8 +169,8 @@ def _sync_transactions():
 
     qry = ThreeFoldPendingTransaction.query() \
         .filter(ThreeFoldPendingTransaction.synced == False) \
-        .order(-ThreeFoldPendingTransaction.timestamp)
-        
+        .order(-ThreeFoldPendingTransaction.timestamp)  # NOQA
+
     pt_keys = [pt.key for pt in qry.fetch(100)]
     if len(pt_keys) > 0:
         _migrate_pending_transactions(pt_keys)
@@ -201,7 +201,7 @@ def _migrate_pending_transactions(keys):
         if not pt:
             logging.debug('Pending transaction not found')
             return
-        
+
         pt.synced = True
         height = bh.height + 1
 
@@ -230,7 +230,7 @@ def _migrate_pending_transactions(keys):
             ndb.put_multi(funding_transactions_to_put)
         else:
             logging.info("Genesis payout to %s at height %s", pt.to_user, height)
-            
+
         pt.synced_status = ThreeFoldPendingTransaction.STATUS_CONFIRMED
         pt.put()
 
@@ -353,7 +353,8 @@ def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None):
     if token not in wallet.tokens:
         wallet.tokens.append(token)
 
-    if unlock_timestamps[0] > 0 and (not wallet.next_unlock_timestamp or unlock_timestamps[0] < wallet.next_unlock_timestamp):
+    if unlock_timestamps[0] > 0 and (
+            not wallet.next_unlock_timestamp or unlock_timestamps[0] < wallet.next_unlock_timestamp):
         wallet.next_unlock_timestamp = unlock_timestamps[0]
 
     wallet.put()
@@ -383,7 +384,7 @@ def _save_transaction_to_backlog(transaction_id):
         if DEBUG:
             logging.warn('Transaction backlog is not filled in, doing nothing')
             return
-        raise Exception('Backlog config is not filled in') 
+        raise Exception('Backlog config is not filled in')
 
     transaction = ThreeFoldTransaction.get_by_id(transaction_id)
     if not transaction:

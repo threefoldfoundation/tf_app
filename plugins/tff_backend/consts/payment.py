@@ -15,7 +15,7 @@
 #
 # @@license_version:1.3@@
 
-PROVIDER_ID= u"threefold"
+PROVIDER_ID = u"threefold"
 
 TOKEN_TFF = u"TFF"
 TOKEN_TFF_CONTRIBUTOR = u"TFFC"

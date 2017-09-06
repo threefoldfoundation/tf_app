@@ -22,12 +22,12 @@ class PaymentAssetRequiredActionTO(object):
     action = unicode_property('1')
     description = unicode_property('2')
     data = unicode_property('3')
-    
+
 
 class PaymentAssetBalanceTO(object):
     amount = long_property('1')
     description = unicode_property('2')
-    
+
 
 class PaymentProviderAssetTO(object):
     provider_id = unicode_property('1')
@@ -42,8 +42,8 @@ class PaymentProviderAssetTO(object):
     has_balance = bool_property('10')
     has_transactions = bool_property('11')
     required_action = typed_property('12', PaymentAssetRequiredActionTO)
-    
-    
+
+
 class PaymentProviderTransactionTO(object):
     id = unicode_property('1')
     type = unicode_property('2')
@@ -54,12 +54,12 @@ class PaymentProviderTransactionTO(object):
     timestamp = long_property('7')
     from_asset_id = unicode_property('8')
     to_asset_id = unicode_property('9')
-    
-    
+
+
 class GetPaymentTransactionsResponseTO(object):
     cursor = unicode_property('1', default=None)
     transactions = typed_property('2', PaymentProviderTransactionTO, True)
-    
-    
+
+
 class CreateTransactionResponseTO(object):
     status = unicode_property('1')

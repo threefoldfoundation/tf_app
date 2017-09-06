@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { GlobalStats } from '../../interfaces/global-stats.interfaces';
+import { NgForm } from '@angular/forms';
 
 @Component({
   moduleId: module.id,
@@ -21,7 +22,9 @@ export class GlobalStatsDetailComponent {
     this._globalStats = value ? Object.assign({}, value) : null;
   }
 
-  save() {
-    this.onSave.emit(this.globalStats);
+  save(form: NgForm) {
+    if (form.form.valid) {
+      this.onSave.emit(this.globalStats);
+    }
   }
 }

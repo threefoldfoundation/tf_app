@@ -17,6 +17,7 @@
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
+
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -53,7 +54,7 @@ class ThreeFoldWallet(ndb.Model):
     @classmethod
     def create_key(cls, app_user):
         return ndb.Key(cls, app_user.email(), namespace=NAMESPACE)
-    
+
     @classmethod
     def query(cls, *args, **kwargs):
         kwargs['namespace'] = NAMESPACE
@@ -84,11 +85,11 @@ class ThreeFoldTransaction(ndb.Model):
     @property
     def id(self):
         return self.key.id()
-    
+
     @classmethod
     def create_new(cls):
         return cls(namespace=NAMESPACE)
-    
+
     @classmethod
     def query(cls, *args, **kwargs):
         kwargs['namespace'] = NAMESPACE
@@ -107,14 +108,14 @@ class ThreeFoldTransaction(ndb.Model):
             .filter(ThreeFoldTransaction.to_user == app_user) \
             .filter(ThreeFoldTransaction.token == token) \
             .filter(ThreeFoldTransaction.fully_spent == False) \
-            .order(-ThreeFoldTransaction.timestamp)
+            .order(-ThreeFoldTransaction.timestamp)  # NOQA
 
 
 class ThreeFoldPendingTransaction(ndb.Model):
     STATUS_PENDING = u'pending'
     STATUS_CONFIRMED = u"confirmed"
     STATUS_FAILED = u'failed'
-    
+
     timestamp = ndb.IntegerProperty()
     unlock_timestamps = ndb.IntegerProperty(repeated=True, indexed=False)
     unlock_amounts = ndb.IntegerProperty(repeated=True, indexed=False)
@@ -125,7 +126,7 @@ class ThreeFoldPendingTransaction(ndb.Model):
     app_users = ndb.UserProperty(repeated=True)
     from_user = ndb.UserProperty()
     to_user = ndb.UserProperty()
-    
+
     synced = ndb.BooleanProperty()
     synced_status = ndb.StringProperty()
 
@@ -136,7 +137,7 @@ class ThreeFoldPendingTransaction(ndb.Model):
     @classmethod
     def create_key(cls, transaction_id):
         return ndb.Key(cls, u"%s" % transaction_id, namespace=NAMESPACE)
-    
+
     @classmethod
     def query(cls, *args, **kwargs):
         kwargs['namespace'] = NAMESPACE
@@ -152,4 +153,4 @@ class ThreeFoldPendingTransaction(ndb.Model):
             .filter(ThreeFoldPendingTransaction.synced == False) \
             .filter(ThreeFoldPendingTransaction.app_users == app_user) \
             .filter(ThreeFoldPendingTransaction.token == token) \
-            .order(-ThreeFoldPendingTransaction.timestamp)
+            .order(-ThreeFoldPendingTransaction.timestamp)  # NOQA

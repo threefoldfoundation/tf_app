@@ -27,8 +27,8 @@ class RogerthatConfiguration(object):
 
 class IPFSConfiguration(object):
     secret = unicode_property('1')
-    
-    
+
+
 class BacklogConfiguration(object):
     url = unicode_property('1')
     secret = unicode_property('1')

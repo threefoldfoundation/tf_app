@@ -15,23 +15,23 @@
 #
 # @@license_version:1.3@@
 
-
 import logging
+
+from google.appengine.api import users
+from google.appengine.ext import ndb
 
 from framework.plugin_loader import get_config
 from framework.utils import now
-from google.appengine.api import users
-from google.appengine.ext import ndb
 from mcfw.consts import MISSING
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
-from plugins.tff_backend.bizz.payment import get_asset_ids, get_token_from_asset_id, get_balance, get_transactions,\
+from plugins.tff_backend.bizz.payment import get_asset_ids, get_token_from_asset_id, get_balance, get_transactions, \
     get_asset_id_from_token, get_app_user_from_asset_id, get_transaction_of_type_pending
 from plugins.tff_backend.consts.payment import PROVIDER_ID, TOKEN_TFF_CONTRIBUTOR, TOKEN_TYPE_D, TOKEN_TYPE_A
 from plugins.tff_backend.models.payment import ThreeFoldPendingTransaction
 from plugins.tff_backend.plugin_consts import NAMESPACE
-from plugins.tff_backend.to.payment import PaymentProviderAssetTO, PaymentAssetBalanceTO, PaymentProviderTransactionTO,\
-    GetPaymentTransactionsResponseTO, CreateTransactionResponseTO
+from plugins.tff_backend.to.payment import PaymentProviderAssetTO, PaymentAssetBalanceTO, \
+    PaymentProviderTransactionTO, GetPaymentTransactionsResponseTO, CreateTransactionResponseTO
 
 
 def custom_auth_method(f, requestHandler):
@@ -60,7 +60,7 @@ def api_get_assets(app_user):
 def api_get_asset(asset_id):
     app_user = get_app_user_from_asset_id(asset_id)
     token = get_token_from_asset_id(asset_id)
-    
+
     available_amount, total_amount, total_description = get_balance(app_user, get_token_from_asset_id(asset_id))
 
     available_balance = PaymentAssetBalanceTO()
@@ -69,7 +69,7 @@ def api_get_asset(asset_id):
     total_balance = PaymentAssetBalanceTO()
     total_balance.amount = total_amount
     total_balance.description = total_description
-    
+
     to = PaymentProviderAssetTO()
     to.provider_id = PROVIDER_ID
     to.id = asset_id
@@ -91,10 +91,10 @@ def api_get_asset(asset_id):
 @arguments(asset_id=unicode, transaction_type=unicode, cursor=unicode)
 def api_get_transactions(asset_id, transaction_type, cursor=None):
     app_user = get_app_user_from_asset_id(asset_id)
-    
+
     rto = GetPaymentTransactionsResponseTO()
     rto.transactions = []
-    
+
     if transaction_type == u"confirmed":
         qry = get_transactions(app_user, get_token_from_asset_id(asset_id))
     elif transaction_type == u"pending":
@@ -102,15 +102,16 @@ def api_get_transactions(asset_id, transaction_type, cursor=None):
     else:
         rto.cursor = None
         return rto
-    
-    transaction_models, new_cursor, has_more = qry.fetch_page(10, start_cursor=ndb.Cursor(urlsafe=cursor) if cursor else None)
+
+    transaction_models, new_cursor, has_more = qry.fetch_page(10, start_cursor=ndb.Cursor(
+        urlsafe=cursor) if cursor else None)
 
     for t in transaction_models:
         if transaction_type == u"confirmed":
             trans_id = unicode(t.height)
         else:
             trans_id = unicode(t.id)
-        
+
         to = PaymentProviderTransactionTO()
         to.id = trans_id
         to.type = u'transfer'
@@ -122,7 +123,7 @@ def api_get_transactions(asset_id, transaction_type, cursor=None):
         to.from_asset_id = get_asset_id_from_token(t.from_user, t.token) if t.from_user else None
         to.to_asset_id = get_asset_id_from_token(t.to_user, t.token)
         rto.transactions.append(to)
-    
+
     rto.cursor = unicode(new_cursor.urlsafe()) if has_more and new_cursor else None
     return rto
 
@@ -132,15 +133,14 @@ def api_get_transactions(asset_id, transaction_type, cursor=None):
 @arguments(data=PaymentProviderTransactionTO)
 def api_create_transaction(data):
     to = CreateTransactionResponseTO()
-    
+
     if data.id is MISSING or data.amount is MISSING or data.from_asset_id is MISSING or data.to_asset_id is MISSING:
         to.status = ThreeFoldPendingTransaction.STATUS_FAILED
         return
     if not (data.id or data.amount or data.from_asset_id or data.to_asset_id):
         to.status = ThreeFoldPendingTransaction.STATUS_FAILED
         return
-        
-    
+
     from_user = get_app_user_from_asset_id(data.from_asset_id)
     to_user = get_app_user_from_asset_id(data.to_asset_id)
     token = get_token_from_asset_id(data.from_asset_id)
@@ -148,7 +148,7 @@ def api_create_transaction(data):
         token_type = TOKEN_TYPE_D
     else:
         token_type = TOKEN_TYPE_A
-    
+
     def trans():
         pt_key = ThreeFoldPendingTransaction.create_key(data.id)
         pt = pt_key.get()
@@ -157,7 +157,7 @@ def api_create_transaction(data):
                                              timestamp=now())
         elif pt.synced:
             return pt.synced_status
-            
+
         pt.unlock_timestamps = [0]
         pt.unlock_amounts = [data.amount]
         pt.token = token
@@ -170,9 +170,8 @@ def api_create_transaction(data):
         pt.synced = False
         pt.synced_status = ThreeFoldPendingTransaction.STATUS_PENDING
         pt.put()
-        
+
         return pt.synced_status
-    
+
     to.status = ndb.transaction(trans)
     return to
-                    

@@ -21,11 +21,10 @@ import json
 import logging
 from types import NoneType
 
-from requests.exceptions import HTTPError
-
-from framework.utils import now
 from google.appengine.api import users
 from google.appengine.ext import deferred, ndb
+
+from framework.utils import now
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -54,7 +53,7 @@ from plugins.tff_backend.to.investor import InvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-
+from requests.exceptions import HTTPError
 
 FULL_CURRENCY_NAMES = {
     'USD_cur': 'dollar',
@@ -335,19 +334,18 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
                                          acked_timestamp, parent_message_key, result_key, service_identity,
                                          user_details):
     tag_dict = json.loads(tag)
-    
+
     def trans():
         agreement = InvestmentAgreement.create_key(tag_dict['agreement_id']).get()  # type: InvestmentAgreement
         agreement.status = InvestmentAgreement.STATUS_PAID
         agreement.paid_time = now()
         agreement.put()
         user_email, app_id, = get_app_user_tuple(agreement.app_user)
-        deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TOKEN_TYPE_B, agreement.amount, 
+        deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TOKEN_TYPE_B, agreement.amount,
                        _transactional=True)
         deferred.defer(update_investor_progress, user_email.email(), app_id, InvestorSteps.ASSIGN_TOKENS,
                        _transactional=True)
-        
-    
+
     ndb.transaction(trans)
 
 

@@ -19,9 +19,10 @@ import base64
 import json
 import logging
 
-from framework.utils import now, try_or_defer
 from google.appengine.api import users
 from google.appengine.ext import ndb, deferred
+
+from framework.utils import now, try_or_defer
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -57,7 +58,6 @@ from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user
            flow_params=unicode)
 def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
                flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    
     order_key = NodeOrder.create_key()
     deferred.defer(_order_node, order_key, user_details[0].email, user_details[0].app_id, steps, 0)
 
@@ -65,7 +65,7 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 def _order_node(order_key, email, app_id, steps, retry_count):
     logging.info('Receiving order of Zero-Node')
     app_user = create_app_user_by_email(email, app_id)
-    
+
     overview_step = get_step(steps, 'message_overview')
     if overview_step and overview_step.answer_id == u"button_use":
         api_key = get_rogerthat_api_key()

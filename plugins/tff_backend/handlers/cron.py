@@ -15,11 +15,12 @@
 #
 # @@license_version:1.3@@
 
+import webapp2
 from google.appengine.ext import deferred
+
 from plugins.rogerthat_api.api import friends
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.payment import sync_transactions, sync_wallets
-import webapp2
 
 
 class RebuildSyncedRolesHandler(webapp2.RequestHandler):
