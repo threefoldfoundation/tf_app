@@ -14,33 +14,37 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+
 import httplib
 import json
 import logging
 
-from google.appengine.ext import deferred
-from google.appengine.ext.deferred.deferred import PermanentTaskFailure
+from requests.exceptions import HTTPError
 
 from framework.bizz.session import create_session
 from framework.plugin_loader import get_config
+from google.appengine.ext import deferred
+from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 from mcfw.consts import MISSING
-from mcfw.rpc import returns, arguments
+from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
     has_access_to_organization
 from plugins.its_you_online_auth.libs.itsyouonline.AddOrganizationMemberReqBody import AddOrganizationMemberReqBody
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.to import UserDetailsTO
+from plugins.rogerthat_api.to.messaging.service_callback_results import SendApiCallCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Organization
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
+from plugins.tff_backend.bizz.iyo.see import get_see_documents
 from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
-from requests.exceptions import HTTPError
+from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView
 
 
 @returns()
@@ -171,3 +175,24 @@ def is_user_in_roles(user_detail, roles):
         if has_access_to_organization(client, organization_id, username):
             result.append(role.id)
     return result
+
+
+@returns(SendApiCallCallbackResultTO)
+@arguments(params=unicode, user_detail=UserDetailsTO)
+def iyo_see_load(params, user_detail):
+    logging.debug("Received IYO.SEE load call with params: %s", params)
+    r = SendApiCallCallbackResultTO()
+    try:
+        iyo_organization_id = get_iyo_organization_id()
+        iyo_username = get_iyo_username(user_detail)
+        
+        # jsondata = json.loads(params)
+        
+        see_documents = get_see_documents(iyo_organization_id, iyo_username)
+        r.result = json.dumps(serialize_complex_value(see_documents, IYOSeeDocumentView, True))
+        r.error = None 
+    except:
+        logging.error("iyo.see.load exception occurred", exc_info=True)
+        r.result = None
+        r.error = u'An unknown error has occurred'
+    return r

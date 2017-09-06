@@ -32,11 +32,11 @@ def get_see_document(organization_id, username, uniqueid):
     return IYOSeeDocument(**result.json())
 
 
-@returns(IYOSeeDocumentView)
+@returns([IYOSeeDocumentView])
 @arguments(organization_id=unicode, username=unicode)
 def get_see_documents(organization_id, username):
     client = get_itsyouonline_client_from_username(username)
-    result = client.api.users.ListSeeObjectsByOrganization(username, organization_id)
+    result = client.api.users.GetSeeObjects(username)
     logging.debug('get_see_documents %s %s', result.status_code, result.text)
     return [IYOSeeDocumentView(**d) for d in result.json()]
 

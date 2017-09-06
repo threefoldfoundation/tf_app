@@ -26,22 +26,28 @@ from plugins.rogerthat_api.to.messaging import Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import FormResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
-    FormAcknowledgedCallbackResultTO
+    FormAcknowledgedCallbackResultTO, SendApiCallCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed, node_arrived
 from plugins.tff_backend.bizz.investor import invest, investment_agreement_signed, investment_agreement_signed_by_admin
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_iyo_info_in_userdata, \
-    is_user_in_roles
+    is_user_in_roles, iyo_see_load
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 
-TAG_MAPPING = {'order_node': order_node,
-               'sign_order_node_tos': order_node_signed,
-               'node_arrival': node_arrived,
-               'invest': invest,
-               'sign_investment_agreement': investment_agreement_signed,
-               'sign_investment_agreement_admin': investment_agreement_signed_by_admin,
-               }
+
+TAG_MAPPING = {
+    'order_node': order_node,
+    'sign_order_node_tos': order_node_signed,
+    'node_arrival': node_arrived,
+    'invest': invest,
+    'sign_investment_agreement': investment_agreement_signed,
+    'sign_investment_agreement_admin': investment_agreement_signed_by_admin,
+}
+
+API_METHOD_MAPPING = {
+    'iyo.see.load': iyo_see_load 
+}
 
 
 def log_and_parse_user_details(user_details):
@@ -116,3 +122,13 @@ def friend_is_in_roles(rt_settings, request_id, service_identity, user_details, 
     user_details = log_and_parse_user_details(user_details)
     roles = parse_complex_value(RoleTO, roles, True)
     return is_user_in_roles(user_details[0], roles)
+
+
+def system_api_call(rt_settings, request_id, method, params, user_details, **kwargs):
+    f = API_METHOD_MAPPING.get(method)
+    if not f:
+        return None
+    
+    result = f(params, user_details)
+    
+    return result and serialize_complex_value(result, SendApiCallCallbackResultTO, False, skip_missing=True)
