@@ -9,7 +9,7 @@
     "build": "ionic-app-scripts build",
     "build:prod": "ionic-app-scripts build --prod --nobrowser --enableLint false && node tools/finish_production_build.js",
     "build:zip": "npm run build:prod && npm run build:zip-only",
-    "build:zip-only": "rm -f todo-list.zip && mv www/index.html www/cordova.html && cd www && zip -r ../global-stats.zip . && cd .. && mv www/cordova.html www/index.html",
+    "build:zip-only": "rm -f todo-list.zip && mv www/index.html www/cordova.html && cd www && zip -r ../todo-list.zip . && cd .. && mv www/cordova.html www/index.html",
     "lint": "ionic-app-scripts lint",
     "ionic:build": "ionic-app-scripts build",
     "ionic:serve": "ionic-app-scripts serve"
