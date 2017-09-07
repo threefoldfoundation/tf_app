@@ -22,11 +22,11 @@ KEY_NAME = u'threefold'
 
 THREEFOLD_APP_ID = u'em-be-threefold-token'
 FULL_CURRENCY_NAMES = {
-    'USD_cur': 'dollar',
-    'EUR_cur': 'euro',
-    'YEN_cur': 'yen',
-    'UAE_cur': 'dirham',
-    'GBP_cur': 'pound',
+    'USD': 'dollar',
+    'EUR': 'euro',
+    'YEN': 'yen',
+    'UAE': 'dirham',
+    'GBP': 'pound',
 }
 CURRENCY_RATES = {
     'USD': 5.0,

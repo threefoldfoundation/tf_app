@@ -86,13 +86,13 @@ def _invest(agreement_key, email, app_id, steps, retry_count):
         name = get_step_value(steps, 'message_name')
         billing_address = get_step_value(steps, 'message_billing_address')
     currency = get_step_value(steps, 'message_get_currency')
-    token_count = int(get_step_value(steps, 'get_order_size_ITO'))
+    token_count = int(get_step_value(steps, 'message_get_order_size_ITO'))
 
     logging.debug('Creating Token agreement')
     pdf_name = 'token_%s.pdf' % agreement_key.id()
 
-    currency_full = FULL_CURRENCY_NAMES[currency]
     currency_short = currency.replace("_cur", "")
+    currency_full = FULL_CURRENCY_NAMES[currency_short]
     amount = int(token_count * CURRENCY_RATES[currency_short])
 
     pdf_contents = create_token_agreement_pdf(name, billing_address, amount, currency_full, currency_short)
