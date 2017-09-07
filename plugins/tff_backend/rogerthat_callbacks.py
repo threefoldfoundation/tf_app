@@ -29,12 +29,13 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemb
     FormAcknowledgedCallbackResultTO, SendApiCallCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.api.rogerthat.global_stats import api_list_global_stats
+from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, api_iyo_see_detail
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed, node_arrived
 from plugins.tff_backend.bizz.investor import invest, investment_agreement_signed, investment_agreement_signed_by_admin
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_iyo_info_in_userdata, \
-    is_user_in_roles, iyo_see_load
+    is_user_in_roles
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 
 TAG_MAPPING = {
@@ -48,7 +49,8 @@ TAG_MAPPING = {
 
 API_METHOD_MAPPING = {
     'global_stats.list': api_list_global_stats,
-    'iyo.see.load': iyo_see_load
+    'iyo.see.list': api_iyo_see_list,
+    'iyo.see.detail': api_iyo_see_detail
 }
 
 

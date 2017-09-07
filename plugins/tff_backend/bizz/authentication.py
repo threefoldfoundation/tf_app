@@ -19,7 +19,6 @@ from __future__ import unicode_literals
 
 import re
 
-from enum import Enum
 from framework.plugin_loader import get_config
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_NAMESPACE
 
@@ -38,7 +37,7 @@ class Roles(object):
     AMBASSADORS = 'ambassadors'
 
 
-class PluginRoles(Enum):
+class PluginRoles(object):
     ADMINS = 'tff-admins'
     PAYMENT_ADMIN = 'tff-payment-admin'
     DEFAULT = 'tff-default'
@@ -61,23 +60,19 @@ class Organization(object):
     INVESTOR = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.INVESTOR)
     AMBASSADOR = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.AMBASSADORS)
 
+    ROLES = {
+        Roles.ADMINS: ADMIN,
+        Roles.PAYMENT_ADMIN: PAYMENT_ADMIN,
+        Roles.DEFAULT: DEFAULT_USER,
+        Roles.HOSTER: HOSTER,
+        Roles.INVITED: INVITED,
+        Roles.INVESTOR: INVESTOR,
+        Roles.AMBASSADORS: AMBASSADOR,
+    }
+
     @staticmethod
     def get_by_role_name(role_name):
-        if Roles.ADMINS == role_name:
-            return Organization.ADMIN
-        if Roles.PAYMENT_ADMIN == role_name:
-            return Organization.PAYMENT_ADMIN
-        if Roles.DEFAULT == role_name:
-            return Organization.DEFAULT_USER
-        if Roles.HOSTER == role_name:
-            return Organization.HOSTER
-        if Roles.INVITED == role_name:
-            return Organization.INVITED
-        if Roles.INVESTOR == role_name:
-            return Organization.INVESTOR
-        if Roles.AMBASSADORS == role_name:
-            return Organization.AMBASSADOR
-        return None
+        return Organization.ROLES.get(role_name, None)
 
 
 class Scope(object):

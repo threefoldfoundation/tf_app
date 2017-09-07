@@ -1,0 +1,13 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button="bar-button" (click)="close()" class="back-button show-back-button back-button-md">
+        <ion-icon name="arrow-back" class="back-button-icon-md"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{ 'documents' | translate }}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding>
+  <see-document [document]="document" *ngFor="let document of documents$ | async"></see-document>
+</ion-content>

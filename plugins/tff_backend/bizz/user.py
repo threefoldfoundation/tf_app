@@ -35,15 +35,12 @@ from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Organization
-from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
-from plugins.tff_backend.bizz.iyo.see import get_see_documents, get_see_document
 from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
-from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocument
 from requests.exceptions import HTTPError
 
 
@@ -175,19 +172,3 @@ def is_user_in_roles(user_detail, roles):
         if has_access_to_organization(client, organization_id, username):
             result.append(role.id)
     return result
-
-
-@returns((IYOSeeDocument, IYOSeeDocumentView))
-@arguments(params=dict, user_detail=UserDetailsTO)
-def iyo_see_load(params, user_detail):
-    logging.debug("Received IYO.SEE load call with params: %s", params)
-    try:
-        iyo_organization_id = get_iyo_organization_id()
-        iyo_username = get_iyo_username(user_detail)
-        if params.get("type") == u"detail":
-            return get_see_document(iyo_organization_id, iyo_username, params["uniqueid"], u"all")
-        else:
-            return get_see_documents(iyo_organization_id, iyo_username)
-    except:
-        logging.error('iyo.see.load exception occurred', exc_info=True)
-        raise ApiCallException(u'Could not load itsyou.online see documents. Please try again later.')
