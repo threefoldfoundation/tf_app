@@ -85,7 +85,6 @@ def _invest(agreement_key, email, app_id, steps, retry_count):
     else:
         name = get_step_value(steps, 'message_name')
         billing_address = get_step_value(steps, 'message_billing_address')
-    referrer = get_step_value(steps, 'message_get_referral')[0]
     currency = get_step_value(steps, 'message_get_currency')
     token_count = int(get_step_value(steps, 'get_order_size_ITO'))
 
@@ -94,6 +93,7 @@ def _invest(agreement_key, email, app_id, steps, retry_count):
 
     currency_full = FULL_CURRENCY_NAMES[currency]
     currency_short = currency.replace("_cur", "")
+    amount = int(token_count * CURRENCY_RATES[currency_short])
 
     pdf_contents = create_token_agreement_pdf(name, billing_address, amount, currency_full, currency_short)
     ipfs_link = store_pdf(pdf_name, pdf_contents)
@@ -109,9 +109,8 @@ def _invest(agreement_key, email, app_id, steps, retry_count):
                                         creation_time=now(),
                                         app_user=app_user,
                                         token_count=token_count,
-                                        amount=int(token_count * CURRENCY_RATES[currency_short]),
+                                        amount=amount,
                                         currency=currency_short,
-                                        referrer=create_app_user_by_email(referrer, app_id),
                                         status=InvestmentAgreement.STATUS_CREATED)
         agreement.put()
         deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, ipfs_link,
