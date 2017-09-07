@@ -380,7 +380,7 @@ def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None):
 @arguments(transaction_id=(int, long))
 def _save_transaction_to_backlog(transaction_id):
     cfg = get_config(NAMESPACE)
-    if not (cfg.backlog.url or cfg.backlog.secret):
+    if not (cfg.ledger.url or cfg.ledger.secret):
         if DEBUG:
             logging.warn('Transaction backlog is not filled in, doing nothing')
             return
@@ -395,13 +395,13 @@ def _save_transaction_to_backlog(transaction_id):
         'amount': transaction.amount
     }
     if transaction.from_user:
-        data['from'] = hmac.new(cfg.backlog.secret.encode(), transaction.from_user.email(), hashlib.sha1).hexdigest()
+        data['from'] = hmac.new(cfg.ledger.secret.encode(), transaction.from_user.email(), hashlib.sha1).hexdigest()
     if transaction.to_user:
-        data['to'] = hmac.new(cfg.backlog.secret.encode(), transaction.to_user.email(), hashlib.sha1).hexdigest()
+        data['to'] = hmac.new(cfg.ledger.secret.encode(), transaction.to_user.email(), hashlib.sha1).hexdigest()
     headers = {
-        'Authorization': cfg.backlog.secret
+        'Authorization': cfg.ledger.secret
     }
-    url = cfg.backlog.url + '/transactions'
+    url = cfg.ledger.url + '/transactions'
     result = urlfetch.fetch(url, json.dumps(data), urlfetch.POST, headers, deadline=30)
     if result.status_code not in (200, 201):
         logging.info('Status:%s Content: %s', result.status_code, result.content)

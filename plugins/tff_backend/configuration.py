@@ -28,13 +28,21 @@ class RogerthatConfiguration(object):
 class IPFSConfiguration(object):
     secret = unicode_property('1')
 
-
-class BacklogConfiguration(object):
+    
+class LedgerConfiguration(object):
     url = unicode_property('1')
     secret = unicode_property('1')
+    
+    
+class OdooConfiguration(object):
+    url = unicode_property('1')
+    database = unicode_property('2')
+    username = unicode_property('3')
+    password = unicode_property('4')
 
 
 class TffConfiguration(object):
     rogerthat = typed_property('1', RogerthatConfiguration, False)
     ipfs = typed_property('2', IPFSConfiguration, False)
-    backlog = typed_property('3', BacklogConfiguration, False)
+    ledger = typed_property('3', LedgerConfiguration, False)
+    odoo = typed_property('4', OdooConfiguration, False)
