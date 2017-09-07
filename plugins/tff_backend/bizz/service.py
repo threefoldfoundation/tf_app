@@ -34,7 +34,7 @@ def get_main_branding_hash():
     return si.description_branding
 
 
-@returns(unicode)
+@returns()
 @arguments(user_detail=UserDetailsTO, role_name=unicode)
 def add_user_to_role(user_detail, role_name):
     logging.info('Adding user to role "%s"', role_name)
@@ -44,6 +44,18 @@ def add_user_to_role(user_detail, role_name):
     member.member = user_detail.email
     member.app_id = user_detail.app_id
     system.add_role_member(api_key, role_id, member)
+    
+
+@returns()
+@arguments(user_detail=UserDetailsTO, role_name=unicode)
+def delete_user_from_role(user_detail, role_name):
+    logging.info('Deleting user from role "%s"', role_name)
+    api_key = get_rogerthat_api_key()
+    role_id = get_role_id_by_name(api_key, role_name)
+    member = BaseMemberTO()
+    member.member = user_detail.email
+    member.app_id = user_detail.app_id
+    system.delete_role_member(api_key, role_id, member)
 
 
 @cached(version=1, lifetime=86400, request=True, memcache=True)

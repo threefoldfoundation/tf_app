@@ -16,11 +16,9 @@
 # @@license_version:1.3@@
 
 import hashlib
-import httplib
 import json
 import logging
 
-from requests.exceptions import HTTPError
 
 from framework.bizz.session import create_session
 from framework.plugin_loader import get_config
@@ -30,7 +28,6 @@ from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
     has_access_to_organization
-from plugins.its_you_online_auth.libs.itsyouonline.AddOrganizationMemberReqBody import AddOrganizationMemberReqBody
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.to import UserDetailsTO
@@ -38,7 +35,7 @@ from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Organization
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
-from plugins.tff_backend.bizz.iyo.user import get_user
+from plugins.tff_backend.bizz.iyo.user import get_user, invite_user_to_organization
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.models.user import ProfilePointer, TffProfile
@@ -70,21 +67,7 @@ def user_registered(user_detail, data):
     # Creation session such that the JWT is automatically up to date
     create_session(username, scopes, jwt, secret=username)
 
-    deferred.defer(_invite_user, username)
-
-
-@returns()
-@arguments(username=unicode)
-def _invite_user(username):
-    organization_id = Organization.DEFAULT_USER
-    logging.info('Inviting user %s to IYO organization %s', username, organization_id)
-    client = get_itsyouonline_client()
-    try:
-        client.api.organizations.AddOrganizationMember(AddOrganizationMemberReqBody.create(username),
-                                                       organization_id)
-    except HTTPError as e:
-        if e.response.status_code != httplib.CONFLICT:
-            raise e
+    deferred.defer(invite_user_to_organization, username, Organization.DEFAULT_USER)
 
 
 @returns(unicode)
