@@ -22,13 +22,11 @@ var onReceivedApiResult = function(method, result, error, tag) {
     console.log("error: " + error);
 
     if (method == "referrals.set") {
+    	hideLoading();
     	if (result) {
     		$(".set-referrer-result").show();
-    		$(".set-referrer-error").hide();
-    		$(".set-referrer").hide();
-            $(".set-referrer-result p").text(error);
+            $(".set-referrer-result p").text(result);
     	} else {
-    		$(".set-referrer-result").hide();
     		$(".set-referrer-error").show();
     		$(".set-referrer").show();
             $(".set-referrer-error p").text(error);
@@ -44,8 +42,17 @@ var sendInvitationCode = function() {
         html: ""
     });
     
+    $(".set-referrer-result").hide();
+	$(".set-referrer-error").hide();
+    $(".set-referrer").hide();
+    
     var p = JSON.stringify({
-        'code' : $('#invitation_code').text()
+        'code' : $('#invitation_code').val()
     });
     rogerthat.api.call("referrals.set", p, "");
+};
+
+var hideLoading = function() {
+    console.log('hiding loading');
+    $.mobile.loading('hide');
 };

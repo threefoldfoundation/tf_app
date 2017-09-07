@@ -135,21 +135,26 @@ def system_api_call(rt_settings, request_id, method, params, user_details, **kwa
     if method not in API_METHOD_MAPPING:
         logging.warn('Ignoring unknown api call: %s', method)
         return
+    user_details = log_and_parse_user_details(user_details)
     response = SendApiCallCallbackResultTO(error=None, result=None)
     try:
         params = json.loads(params) if params else params
-        result = API_METHOD_MAPPING[method](params=params, user_details=user_details)
+        result = API_METHOD_MAPPING[method](params=params, user_detail=user_details[0])
         if result is not None:
             is_list = isinstance(result, list)
             if is_list and result:
                 _type = type(result[0])
             else:
                 _type = type(result)
-            result = serialize_complex_value(result, _type, is_list)
-            response.result = json.dumps(result).decode('utf-8')
+                
+            if isinstance(result, unicode):
+                response.result = result
+            else:
+                result = serialize_complex_value(result, _type, is_list)
+                response.result = json.dumps(result).decode('utf-8')
     except ApiCallException as e:
         response.error = e.message
     except:
         logging.exception('Unhandled API call exception')
-        response.error = 'An unknown error has occurred. Please try again later.'
+        response.error = u'An unknown error has occurred. Please try again later.'
     return serialize_complex_value(response, SendApiCallCallbackResultTO, False)

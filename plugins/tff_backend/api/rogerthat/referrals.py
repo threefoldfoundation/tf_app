@@ -27,27 +27,34 @@ from plugins.tff_backend.models.user import Profile, ProfilePointer
 @arguments(params=dict, user_detail=UserDetailsTO)
 def api_set_referral(params, user_detail):
     def trans():
-        pp = ProfilePointer.get_by_user_code()
+        code = params.get("code")
+        if not code:
+            raise ApiCallException(u'Unknown invitation code received') 
+        
+        pp = ProfilePointer.get_by_user_code(code)
         if not pp:
-            raise ApiCallException('Unknown invitation code received') 
+            raise ApiCallException(u'Unknown invitation code received') 
         
         username = get_iyo_username(user_detail)
+        if username == pp.username:
+            raise ApiCallException(u'You can\'t use your own invitation code') 
+                
         my_profile = Profile.create_key(username).get()
         if not my_profile:
-            raise ApiCallException('We were unable to find your profile')
+            raise ApiCallException(u'We were unable to find your profile')
         
         if my_profile.referrer:
-            raise ApiCallException('You already set your referrer')
+            raise ApiCallException(u'You already set your referrer')
         
         referrer_profile = Profile.create_key(pp.username).get()
         if not referrer_profile:
-            raise ApiCallException('We were unable to find your referrer\'s profile')
+            raise ApiCallException(u'We were unable to find your referrer\'s profile')
         
         my_profile.referrer = referrer_profile.app_user
         my_profile.put()
     
         # todo roles
         
-    ndb.transaction(trans)
+    ndb.transaction(trans, xg=True)
     return u"You successfully joined the ThreeFold community. Welcome aboard!"
     
