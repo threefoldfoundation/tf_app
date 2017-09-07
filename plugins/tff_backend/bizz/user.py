@@ -76,7 +76,7 @@ def user_code(username):
     digester = hashlib.sha256()
     digester.update(str(username))
     key = digester.hexdigest()
-    return unicode(key[:6])
+    return unicode(key[:5])
 
 
 @returns()
