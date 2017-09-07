@@ -21,3 +21,17 @@ KEY_ALGORITHM = u'ed25519'
 KEY_NAME = u'threefold'
 
 THREEFOLD_APP_ID = u'em-be-threefold-token'
+FULL_CURRENCY_NAMES = {
+    'USD_cur': 'dollar',
+    'EUR_cur': 'euro',
+    'YEN_cur': 'yen',
+    'UAE_cur': 'dirham',
+    'GBP_cur': 'pound',
+}
+CURRENCY_RATES = {
+    'USD': 5.0,
+    'EUR': 4.2,
+    'YEN': 543.6,
+    'UAE': 18.6,
+    'GBP': 3.83
+}

@@ -10,8 +10,8 @@
         {{ 'tff.investment_agreement_x' | translate : { investmentAgreementId: investmentAgreement.id } }}
       </h4>
       <p mdLine>
-        {{ investmentAgreement.amount | currency : investmentAgreement.currency }}
-        - {{ investmentAgreement.creation_time | timestamp }}
+        {{ investmentAgreement.token_count }} {{ 'tff.tokens' | translate }} - {{ investmentAgreement.creation_time |
+        timestamp }}
       </p>
       <p mdLine>{{ 'tff.modified_on' | translate}} {{ investmentAgreement.modification_time | timestamp }}</p>
     </md-list-item>

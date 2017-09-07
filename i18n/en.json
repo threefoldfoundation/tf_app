@@ -1,6 +1,7 @@
 {
   "Threefold Foundation": "Threefold Foundation",
   "tff": {
+    "amount_in_dollar": "Amount in dollar",
     "arrival_time": "Arrival time",
     "arrived": "Arrived",
     "back": "Back",
@@ -9,6 +10,7 @@
     "cancel_time": "Cancel time",
     "canceled": "Canceled",
     "created": "Created",
+    "currency": "Currency",
     "email": "Email",
     "global_stats": "Global stats",
     "i_am_a_member": "I am a member",
@@ -40,6 +42,7 @@
     "thats_an_error": "That's an error",
     "threefold": "Threefold",
     "total_tokens": "Total tokens",
+    "tokens": "Tokens",
     "unlocked_tokens": "Unlocked tokens",
     "user": "User",
     "value_in_dollars": "Value in dollars",

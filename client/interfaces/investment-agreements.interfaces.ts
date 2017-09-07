@@ -22,6 +22,7 @@ export interface InvestmentAgreement {
   app_user: string;
   referrer: string;
   amount: number;
+  token_count: number;
   currency: string;
   iyo_see_id: string;
   signature_payload: string | null;

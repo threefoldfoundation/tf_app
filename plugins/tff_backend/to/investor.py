@@ -28,6 +28,7 @@ class InvestmentAgreementTO(TO):
     app_user = unicode_property('app_user')
     referrer = unicode_property('referrer')
     amount = long_property('amount')
+    token_count = long_property('token_count')
     currency = unicode_property('currency')
     iyo_see_id = unicode_property('iyo_see_id')
     signature_payload = unicode_property('signature_payload')

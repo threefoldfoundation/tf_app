@@ -21,11 +21,10 @@ import json
 import logging
 from types import NoneType
 
-from requests.exceptions import HTTPError
-
-from framework.utils import now
 from google.appengine.api import users
 from google.appengine.ext import deferred, ndb
+
+from framework.utils import now
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -49,22 +48,12 @@ from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.consts.payment import TOKEN_TYPE_B
 from plugins.tff_backend.models.investor import InvestmentAgreement
-from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID
+from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID, FULL_CURRENCY_NAMES
 from plugins.tff_backend.to.investor import InvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-
-
-FULL_CURRENCY_NAMES = {
-    'USD_cur': 'dollar',
-    'EUR_cur': 'euro',
-    'YEN_cur': 'yen',
-    'UAE_cur': 'dirham',
-    'GBP_cur': 'pound',
-    'BTC_cur': 'bitcoin',
-    'ETH_cur': 'ether'
-}
+from requests.exceptions import HTTPError
 
 
 @returns()
@@ -97,7 +86,7 @@ def _invest(agreement_key, email, app_id, steps, retry_count):
         billing_address = get_step_value(steps, 'message_billing_address')
     referrer = get_step_value(steps, 'message_get_referral')[0]
     currency = get_step_value(steps, 'message_get_currency')
-    amount = int(get_step_value(steps, 'message_get_order_size_ITO'))
+    token_count = int(get_step_value(steps, 'get_order_size_ITO'))
 
     logging.debug('Creating Token agreement')
     pdf_name = 'token_%s.pdf' % agreement_key.id()
@@ -118,7 +107,7 @@ def _invest(agreement_key, email, app_id, steps, retry_count):
         agreement = InvestmentAgreement(key=agreement_key,
                                         creation_time=now(),
                                         app_user=app_user,
-                                        amount=amount,
+                                        token_count=token_count,
                                         currency=currency_short,
                                         referrer=create_app_user_by_email(referrer, app_id),
                                         status=InvestmentAgreement.STATUS_CREATED)
@@ -221,7 +210,10 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
     member_user, app_id = get_app_user_tuple(admin_app_user)
     message = u"""Enter your pin code to mark investment %s as paid.
 - from: %s\n
-- amount: %s %s""" % (agreement_key.id(), agreement.iyo_username, agreement.amount, agreement.currency)
+- amount of tokens: %s\n
+- amount: %s $
+""" % (agreement_key.id(), agreement.iyo_username, agreement.token_count, agreement.amount)
+
     messaging.send_form(api_key=get_rogerthat_api_key(),
                         parent_message_key=None,
                         member=member_user.email(),
