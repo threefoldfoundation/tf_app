@@ -6,9 +6,9 @@
   var codeElem = $('#invitation_code');
   rogerthat.callbacks.ready(function () {
     console.log('rogerthat is ready');
-    var code = rogerthat.user.data.referral_code;
+    var code = rogerthat.user.data.invitation_code;
     var userName = rogerthat.user.data.name || rogerthat.user.name;
-    var appId = rogerthat.user.app_id;
+    var appId = rogerthat.system.appId;
     var message = 'Hi,\n\n' +
       'I\'d like to invite you the ThreeFold community.' +
       ' You can download the Android or iOS app at https://rogerth.at/install?a=' + appId +
