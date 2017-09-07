@@ -21,10 +21,11 @@ import json
 import logging
 from types import NoneType
 
-from google.appengine.api import users
-from google.appengine.ext import deferred, ndb
+from requests.exceptions import HTTPError
 
 from framework.utils import now
+from google.appengine.api import users
+from google.appengine.ext import deferred, ndb
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -53,7 +54,7 @@ from plugins.tff_backend.to.investor import InvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-from requests.exceptions import HTTPError
+
 
 FULL_CURRENCY_NAMES = {
     'USD_cur': 'dollar',
