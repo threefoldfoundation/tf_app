@@ -2,7 +2,7 @@ from google.appengine.ext import ndb
 
 from framework.models.common import NdbModel
 from framework.utils import now
-from plugins.tff_backend.plugin_consts import NAMESPACE, FULL_CURRENCY_NAMES, CURRENCY_RATES
+from plugins.tff_backend.plugin_consts import NAMESPACE, FULL_CURRENCY_NAMES
 
 
 class InvestmentAgreement(NdbModel):
@@ -15,7 +15,7 @@ class InvestmentAgreement(NdbModel):
 
     app_user = ndb.UserProperty()
     referrer = ndb.UserProperty(indexed=False)
-    amount = ndb.ComputedProperty(lambda self: int(self.token_count * CURRENCY_RATES[self.currency]), indexed=False)
+    amount = ndb.IntegerProperty(indexed=False)
     token_count = ndb.IntegerProperty(indexed=False)
     currency = ndb.StringProperty(indexed=False, choices=FULL_CURRENCY_NAMES.keys())
 

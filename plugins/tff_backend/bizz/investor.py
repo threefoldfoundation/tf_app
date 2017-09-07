@@ -48,7 +48,8 @@ from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.consts.payment import TOKEN_TYPE_B
 from plugins.tff_backend.models.investor import InvestmentAgreement
-from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID, FULL_CURRENCY_NAMES
+from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID, FULL_CURRENCY_NAMES, \
+    CURRENCY_RATES
 from plugins.tff_backend.to.investor import InvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step
@@ -108,6 +109,7 @@ def _invest(agreement_key, email, app_id, steps, retry_count):
                                         creation_time=now(),
                                         app_user=app_user,
                                         token_count=token_count,
+                                        amount=int(token_count * CURRENCY_RATES[currency_short]),
                                         currency=currency_short,
                                         referrer=create_app_user_by_email(referrer, app_id),
                                         status=InvestmentAgreement.STATUS_CREATED)
