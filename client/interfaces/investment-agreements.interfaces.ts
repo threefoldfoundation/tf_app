@@ -20,7 +20,6 @@ export const INVESTMENT_AGREEMENT_STATUSES = {
 export interface InvestmentAgreement {
   id: number;
   app_user: string;
-  referrer: string;
   amount: number;
   token_count: number;
   currency: string;

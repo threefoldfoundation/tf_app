@@ -17,13 +17,12 @@
 
 from google.appengine.ext import ndb
 
-from enum import Enum
 from framework.models.common import NdbModel
 from framework.utils import chunks, now
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
-class NodeOrderStatus(Enum):
+class NodeOrderStatus(object):
     CANCELED = -1
     CREATED = 0
     SIGNED = 1
