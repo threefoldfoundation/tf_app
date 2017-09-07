@@ -19,6 +19,7 @@ from framework.models.common import NdbModel
 from google.appengine.ext import ndb
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
+
 class Profile(NdbModel):
     app_user = ndb.UserProperty()
     referrer = ndb.UserProperty()
@@ -41,3 +42,7 @@ class ProfilePointer(NdbModel):
     def create_key(cls, username):
         from plugins.tff_backend.bizz.user import user_code
         return ndb.Key(cls, user_code(username), namespace=NAMESPACE)
+    
+    @classmethod
+    def get_by_user_code(cls, user_code):
+        return ndb.Key(cls, user_code, namespace=NAMESPACE).get()
