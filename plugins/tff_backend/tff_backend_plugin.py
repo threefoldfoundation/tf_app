@@ -60,7 +60,7 @@ class TffBackendPlugin(BrandingPlugin):
             yield Handler(url='/admin/cron/tff_backend/payment/sync', handler=PaymentSyncHandler)
 
     def get_client_routes(self):
-        return ['/orders<route:.*>', 'investment-agreements<route:.*>', 'global-stats<route:.*>']
+        return ['/orders<route:.*>', '/investment-agreements<route:.*>', '/global-stats<route:.*>']
 
     def get_modules(self):
         perms = get_permissions_from_scopes(get_current_session().scopes)
