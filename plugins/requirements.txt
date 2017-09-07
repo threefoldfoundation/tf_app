@@ -5,3 +5,4 @@ reportlab==3.1.44
 html5lib==0.999
 xhtml2pdf==0.0.6
 poster==0.8.1
+ERPpeek==1.6.3

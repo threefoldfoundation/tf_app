@@ -15,15 +15,17 @@
 #
 # @@license_version:1.3@@
 
+import hashlib
 import httplib
 import json
 import logging
 
-from google.appengine.ext import deferred
-from google.appengine.ext.deferred.deferred import PermanentTaskFailure
+from requests.exceptions import HTTPError
 
 from framework.bizz.session import create_session
 from framework.plugin_loader import get_config
+from google.appengine.ext import deferred, ndb
+from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
@@ -39,9 +41,10 @@ from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keyst
 from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.models.hoster import PublicKeyMapping
+from plugins.tff_backend.models.user import ProfilePointer, Profile
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
-from requests.exceptions import HTTPError
+from plugins.tff_backend.utils.app import create_app_user_by_email
 
 
 @returns()
@@ -84,16 +87,58 @@ def _invite_user(username):
             raise e
 
 
+@returns(unicode)
+@arguments(username=unicode)
+def user_code(username):
+    digester = hashlib.sha256()
+    digester.update(str(username))
+    key = digester.hexdigest()
+    return unicode(key[:6])
+
+
+@returns()
+@arguments(username=unicode, user_detail=UserDetailsTO)
+def store_info_in_userdata(username, user_detail):
+    deferred.defer(store_invitation_code_in_userdata, username, user_detail)
+    deferred.defer(store_iyo_info_in_userdata, username, user_detail)
+    
+
+@returns()
+@arguments(username=unicode, user_detail=UserDetailsTO)
+def store_invitation_code_in_userdata(username, user_detail):
+    def trans():
+        profile_key = Profile.create_key(username)
+        profile = profile_key.get()
+        if not profile:
+            profile = Profile(key=profile_key, app_user=create_app_user_by_email(user_detail.email, user_detail.app_id))
+            profile.put()
+
+            pp = ProfilePointer(key=ProfilePointer.create_key(username), username=username)
+            pp.put()
+            return True
+        return False
+
+    if not ndb.transaction(trans, xg=True):
+        return
+
+    user_data = {
+        'invitation_code': user_code(username)
+    }
+
+    api_key = get_rogerthat_api_key()
+    system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
+
+
 @returns()
 @arguments(username=unicode, user_detail=UserDetailsTO)
 def store_iyo_info_in_userdata(username, user_detail):
     logging.info('Getting the user\'s info from IYO')
     iyo_user = get_user(username)
-
+    
     api_key = get_rogerthat_api_key()
     user_data_keys = ['name', 'email', 'phone', 'address']
     current_user_data = system.get_user_data(api_key, user_detail.email, user_detail.app_id, user_data_keys)
-
+    
     user_data = dict()
     if not current_user_data.get('name') and iyo_user.firstname and iyo_user.lastname:
         user_data['name'] = u'%s %s' % (iyo_user.firstname, iyo_user.lastname)

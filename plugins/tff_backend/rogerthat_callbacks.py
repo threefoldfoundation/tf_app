@@ -17,7 +17,7 @@
 import json
 import logging
 
-from framework.utils import try_or_defer
+from google.appengine.ext import deferred
 from mcfw.properties import object_factory
 from mcfw.rpc import parse_complex_value, serialize_complex_value
 from plugins.rogerthat_api.to import UserDetailsTO
@@ -34,9 +34,10 @@ from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed, node_arrived
 from plugins.tff_backend.bizz.investor import invest, investment_agreement_signed, investment_agreement_signed_by_admin
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_iyo_info_in_userdata, \
+from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_info_in_userdata, \
     is_user_in_roles
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
+
 
 TAG_MAPPING = {
     'order_node': order_node,
@@ -111,15 +112,15 @@ def friend_update(rt_settings, request_id, user_details, changed_properties, **k
         return
 
     user_detail = log_and_parse_user_details(user_details)
-    try_or_defer(store_public_key, user_detail)
+    deferred.defer(store_public_key, user_detail)
 
 
 def friend_invite_result(rt_settings, request_id, params, response):
     user_detail = log_and_parse_user_details(params['user_details'])[0]
     username = get_iyo_username(user_detail)
     if user_detail.public_keys:
-        try_or_defer(store_public_key, user_detail)
-    try_or_defer(store_iyo_info_in_userdata, username, user_detail)
+        deferred.defer(store_public_key, user_detail)
+    deferred.defer(store_info_in_userdata, username, user_detail)
 
 
 def friend_is_in_roles(rt_settings, request_id, service_identity, user_details, roles, **kwargs):
