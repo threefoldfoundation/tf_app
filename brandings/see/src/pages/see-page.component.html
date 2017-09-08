@@ -9,5 +9,8 @@
   </ion-navbar>
 </ion-header>
 <ion-content padding>
+  <ion-item justify-content-center *ngIf="loading">
+    <ion-spinner style="width: 36px; height: 36px;"></ion-spinner>
+  </ion-item>
   <see-document [document]="document" *ngFor="let document of documents$ | async"></see-document>
 </ion-content>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { AlertController, Platform } from 'ionic-angular';
 import { TranslateService } from '@ngx-translate/core';
@@ -13,15 +13,20 @@ import { ApiCallResult } from '../services/rogerthat.service';
 })
 export class SeePageComponent implements OnInit {
   documents$: Observable<SeeDocument[]>;
+  loading = true;
 
   constructor(private seeService: SeeService,
               private platform: Platform,
               private alertCtrl: AlertController,
-              private translate: TranslateService) {
+              private translate: TranslateService,
+              private cdRef: ChangeDetectorRef) {
   }
 
   ngOnInit() {
-    this.documents$ = this.seeService.list().catch((err: ApiCallResult) => {
+    this.documents$ = this.seeService.list().do(items => {
+      this.loading = false;
+      this.cdRef.detectChanges();
+    }).catch((err: ApiCallResult) => {
       this.alertCtrl.create({
         title: this.translate.instant('error'),
         message: err.error!
