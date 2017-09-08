@@ -92,8 +92,9 @@ def _invest(agreement_key, email, app_id, steps, retry_count):
     pdf_name = 'token_%s.pdf' % agreement_key.id()
 
     currency_short = currency.replace("_cur", "")
-    currency_full = FULL_CURRENCY_NAMES[currency_short]
-    amount = int(token_count * CURRENCY_RATES[currency_short])
+    decimals_after_comma = 8 if currency_short == 'BTC' else 2
+    currency_full = round(FULL_CURRENCY_NAMES[currency_short], decimals_after_comma)
+    amount = token_count * CURRENCY_RATES[currency_short]
 
     pdf_contents = create_token_agreement_pdf(name, billing_address, amount, currency_full, currency_short)
     ipfs_link = store_pdf(pdf_name, pdf_contents)
@@ -120,10 +121,11 @@ def _invest(agreement_key, email, app_id, steps, retry_count):
 
 
 def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, ipfs_link):
+    # type: (ndb.Key, users.User, unicode) -> None
     iyo_username = get_iyo_username(app_user)
     organization_id = get_iyo_organization_id()
 
-    doc_id = u'Internal Token Offering'
+    doc_id = u'Internal Token Offering %s' % agreement_key.id()
     doc_category = u'Investment Agreement'
     iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
                                      globalid=organization_id,
