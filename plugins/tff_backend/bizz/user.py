@@ -68,7 +68,7 @@ def user_registered(user_detail, data):
     create_session(username, scopes, jwt, secret=username)
 
     deferred.defer(invite_user_to_organization, username, Organization.DEFAULT_USER)
-    deferred.defer(add_user_to_role, username, Roles.DEFAULT)
+    deferred.defer(add_user_to_role, user_detail, Roles.DEFAULT)
 
 
 @returns(unicode)
