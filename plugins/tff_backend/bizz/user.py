@@ -19,7 +19,6 @@ import hashlib
 import json
 import logging
 
-
 from framework.bizz.session import create_session
 from framework.plugin_loader import get_config
 from google.appengine.ext import deferred, ndb
@@ -33,10 +32,11 @@ from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.authentication import Organization
+from plugins.tff_backend.bizz.authentication import Organization, Roles
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
 from plugins.tff_backend.bizz.iyo.user import get_user, invite_user_to_organization
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
+from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.models.user import ProfilePointer, TffProfile
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
@@ -68,6 +68,7 @@ def user_registered(user_detail, data):
     create_session(username, scopes, jwt, secret=username)
 
     deferred.defer(invite_user_to_organization, username, Organization.DEFAULT_USER)
+    deferred.defer(add_user_to_role, username, Roles.DEFAULT)
 
 
 @returns(unicode)
@@ -95,12 +96,13 @@ def store_invitation_code_in_userdata(username, user_detail):
         if not profile:
             profile = TffProfile(key=profile_key,
                                  app_user=create_app_user_by_email(user_detail.email, user_detail.app_id))
-            
+
             pp_key = ProfilePointer.create_key(username)
             pp = pp_key.get()
             if pp:
                 logging.error("Failed to save invitation code of user '%s', we have a duplicate", user_detail.email)
-                deferred.defer(store_invitation_code_in_userdata, username, user_detail, _countdown=10*60, _transactional=True)
+                deferred.defer(store_invitation_code_in_userdata, username,
+                               user_detail, _countdown=10 * 60, _transactional=True)
                 return False
 
             profile.put()

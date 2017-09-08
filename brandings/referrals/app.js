@@ -36,7 +36,7 @@ var onReceivedApiResult = function(method, result, error, tag) {
 
 var sendInvitationCode = function() {
     $.mobile.loading( 'show', {
-        text: "Validating you invitation code",
+        text: "Validating invitation code",
         textVisible: true,
         theme: 'a',
         html: ""

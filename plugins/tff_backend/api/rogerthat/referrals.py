@@ -48,7 +48,7 @@ def api_set_referral(params, user_detail):
         if not my_profile:
             raise ApiCallException(u'We were unable to find your profile')
 
-        if my_profile.referrer:
+        if my_profile.referrer_user:
             raise ApiCallException(u'You already set your referrer')
 
         referrer_profile = TffProfile.create_key(pp.username).get()
