@@ -120,10 +120,11 @@ def _invest(agreement_key, email, app_id, steps, retry_count):
 
 
 def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, ipfs_link):
+    # type: (ndb.Key, users.User, unicode) -> NoneType
     iyo_username = get_iyo_username(app_user)
     organization_id = get_iyo_organization_id()
 
-    doc_id = u'Internal Token Offering'
+    doc_id = u'Internal Token Offering %s' % agreement_key.id()
     doc_category = u'Investment Agreement'
     iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
                                      globalid=organization_id,
