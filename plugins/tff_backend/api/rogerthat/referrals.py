@@ -55,7 +55,8 @@ def api_set_referral(params, user_detail):
         if not referrer_profile:
             raise ApiCallException(u'We were unable to find your referrer\'s profile')
 
-        my_profile.referrer = referrer_profile.app_user
+        my_profile.referrer_user = referrer_profile.app_user
+        my_profile.referrer_username = pp.username
         my_profile.put()
 
         deferred.defer(delete_user_from_role, user_detail, Roles.DEFAULT, _transaction=True)
