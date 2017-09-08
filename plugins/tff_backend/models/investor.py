@@ -14,7 +14,7 @@ class InvestmentAgreement(NdbModel):
     STATUS_PAID = 2
 
     app_user = ndb.UserProperty()
-    amount = ndb.IntegerProperty(indexed=False)
+    amount = ndb.FloatProperty(indexed=False)
     token_count = ndb.IntegerProperty(indexed=False)
     currency = ndb.StringProperty(indexed=False, choices=FULL_CURRENCY_NAMES.keys())
 
