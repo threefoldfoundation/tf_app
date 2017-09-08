@@ -26,7 +26,6 @@ class HosterSteps(object):
     FLOW_SIGN = 'FLOW_SIGN'
     PAY = 'PAY'
     NODE_SENT = 'NODE_SENT'
-    NODE_DELIVERY_ACCEPTED = 'NODE_DELIVERY_ACCEPTED'
     NODE_DELIVERY_CONFIRMED = 'NODE_DELIVERY_CONFIRMED'
     NODE_POWERED = 'NODE_POWERED'
 
@@ -38,7 +37,6 @@ class HosterSteps(object):
         FLOW_ADDRESS: 'Share shipping address, telephone number, name with shipping company',
         PAY: 'Make payment',
         NODE_SENT: 'Receive confirmation of sending',
-        NODE_DELIVERY_ACCEPTED: 'Accept node from delivery service',
         NODE_DELIVERY_CONFIRMED: 'Confirm delivery of node',
         NODE_POWERED: 'Hook up node to Internet and power',
     }
@@ -52,7 +50,6 @@ class HosterSteps(object):
                 cls.FLOW_SIGN,
                 cls.PAY,
                 cls.NODE_SENT,
-                cls.NODE_DELIVERY_ACCEPTED,
                 cls.NODE_DELIVERY_CONFIRMED,
                 cls.NODE_POWERED]
 
