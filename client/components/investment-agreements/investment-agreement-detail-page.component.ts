@@ -44,8 +44,9 @@ export class InvestmentAgreementDetailPageComponent implements OnInit {
     this.investmentAgreement$ = this.store.let(getInvestmentAgreement);
     this.status$ = this.store.let(getInvestmentAgreementStatus);
     this.updateStatus$ = this.store.let(updateInvestmentAgreementStatus);
+    const allowedPermissions = [ TffPermissions.PAYMENT_ADMIN, TffPermissions.ADMINS ];
     this.canMarkAsPaid$ = this.store.let(getIdentity).filter(i => i !== null)
-      .map((identity: Identity) => identity.permissions.includes(TffPermissions.PAYMENT_ADMIN));
+      .map((identity: Identity) => allowedPermissions.some(permission => identity.permissions.includes(permission)));
   }
 
   onUpdate(agreement: InvestmentAgreement) {

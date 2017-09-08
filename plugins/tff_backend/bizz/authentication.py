@@ -89,8 +89,8 @@ class Scope(object):
 
 class Scopes(object):
     ADMIN = [Scope.ADMIN, Scope.ROOT_ADMIN]
-    PAYMENT_ADMIN = [Scope.PAYMENT_ADMIN]
-    DEFAULT_USER = [Scope.DEFAULT_USER]
+    PAYMENT_ADMIN = [Scope.ROOT_ADMIN, Scope.PAYMENT_ADMIN]
+    DEFAULT_USER = ADMIN + [Scope.DEFAULT_USER]
     HOSTER = DEFAULT_USER + [Scope.HOSTER]
     INVITED = DEFAULT_USER + [Scope.INVITED]
     INVESTOR = DEFAULT_USER + [Scope.INVESTOR]
