@@ -22,8 +22,8 @@ class HosterSteps(object):
     DOWNLOAD = 'DOWNLOAD'
     REGISTER_IYO = 'REGISTER_IYO'
     FLOW_INIT = 'FLOW_INIT'
-    FLOW_SIGN = 'FLOW_SIGN'
     FLOW_ADDRESS = 'FLOW_ADDRESS'
+    FLOW_SIGN = 'FLOW_SIGN'
     PAY = 'PAY'
     NODE_SENT = 'NODE_SENT'
     NODE_DELIVERY_ACCEPTED = 'NODE_DELIVERY_ACCEPTED'
@@ -36,11 +36,11 @@ class HosterSteps(object):
         FLOW_INIT: 'Initiate “become a hoster process” in the TF app',
         FLOW_SIGN: 'Sign the hoster agreement',
         FLOW_ADDRESS: 'Share shipping address, telephone number, name with shipping company',
-        PAY: 'Pay for your tokens',
+        PAY: 'Make payment',
         NODE_SENT: 'Receive confirmation of sending',
         NODE_DELIVERY_ACCEPTED: 'Accept node from delivery service',
         NODE_DELIVERY_CONFIRMED: 'Confirm delivery of node',
-        NODE_POWERED: 'Hook up node to internet and power',
+        NODE_POWERED: 'Hook up node to Internet and power',
     }
 
     @classmethod
@@ -48,8 +48,8 @@ class HosterSteps(object):
         return [cls.DOWNLOAD,
                 cls.REGISTER_IYO,
                 cls.FLOW_INIT,
-                cls.FLOW_SIGN,
                 cls.FLOW_ADDRESS,
+                cls.FLOW_SIGN,
                 cls.PAY,
                 cls.NODE_SENT,
                 cls.NODE_DELIVERY_ACCEPTED,
