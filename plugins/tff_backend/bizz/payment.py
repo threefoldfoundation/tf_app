@@ -313,22 +313,22 @@ def get_spendable_amount_of_transaction(transaction):
 
 
 @returns()
-@arguments(app_user=users.User, token_type=unicode, amount=(int, long), memo=unicode)
-def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None):
+@arguments(app_user=users.User, token_type=unicode, token_count=(int, long), memo=unicode)
+def transfer_genesis_coins_to_user(app_user, token_type, token_count, memo=None):
     if TOKEN_TYPE_A == token_type:
         token = TOKEN_TFF
         unlock_timestamps = [0]
-        unlock_amounts = [amount]
+        unlock_amounts = [token_count]
     elif TOKEN_TYPE_B == token_type:
         token = TOKEN_TFF
         d = datetime.now() + relativedelta(months=6)
         unlock_timestamps = [get_epoch_from_datetime(d)]
-        unlock_amounts = [amount]
+        unlock_amounts = [token_count]
     elif TOKEN_TYPE_C == token_type:
         token = TOKEN_TFF
         unlock_timestamps = []
         unlock_amounts = []
-        a = amount / 48
+        a = token_count / 48
         for i in xrange(0, 39):
             d = datetime.now() + relativedelta(months=48 - i)
             unlock_timestamps = [get_epoch_from_datetime(d)] + unlock_timestamps
@@ -336,12 +336,12 @@ def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None):
 
         d = datetime.now() + relativedelta(months=9)
         unlock_timestamps = [get_epoch_from_datetime(d)] + unlock_timestamps
-        unlock_amounts = [amount - sum(unlock_amounts)] + unlock_amounts
+        unlock_amounts = [token_count - sum(unlock_amounts)] + unlock_amounts
 
     elif TOKEN_TYPE_D == token_type:
         token = TOKEN_TFF_CONTRIBUTOR
         unlock_timestamps = [0]
-        unlock_amounts = [amount]
+        unlock_amounts = [token_count]
     else:
         raise Exception(u"Unknown token type")
 
@@ -366,7 +366,7 @@ def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None):
                                      unlock_amounts=unlock_amounts,
                                      token=token,
                                      token_type=token_type,
-                                     amount=amount,
+                                     amount=token_count,
                                      memo=memo,
                                      app_users=[app_user],
                                      from_user=None,
