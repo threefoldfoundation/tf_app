@@ -10,7 +10,7 @@
     var userName = rogerthat.user.data.name || rogerthat.user.name;
     var appId = rogerthat.system.appId;
     var message = 'Hi,\n\n' +
-      'I\'d like to invite you the ThreeFold community.' +
+      'I\'d like to invite you to join the ThreeFold community.' +
       ' You can download the Android or iOS app at https://rogerth.at/install?a=' + appId +
       '\n\n' +
       'To become a registered user in the app, you can use my invitation code ' + code + '.' +
