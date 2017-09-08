@@ -83,6 +83,6 @@ class HosterSteps(object):
 
         return {
             'id': 'hoster',
-            'name': 'Become an hoster',
+            'name': 'Become a hoster',
             'items': list(reversed(items))
         }
