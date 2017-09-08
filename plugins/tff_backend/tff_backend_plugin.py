@@ -41,7 +41,7 @@ class TffBackendPlugin(BrandingPlugin):
         rogerthat_api_plugin.subscribe('messaging.form_update', rogerthat_callbacks.form_update)
         rogerthat_api_plugin.subscribe('friend.is_in_roles', rogerthat_callbacks.friend_is_in_roles)
         rogerthat_api_plugin.subscribe('friend.update', rogerthat_callbacks.friend_update)
-        rogerthat_api_plugin.subscribe('friend.invite', rogerthat_callbacks.friend_invited)
+        rogerthat_api_plugin.subscribe('friend.invited', rogerthat_callbacks.friend_invited)
         rogerthat_api_plugin.subscribe('friend.register', rogerthat_callbacks.friend_register, trigger_only=True)
         rogerthat_api_plugin.subscribe('friend.invite_result', rogerthat_callbacks.friend_invite_result,
                                        trigger_only=True)
