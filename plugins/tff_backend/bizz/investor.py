@@ -93,8 +93,8 @@ def _invest(agreement_key, email, app_id, steps, retry_count):
 
     currency_short = currency.replace("_cur", "")
     decimals_after_comma = 8 if currency_short == 'BTC' else 2
-    currency_full = round(FULL_CURRENCY_NAMES[currency_short], decimals_after_comma)
-    amount = token_count * CURRENCY_RATES[currency_short]
+    currency_full = FULL_CURRENCY_NAMES[currency_short]
+    amount = round(token_count * CURRENCY_RATES[currency_short], decimals_after_comma)
 
     pdf_contents = create_token_agreement_pdf(name, billing_address, amount, currency_full, currency_short)
     ipfs_link = store_pdf(pdf_name, pdf_contents)
