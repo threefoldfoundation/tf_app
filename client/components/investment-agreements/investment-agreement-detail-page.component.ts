@@ -14,6 +14,8 @@ import {
 import { getIdentity } from '../../../../framework/client/identity/identity.state';
 import { Identity } from '../../../../framework/client/identity/interfaces/identity.interfaces';
 import { TffPermissions } from '../../interfaces/permissions.interfaces';
+import { DialogService } from '../../../../framework/client/dialog/services/dialog.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   moduleId: module.id,
@@ -34,7 +36,9 @@ export class InvestmentAgreementDetailPageComponent implements OnInit {
   canMarkAsPaid$: Observable<boolean>;
 
   constructor(private store: Store<IAppState>,
-              private route: ActivatedRoute) {
+              private route: ActivatedRoute,
+              private translate: TranslateService,
+              private dialogService: DialogService) {
   }
 
   ngOnInit() {
@@ -51,5 +55,9 @@ export class InvestmentAgreementDetailPageComponent implements OnInit {
 
   onUpdate(agreement: InvestmentAgreement) {
     this.store.dispatch(new UpdateInvestmentAgreementAction(agreement));
+    this.dialogService.openAlert({
+      message: this.translate.instant('tff.mark_as_paid_info'),
+      ok: this.translate.instant('tff.close')
+    });
   }
 }
