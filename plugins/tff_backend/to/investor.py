@@ -18,7 +18,7 @@ from types import NoneType
 
 from google.appengine.ext import ndb
 
-from mcfw.properties import long_property, unicode_property, typed_property
+from mcfw.properties import long_property, unicode_property, typed_property, float_property
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.to import TO, PaginatedResultTO
 
@@ -27,7 +27,7 @@ class InvestmentAgreementTO(TO):
     id = long_property('id')
     app_user = unicode_property('app_user')
     referrer = unicode_property('referrer')
-    amount = long_property('amount')
+    amount = float_property('amount')
     token_count = long_property('token_count')
     currency = unicode_property('currency')
     iyo_see_id = unicode_property('iyo_see_id')
