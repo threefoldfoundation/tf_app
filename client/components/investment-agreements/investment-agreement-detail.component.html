@@ -17,6 +17,6 @@
     <p>{{ 'tff.created' | translate }}: {{ investmentAgreement.creation_time | timestamp }}</p>
     <p *ngIf="investmentAgreement.status === statuses.CANCELED">
       {{ 'tff.cancel_time' | translate }}: {{ investmentAgreement.cancel_time | timestamp }}</p>
-    <button *ngIf="canMarkAsPaid" md-button (click)="markAsPaid()">{{ 'tff.mark_as_sent' | translate }}</button>
+    <button *ngIf="canMarkAsPaid" md-button (click)="markAsPaid()">{{ 'tff.mark_as_paid' | translate }}</button>
   </div>
 </div>
