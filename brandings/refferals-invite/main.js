@@ -17,7 +17,12 @@
       '\n\n' +
       'Welcome on board!\n' + userName;
     var subject = 'Invitation to Threefold community';
-    var smsHref = 'sms:?body=' + encodeURIComponent(message);
+    var smsHref;
+    if (rogerthat.system.os === 'ios') {
+      smsHref = 'sms:&body=' + encodeURIComponent(message);
+    } else {
+      smsHref = 'sms:?body=' + encodeURIComponent(message);
+    }
     var emailHref = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(message);
     smsElem.attr('href', smsHref);
     emailElem.attr('href', emailHref);
