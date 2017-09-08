@@ -59,10 +59,10 @@ def api_set_referral(params, user_detail):
         my_profile.referrer_username = pp.username
         my_profile.put()
 
-        deferred.defer(delete_user_from_role, user_detail, Roles.DEFAULT, _transaction=True)
-        deferred.defer(add_user_to_role, user_detail, Roles.INVITED, _transaction=True)
-        deferred.defer(remove_user_from_organization, username, Organization.DEFAULT_USER, _transaction=True)
-        deferred.defer(invite_user_to_organization, username, Organization.INVITED, _transaction=True)
+        deferred.defer(delete_user_from_role, user_detail, Roles.DEFAULT, _transactional=True)
+        deferred.defer(add_user_to_role, user_detail, Roles.INVITED, _transactional=True)
+        deferred.defer(remove_user_from_organization, username, Organization.DEFAULT_USER, _transactional=True)
+        deferred.defer(invite_user_to_organization, username, Organization.INVITED, _transactional=True)
 
     ndb.transaction(trans, xg=True)
     return u"You successfully joined the ThreeFold community. Welcome aboard!"
