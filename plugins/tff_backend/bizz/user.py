@@ -95,10 +95,19 @@ def store_invitation_code_in_userdata(username, user_detail):
         if not profile:
             profile = TffProfile(key=profile_key,
                                  app_user=create_app_user_by_email(user_detail.email, user_detail.app_id))
+            
+            pp_key = ProfilePointer.create_key(username)
+            pp = pp_key.get()
+            if pp:
+                logging.error("Failed to save invitation code of user '%s', we have a duplicate", user_detail.email)
+                deferred.defer(store_invitation_code_in_userdata, username, user_detail, _countdown=10*60, _transactional=True)
+                return False
+
             profile.put()
 
-            pp = ProfilePointer(key=ProfilePointer.create_key(username), username=username)
+            pp = ProfilePointer(key=pp_key, username=username)
             pp.put()
+
             return True
         return False
 
