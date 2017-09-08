@@ -27,11 +27,13 @@ FULL_CURRENCY_NAMES = {
     'YEN': 'yen',
     'UAE': 'dirham',
     'GBP': 'pound',
+    'BTC': 'bitcoin',
 }
 CURRENCY_RATES = {
     'USD': 5.0,
     'EUR': 4.2,
     'YEN': 543.6,
     'UAE': 18.6,
-    'GBP': 3.83
+    'GBP': 3.83,
+    'BTC': .0011,
 }
