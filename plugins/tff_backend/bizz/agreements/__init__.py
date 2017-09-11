@@ -54,19 +54,22 @@ def create_hosting_agreement_pdf(full_name, address):
 
 
 def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short):
+    if currency_short == 'BTC':
+        amount_formatted = '{:.8f}'.format(amount)
+        html_file = 'token_btc.html'
+    else:
+        amount_formatted = '{:.2f}'.format(amount)
+        html_file = 'token.html'
     template_variables = {
         'logo_path': 'assets/logo.jpg',
         'effective_date': _get_effective_date(),
         'full_name': full_name,
         'address': address,
-        'amount': amount,
+        'amount': amount_formatted,
         'currency_full': currency_full,
         'currency_short': currency_short
     }
 
-    html_file = 'token.html'
-    if currency_short == 'BTC':
-        html_file = 'token_btc.html'
     source_html = JINJA_ENVIRONMENT.get_template(html_file).render(template_variables)
 
     output_stream = StringIO()
