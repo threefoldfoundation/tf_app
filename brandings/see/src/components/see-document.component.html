@@ -5,7 +5,6 @@
   <ion-card-content>
     <h3>{{ document.category }}</h3>
     <h4>{{ document.creation_date | date : dateFormat }}</h4>
-    <p>{{ 'version' | translate }}: {{ document.version }}</p>
     <p *ngIf="document.start_date">{{ 'start' | translate }}: {{ document.start_date | date : dateFormat }}</p>
     <p *ngIf="document.end_date">{{ 'end' | translate }}: {{ document.end_date | date : dateFormat }}</p>
     <p>
