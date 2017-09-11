@@ -15,20 +15,20 @@
 #
 # @@license_version:1.3@@
 
+from datetime import datetime
 import hashlib
 import hmac
 import json
 import logging
 import time
 import uuid
-from datetime import datetime
-
-from google.appengine.api import urlfetch, users
-from google.appengine.ext import deferred, ndb
 
 from dateutil.relativedelta import relativedelta
+
 from framework.plugin_loader import get_config
 from framework.utils import now, get_epoch_from_datetime, urlencode
+from google.appengine.api import urlfetch, users
+from google.appengine.ext import deferred, ndb
 from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.exceptions import BusinessException
@@ -36,7 +36,8 @@ from plugins.tff_backend.consts.payment import TOKEN_TFF, TOKEN_TYPE_A, TOKEN_TY
     TOKEN_TYPE_D, TOKEN_TFF_CONTRIBUTOR
 from plugins.tff_backend.models.payment import ThreeFoldWallet, ThreeFoldTransaction, \
     ThreeFoldPendingTransaction, ThreeFoldBlockHeight
-from plugins.tff_backend.plugin_consts import NAMESPACE
+from plugins.tff_backend.plugin_consts import NAMESPACE, THREEFOLD_APP_ID
+from plugins.tff_backend.utils.app import get_app_id_from_app_user
 
 
 @returns(unicode)
@@ -60,6 +61,9 @@ def get_token_from_asset_id(asset_id):
 @returns([unicode])
 @arguments(app_user=users.User)
 def get_asset_ids(app_user):
+    app_id = get_app_id_from_app_user(app_user)
+    if app_id != THREEFOLD_APP_ID:
+        return []
     tokens = [TOKEN_TFF]
     if app_user:
         w_key = ThreeFoldWallet.create_key(app_user)
