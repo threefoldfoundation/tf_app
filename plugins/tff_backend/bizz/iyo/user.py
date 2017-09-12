@@ -15,16 +15,15 @@
 #
 # @@license_version:1.3@@
 
-import logging
-
-from requests.exceptions import HTTPError
 import httplib
+import logging
 
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client
 from plugins.its_you_online_auth.libs.itsyouonline.AddOrganizationMemberReqBody import AddOrganizationMemberReqBody
 from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username
 from plugins.tff_backend.to.iyo.user import IYOUser
+from requests.exceptions import HTTPError
 
 
 def get_user(username):
@@ -45,7 +44,7 @@ def invite_user_to_organization(username, organization_id):
     except HTTPError as e:
         if e.response.status_code != httplib.CONFLICT:
             raise e
-        
+
 
 @returns()
 @arguments(username=unicode, organization_id=unicode)
