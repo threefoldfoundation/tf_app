@@ -41,8 +41,13 @@ class OdooConfiguration(object):
     password = unicode_property('4')
 
 
+class OrchestatorConfiguration(object):
+    jwt = unicode_property('1')
+    
+
 class TffConfiguration(object):
     rogerthat = typed_property('1', RogerthatConfiguration, False)
     ipfs = typed_property('2', IPFSConfiguration, False)
     ledger = typed_property('3', LedgerConfiguration, False)
     odoo = typed_property('4', OdooConfiguration, False)
+    orchestator = typed_property('5', OrchestatorConfiguration, False)

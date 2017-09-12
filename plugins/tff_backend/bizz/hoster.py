@@ -39,6 +39,7 @@ from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
+from plugins.tff_backend.bizz.nodes import get_node_status
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
 from plugins.tff_backend.bizz.todo.hoster import HosterSteps
@@ -363,6 +364,7 @@ def put_node_order(order_id, order):
             order_model.send_time = now()
             human_user, app_id = get_app_user_tuple(order_model.app_user)
             deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_SENT)
+            deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
 
     order_model.put()
     return order_model
@@ -398,3 +400,14 @@ def _create_error_message(callback_result):
     callback_result.type = TYPE_MESSAGE
     callback_result.value = message
     return callback_result
+
+
+def check_if_node_comes_online(order_id):
+    order_model = NodeOrder.get_by_id(order_id)
+    status = get_node_status(u"node_id") # todo ruben get node_id from order
+    if status and status == u"running":
+        human_user, app_id = get_app_user_tuple(order_model.app_user)
+        deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED)
+    else:
+        deferred.defer(check_if_node_comes_online, order_id, _countdown=1 * 60 * 60)
+    
