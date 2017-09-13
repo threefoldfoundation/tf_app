@@ -287,7 +287,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.HOSTER)
         deferred.defer(update_hoster_progress, user_detail.email, user_detail.app_id, HosterSteps.FLOW_SIGN)
-        deferred.defer(create_odoo_quotation, tag_dict['order_id'], _transactional=True)
+        deferred.defer(create_odoo_quotation, tag_dict['order_id'])
 
         logging.debug('Sending confirmation message')
         message = MessageCallbackResultTypeTO()
