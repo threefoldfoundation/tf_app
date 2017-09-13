@@ -83,8 +83,8 @@ def user_code(username):
 @returns()
 @arguments(username=unicode, user_detail=UserDetailsTO)
 def store_info_in_userdata(username, user_detail):
-    deferred.defer(store_invitation_code_in_userdata, username, user_detail, _transactional=True)
-    deferred.defer(store_iyo_info_in_userdata, username, user_detail, _transactional=True)
+    deferred.defer(store_invitation_code_in_userdata, username, user_detail)
+    deferred.defer(store_iyo_info_in_userdata, username, user_detail)
 
 
 @returns()
