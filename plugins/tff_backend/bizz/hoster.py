@@ -19,10 +19,9 @@ import base64
 import json
 import logging
 
+from framework.utils import now, try_or_defer
 from google.appengine.api import users
 from google.appengine.ext import ndb, deferred
-
-from framework.utils import now, try_or_defer
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -41,6 +40,7 @@ from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.nodes import get_node_status
+from plugins.tff_backend.bizz.odoo import create_odoo_quotation, get_odoo_serial_number
 from plugins.tff_backend.bizz.rogerthat import put_user_data
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
@@ -96,16 +96,26 @@ def _order_node(order_key, email, app_id, steps, retry_count):
             'billing_address': billing_address,
         }
 
+    billing_info = ContactInfo(name=name,
+                               email=email,
+                               phone=phone,
+                               address=billing_address)
     if same_shipping_info:
         shipping_name = name
         shipping_email = email
         shipping_phone = phone
         shipping_address = billing_address
+        shipping_info = None
     else:
         shipping_name = get_step_value(steps, 'message_shipping_name')
         shipping_email = get_step_value(steps, 'message_shipping_email')
         shipping_phone = get_step_value(steps, 'message_shipping_phone')
         shipping_address = get_step_value(steps, 'message_shipping_address')
+        shipping_info = ContactInfo(name=shipping_name,
+                                    email=shipping_email,
+                                    phone=shipping_phone,
+                                    address=shipping_address)
+        
     updated_user_data.update({
         'shipping_name': shipping_name,
         'shipping_email': shipping_email,
@@ -128,9 +138,8 @@ def _order_node(order_key, email, app_id, steps, retry_count):
         order = NodeOrder(key=order_key,
                           app_user=app_user,
                           tos_iyo_see_id=None,
-                          billing_info=ContactInfo(name=name, email=email, phone=phone, address=billing_address),
-                          shipping_info=ContactInfo(name=shipping_name, email=shipping_email, phone=shipping_phone,
-                                                    address=shipping_address),
+                          billing_info=billing_info,
+                          shipping_info=shipping_info,
                           order_time=now(),
                           status=NodeOrderStatus.CREATED)
         order.put()
@@ -278,6 +287,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.HOSTER)
         deferred.defer(update_hoster_progress, user_detail.email, user_detail.app_id, HosterSteps.FLOW_SIGN)
+        deferred.defer(create_odoo_quotation, tag_dict['order_id'], _transactional=True)
 
         logging.debug('Sending confirmation message')
         message = MessageCallbackResultTypeTO()
@@ -427,10 +437,21 @@ def _create_error_message(callback_result):
 
 
 def check_if_node_comes_online(order_id):
-    order_model = get_node_order(order_id)
-    status = get_node_status(u"node_id")  # todo ruben get node_id from order
+    order = get_node_order(order_id)
+    if not order.odoo_sale_order_id:
+        logging.warn("check_if_node_comes_online failed odoo quotation was not found")
+        deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
+        return
+    
+    serial_number = get_odoo_serial_number(order.odoo_sale_order_id)
+    if not serial_number:
+        logging.warn("check_if_node_comes_online failed odoo serial_number was not found")
+        deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
+        return
+    
+    status = get_node_status(serial_number)
     if status and status == u"running":
-        human_user, app_id = get_app_user_tuple(order_model.app_user)
+        human_user, app_id = get_app_user_tuple(order.app_user)
         deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED)
     else:
         deferred.defer(check_if_node_comes_online, order_id, _countdown=1 * 60 * 60)

@@ -22,6 +22,8 @@ import erppeek
 
 from framework.plugin_loader import get_config
 from google.appengine.api import urlfetch
+from google.appengine.ext import ndb
+from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -64,39 +66,31 @@ class GAEXMLRPCTransport(object):
     
 
 
-def get_erp_client(cfg):
+def _get_erp_client(cfg):
     return erppeek.Client(cfg.odoo.url, cfg.odoo.database, cfg.odoo.username, cfg.odoo.password, transport=GAEXMLRPCTransport())
 
 
-def update_odoo_object(odoo_object, **values):
-    odoo_object.write(values)
-
-
-def save_customer(cfg, erp_client, customer):
-    partner = erp_client.model('res.partner')
+def _save_customer(cfg, erp_client, customer):
+    res_partner_model = erp_client.model('res.partner')
     
-    odoo_contact = {
+    contact = {
         'type': u'contact',
         'name': customer['billing']['name'],
         'email': customer['billing']['email'],
         'phone': customer['billing']['phone'],
         'street': customer['billing']['address']
     }
-    
-    if customer['billing']['id']:
-        odoo_partner_contact = partner.browse(customer['billing']['id'])
-        update_odoo_object(odoo_partner_contact, **odoo_contact)
-    else:
-        odoo_partner_contact = partner.create(odoo_contact)
+    partner_contact = res_partner_model.create(contact)
+    logging.debug("Created res.partner (contact) with id %s", partner_contact.id)
         
     if not customer['shipping']:
         return {
-            'billing_id': odoo_partner_contact.id,
+            'billing_id': partner_contact.id,
             'shipping_id': None
         }
     
-    odoo_delivery = {
-        'parent_id': odoo_partner_contact.id,
+    delivery = {
+        'parent_id': partner_contact.id,
         'type': u'delivery',
         'name': customer['shipping']['name'],
         'email': customer['shipping']['email'],
@@ -104,23 +98,20 @@ def save_customer(cfg, erp_client, customer):
         'street': customer['shipping']['address']
     }
     
-    if customer['shipping']['id']:
-        odoo_partner_delivery = partner.browse(customer['shipping']['id'])
-        update_odoo_object(odoo_partner_delivery, **odoo_delivery)
-        
-    else:
-        odoo_partner_delivery = partner.create(odoo_delivery)
+    partner_delivery = res_partner_model.create(delivery)
+    logging.debug("Created res.partner (delivery) with id %s", partner_delivery.id)
         
     return {
-        'billing_id': odoo_partner_contact.id,
-        'shipping_id': odoo_partner_delivery.id
+        'billing_id': partner_contact.id,
+        'shipping_id': partner_delivery.id
     }
 
 
-def save_quotation(cfg, erp_client, ids):
-    order = erp_client.model('sale.order')
+def _save_quotation(cfg, erp_client, ids):
+    sale_order_model = erp_client.model('sale.order')
+    sale_order_line_model = erp_client.model('sale.order.line')
     
-    odoo_order_data = {
+    order_data = {
         'partner_id': ids['billing_id'],
         'partner_shipping_id': ids['shipping_id'],
         'state': 'sent',
@@ -128,14 +119,11 @@ def save_quotation(cfg, erp_client, ids):
         'payment_term': cfg.odoo.payment_term
     }
     
-    odoo_order = order.browse(168)
-    update_odoo_object(odoo_order, **odoo_order_data)
-    #order.create(odoo_order)
+    order = sale_order_model.create(order_data)
+    logging.debug("Created sale.order with id %s", order.id)
     
-    
-    order_line = erp_client.model('sale.order.line')
-    odoo_order_line_data = {
-        'order_id': 168,
+    order_line_data = {
+        'order_id': order.id,
         'order_partner_id': ids['billing_id'],
         'product_uos_qty': 1,
         'product_uom': 1,
@@ -143,18 +131,55 @@ def save_quotation(cfg, erp_client, ids):
         'state': 'draft'
     }
     
-    odoo_order_line = order_line.browse(173)
-    update_odoo_object(odoo_order_line, **odoo_order_line_data)
-    #order_line.create(odoo_order_line)
+    sale_order_line = sale_order_line_model.create(order_line_data)
+    logging.debug("Created sale.order.line with id %s", sale_order_line.id)
     
+    return order.id
+       
     
-def get_serial_number(cfg, erp_client):
+def create_odoo_quotation(order_id):
+    cfg = get_config(NAMESPACE)
+    erp_client = _get_erp_client(cfg)
+    
+    def trans():
+        order = NodeOrder.get_by_id(order_id)
+        if not order:
+            return
+        
+        customer = {
+            'billing': {
+                'name': order.billing_info.name,
+                'email': order.billing_info.email,
+                'phone': order.billing_info.phone,
+                'address': order.billing_info.address
+            },
+            'shipping': None
+        }
+        if order.shipping_info:
+            customer['shipping'] = {
+                'name': order.shipping_info.name,
+                'email': order.shipping_info.email,
+                'phone': order.shipping_info.phone,
+                'address': order.shipping_info.address
+            }
+        
+        ids = _save_customer(cfg, erp_client, customer)
+        order.odoo_sale_order_id = _save_quotation(cfg, erp_client, ids)
+        order.put()
+        
+    ndb.transaction(trans)
+    
+
+def get_odoo_serial_number(order_id):
+    cfg = get_config(NAMESPACE)
+    erp_client = _get_erp_client(cfg)
+    
     sale_order_model = erp_client.model('sale.order')
     stock_picking_model = erp_client.model('stock.picking')
     stock_move_model = erp_client.model('stock.move')
     stock_production_lot_model = erp_client.model('stock.production.lot')
     
-    sale_order = sale_order_model.browse(168)
+    sale_order = sale_order_model.browse(order_id)
     for picking_id in sale_order.picking_ids.id:
         stock_picking = stock_picking_model.browse(picking_id)
         for move_line in stock_picking.move_lines.id:
@@ -164,37 +189,3 @@ def get_serial_number(cfg, erp_client):
                 if stock_production_lot.product_id.id == cfg.odoo.stock_id:
                     return stock_production_lot.name
     return None
-    
-
-def test():
-    cfg = get_config(NAMESPACE)
-    erp_client = get_erp_client(cfg)
-    
-    customer = {
-        'billing': {
-            'id': 120,
-            'name': u"Test name billing",
-            'email': u"test@example.com billing",
-            'phone': u"911",
-            'address': u"Billing address \n boejaaa"
-        },
-        'shipping': {
-            'id': 121,
-            'name': u"Test name shipping",
-            'email': u"test@example.com shipping",
-            'phone': u"112",
-            'address': u"Shipping address \n boejaaa"
-        }
-    }
-    
-    ids = save_customer(cfg, erp_client, customer)
-    save_quotation(cfg, erp_client, ids)
-    
-def test2():
-    cfg = get_config(NAMESPACE)
-    erp_client = get_erp_client(cfg)
-    
-    return get_serial_number(cfg, erp_client)
-    
-    
-    
