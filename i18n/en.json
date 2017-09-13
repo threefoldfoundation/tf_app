@@ -1,5 +1,5 @@
 {
-  "Threefold Foundation": "Threefold Foundation",
+  "ThreeFold Foundation": "ThreeFold Foundation",
   "tff": {
     "amount_in_dollar": "Amount in dollar",
     "arrival_time": "Arrival time",
@@ -38,6 +38,7 @@
     "send_time": "Send time",
     "sent": "Sent",
     "shipping_address": "Shipping address",
+    "shipping_information": "Shipping information",
     "sign_in_to_threefold": "Sign in to threefold",
     "signed": "Signed",
     "status": "Status",

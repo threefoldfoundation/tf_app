@@ -6,14 +6,18 @@ export enum NodeOrderStatuses {
   ARRIVED = 3
 }
 
-export interface NodeOrder {
-  id: number;
-  app_user: string;
+export interface ContactInfo {
   name: string;
   email: string;
   phone: string;
-  billing_address: string;
-  shipping_address: string;
+  address: string;
+}
+
+export interface NodeOrder {
+  id: number;
+  app_user: string;
+  billing_info: ContactInfo;
+  shipping_info: ContactInfo;
   status: NodeOrderStatuses;
   tos_iyo_see_id: string;
   signature_payload: string | null;
@@ -39,9 +43,9 @@ export interface GetNodeOrdersPayload {
 }
 
 export const ORDER_STATUSES = {
-  [NodeOrderStatuses.CANCELED]: 'tff.canceled',
-  [NodeOrderStatuses.CREATED]: 'tff.created',
-  [NodeOrderStatuses.SIGNED]: 'tff.signed',
-  [NodeOrderStatuses.SENT]: 'tff.sent',
-  [NodeOrderStatuses.ARRIVED]: 'tff.arrived',
+  [ NodeOrderStatuses.CANCELED ]: 'tff.canceled',
+  [ NodeOrderStatuses.CREATED ]: 'tff.created',
+  [ NodeOrderStatuses.SIGNED ]: 'tff.signed',
+  [ NodeOrderStatuses.SENT ]: 'tff.sent',
+  [ NodeOrderStatuses.ARRIVED ]: 'tff.arrived',
 };

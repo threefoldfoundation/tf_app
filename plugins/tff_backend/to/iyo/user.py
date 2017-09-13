@@ -14,35 +14,24 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+from framework.to import TO
 from mcfw.properties import unicode_property, typed_property
-from plugins.tff_backend.to import TO, convert_to_unicode
+from plugins.tff_backend.to import convert_to_unicode
 
 
 class PublicKey(TO):
     label = unicode_property('label')
     publickey = unicode_property('publickey')
 
-    def __init__(self, label=None, publickey=None):
-        self.label = label
-        self.publickey = publickey
-
 
 class EmailAddress(TO):
     label = unicode_property('label')
     emailaddress = unicode_property('emailaddress')
 
-    def __init__(self, label=None, emailaddress=None):
-        self.label = label
-        self.emailaddress = emailaddress
-
 
 class Phonenumber(TO):
     label = unicode_property('label')
     phonenumber = unicode_property('phonenumber')
-
-    def __init__(self, label=None, phonenumber=None):
-        self.label = label
-        self.phonenumber = phonenumber
 
 
 class Address(TO):
@@ -53,16 +42,6 @@ class Address(TO):
     street = unicode_property('street')
     nr = unicode_property('nr')
     other = unicode_property('other')
-
-    def __init__(self, label=None, country=None, city=None, postalcode=None,
-                 street=None, nr=None, other=None):
-        self.label = label
-        self.country = country
-        self.city = city
-        self.postalcode = postalcode
-        self.street = street
-        self.nr = nr
-        self.other = other
 
 
 class IYOUser(TO):
