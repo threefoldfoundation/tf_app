@@ -107,7 +107,7 @@ def _save_quotation(cfg, erp_client, billing_id, shipping_id):
     
     order_data = {
         'partner_id': billing_id,
-        'partner_shipping_id': shipping_id,
+        'partner_shipping_id': shipping_id or billing_id,
         'state': 'sent',
         'incoterm': cfg.odoo.incoterm,
         'payment_term': cfg.odoo.payment_term
