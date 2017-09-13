@@ -163,6 +163,7 @@ def get_serial_number(cfg, erp_client):
                 stock_production_lot = stock_production_lot_model.browse(lot_id)
                 if stock_production_lot.product_id.id == cfg.odoo.stock_id:
                     return stock_production_lot.name
+    return None
     
 
 def test():

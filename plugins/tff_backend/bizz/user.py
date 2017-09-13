@@ -38,7 +38,7 @@ from plugins.tff_backend.bizz.iyo.user import get_user, invite_user_to_organizat
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.models.hoster import PublicKeyMapping
-from plugins.tff_backend.models.user import ProfilePointer, TffProfile
+from plugins.tff_backend.models.user import ProfilePointer, TffProfile, TffProfileInfo
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
 from plugins.tff_backend.utils.app import create_app_user_by_email
@@ -83,35 +83,35 @@ def user_code(username):
 @returns()
 @arguments(username=unicode, user_detail=UserDetailsTO)
 def store_info_in_userdata(username, user_detail):
-    deferred.defer(store_invitation_code_in_userdata, username, user_detail)
-    deferred.defer(store_iyo_info_in_userdata, username, user_detail)
-
-
-@returns()
-@arguments(username=unicode, user_detail=UserDetailsTO)
-def store_invitation_code_in_userdata(username, user_detail):
     def trans():
         profile_key = TffProfile.create_key(username)
         profile = profile_key.get()
         if not profile:
             profile = TffProfile(key=profile_key,
                                  app_user=create_app_user_by_email(user_detail.email, user_detail.app_id))
-
-            pp_key = ProfilePointer.create_key(username)
-            pp = pp_key.get()
-            if pp:
-                logging.error("Failed to save invitation code of user '%s', we have a duplicate", user_detail.email)
-                deferred.defer(store_invitation_code_in_userdata, username,
-                               user_detail, _countdown=10 * 60, _transactional=True)
-                return False
-
             profile.put()
+            
+        deferred.defer(store_invitation_code_in_userdata, username, user_detail, _transactional=True)
+        deferred.defer(store_iyo_info_in_userdata, username, user_detail, _transactional=True)
+    
+    ndb.transaction(trans, xg=True)
 
+
+@returns()
+@arguments(username=unicode, user_detail=UserDetailsTO)
+def store_invitation_code_in_userdata(username, user_detail):
+    def trans():
+        pp_key = ProfilePointer.create_key(username)
+        pp = pp_key.get()
+        if pp and pp.username != username:
+            logging.error("Failed to save invitation code of user '%s', we have a duplicate", user_detail.email)
+            deferred.defer(store_invitation_code_in_userdata, username,
+                           user_detail, _countdown=10 * 60, _transactional=True)
+            return False
+        elif not pp:
             pp = ProfilePointer(key=pp_key, username=username)
             pp.put()
-
-            return True
-        return False
+        return True
 
     if not ndb.transaction(trans, xg=True):
         return
@@ -133,24 +133,36 @@ def store_iyo_info_in_userdata(username, user_detail):
     api_key = get_rogerthat_api_key()
     user_data_keys = ['name', 'email', 'phone', 'address']
     current_user_data = system.get_user_data(api_key, user_detail.email, user_detail.app_id, user_data_keys)
-
-    user_data = dict()
-    if not current_user_data.get('name') and iyo_user.firstname and iyo_user.lastname:
-        user_data['name'] = u'%s %s' % (iyo_user.firstname, iyo_user.lastname)
-
-    if not current_user_data.get('email') and iyo_user.validatedemailaddresses:
-        user_data['email'] = iyo_user.validatedemailaddresses[0].emailaddress
-
-    if not current_user_data.get('phone') and iyo_user.validatedphonenumbers:
-        user_data['phone'] = iyo_user.validatedphonenumbers[0].phonenumber
-
-    if not current_user_data.get('address') and iyo_user.addresses:
-        user_data['address'] = u'%s %s' % (iyo_user.addresses[0].street, iyo_user.addresses[0].nr)
-        user_data['address'] += u'\n%s %s' % (iyo_user.addresses[0].postalcode, iyo_user.addresses[0].city)
-        user_data['address'] += u'\n%s' % iyo_user.addresses[0].country
-        if iyo_user.addresses[0].other:
-            user_data['address'] += u'\n\n%s' % iyo_user.addresses[0].other
-
+    
+    def trans():
+        user_data = dict()
+        if not current_user_data.get('name') and iyo_user.firstname and iyo_user.lastname:
+            user_data['name'] = u'%s %s' % (iyo_user.firstname, iyo_user.lastname)
+    
+        if not current_user_data.get('email') and iyo_user.validatedemailaddresses:
+            user_data['email'] = iyo_user.validatedemailaddresses[0].emailaddress
+    
+        if not current_user_data.get('phone') and iyo_user.validatedphonenumbers:
+            user_data['phone'] = iyo_user.validatedphonenumbers[0].phonenumber
+    
+        if not current_user_data.get('address') and iyo_user.addresses:
+            user_data['address'] = u'%s %s' % (iyo_user.addresses[0].street, iyo_user.addresses[0].nr)
+            user_data['address'] += u'\n%s %s' % (iyo_user.addresses[0].postalcode, iyo_user.addresses[0].city)
+            user_data['address'] += u'\n%s' % iyo_user.addresses[0].country
+            if iyo_user.addresses[0].other:
+                user_data['address'] += u'\n\n%s' % iyo_user.addresses[0].other
+                
+        profile = TffProfile.create_key(username).get()
+        if not profile.billing_info:
+            profile.billing_info = TffProfileInfo(name=user_data.get('name'),
+                                                  email=user_data.get('email'),
+                                                  phone=user_data.get('phone'),
+                                                  address=user_data.get('address'))
+            profile.put()
+            
+        return user_data
+    
+    user_data = ndb.transaction(trans, xg=True)
     if user_data:
         system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
 
