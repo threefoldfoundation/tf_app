@@ -69,21 +69,25 @@ def _order_node(order_key, email, app_id, steps, retry_count):
     app_user = create_app_user_by_email(email, app_id)
 
     overview_step = get_step(steps, 'message_overview')
-    same_shipping_info = get_step(steps, 'message_choose_shipping_info')
     if overview_step and overview_step.answer_id == u"button_use":
         api_key = get_rogerthat_api_key()
         user_data_keys = ['name', 'email', 'phone', 'billing_address', 'address', 'shipping_name', 'shipping_email',
                           'shipping_phone', 'shipping_address']
         user_data = system.get_user_data(api_key, email, app_id, user_data_keys)
-        name = user_data['name']
-        email = user_data['email']
-        phone = user_data['phone']
-        billing_address = user_data['billing_address'] or user_data['address']
-        shipping_name = user_data['shipping_name'] or name
-        shipping_email = user_data['shipping_email'] or email
-        shipping_phone = user_data['shipping_phone'] or phone
-        shipping_address = user_data['shipping_address'] or user_data['billing_address'] or user_data['address']
-        updated_user_data = {}
+        billing_info = ContactInfo(name=user_data['name'],
+                                   email=user_data['email'],
+                                   phone=user_data['phone'],
+                                   address=user_data['billing_address'] or user_data['address'])
+        
+        if user_data['shipping_name']:
+            shipping_info = ContactInfo(name=user_data['shipping_name'],
+                                        email=user_data['shipping_email'],
+                                        phone=user_data['shipping_phone'],
+                                        address=user_data['shipping_address'])
+        else:
+            shipping_info = None
+
+        updated_user_data = None
     else:
         name = get_step_value(steps, 'message_name')
         email = get_step_value(steps, 'message_email')
@@ -95,33 +99,31 @@ def _order_node(order_key, email, app_id, steps, retry_count):
             'phone': phone,
             'billing_address': billing_address,
         }
-
-    billing_info = ContactInfo(name=name,
-                               email=email,
-                               phone=phone,
-                               address=billing_address)
-    if same_shipping_info:
-        shipping_name = name
-        shipping_email = email
-        shipping_phone = phone
-        shipping_address = billing_address
-        shipping_info = None
-    else:
-        shipping_name = get_step_value(steps, 'message_shipping_name')
-        shipping_email = get_step_value(steps, 'message_shipping_email')
-        shipping_phone = get_step_value(steps, 'message_shipping_phone')
-        shipping_address = get_step_value(steps, 'message_shipping_address')
-        shipping_info = ContactInfo(name=shipping_name,
-                                    email=shipping_email,
-                                    phone=shipping_phone,
-                                    address=shipping_address)
         
-    updated_user_data.update({
-        'shipping_name': shipping_name,
-        'shipping_email': shipping_email,
-        'shipping_phone': shipping_phone,
-        'shipping_address': shipping_address,
-    })
+        billing_info = ContactInfo(name=name,
+                                   email=email,
+                                   phone=phone,
+                                   address=billing_address)
+        
+        same_shipping_info_step = get_step(steps, 'message_choose_shipping_info')
+        if same_shipping_info_step and same_shipping_info_step.answer_id == u"button_yes":
+            shipping_info = None
+        else:
+            shipping_name = get_step_value(steps, 'message_shipping_name')
+            shipping_email = get_step_value(steps, 'message_shipping_email')
+            shipping_phone = get_step_value(steps, 'message_shipping_phone')
+            shipping_address = get_step_value(steps, 'message_shipping_address')
+            updated_user_data.update({
+                'shipping_name': shipping_name,
+                'shipping_email': shipping_email,
+                'shipping_phone': shipping_phone,
+                'shipping_address': shipping_address,
+            })
+            
+            shipping_info = ContactInfo(name=shipping_name,
+                                        email=shipping_email,
+                                        phone=shipping_phone,
+                                        address=shipping_address)
 
     logging.debug('Creating Hosting agreement')
     pdf_name = 'node_%s.pdf' % order_key.id()
