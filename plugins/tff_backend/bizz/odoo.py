@@ -131,39 +131,29 @@ def _save_quotation(cfg, erp_client, billing_id, shipping_id):
     return order.id,  order.name
        
     
-def create_odoo_quotation(order_id):
+def create_odoo_quotation(billing_info, shipping_info):
     cfg = get_config(NAMESPACE)
     erp_client = _get_erp_client(cfg)
     
-    def trans():
-        order = NodeOrder.get_by_id(order_id)
-        if not order:
-            return
-        
-        customer = {
-            'billing': {
-                'name': order.billing_info.name,
-                'email': order.billing_info.email,
-                'phone': order.billing_info.phone,
-                'address': order.billing_info.address
-            },
-            'shipping': None
+    customer = {
+        'billing': {
+            'name': billing_info.name,
+            'email': billing_info.email,
+            'phone': billing_info.phone,
+            'address': billing_info.address
+        },
+        'shipping': None
+    }
+    if shipping_info:
+        customer['shipping'] = {
+            'name': shipping_info.name,
+            'email': shipping_info.email,
+            'phone': shipping_info.phone,
+            'address': shipping_info.address
         }
-        if order.shipping_info:
-            customer['shipping'] = {
-                'name': order.shipping_info.name,
-                'email': order.shipping_info.email,
-                'phone': order.shipping_info.phone,
-                'address': order.shipping_info.address
-            }
-        
-        billing_id, shipping_id = _save_customer(cfg, erp_client, customer)
-        odoo_sale_order_id, odoo_sale_order_name = _save_quotation(cfg, erp_client, billing_id, shipping_id)
-        order.odoo_sale_order_id = odoo_sale_order_id
-        order.odoo_sale_order_name = odoo_sale_order_name
-        order.put()
-        
-    ndb.transaction(trans)
+    
+    billing_id, shipping_id = _save_customer(cfg, erp_client, customer)
+    return _save_quotation(cfg, erp_client, billing_id, shipping_id)
     
 
 def get_odoo_serial_number(order_id):

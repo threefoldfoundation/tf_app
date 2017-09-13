@@ -176,15 +176,31 @@ def _order_node_iyo_see(app_user, order_key, ipfs_link):
         order = order_key.get()
         order.tos_iyo_see_id = iyo_see_doc.uniqueid
         order.put()
-        deferred.defer(_send_order_node_sign_message, app_user, order_key.id(), ipfs_link, attachment_name,
+        deferred.defer(_create_quotation, app_user, order_key.id(), ipfs_link, attachment_name,
                        _transactional=True)
 
+    ndb.transaction(trans)
+    
+@returns()
+@arguments(app_user=users.User, order_id=(int, long), ipfs_link=unicode, attachment_name=unicode)
+def _create_quotation(app_user, order_id, ipfs_link, attachment_name):
+    def trans():
+        order = NodeOrder.get_by_id(order_id)
+        
+        odoo_sale_order_id, odoo_sale_order_name = create_odoo_quotation(order.billing_info, order.shipping_info)
+
+        order.odoo_sale_order_id = odoo_sale_order_id
+        order.put()
+        
+        deferred.defer(_send_order_node_sign_message, app_user, order_id, ipfs_link, attachment_name,
+                       odoo_sale_order_name, _transactional=True)
+    
     ndb.transaction(trans)
 
 
 @returns()
-@arguments(app_user=users.User, order_id=(int, long), ipfs_link=unicode, attachment_name=unicode)
-def _send_order_node_sign_message(app_user, order_id, ipfs_link, attachment_name):
+@arguments(app_user=users.User, order_id=(int, long), ipfs_link=unicode, attachment_name=unicode, order_name=unicode)
+def _send_order_node_sign_message(app_user, order_id, ipfs_link, attachment_name, order_name):
     logging.debug('Sending SIGN widget to app user')
     widget = SignTO()
     widget.algorithm = KEY_ALGORITHM
@@ -204,12 +220,27 @@ def _send_order_node_sign_message(app_user, order_id, ipfs_link, attachment_name
     attachment.content_type = u'application/pdf'
     attachment.download_url = ipfs_link
     attachment.name = attachment_name
+    
+    
+    message = u"""Order %(order_name)s Received
+
+Thank you for your order.
+Your transaction is waiting confirmation.
+
+Please use the following transfer details
+Bank : Mashreq Bank - IBAN : AE230330000019120028156 - BIC : BOMLAEAD
+
+For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
+Please use the SO number as reference.
+
+Please review the terms and conditions and press the "Sign" button to accept.
+""" % {"order_name": order_name}
 
     member_user, app_id = get_app_user_tuple(app_user)
     messaging.send_form(api_key=get_rogerthat_api_key(),
                         parent_message_key=None,
                         member=member_user.email(),
-                        message=u'Please review the terms and conditions and press the "Sign" button to accept.',
+                        message=message,
                         form=form,
                         flags=0,
                         alert_flags=Message.ALERT_FLAG_VIBRATE,
@@ -289,7 +320,6 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.HOSTER)
         deferred.defer(update_hoster_progress, user_detail.email, user_detail.app_id, HosterSteps.FLOW_SIGN)
-        deferred.defer(create_odoo_quotation, tag_dict['order_id'])
 
         logging.debug('Sending confirmation message')
         message = MessageCallbackResultTypeTO()

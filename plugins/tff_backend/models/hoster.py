@@ -57,7 +57,6 @@ class NodeOrder(NdbModel):
     arrival_qr_code_url = ndb.StringProperty()
     
     odoo_sale_order_id = ndb.IntegerProperty()
-    odoo_sale_order_name = ndb.StringProperty()
 
     def _pre_put_hook(self):
         self.modification_time = now()
