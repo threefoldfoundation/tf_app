@@ -14,22 +14,13 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-from framework.to import TO
-from mcfw.properties import unicode_property, bool_property
+
+from plugins.rogerthat_api.api import system
+from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.utils.app import get_app_user_tuple
 
 
-def convert_to_unicode(v):
-    if v is None:
-        return None
-    if isinstance(v, unicode):
-        return v
-    return unicode(v)
-
-
-class PaginatedResultTO(TO):
-    cursor = unicode_property('cursor')
-    more = bool_property('more')
-
-    def __init__(self, cursor=None, more=False):
-        self.cursor = cursor
-        self.more = more
+def put_user_data(app_user, updated_user_data):
+    api_key = get_rogerthat_api_key()
+    email, app_id = get_app_user_tuple(app_user)
+    system.put_user_data(api_key, email.email(), app_id, updated_user_data)

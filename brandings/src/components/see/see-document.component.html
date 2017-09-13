@@ -1,0 +1,19 @@
+<ion-card>
+  <ion-card-header>
+    {{ document.uniqueid }}
+  </ion-card-header>
+  <ion-card-content>
+    <h3>{{ document.category }}</h3>
+    <h4>{{ document.creation_date | date : dateFormat }}</h4>
+    <p *ngIf="document.start_date">{{ 'start' | translate }}: {{ document.start_date | date : dateFormat }}</p>
+    <p *ngIf="document.end_date">{{ 'end' | translate }}: {{ document.end_date | date : dateFormat }}</p>
+    <p>
+      {{ 'link' | translate }}: <a [href]="document.link" target="_blank">{{ document.link }}</a>
+    </p>
+    <div *ngIf="!showFull" [innerHTML]="document.markdown_short_description | markdown"></div>
+    <div *ngIf="showFull" [innerHTML]="document.markdown_full_description | markdown"></div>
+    <button ion-button (click)="toggleFullDescription()" *ngIf="hasFullDescription">
+      {{ (showFull ? 'hide_full_description' : 'show_full_description') | translate }}
+    </button>
+  </ion-card-content>
+</ion-card>

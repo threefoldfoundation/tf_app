@@ -1,0 +1,23 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button="bar-button" (click)="close()" class="back-button show-back-button back-button-md">
+        <ion-icon name="arrow-back" class="back-button-icon-md"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{ 'invite_friends' | translate }}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding>
+  <ion-grid>
+    <ion-row justify-content-center>
+      <p>{{ 'your_invitation_code_is' | translate : { code: code } }}</p>
+    </ion-row>
+    <ion-row justify-content-center>
+      <a ion-button [href]="smsLink">{{ 'invite_via_sms' | translate }}</a>
+    </ion-row>
+    <ion-row justify-content-center>
+      <a ion-button [href]="emailLink">{{ 'invite_via_email' | translate }}</a>
+    </ion-row>
+  </ion-grid>
+</ion-content>

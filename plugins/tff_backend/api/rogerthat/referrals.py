@@ -28,7 +28,7 @@ from plugins.tff_backend.bizz.service import delete_user_from_role, add_user_to_
 from plugins.tff_backend.models.user import TffProfile, ProfilePointer
 
 
-@returns(unicode)
+@returns(dict)
 @arguments(params=dict, user_detail=UserDetailsTO)
 def api_set_referral(params, user_detail):
     def trans():
@@ -65,4 +65,4 @@ def api_set_referral(params, user_detail):
         deferred.defer(invite_user_to_organization, username, Organization.INVITED, _transactional=True)
 
     ndb.transaction(trans, xg=True)
-    return u"You successfully joined the ThreeFold community. Welcome aboard!"
+    return {u'result': u'You successfully joined the ThreeFold community. Welcome aboard!'}

@@ -30,16 +30,20 @@ class NodeOrderStatus(object):
     ARRIVED = 3
 
 
+class ContactInfo(NdbModel):
+    name = ndb.StringProperty(indexed=False)
+    email = ndb.StringProperty(indexed=False)
+    phone = ndb.StringProperty(indexed=False)
+    address = ndb.StringProperty(indexed=False)
+
+
 class NodeOrder(NdbModel):
     NAMESPACE = NAMESPACE
     NODE_ORDERS_PER_PAGE = 50
 
     app_user = ndb.UserProperty()
-    name = ndb.StringProperty(indexed=False)
-    email = ndb.StringProperty(indexed=False)
-    phone = ndb.StringProperty(indexed=False)
-    billing_address = ndb.StringProperty(indexed=False)
-    shipping_address = ndb.StringProperty(indexed=False)
+    billing_info = ndb.LocalStructuredProperty(ContactInfo)  # type: ContactInfo
+    shipping_info = ndb.LocalStructuredProperty(ContactInfo)  # type: ContactInfo
     status = ndb.IntegerProperty(default=NodeOrderStatus.CREATED)
     tos_iyo_see_id = ndb.StringProperty(indexed=False)
     signature_payload = ndb.StringProperty(indexed=False)

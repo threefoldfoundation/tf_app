@@ -18,19 +18,24 @@ from types import NoneType
 
 from google.appengine.ext import ndb
 
+from framework.to import TO
 from mcfw.properties import long_property, unicode_property, typed_property
 from plugins.tff_backend.models.hoster import NodeOrder
-from plugins.tff_backend.to import TO, PaginatedResultTO
+from plugins.tff_backend.to import PaginatedResultTO
+
+
+class ContactInfoTO(TO):
+    name = unicode_property('name')
+    email = unicode_property('email')
+    phone = unicode_property('phone')
+    address = unicode_property('address')
 
 
 class NodeOrderTO(TO):
     id = long_property('id')
     app_user = unicode_property('app_user')
-    name = unicode_property('name')
-    email = unicode_property('email')
-    phone = unicode_property('phone')
-    billing_address = unicode_property('billing_address')
-    shipping_address = unicode_property('shipping_address')
+    billing_info = typed_property('billing_info', ContactInfoTO)
+    shipping_info = typed_property('shipping_info', ContactInfoTO)
     status = long_property('status')
     tos_iyo_see_id = unicode_property('tos_iyo_see_id')
     signature_payload = unicode_property('signature_payload')
@@ -42,15 +47,6 @@ class NodeOrderTO(TO):
     cancel_time = long_property('cancel_time')
     modification_time = long_property('modification_time')
     arrival_qr_code_url = unicode_property('arrival_qr_code_url')
-
-    def __init__(self, **kwargs):
-        for prop, val in kwargs.iteritems():
-            setattr(self, prop, val)
-
-    @classmethod
-    def from_model(cls, model):
-        assert isinstance(model, NodeOrder)
-        return cls(**model.to_dict())
 
 
 class NodeOrderListTO(PaginatedResultTO):

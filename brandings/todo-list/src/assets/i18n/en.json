@@ -1,9 +1,0 @@
-{
-  "all_done": "All done",
-  "items_left.multiple": "{{ count }} items left.",
-  "items_left.none": "All done!",
-  "items_left.singular": "1 item left.",
-  "no_work_to_finish": "Congratulations, you have no work to finish!",
-  "todo": "Todo",
-  "what_still_needs_to_be_done": "What still needs to be done?"
-}
