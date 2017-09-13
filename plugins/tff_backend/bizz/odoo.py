@@ -84,10 +84,7 @@ def _save_customer(cfg, erp_client, customer):
     logging.debug("Created res.partner (contact) with id %s", partner_contact.id)
         
     if not customer['shipping']:
-        return {
-            'billing_id': partner_contact.id,
-            'shipping_id': None
-        }
+        return partner_contact.id, None
     
     delivery = {
         'parent_id': partner_contact.id,
@@ -101,19 +98,16 @@ def _save_customer(cfg, erp_client, customer):
     partner_delivery = res_partner_model.create(delivery)
     logging.debug("Created res.partner (delivery) with id %s", partner_delivery.id)
         
-    return {
-        'billing_id': partner_contact.id,
-        'shipping_id': partner_delivery.id
-    }
+    return partner_contact.id, partner_delivery.id
 
 
-def _save_quotation(cfg, erp_client, ids):
+def _save_quotation(cfg, erp_client, billing_id, shipping_id):
     sale_order_model = erp_client.model('sale.order')
     sale_order_line_model = erp_client.model('sale.order.line')
     
     order_data = {
-        'partner_id': ids['billing_id'],
-        'partner_shipping_id': ids['shipping_id'],
+        'partner_id': billing_id,
+        'partner_shipping_id': shipping_id,
         'state': 'sent',
         'incoterm': cfg.odoo.incoterm,
         'payment_term': cfg.odoo.payment_term
@@ -124,7 +118,7 @@ def _save_quotation(cfg, erp_client, ids):
     
     order_line_data = {
         'order_id': order.id,
-        'order_partner_id': ids['billing_id'],
+        'order_partner_id': billing_id,
         'product_uos_qty': 1,
         'product_uom': 1,
         'product_id': cfg.odoo.product_id,
@@ -134,7 +128,7 @@ def _save_quotation(cfg, erp_client, ids):
     sale_order_line = sale_order_line_model.create(order_line_data)
     logging.debug("Created sale.order.line with id %s", sale_order_line.id)
     
-    return order.id
+    return order.id,  order.name
        
     
 def create_odoo_quotation(order_id):
@@ -163,8 +157,10 @@ def create_odoo_quotation(order_id):
                 'address': order.shipping_info.address
             }
         
-        ids = _save_customer(cfg, erp_client, customer)
-        order.odoo_sale_order_id = _save_quotation(cfg, erp_client, ids)
+        billing_id, shipping_id = _save_customer(cfg, erp_client, customer)
+        odoo_sale_order_id, odoo_sale_order_name = _save_quotation(cfg, erp_client, billing_id, shipping_id)
+        order.odoo_sale_order_id = odoo_sale_order_id
+        order.odoo_sale_order_name = odoo_sale_order_name
         order.put()
         
     ndb.transaction(trans)
