@@ -15,13 +15,14 @@
 #
 # @@license_version:1.3@@
 
-import xmlrpclib
 import logging
+import xmlrpclib
 
-from google.appengine.api import urlfetch
-from framework.plugin_loader import get_config
-from plugins.tff_backend.plugin_consts import NAMESPACE
 import erppeek
+
+from framework.plugin_loader import get_config
+from google.appengine.api import urlfetch
+from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
 # GAEXMLRPCTransport is copied from http://brizzled.clapper.org/blog/2008/08/25/making-xmlrpc-calls-from-a-google-app-engine-application/
@@ -65,7 +66,7 @@ class GAEXMLRPCTransport(object):
 
 def get_erp_client():
     cfg = get_config(NAMESPACE)
-    return erppeek.Client(cfg.odoo.url, cfg.odoo.database, cfg.odoo.username, cfg.odoo.password, transport=GAEXMLRPCTransport(), verbose=True)
+    return erppeek.Client(cfg.odoo.url, cfg.odoo.database, cfg.odoo.username, cfg.odoo.password, transport=GAEXMLRPCTransport())
 
 
 def update_odoo_object(odoo_object, **values):
@@ -117,8 +118,8 @@ def save_customer(erp_client, customer):
     }
 
 
-def save_quotation(ep_client, ids):
-    order = ep_client.model('sale.order')
+def save_quotation(erp_client, ids):
+    order = erp_client.model('sale.order')
     
     odoo_order_data = {
         'partner_id': ids['billing_id'],
@@ -133,7 +134,7 @@ def save_quotation(ep_client, ids):
     #order.create(odoo_order)
     
     
-    order_line = ep_client.model('sale.order.line')
+    order_line = erp_client.model('sale.order.line')
     odoo_order_line_data = {
         'order_id': 168,
         'order_partner_id': ids['billing_id'],
@@ -146,6 +147,23 @@ def save_quotation(ep_client, ids):
     odoo_order_line = order_line.browse(173)
     update_odoo_object(odoo_order_line, **odoo_order_line_data)
     #order_line.create(odoo_order_line)
+    
+    
+def get_serial_number(erp_client):
+    sale_order_model = erp_client.model('sale.order')
+    stock_picking_model = erp_client.model('stock.picking')
+    stock_move_model = erp_client.model('stock.move')
+    stock_production_lot_model = erp_client.model('stock.production.lot')
+    
+    sale_order = sale_order_model.browse(168)
+    for picking_id in sale_order.picking_ids.id:
+        stock_picking = stock_picking_model.browse(picking_id)
+        for move_line in stock_picking.move_lines.id:
+            stock_move = stock_move_model.browse(move_line)
+            for lot_id in stock_move.lot_ids.id:
+                stock_production_lot = stock_production_lot_model.browse(lot_id)
+                if stock_production_lot.product_id.id == 21:
+                    return stock_production_lot.name
     
 
 def test():
@@ -170,4 +188,11 @@ def test():
     
     ids = save_customer(erp_client, customer)
     save_quotation(erp_client, ids)
+    
+def test2():
+    erp_client = get_erp_client()
+    
+    return get_serial_number(erp_client)
+    
+    
     
