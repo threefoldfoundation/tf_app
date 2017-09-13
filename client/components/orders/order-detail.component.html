@@ -11,10 +11,12 @@
     <p>{{ 'tff.billing_address' | translate}}: {{ nodeOrder.billing_info.address }}</p>
     <md-divider></md-divider>
     <h3>{{ 'tff.shipping_information' | translate }}</h3>
-    <p>{{ 'tff.name' | translate}}: {{ nodeOrder.shipping_info.name }}</p>
-    <p>{{ 'tff.email' | translate}}: {{ nodeOrder.shipping_info.email }}</p>
-    <p>{{ 'tff.phone' | translate}}: {{ nodeOrder.shipping_info.phone }}</p>
-    <p>{{ 'tff.shipping_address' | translate}}: {{ nodeOrder.shipping_info.address}}</p>
+    <div *ngIf="nodeOrder.shipping_info">
+	    <p>{{ 'tff.name' | translate}}: {{ nodeOrder.shipping_info.name }}</p>
+	    <p>{{ 'tff.email' | translate}}: {{ nodeOrder.shipping_info.email }}</p>
+	    <p>{{ 'tff.phone' | translate}}: {{ nodeOrder.shipping_info.phone }}</p>
+	    <p>{{ 'tff.shipping_address' | translate}}: {{ nodeOrder.shipping_info.address}}</p>
+    </div>
     <p>{{ 'tff.status' | translate}}: {{ getOrderStatus() }}</p>
     <md-divider></md-divider>
     <p>{{ 'tff.modification_time' | translate }}: {{ nodeOrder.modification_time | timestamp }}</p>
