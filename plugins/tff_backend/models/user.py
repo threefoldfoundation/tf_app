@@ -21,12 +21,24 @@ from framework.models.common import NdbModel
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
+class TffProfileInfo(NdbModel):
+    name = ndb.StringProperty(indexed=False)
+    email = ndb.StringProperty(indexed=False)
+    phone = ndb.StringProperty(indexed=False)
+    address = ndb.StringProperty(indexed=False)
+
+    odoo_id = ndb.IntegerProperty(indexed=False)
+
+
 class TffProfile(NdbModel):
     NAMESPACE = NAMESPACE
     app_user = ndb.UserProperty()
     
     referrer_user = ndb.UserProperty()
     referrer_username = ndb.StringProperty()
+    
+    billing_info = ndb.LocalStructuredProperty(TffProfileInfo)
+    shipping_info = ndb.LocalStructuredProperty(TffProfileInfo)
 
     @classmethod
     def create_key(cls, username):

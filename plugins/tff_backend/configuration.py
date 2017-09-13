@@ -15,7 +15,7 @@
 #
 # @@license_version:1.3@@
 
-from mcfw.properties import unicode_property, typed_property
+from mcfw.properties import unicode_property, typed_property, long_property
 
 
 class RogerthatConfiguration(object):
@@ -39,6 +39,11 @@ class OdooConfiguration(object):
     database = unicode_property('2')
     username = unicode_property('3')
     password = unicode_property('4')
+    
+    incoterm = long_property('5')
+    payment_term = long_property('6')
+    product_id = long_property('7')
+    stock_id = long_property('8')
 
 
 class OrchestatorConfiguration(object):

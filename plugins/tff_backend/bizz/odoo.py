@@ -64,8 +64,7 @@ class GAEXMLRPCTransport(object):
     
 
 
-def get_erp_client():
-    cfg = get_config(NAMESPACE)
+def get_erp_client(cfg):
     return erppeek.Client(cfg.odoo.url, cfg.odoo.database, cfg.odoo.username, cfg.odoo.password, transport=GAEXMLRPCTransport())
 
 
@@ -73,7 +72,7 @@ def update_odoo_object(odoo_object, **values):
     odoo_object.write(values)
 
 
-def save_customer(erp_client, customer):
+def save_customer(cfg, erp_client, customer):
     partner = erp_client.model('res.partner')
     
     odoo_contact = {
@@ -118,15 +117,15 @@ def save_customer(erp_client, customer):
     }
 
 
-def save_quotation(erp_client, ids):
+def save_quotation(cfg, erp_client, ids):
     order = erp_client.model('sale.order')
     
     odoo_order_data = {
         'partner_id': ids['billing_id'],
         'partner_shipping_id': ids['shipping_id'],
         'state': 'sent',
-        'incoterm': 15, # delivered duty paid
-        'payment_term': 1 #immediate payment
+        'incoterm': cfg.odoo.incoterm,
+        'payment_term': cfg.odoo.payment_term
     }
     
     odoo_order = order.browse(168)
@@ -140,7 +139,7 @@ def save_quotation(erp_client, ids):
         'order_partner_id': ids['billing_id'],
         'product_uos_qty': 1,
         'product_uom': 1,
-        'product_id': 4,
+        'product_id': cfg.odoo.product_id,
         'state': 'draft'
     }
     
@@ -149,7 +148,7 @@ def save_quotation(erp_client, ids):
     #order_line.create(odoo_order_line)
     
     
-def get_serial_number(erp_client):
+def get_serial_number(cfg, erp_client):
     sale_order_model = erp_client.model('sale.order')
     stock_picking_model = erp_client.model('stock.picking')
     stock_move_model = erp_client.model('stock.move')
@@ -162,12 +161,13 @@ def get_serial_number(erp_client):
             stock_move = stock_move_model.browse(move_line)
             for lot_id in stock_move.lot_ids.id:
                 stock_production_lot = stock_production_lot_model.browse(lot_id)
-                if stock_production_lot.product_id.id == 21:
+                if stock_production_lot.product_id.id == cfg.odoo.stock_id:
                     return stock_production_lot.name
     
 
 def test():
-    erp_client = get_erp_client()
+    cfg = get_config(NAMESPACE)
+    erp_client = get_erp_client(cfg)
     
     customer = {
         'billing': {
@@ -186,13 +186,14 @@ def test():
         }
     }
     
-    ids = save_customer(erp_client, customer)
-    save_quotation(erp_client, ids)
+    ids = save_customer(cfg, erp_client, customer)
+    save_quotation(cfg, erp_client, ids)
     
 def test2():
-    erp_client = get_erp_client()
+    cfg = get_config(NAMESPACE)
+    erp_client = get_erp_client(cfg)
     
-    return get_serial_number(erp_client)
+    return get_serial_number(cfg, erp_client)
     
     
     
