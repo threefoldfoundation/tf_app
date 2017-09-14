@@ -15,57 +15,161 @@
 #
 # @@license_version:1.3@@
 
+import logging
+import xmlrpclib
+
 import erppeek
+
 from framework.plugin_loader import get_config
+from google.appengine.api import urlfetch
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
-def get_erp_client():
-    cfg = get_config(NAMESPACE)
-    return erppeek.Client(cfg.odoo.url, cfg.odoo.database, cfg.odoo.username, cfg.odoo.password)
+# GAEXMLRPCTransport is copied from http://brizzled.clapper.org/blog/2008/08/25/making-xmlrpc-calls-from-a-google-app-engine-application/
+class GAEXMLRPCTransport(object):
+    """Handles an HTTP transaction to an XML-RPC server."""
 
+    def __init__(self):
+        pass
 
-def create_quotation(erp_client, customer):
-    odoo_customer_id = get_customer_id(erp_client, customer)
-    put_quotation_in_odoo(erp_client, odoo_customer_id)
+    def request(self, host, handler, request_body, verbose=0):
+        result = None
+        url = 'http://%s%s' % (host, handler)
+        try:
+            response = urlfetch.fetch(url,
+                                      payload=request_body,
+                                      method=urlfetch.POST,
+                                      headers={'Content-Type': 'text/xml'})
+        except:
+            msg = 'Failed to fetch %s' % url
+            logging.error(msg)
+            raise xmlrpclib.ProtocolError(host + handler, 500, msg, {})
 
+        if response.status_code != 200:
+            logging.error('%s returned status code %s' %
+                          (url, response.status_code))
+            raise xmlrpclib.ProtocolError(host + handler,
+                                          response.status_code,
+                                          "",
+                                          response.headers)
+        else:
+            result = self.__parse_response(response.content)
 
-def get_customer_id(erp_client, customer):
-    partner = erppeek.Model(erp_client, 'res.partner')
+        return result
+
+    def __parse_response(self, response_body):
+        p, u = xmlrpclib.getparser(use_datetime=False)
+        p.feed(response_body)
+        return u.close()
     
-#     parent_id = None
-#     type = u'contact' #'u'delivery'
+
+
+def _get_erp_client(cfg):
+    return erppeek.Client(cfg.odoo.url, cfg.odoo.database, cfg.odoo.username, cfg.odoo.password, transport=GAEXMLRPCTransport())
+
+
+def _save_customer(cfg, erp_client, customer):
+    res_partner_model = erp_client.model('res.partner')
     
-    odoo_contact = {
-        'parent_id': None,
+    contact = {
         'type': u'contact',
-        'name': customer['name'],
-        'email': customer['email'],
-        'phone': customer['phone'],
+        'name': customer['billing']['name'],
+        'email': customer['billing']['email'],
+        'phone': customer['billing']['phone'],
+        'street': customer['billing']['address']
+    }
+    partner_contact = res_partner_model.create(contact)
+    logging.debug("Created res.partner (contact) with id %s", partner_contact.id)
+        
+    if not customer['shipping']:
+        return partner_contact.id, None
+    
+    delivery = {
+        'parent_id': partner_contact.id,
+        'type': u'delivery',
+        'name': customer['shipping']['name'],
+        'email': customer['shipping']['email'],
+        'phone': customer['shipping']['phone'],
+        'street': customer['shipping']['address']
     }
     
-    if customer["odoo_contact_id"]:
-        odoo_customer = partner.browse(customer["odoo_contact_id"])
-        odoo_customer.write(odoo_contact)
-    else:
-        odoo_customer = partner.create(odoo_contact)
-
-    return odoo_customer.id
+    partner_delivery = res_partner_model.create(delivery)
+    logging.debug("Created res.partner (delivery) with id %s", partner_delivery.id)
+        
+    return partner_contact.id, partner_delivery.id
 
 
-def put_quotation_in_odoo(ep_client, odoo_customer_id):
-    order = erppeek.Model(ep_client, 'sale.order')
+def _save_quotation(cfg, erp_client, billing_id, shipping_id):
+    sale_order_model = erp_client.model('sale.order')
+    sale_order_line_model = erp_client.model('sale.order.line')
     
-
-
-def test():
-    erp_client = get_erp_client()
+    order_data = {
+        'partner_id': billing_id,
+        'partner_shipping_id': shipping_id or billing_id,
+        'state': 'sent',
+        'incoterm': cfg.odoo.incoterm,
+        'payment_term': cfg.odoo.payment_term
+    }
+    
+    order = sale_order_model.create(order_data)
+    logging.debug("Created sale.order with id %s", order.id)
+    
+    order_line_data = {
+        'order_id': order.id,
+        'order_partner_id': billing_id,
+        'product_uos_qty': 1,
+        'product_uom': 1,
+        'product_id': cfg.odoo.product_id,
+        'state': 'draft'
+    }
+    
+    sale_order_line = sale_order_line_model.create(order_line_data)
+    logging.debug("Created sale.order.line with id %s", sale_order_line.id)
+    
+    return order.id,  order.name
+       
+    
+def create_odoo_quotation(billing_info, shipping_info):
+    cfg = get_config(NAMESPACE)
+    erp_client = _get_erp_client(cfg)
+    
     customer = {
-        'odoo_contact_id': None,
-        'name': u"Test name",
-        'email': u"test@example.com",
-        'phone': u"911",
-        'billing_address': u"Billing address \n boejaaa",
-        'shipping_address': u"Shipping address \n boejaaa"
+        'billing': {
+            'name': billing_info.name,
+            'email': billing_info.email,
+            'phone': billing_info.phone,
+            'address': billing_info.address
+        },
+        'shipping': None
     }
-    create_quotation(erp_client, customer)
+    if shipping_info:
+        customer['shipping'] = {
+            'name': shipping_info.name,
+            'email': shipping_info.email,
+            'phone': shipping_info.phone,
+            'address': shipping_info.address
+        }
+    
+    billing_id, shipping_id = _save_customer(cfg, erp_client, customer)
+    return _save_quotation(cfg, erp_client, billing_id, shipping_id)
+    
+
+def get_odoo_serial_number(order_id):
+    cfg = get_config(NAMESPACE)
+    erp_client = _get_erp_client(cfg)
+    
+    sale_order_model = erp_client.model('sale.order')
+    stock_picking_model = erp_client.model('stock.picking')
+    stock_move_model = erp_client.model('stock.move')
+    stock_production_lot_model = erp_client.model('stock.production.lot')
+    
+    sale_order = sale_order_model.browse(order_id)
+    for picking_id in sale_order.picking_ids.id:
+        stock_picking = stock_picking_model.browse(picking_id)
+        for move_line in stock_picking.move_lines.id:
+            stock_move = stock_move_model.browse(move_line)
+            for lot_id in stock_move.lot_ids.id:
+                stock_production_lot = stock_production_lot_model.browse(lot_id)
+                if stock_production_lot.product_id.id == cfg.odoo.stock_id:
+                    return stock_production_lot.name
+    return None
