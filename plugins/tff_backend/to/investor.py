@@ -18,9 +18,9 @@ from types import NoneType
 
 from google.appengine.ext import ndb
 
+from framework.to import TO
 from mcfw.properties import long_property, unicode_property, typed_property, float_property
-from plugins.tff_backend.models.investor import InvestmentAgreement
-from plugins.tff_backend.to import TO, PaginatedResultTO
+from plugins.tff_backend.to import PaginatedResultTO
 
 
 class InvestmentAgreementTO(TO):
@@ -39,15 +39,6 @@ class InvestmentAgreementTO(TO):
     paid_time = long_property('paid_time')
     cancel_time = long_property('cancel_time')
     modification_time = long_property('modification_time')
-
-    def __init__(self, **kwargs):
-        for prop, val in kwargs.iteritems():
-            setattr(self, prop, val)
-
-    @classmethod
-    def from_model(cls, model):
-        assert isinstance(model, InvestmentAgreement)
-        return cls(**model.to_dict())
 
 
 class InvestmentAgreementListTO(PaginatedResultTO):

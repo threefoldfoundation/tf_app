@@ -14,10 +14,9 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
-
+from framework.to import TO
 from mcfw.properties import unicode_property, typed_property
-from plugins.tff_backend.to import convert_to_unicode, TO
+from plugins.tff_backend.to import convert_to_unicode
 
 
 class IYOKeyStoreKeyData(TO):

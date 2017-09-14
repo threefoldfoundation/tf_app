@@ -19,9 +19,10 @@ import base64
 import json
 import logging
 
-from framework.utils import now, try_or_defer
 from google.appengine.api import users
 from google.appengine.ext import ndb, deferred
+
+from framework.utils import now, try_or_defer
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -40,10 +41,11 @@ from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.nodes import get_node_status
+from plugins.tff_backend.bizz.rogerthat import put_user_data
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
 from plugins.tff_backend.bizz.todo.hoster import HosterSteps
-from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping, NodeOrderStatus
+from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping, NodeOrderStatus, ContactInfo
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.to.nodes import NodeOrderTO
@@ -69,23 +71,59 @@ def _order_node(order_key, email, app_id, steps, retry_count):
     overview_step = get_step(steps, 'message_overview')
     if overview_step and overview_step.answer_id == u"button_use":
         api_key = get_rogerthat_api_key()
-        user_data_keys = ['name', 'email', 'phone', 'billing_address', 'shipping_address', 'address']
-        current_user_data = system.get_user_data(api_key, email, app_id, user_data_keys)
-        name = current_user_data['name']
-        email = current_user_data['email']
-        phone = current_user_data['phone']
-        if current_user_data['billing_address']:
-            billing_address = current_user_data['billing_address']
-            shipping_address = current_user_data['shipping_address']
+        user_data_keys = ['name', 'email', 'phone', 'billing_address', 'address', 'shipping_name', 'shipping_email',
+                          'shipping_phone', 'shipping_address']
+        user_data = system.get_user_data(api_key, email, app_id, user_data_keys)
+        billing_info = ContactInfo(name=user_data['name'],
+                                   email=user_data['email'],
+                                   phone=user_data['phone'],
+                                   address=user_data['billing_address'] or user_data['address'])
+        
+        if user_data['shipping_name']:
+            shipping_info = ContactInfo(name=user_data['shipping_name'],
+                                        email=user_data['shipping_email'],
+                                        phone=user_data['shipping_phone'],
+                                        address=user_data['shipping_address'])
         else:
-            billing_address = current_user_data['address']
-            shipping_address = current_user_data['address']
+            shipping_info = None
+
+        updated_user_data = None
     else:
         name = get_step_value(steps, 'message_name')
         email = get_step_value(steps, 'message_email')
         phone = get_step_value(steps, 'message_phone')
         billing_address = get_step_value(steps, 'message_billing_address')
-        shipping_address = get_step_value(steps, 'message_shipping_address')
+        updated_user_data = {
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'billing_address': billing_address,
+        }
+        
+        billing_info = ContactInfo(name=name,
+                                   email=email,
+                                   phone=phone,
+                                   address=billing_address)
+        
+        same_shipping_info_step = get_step(steps, 'message_choose_shipping_info')
+        if same_shipping_info_step and same_shipping_info_step.answer_id == u"button_yes":
+            shipping_info = None
+        else:
+            shipping_name = get_step_value(steps, 'message_shipping_name')
+            shipping_email = get_step_value(steps, 'message_shipping_email')
+            shipping_phone = get_step_value(steps, 'message_shipping_phone')
+            shipping_address = get_step_value(steps, 'message_shipping_address')
+            updated_user_data.update({
+                'shipping_name': shipping_name,
+                'shipping_email': shipping_email,
+                'shipping_phone': shipping_phone,
+                'shipping_address': shipping_address,
+            })
+            
+            shipping_info = ContactInfo(name=shipping_name,
+                                        email=shipping_email,
+                                        phone=shipping_phone,
+                                        address=shipping_address)
 
     logging.debug('Creating Hosting agreement')
     pdf_name = 'node_%s.pdf' % order_key.id()
@@ -102,16 +140,15 @@ def _order_node(order_key, email, app_id, steps, retry_count):
         order = NodeOrder(key=order_key,
                           app_user=app_user,
                           tos_iyo_see_id=None,
-                          name=name,
-                          email=email,
-                          phone=phone,
-                          billing_address=billing_address,
-                          shipping_address=shipping_address,
+                          billing_info=billing_info,
+                          shipping_info=shipping_info,
                           order_time=now(),
                           status=NodeOrderStatus.CREATED)
         order.put()
         deferred.defer(_create_order_arrival_qr, order_key.id(), _transactional=True)
         deferred.defer(_order_node_iyo_see, app_user, order_key, ipfs_link, _transactional=True)
+        if updated_user_data:
+            deferred.defer(put_user_data, app_user, updated_user_data, _transactional=True)
 
     ndb.transaction(trans)
 
@@ -211,7 +248,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
     try:
         user_detail = user_details[0]
         tag_dict = json.loads(tag)
-        order = NodeOrder.create_key(tag_dict['order_id']).get()  # type: NodeOrder
+        order = get_node_order(tag_dict['order_id'])
 
         if answer_id != FormTO.POSITIVE:
             logging.info('Zero-Node order was canceled')
@@ -312,7 +349,7 @@ def _create_order_arrival_qr(order_id):
 @arguments(order_id=(int, long), qr_image_uri=unicode)
 def _store_order_arrival_qr(order_id, qr_image_uri):
     logging.info('Setting arrival QR code %s for order %s', qr_image_uri, order_id)
-    order = NodeOrder.create_key(order_id).get()
+    order = get_node_order(order_id)
     order.arrival_qr_code_url = qr_image_uri
     order.put()
 
@@ -337,6 +374,7 @@ def get_node_orders(cursor=None, status=None):
 @returns(NodeOrder)
 @arguments(order_id=(int, long))
 def get_node_order(order_id):
+    # type: (int) -> NodeOrder
     order = NodeOrder.get_by_id(order_id)
     if not order:
         raise HttpNotFoundException('order_not_found')
@@ -347,9 +385,7 @@ def get_node_order(order_id):
 @arguments(order_id=(int, long), order=NodeOrderTO)
 def put_node_order(order_id, order):
     # type: (long, NodeOrderTO) -> NodeOrder
-    order_model = NodeOrder.get_by_id(order_id)  # type: NodeOrder
-    if not order_model:
-        raise HttpNotFoundException('order_not_found')
+    order_model = get_node_order(order_id)
     if order_model.status == NodeOrderStatus.CANCELED:
         raise HttpBadRequestException('order_canceled')
     if order.status not in (NodeOrderStatus.CANCELED, NodeOrderStatus.SENT):
@@ -357,7 +393,6 @@ def put_node_order(order_id, order):
     # Only support updating the status for now
     if order_model.status != order.status:
         order_model.status = order.status
-        # todo: send message to user ?
         if order_model.status == NodeOrderStatus.CANCELED:
             order_model.cancel_time = now()
         elif order_model.status == NodeOrderStatus.SENT:
@@ -376,7 +411,7 @@ def _store_order_arrival(tag, arrival_time):
     tag_dict = json.loads(tag)
     order_id = tag_dict['order_id']
     logging.info('Marking order %s as arrived', order_id)
-    order = NodeOrder.create_key(order_id).get()  # type: NodeOrder
+    order = get_node_order(order_id)  # type: NodeOrder
     order.arrival_time = arrival_time
     order.status = NodeOrderStatus.ARRIVED
     order.put()
@@ -403,11 +438,10 @@ def _create_error_message(callback_result):
 
 
 def check_if_node_comes_online(order_id):
-    order_model = NodeOrder.get_by_id(order_id)
-    status = get_node_status(u"node_id") # todo ruben get node_id from order
+    order_model = get_node_order(order_id)
+    status = get_node_status(u"node_id")  # todo ruben get node_id from order
     if status and status == u"running":
         human_user, app_id = get_app_user_tuple(order_model.app_user)
         deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED)
     else:
         deferred.defer(check_if_node_comes_online, order_id, _countdown=1 * 60 * 60)
-    
