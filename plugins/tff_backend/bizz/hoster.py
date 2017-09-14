@@ -228,7 +228,7 @@ Thank you for your order.
 Your transaction is waiting confirmation.
 
 Please use the following transfer details
-Bank : Mashreq Bank - IBAN : AE230330000019120028156 - BIC : BOMLAEAD
+Amount: USD 600 - Bank : Mashreq Bank - IBAN : AE230330000019120028156 - BIC : BOMLAEAD
 
 For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
 Please use the SO number as reference.

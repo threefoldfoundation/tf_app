@@ -22,8 +22,6 @@ import erppeek
 
 from framework.plugin_loader import get_config
 from google.appengine.api import urlfetch
-from google.appengine.ext import ndb
-from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
