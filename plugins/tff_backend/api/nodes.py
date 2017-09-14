@@ -22,21 +22,21 @@ from plugins.tff_backend.bizz.hoster import get_node_order, get_node_orders, put
 from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO
 
 
-@rest('/orders', 'get', Scopes.ADMIN)
+@rest('/orders', 'get', Scopes.ADMINS)
 @returns(NodeOrderListTO)
 @arguments(cursor=unicode, status=(int, long))
 def api_get_node_orders(cursor=None, status=None):
     return NodeOrderListTO.from_query(*get_node_orders(cursor, status))
 
 
-@rest('/orders/<order_id:[^/]+>', 'get', Scopes.ADMIN)
+@rest('/orders/<order_id:[^/]+>', 'get', Scopes.ADMINS)
 @returns(NodeOrderTO)
 @arguments(order_id=unicode)
 def api_get_node_order(order_id):
     return NodeOrderTO.from_model(get_node_order(long(order_id)))
 
 
-@rest('/orders/<order_id:[^/]+>', 'put', Scopes.ADMIN)
+@rest('/orders/<order_id:[^/]+>', 'put', Scopes.ADMINS)
 @returns(NodeOrderTO)
 @arguments(order_id=unicode, data=NodeOrderTO)
 def api_put_node_order(order_id, data):
