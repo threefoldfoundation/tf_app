@@ -18,6 +18,7 @@ import json
 import logging
 
 from google.appengine.ext import deferred
+
 from mcfw.properties import object_factory
 from mcfw.rpc import parse_complex_value, serialize_complex_value
 from plugins.rogerthat_api.to import UserDetailsTO
@@ -37,9 +38,8 @@ from plugins.tff_backend.bizz.investor import invest, investment_agreement_signe
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_info_in_userdata, \
     is_user_in_roles
-from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 from plugins.tff_backend.plugin_consts import THREEFOLD_APP_ID
-
+from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 
 TAG_MAPPING = {
     'order_node': order_node,
@@ -59,6 +59,7 @@ API_METHOD_MAPPING = {
 
 
 def log_and_parse_user_details(user_details):
+    # type: (dict) -> UserDetailsTO
     is_list = isinstance(user_details, list)
     user_detail = user_details[0] if is_list else user_details
     logging.debug('Current user: %(email)s:%(app_id)s', user_detail)
@@ -150,7 +151,7 @@ def system_api_call(rt_settings, request_id, method, params, user_details, **kwa
                 _type = type(result[0])
             else:
                 _type = type(result)
-                
+
             if isinstance(result, unicode):
                 response.result = result
             else:

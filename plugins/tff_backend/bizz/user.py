@@ -23,11 +23,12 @@ from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
 from framework.bizz.session import create_session
-from framework.plugin_loader import get_config
+from framework.plugin_loader import get_config, get_plugin
 from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
     has_access_to_organization
+from plugins.its_you_online_auth.libs.itsyouonline import Client
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.to import UserDetailsTO
@@ -48,6 +49,7 @@ from plugins.tff_backend.utils.app import create_app_user_by_email
 @returns()
 @arguments(user_detail=UserDetailsTO, data=unicode)
 def user_registered(user_detail, data):
+    # type: (UserDetailsTO, unicode) -> None
     logging.info('User %s:%s registered', user_detail.email, user_detail.app_id)
     data = json.loads(data)
     access_token_data = data.get('result', {})
@@ -72,6 +74,22 @@ def user_registered(user_detail, data):
 
     deferred.defer(invite_user_to_organization, username, Organization.PUBLIC)
     deferred.defer(add_user_to_role, user_detail, Roles.PUBLIC)
+    intercom_plugin = get_plugin('intercom_support')
+    if intercom_plugin:
+        client = Client()
+        client.oauth.session.headers['Authorization'] = 'token %s' % access_token
+        response_data = client.api.users.GetUserInformation(username).json()
+        # todo: user 'userview' object from IYO library when it is updated to included validated emails/phone numbers
+        name = None
+        email = None
+        phone = None
+        if response_data['firstname'] and response_data['lastname']:
+            name = '%s %s' % (response_data['firstname'], response_data['lastname'])
+        if response_data['validatedemailaddresses']:
+            email = response_data['validatedemailaddresses'][0]['emailaddress']
+        if response_data['validatedphonenumbers']:
+            phone = response_data['validatedphonenumbers'][0]['phonenumber']
+        intercom_plugin.create_user(username, name, email, phone)
 
 
 @returns(unicode)
