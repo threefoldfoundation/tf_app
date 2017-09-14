@@ -24,50 +24,46 @@ from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_NAMESPACE
 
 config = get_config(IYO_NAMESPACE)
 ROOT_ORGANIZATION = config.root_organization.name
-USERS_REGEX = re.compile('^user:memberof:%s.users.(default|hosters|investors|ambassadors)$' % ROOT_ORGANIZATION)
+USERS_REGEX = re.compile('^user:memberof:%s.(public|hosters|members|investors|ambassadors)$' % ROOT_ORGANIZATION)
 
 
 class Roles(object):
     ADMINS = 'admins'
-    PAYMENT_ADMIN = 'payment-admin'
-    DEFAULT = 'default'
-    HOSTER = 'hosters'
-    INVITED = 'invited'
+    PAYMENT_ADMINS = 'payment-admin'
+    PUBLIC = 'public'
+    HOSTERS = 'hosters'
+    MEMBERS = 'members'
     INVESTOR = 'investors'
     AMBASSADORS = 'ambassadors'
 
 
 class PluginRoles(object):
     ADMINS = 'tff-admins'
-    PAYMENT_ADMIN = 'tff-payment-admin'
-    DEFAULT = 'tff-default'
-    HOSTER = 'tff-hosters'
-    INVITED = 'tff-invited'
+    PAYMENT_ADMINS = 'tff-payment-admin'
+    PUBLIC = 'tff-public'
+    HOSTERS = 'tff-hosters'
+    MEMBERS = 'tff-members'
     INVESTOR = 'tff-investors'
     AMBASSADORS = 'tff-ambassadors'
 
 
-class PermissionType(object):
-    USERS = 'users'
-
-
 class Organization(object):
-    ADMIN = '%s.admins' % ROOT_ORGANIZATION
-    PAYMENT_ADMIN = '%s.payment-admins' % ROOT_ORGANIZATION
-    DEFAULT_USER = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.DEFAULT)
-    HOSTER = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.HOSTER)
-    INVITED = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.INVITED)
-    INVESTOR = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.INVESTOR)
-    AMBASSADOR = '%s.users.%s' % (ROOT_ORGANIZATION, Roles.AMBASSADORS)
+    ADMINS = '%s.admins' % ROOT_ORGANIZATION
+    PAYMENT_ADMINS = '%s.%s' % (ROOT_ORGANIZATION, Roles.PAYMENT_ADMINS)
+    PUBLIC = '%s.%s' % (ROOT_ORGANIZATION, Roles.PUBLIC)
+    HOSTERS = '%s.%s' % (ROOT_ORGANIZATION, Roles.HOSTERS)
+    MEMBERS = '%s.%s' % (ROOT_ORGANIZATION, Roles.MEMBERS)
+    INVESTORS = '%s.%s' % (ROOT_ORGANIZATION, Roles.INVESTOR)
+    AMBASSADORS = '%s.%s' % (ROOT_ORGANIZATION, Roles.AMBASSADORS)
 
     ROLES = {
-        Roles.ADMINS: ADMIN,
-        Roles.PAYMENT_ADMIN: PAYMENT_ADMIN,
-        Roles.DEFAULT: DEFAULT_USER,
-        Roles.HOSTER: HOSTER,
-        Roles.INVITED: INVITED,
-        Roles.INVESTOR: INVESTOR,
-        Roles.AMBASSADORS: AMBASSADOR,
+        Roles.ADMINS: ADMINS,
+        Roles.PAYMENT_ADMINS: PAYMENT_ADMINS,
+        Roles.PUBLIC: PUBLIC,
+        Roles.HOSTERS: HOSTERS,
+        Roles.MEMBERS: MEMBERS,
+        Roles.INVESTOR: INVESTORS,
+        Roles.AMBASSADORS: AMBASSADORS,
     }
 
     @staticmethod
@@ -77,29 +73,24 @@ class Organization(object):
 
 class Scope(object):
     _memberof = 'user:memberof:%s'
-    ROOT_ADMIN = _memberof % ROOT_ORGANIZATION
-    ADMIN = _memberof % Organization.ADMIN
-    PAYMENT_ADMIN = _memberof % Organization.PAYMENT_ADMIN
-    DEFAULT_USER = _memberof % Organization.DEFAULT_USER
-    HOSTER = _memberof % Organization.HOSTER
-    INVITED = _memberof % Organization.INVITED
-    INVESTOR = _memberof % Organization.INVESTOR
-    AMBASSADOR = _memberof % Organization.AMBASSADOR
+    ROOT_ADMINS = _memberof % ROOT_ORGANIZATION
+    ADMINS = _memberof % Organization.ADMINS
+    PAYMENT_ADMINS = _memberof % Organization.PAYMENT_ADMINS
+    PUBLIC = _memberof % Organization.PUBLIC
+    HOSTERS = _memberof % Organization.HOSTERS
+    MEMBERS = _memberof % Organization.MEMBERS
+    INVESTORS = _memberof % Organization.INVESTORS
+    AMBASSADORS = _memberof % Organization.AMBASSADORS
 
 
 class Scopes(object):
-    ADMIN = [Scope.ADMIN, Scope.ROOT_ADMIN]
-    PAYMENT_ADMIN = [Scope.ROOT_ADMIN, Scope.PAYMENT_ADMIN]
-    DEFAULT_USER = ADMIN + [Scope.DEFAULT_USER]
-    HOSTER = DEFAULT_USER + [Scope.HOSTER]
-    INVITED = DEFAULT_USER + [Scope.INVITED]
-    INVESTOR = DEFAULT_USER + [Scope.INVESTOR]
-    AMBASSADOR = DEFAULT_USER + [Scope.AMBASSADOR]
-
-
-SCOPE_ROLES = {
-    PermissionType.USERS: [Roles.DEFAULT, Roles.HOSTER, Roles.INVITED, Roles.INVESTOR, Roles.AMBASSADORS]
-}
+    ADMINS = [Scope.ADMINS, Scope.ROOT_ADMINS]
+    PAYMENT_ADMIN = [Scope.ROOT_ADMINS, Scope.PAYMENT_ADMINS]
+    PUBLIC = ADMINS + [Scope.PUBLIC]
+    HOSTERS = PUBLIC + [Scope.HOSTERS]
+    MEMBERS = PUBLIC + [Scope.MEMBERS]
+    INVESTORS = PUBLIC + [Scope.INVESTORS]
+    AMBASSADORS = PUBLIC + [Scope.AMBASSADORS]
 
 
 class UserPermissions(object):
@@ -124,13 +115,13 @@ def get_permissions_from_scopes(scopes):
     payment_admin = False
     users = []
     for scope in scopes:
-        if scope == Scope.ADMIN or scope == Scope.ROOT_ADMIN:
+        if scope == Scope.ADMINS or scope == Scope.ROOT_ADMINS:
             admin = True
             continue
-        if scope == Scope.PAYMENT_ADMIN:
+        if scope == Scope.PAYMENT_ADMINS:
             payment_admin = True
         users_re = USERS_REGEX.match(scope)
-        # e.g. {root_org}.users.hosters
+        # e.g. {root_org}.hosters
         if users_re:
             groups = users_re.groups()
             users.append(groups[0])
@@ -144,7 +135,7 @@ def get_permission_strings(scopes):
     if permissions.admin:
         perms.append(PluginRoles.ADMINS)
     if permissions.payment_admin:
-        perms.append(PluginRoles.PAYMENT_ADMIN)
+        perms.append(PluginRoles.PAYMENT_ADMINS)
     for perm in permissions.users:
         perms.append('tff-%s' % perm)
     return perms
