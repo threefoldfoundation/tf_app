@@ -34,10 +34,11 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemb
     FormAcknowledgedCallbackResultTO, MessageCallbackResultTypeTO, TYPE_MESSAGE
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agreements import create_hosting_agreement_pdf
-from plugins.tff_backend.bizz.authentication import Roles
+from plugins.tff_backend.bizz.authentication import Roles, Organization
 from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
+from plugins.tff_backend.bizz.iyo.user import invite_user_to_organization
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.nodes import get_node_status
 from plugins.tff_backend.bizz.odoo import create_odoo_quotation, get_odoo_serial_number
@@ -147,6 +148,7 @@ def _order_node(order_key, email, app_id, steps, retry_count):
         order.put()
         deferred.defer(_create_order_arrival_qr, order_key.id(), _transactional=True)
         deferred.defer(_order_node_iyo_see, app_user, order_key, ipfs_link, _transactional=True)
+        deferred.defer(update_hoster_progress, email, app_id, HosterSteps.FLOW_ADDRESS, _transactional=True)
         if updated_user_data:
             deferred.defer(put_user_data, app_user, updated_user_data, _transactional=True)
 
@@ -319,6 +321,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
 
         # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.HOSTER)
+        deferred.defer(invite_user_to_organization, get_iyo_username(user_detail), Organization.HOSTER)
         deferred.defer(update_hoster_progress, user_detail.email, user_detail.app_id, HosterSteps.FLOW_SIGN)
 
         logging.debug('Sending confirmation message')

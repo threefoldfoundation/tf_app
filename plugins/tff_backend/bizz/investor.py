@@ -21,10 +21,11 @@ import json
 import logging
 from types import NoneType
 
-from google.appengine.api import users
-from google.appengine.ext import deferred, ndb
+from requests.exceptions import HTTPError
 
 from framework.utils import now
+from google.appengine.api import users
+from google.appengine.ext import deferred, ndb
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -37,10 +38,11 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FormAckn
     MessageCallbackResultTypeTO, TYPE_MESSAGE
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agreements import create_token_agreement_pdf
-from plugins.tff_backend.bizz.authentication import Roles
+from plugins.tff_backend.bizz.authentication import Roles, Organization
 from plugins.tff_backend.bizz.hoster import get_publickey_label, _create_error_message
 from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
+from plugins.tff_backend.bizz.iyo.user import invite_user_to_organization
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
@@ -54,7 +56,6 @@ from plugins.tff_backend.to.investor import InvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-from requests.exceptions import HTTPError
 
 
 @returns()
@@ -116,6 +117,7 @@ def _invest(agreement_key, email, app_id, steps, retry_count):
         agreement.put()
         deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, ipfs_link,
                        _transactional=True)
+        deferred.defer(update_investor_progress, email, app_id, InvestorSteps.FLOW_AMOUNT, _transactional=True)
 
     ndb.transaction(trans)
 
@@ -299,6 +301,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
 
         # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.INVESTOR)
+        deferred.defer(invite_user_to_organization, get_iyo_username(user_detail), Organization.INVESTOR)
         deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.PAY)
 
         logging.debug('Sending confirmation message')

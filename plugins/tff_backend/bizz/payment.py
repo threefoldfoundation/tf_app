@@ -62,7 +62,7 @@ def get_token_from_asset_id(asset_id):
 @arguments(app_user=users.User)
 def get_asset_ids(app_user):
     app_id = get_app_id_from_app_user(app_user)
-    if app_id != THREEFOLD_APP_ID:
+    if app_id != THREEFOLD_APP_ID and not DEBUG:
         return []
     tokens = [TOKEN_TFF]
     if app_user:
