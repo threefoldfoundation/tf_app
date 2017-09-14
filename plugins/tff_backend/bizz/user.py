@@ -19,10 +19,11 @@ import hashlib
 import json
 import logging
 
-from framework.bizz.session import create_session
-from framework.plugin_loader import get_config
 from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
+
+from framework.bizz.session import create_session
+from framework.plugin_loader import get_config
 from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
@@ -49,17 +50,19 @@ from plugins.tff_backend.utils.app import create_app_user_by_email
 def user_registered(user_detail, data):
     logging.info('User %s:%s registered', user_detail.email, user_detail.app_id)
     data = json.loads(data)
-    access_token = data.get('result', {}).get('access_token')
-    username = data.get('result', {}).get('info', {}).get('username')
+    access_token_data = data.get('result', {})
+    access_token = access_token_data.get('access_token')
+    username = access_token_data.get('info', {}).get('username')
     if not access_token or not username:
         logging.warn('No access_token/username in %s', data)
         return
-
-    iyo_config = get_config(IYO_AUTH_NAMESPACE)
-
-    logging.debug('Creating JWT')
-    scopes = iyo_config.required_scopes.split(',')
+    scopes = [s for s in access_token_data.get('scope', '').split(',') if s]
+    required_scopes = get_config(IYO_AUTH_NAMESPACE).required_scopes.split(',')
+    missing_scopes = [s for s in required_scopes if s and s not in scopes]
+    if missing_scopes:
+        logging.warn('Access token is missing required scopes %s', missing_scopes)
     scopes.append('offline_access')
+    logging.debug('Creating JWT with scopes %s', scopes)
     jwt = create_jwt(access_token, scope=','.join(scopes))
     decoded_jwt = decode_jwt_cached(jwt)
     logging.debug('Decoded JWT: %s', decoded_jwt)
@@ -67,8 +70,8 @@ def user_registered(user_detail, data):
     # Creation session such that the JWT is automatically up to date
     create_session(username, scopes, jwt, secret=username)
 
-    deferred.defer(invite_user_to_organization, username, Organization.DEFAULT_USER)
-    deferred.defer(add_user_to_role, user_detail, Roles.DEFAULT)
+    deferred.defer(invite_user_to_organization, username, Organization.PUBLIC)
+    deferred.defer(add_user_to_role, user_detail, Roles.PUBLIC)
 
 
 @returns(unicode)

@@ -26,14 +26,14 @@ from plugins.tff_backend.bizz.investor import get_investment_agreements, get_inv
 from plugins.tff_backend.to.investor import InvestmentAgreementListTO, InvestmentAgreementTO
 
 
-@rest('/investment-agreements', 'get', Scopes.ADMIN)
+@rest('/investment-agreements', 'get', Scopes.ADMINS)
 @returns(InvestmentAgreementListTO)
 @arguments(cursor=unicode, status=(int, long))
 def api_get_investment_agreements(cursor=None, status=None):
     return InvestmentAgreementListTO.from_query(*get_investment_agreements(cursor, status))
 
 
-@rest('/investment-agreements/<agreement_id:[^/]+>', 'get', Scopes.ADMIN)
+@rest('/investment-agreements/<agreement_id:[^/]+>', 'get', Scopes.ADMINS)
 @returns(InvestmentAgreementTO)
 @arguments(agreement_id=(int, long))
 def api_get_investment_agreement(agreement_id):

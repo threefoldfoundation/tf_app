@@ -302,7 +302,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
 
         # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.INVESTOR)
-        deferred.defer(invite_user_to_organization, get_iyo_username(user_detail), Organization.INVESTOR)
+        deferred.defer(invite_user_to_organization, get_iyo_username(user_detail), Organization.INVESTORS)
         deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.PAY)
         
         deferred.defer(_inform_support_of_new_investment, agreement.iyo_username, agreement.id, agreement.token_count)

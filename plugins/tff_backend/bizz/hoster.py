@@ -19,9 +19,10 @@ import base64
 import json
 import logging
 
-from framework.utils import now, try_or_defer
 from google.appengine.api import users
 from google.appengine.ext import ndb, deferred
+
+from framework.utils import now, try_or_defer
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -149,6 +150,7 @@ def _order_node(order_key, email, app_id, steps, retry_count):
         deferred.defer(_create_order_arrival_qr, order_key.id(), _transactional=True)
         deferred.defer(_order_node_iyo_see, app_user, order_key, ipfs_link, _transactional=True)
         deferred.defer(update_hoster_progress, email, app_id, HosterSteps.FLOW_ADDRESS, _transactional=True)
+
         if updated_user_data:
             deferred.defer(put_user_data, app_user, updated_user_data, _transactional=True)
 
@@ -320,8 +322,8 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         order.put()
 
         # TODO: send mail to TF support
-        deferred.defer(add_user_to_role, user_detail, Roles.HOSTER)
-        deferred.defer(invite_user_to_organization, get_iyo_username(user_detail), Organization.HOSTER)
+        deferred.defer(add_user_to_role, user_detail, Roles.HOSTERS)
+        deferred.defer(invite_user_to_organization, get_iyo_username(user_detail), Organization.HOSTERS)
         deferred.defer(update_hoster_progress, user_detail.email, user_detail.app_id, HosterSteps.FLOW_SIGN)
 
         logging.debug('Sending confirmation message')
