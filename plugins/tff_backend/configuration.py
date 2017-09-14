@@ -15,7 +15,7 @@
 #
 # @@license_version:1.3@@
 
-from mcfw.properties import unicode_property, typed_property, long_property
+from mcfw.properties import unicode_property, typed_property, long_property, unicode_list_property
 
 
 class RogerthatConfiguration(object):
@@ -49,6 +49,10 @@ class OdooConfiguration(object):
 class OrchestatorConfiguration(object):
     jwt = unicode_property('1')
     
+    
+class InvestorConfiguration(object):
+    support_emails = unicode_list_property('1')
+    
 
 class TffConfiguration(object):
     rogerthat = typed_property('1', RogerthatConfiguration, False)
@@ -56,3 +60,4 @@ class TffConfiguration(object):
     ledger = typed_property('3', LedgerConfiguration, False)
     odoo = typed_property('4', OdooConfiguration, False)
     orchestator = typed_property('5', OrchestatorConfiguration, False)
+    investor = orchestator = typed_property('6', InvestorConfiguration, False)

@@ -23,8 +23,9 @@ from types import NoneType
 
 from requests.exceptions import HTTPError
 
+from framework.plugin_loader import get_config
 from framework.utils import now
-from google.appengine.api import users
+from google.appengine.api import users, mail
 from google.appengine.ext import deferred, ndb
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
@@ -51,7 +52,7 @@ from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.consts.payment import TOKEN_TYPE_B
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID, FULL_CURRENCY_NAMES, \
-    CURRENCY_RATES
+    CURRENCY_RATES, NAMESPACE
 from plugins.tff_backend.to.investor import InvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step
@@ -303,6 +304,8 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         deferred.defer(add_user_to_role, user_detail, Roles.INVESTOR)
         deferred.defer(invite_user_to_organization, get_iyo_username(user_detail), Organization.INVESTOR)
         deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.PAY)
+        
+        deferred.defer(_inform_support_of_new_investment, agreement.iyo_username, agreement.id, agreement.token_count)
 
         logging.debug('Sending confirmation message')
         message = MessageCallbackResultTypeTO()
@@ -384,3 +387,23 @@ def put_investment_agreement(agreement_id, agreement, admin_user):
         deferred.defer(_send_ito_agreement_to_admin, agreement_model.key, admin_app_user)
     agreement_model.put()
     return agreement_model
+
+
+def _inform_support_of_new_investment(iyo_username, agreement_id, token_count):
+    cfg = get_config(NAMESPACE)
+
+    subject = "New investment agreement signed"
+    body = """Hello,
+
+We just received a new investment from %(iyo_username)s with id %(agreement_id)s for %(token_count)s tokens
+
+Please visit https://tff-backend.appspot.com/investment-agreements to find more details, and collect all the money!
+""" % {"iyo_username": iyo_username,
+       "agreement_id": agreement_id,
+       "token_count": token_count}
+
+    for email in cfg.investor.support_emails:
+        mail.send_mail(sender="no-reply@tff-backend.appspotmail.com",
+                       to=email,
+                       subject=subject,
+                       body=body)
