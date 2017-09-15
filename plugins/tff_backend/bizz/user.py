@@ -153,7 +153,7 @@ def store_iyo_info_in_userdata(username, user_detail):
     api_key = get_rogerthat_api_key()
     user_data_keys = ['name', 'email', 'phone', 'address']
     current_user_data = system.get_user_data(api_key, user_detail.email, user_detail.app_id, user_data_keys)
-    
+
     user_data = dict()
     if not current_user_data.get('name') and iyo_user.firstname and iyo_user.lastname:
         user_data['name'] = u'%s %s' % (iyo_user.firstname, iyo_user.lastname)
@@ -170,7 +170,7 @@ def store_iyo_info_in_userdata(username, user_detail):
         user_data['address'] += u'\n%s' % iyo_user.addresses[0].country
         if iyo_user.addresses[0].other:
             user_data['address'] += u'\n\n%s' % iyo_user.addresses[0].other
-    
+
     if user_data:
         system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
 

@@ -18,14 +18,15 @@
 import logging
 import xmlrpclib
 
-import erppeek
-
-from framework.plugin_loader import get_config
 from google.appengine.api import urlfetch
+
+import erppeek
+from framework.plugin_loader import get_config
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
-# GAEXMLRPCTransport is copied from http://brizzled.clapper.org/blog/2008/08/25/making-xmlrpc-calls-from-a-google-app-engine-application/
+# GAEXMLRPCTransport is copied from
+# http://brizzled.clapper.org/blog/2008/08/25/making-xmlrpc-calls-from-a-google-app-engine-application/
 class GAEXMLRPCTransport(object):
     """Handles an HTTP transaction to an XML-RPC server."""
 
@@ -61,16 +62,16 @@ class GAEXMLRPCTransport(object):
         p, u = xmlrpclib.getparser(use_datetime=False)
         p.feed(response_body)
         return u.close()
-    
 
 
 def _get_erp_client(cfg):
-    return erppeek.Client(cfg.odoo.url, cfg.odoo.database, cfg.odoo.username, cfg.odoo.password, transport=GAEXMLRPCTransport())
+    return erppeek.Client(cfg.odoo.url, cfg.odoo.database, cfg.odoo.username, cfg.odoo.password,
+                          transport=GAEXMLRPCTransport())
 
 
 def _save_customer(cfg, erp_client, customer):
     res_partner_model = erp_client.model('res.partner')
-    
+
     contact = {
         'type': u'contact',
         'name': customer['billing']['name'],
@@ -80,10 +81,10 @@ def _save_customer(cfg, erp_client, customer):
     }
     partner_contact = res_partner_model.create(contact)
     logging.debug("Created res.partner (contact) with id %s", partner_contact.id)
-        
+
     if not customer['shipping']:
         return partner_contact.id, None
-    
+
     delivery = {
         'parent_id': partner_contact.id,
         'type': u'delivery',
@@ -92,17 +93,17 @@ def _save_customer(cfg, erp_client, customer):
         'phone': customer['shipping']['phone'],
         'street': customer['shipping']['address']
     }
-    
+
     partner_delivery = res_partner_model.create(delivery)
     logging.debug("Created res.partner (delivery) with id %s", partner_delivery.id)
-        
+
     return partner_contact.id, partner_delivery.id
 
 
 def _save_quotation(cfg, erp_client, billing_id, shipping_id):
     sale_order_model = erp_client.model('sale.order')
     sale_order_line_model = erp_client.model('sale.order.line')
-    
+
     order_data = {
         'partner_id': billing_id,
         'partner_shipping_id': shipping_id or billing_id,
@@ -110,10 +111,10 @@ def _save_quotation(cfg, erp_client, billing_id, shipping_id):
         'incoterm': cfg.odoo.incoterm,
         'payment_term': cfg.odoo.payment_term
     }
-    
+
     order = sale_order_model.create(order_data)
     logging.debug("Created sale.order with id %s", order.id)
-    
+
     order_line_data = {
         'order_id': order.id,
         'order_partner_id': billing_id,
@@ -122,17 +123,17 @@ def _save_quotation(cfg, erp_client, billing_id, shipping_id):
         'product_id': cfg.odoo.product_id,
         'state': 'draft'
     }
-    
+
     sale_order_line = sale_order_line_model.create(order_line_data)
     logging.debug("Created sale.order.line with id %s", sale_order_line.id)
-    
-    return order.id,  order.name
-       
-    
+
+    return order.id, order.name
+
+
 def create_odoo_quotation(billing_info, shipping_info):
     cfg = get_config(NAMESPACE)
     erp_client = _get_erp_client(cfg)
-    
+
     customer = {
         'billing': {
             'name': billing_info.name,
@@ -149,20 +150,20 @@ def create_odoo_quotation(billing_info, shipping_info):
             'phone': shipping_info.phone,
             'address': shipping_info.address
         }
-    
+
     billing_id, shipping_id = _save_customer(cfg, erp_client, customer)
     return _save_quotation(cfg, erp_client, billing_id, shipping_id)
-    
+
 
 def get_odoo_serial_number(order_id):
     cfg = get_config(NAMESPACE)
     erp_client = _get_erp_client(cfg)
-    
+
     sale_order_model = erp_client.model('sale.order')
     stock_picking_model = erp_client.model('stock.picking')
     stock_move_model = erp_client.model('stock.move')
     stock_production_lot_model = erp_client.model('stock.production.lot')
-    
+
     sale_order = sale_order_model.browse(order_id)
     for picking_id in sale_order.picking_ids.id:
         stock_picking = stock_picking_model.browse(picking_id)

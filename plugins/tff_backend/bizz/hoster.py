@@ -80,7 +80,7 @@ def _order_node(order_key, email, app_id, steps, retry_count):
                                    email=user_data['email'],
                                    phone=user_data['phone'],
                                    address=user_data['billing_address'] or user_data['address'])
-        
+
         if user_data['shipping_name']:
             shipping_info = ContactInfo(name=user_data['shipping_name'],
                                         email=user_data['shipping_email'],
@@ -101,12 +101,12 @@ def _order_node(order_key, email, app_id, steps, retry_count):
             'phone': phone,
             'billing_address': billing_address,
         }
-        
+
         billing_info = ContactInfo(name=name,
                                    email=email,
                                    phone=phone,
                                    address=billing_address)
-        
+
         same_shipping_info_step = get_step(steps, 'message_choose_shipping_info')
         if same_shipping_info_step and same_shipping_info_step.answer_id == u"button_yes":
             shipping_info = None
@@ -121,7 +121,7 @@ def _order_node(order_key, email, app_id, steps, retry_count):
                 'shipping_phone': shipping_phone,
                 'shipping_address': shipping_address,
             })
-            
+
             shipping_info = ContactInfo(name=shipping_name,
                                         email=shipping_email,
                                         phone=shipping_phone,
@@ -184,21 +184,22 @@ def _order_node_iyo_see(app_user, order_key, ipfs_link):
                        _transactional=True)
 
     ndb.transaction(trans)
-    
+
+
 @returns()
 @arguments(app_user=users.User, order_id=(int, long), ipfs_link=unicode, attachment_name=unicode)
 def _create_quotation(app_user, order_id, ipfs_link, attachment_name):
     def trans():
         order = NodeOrder.get_by_id(order_id)
-        
+
         odoo_sale_order_id, odoo_sale_order_name = create_odoo_quotation(order.billing_info, order.shipping_info)
 
         order.odoo_sale_order_id = odoo_sale_order_id
         order.put()
-        
+
         deferred.defer(_send_order_node_sign_message, app_user, order_id, ipfs_link, attachment_name,
                        odoo_sale_order_name, _transactional=True)
-    
+
     ndb.transaction(trans)
 
 
@@ -224,8 +225,7 @@ def _send_order_node_sign_message(app_user, order_id, ipfs_link, attachment_name
     attachment.content_type = u'application/pdf'
     attachment.download_url = ipfs_link
     attachment.name = attachment_name
-    
-    
+
     message = u"""Order %(order_name)s Received
 
 Thank you for your order.
@@ -238,7 +238,7 @@ For the attention of Green IT Globe Holdings FZC, a company incorporated under t
 Please use the SO number as reference.
 
 Please review the terms and conditions and press the "Sign" button to accept.
-""" % {"order_name": order_name}
+""" % {"order_name": order_name}  # noQA
 
     member_user, app_id = get_app_user_tuple(app_user)
     messaging.send_form(api_key=get_rogerthat_api_key(),
@@ -479,13 +479,13 @@ def check_if_node_comes_online(order_id):
         logging.warn("check_if_node_comes_online failed odoo quotation was not found")
         deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
         return
-    
+
     serial_number = get_odoo_serial_number(order.odoo_sale_order_id)
     if not serial_number:
         logging.warn("check_if_node_comes_online failed odoo serial_number was not found")
         deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
         return
-    
+
     status = get_node_status(serial_number)
     if status and status == u"running":
         human_user, app_id = get_app_user_tuple(order.app_user)

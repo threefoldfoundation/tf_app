@@ -28,18 +28,18 @@ class RogerthatConfiguration(object):
 class IPFSConfiguration(object):
     secret = unicode_property('1')
 
-    
+
 class LedgerConfiguration(object):
     url = unicode_property('1')
     secret = unicode_property('1')
-    
-    
+
+
 class OdooConfiguration(object):
     url = unicode_property('1')
     database = unicode_property('2')
     username = unicode_property('3')
     password = unicode_property('4')
-    
+
     incoterm = long_property('5')
     payment_term = long_property('6')
     product_id = long_property('7')
@@ -48,11 +48,11 @@ class OdooConfiguration(object):
 
 class OrchestatorConfiguration(object):
     jwt = unicode_property('1')
-    
-    
+
+
 class InvestorConfiguration(object):
     support_emails = unicode_list_property('1')
-    
+
 
 class TffConfiguration(object):
     rogerthat = typed_property('1', RogerthatConfiguration, False)

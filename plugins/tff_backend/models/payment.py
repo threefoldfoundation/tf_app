@@ -147,7 +147,7 @@ class ThreeFoldPendingTransaction(ndb.Model):
     def count_pending(cls):
         return cls.query() \
             .filter(ThreeFoldPendingTransaction.synced == False) \
-            .count(None) # NOQA
+            .count(None)  # NOQA
 
     @classmethod
     def list_by_user(cls, app_user, token):
@@ -155,4 +155,4 @@ class ThreeFoldPendingTransaction(ndb.Model):
             .filter(ThreeFoldPendingTransaction.synced == False) \
             .filter(ThreeFoldPendingTransaction.app_users == app_user) \
             .filter(ThreeFoldPendingTransaction.token == token) \
-            .order(-ThreeFoldPendingTransaction.timestamp) # NOQA
+            .order(-ThreeFoldPendingTransaction.timestamp)  # NOQA

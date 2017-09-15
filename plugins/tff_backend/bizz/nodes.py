@@ -18,8 +18,9 @@
 import json
 import logging
 
-from framework.plugin_loader import get_config
 from google.appengine.api import urlfetch
+
+from framework.plugin_loader import get_config
 from plugins.its_you_online_auth.bizz.authentication import refresh_jwt
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
@@ -31,12 +32,12 @@ def get_node_status(node_id):
     except Exception:
         logging.warn("get_node_status failed to refresh jwt", exc_info=True)
         return None
-    
+
     headers = {}
     headers['Authorization'] = u"Bearer %s" % jwt
     result = urlfetch.fetch(url=u"https://orc.threefoldtoken.com/nodes/%s" % node_id, headers=headers, deadline=10)
     if result.status_code != 200:
         logging.warn("get_node_status returned status code %s for node_id '%s'", result.status_code, node_id)
         return None
-    
+
     return json.loads(result.content)['status']

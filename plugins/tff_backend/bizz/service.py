@@ -44,7 +44,7 @@ def add_user_to_role(user_detail, role_name):
     member.member = user_detail.email
     member.app_id = user_detail.app_id
     system.add_role_member(api_key, role_id, member)
-    
+
 
 @returns()
 @arguments(user_detail=UserDetailsTO, role_name=unicode)

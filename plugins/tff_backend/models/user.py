@@ -24,7 +24,7 @@ from plugins.tff_backend.plugin_consts import NAMESPACE
 class TffProfile(NdbModel):
     NAMESPACE = NAMESPACE
     app_user = ndb.UserProperty()
-    
+
     referrer_user = ndb.UserProperty()
     referrer_username = ndb.StringProperty()
 

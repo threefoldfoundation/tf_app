@@ -133,7 +133,7 @@ def api_get_transactions(asset_id, transaction_type, cursor=None):
 @arguments(data=PaymentProviderTransactionTO)
 def api_create_transaction(data):
     to = CreateTransactionResponseTO()
-    
+
     if data.id is MISSING or data.amount is MISSING or data.from_asset_id is MISSING or data.to_asset_id is MISSING:
         to.status = ThreeFoldPendingTransaction.STATUS_FAILED
         return to

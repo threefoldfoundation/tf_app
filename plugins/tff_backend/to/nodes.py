@@ -20,7 +20,7 @@ from google.appengine.ext import ndb
 
 from framework.to import TO
 from mcfw.properties import long_property, unicode_property, typed_property
-from plugins.tff_backend.models.hoster import NodeOrder
+from plugins.tff_backend.models.hoster import NodeOrder  # noQA
 from plugins.tff_backend.to import PaginatedResultTO
 
 

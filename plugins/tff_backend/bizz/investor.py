@@ -21,12 +21,11 @@ import json
 import logging
 from types import NoneType
 
-from requests.exceptions import HTTPError
+from google.appengine.api import users, mail
+from google.appengine.ext import deferred, ndb
 
 from framework.plugin_loader import get_config
 from framework.utils import now
-from google.appengine.api import users, mail
-from google.appengine.ext import deferred, ndb
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -57,6 +56,7 @@ from plugins.tff_backend.to.investor import InvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+from requests.exceptions import HTTPError
 
 
 @returns()
@@ -304,7 +304,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         deferred.defer(add_user_to_role, user_detail, Roles.INVESTOR)
         deferred.defer(invite_user_to_organization, get_iyo_username(user_detail), Organization.INVESTORS)
         deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.PAY)
-        
+
         deferred.defer(_inform_support_of_new_investment, agreement.iyo_username, agreement.id, agreement.token_count)
 
         logging.debug('Sending confirmation message')
