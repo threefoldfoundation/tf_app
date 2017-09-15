@@ -26,7 +26,7 @@ from plugins.tff_backend import rogerthat_callbacks
 from plugins.tff_backend.api import investor, payment, nodes, global_stats
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings
 from plugins.tff_backend.configuration import TffConfiguration
-from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler
+from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, BackupHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 
 
@@ -56,8 +56,9 @@ class TffBackendPlugin(BrandingPlugin):
         for url, handler in rest_functions(payment, authentication=NOT_AUTHENTICATED):
             yield Handler(url=url, handler=handler)
         if auth == Handler.AUTH_ADMIN:
-            yield Handler(url='/admin/cron/tff_backend/rebuild_synced_roles', handler=RebuildSyncedRolesHandler)
             yield Handler(url='/admin/cron/tff_backend/payment/sync', handler=PaymentSyncHandler)
+            yield Handler(url='/admin/cron/tff_backend/backup', handler=BackupHandler)
+            yield Handler(url='/admin/cron/tff_backend/rebuild_synced_roles', handler=RebuildSyncedRolesHandler)
 
     def get_client_routes(self):
         return ['/orders<route:.*>', '/investment-agreements<route:.*>', '/global-stats<route:.*>']
