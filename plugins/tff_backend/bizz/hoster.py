@@ -66,16 +66,16 @@ def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
     deferred.defer(_order_node, order_key, user_details[0].email, user_details[0].app_id, steps, 0)
 
 
-def _order_node(order_key, email, app_id, steps, retry_count):
+def _order_node(order_key, user_email, app_id, steps, retry_count):
     logging.info('Receiving order of Zero-Node')
-    app_user = create_app_user_by_email(email, app_id)
+    app_user = create_app_user_by_email(user_email, app_id)
 
     overview_step = get_step(steps, 'message_overview')
     if overview_step and overview_step.answer_id == u"button_use":
         api_key = get_rogerthat_api_key()
         user_data_keys = ['name', 'email', 'phone', 'billing_address', 'address', 'shipping_name', 'shipping_email',
                           'shipping_phone', 'shipping_address']
-        user_data = system.get_user_data(api_key, email, app_id, user_data_keys)
+        user_data = system.get_user_data(api_key, user_email, app_id, user_data_keys)
         billing_info = ContactInfo(name=user_data['name'],
                                    email=user_data['email'],
                                    phone=user_data['phone'],
@@ -129,11 +129,11 @@ def _order_node(order_key, email, app_id, steps, retry_count):
 
     logging.debug('Creating Hosting agreement')
     pdf_name = 'node_%s.pdf' % order_key.id()
-    pdf_contents = create_hosting_agreement_pdf(name, billing_address)
+    pdf_contents = create_hosting_agreement_pdf(billing_info.name, billing_address)
     ipfs_link = store_pdf(pdf_name, pdf_contents)
     if not ipfs_link:
         logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
-        deferred.defer(_order_node, order_key, email, app_id, steps, retry_count + 1, _countdown=retry_count)
+        deferred.defer(_order_node, order_key, user_email, app_id, steps, retry_count + 1, _countdown=retry_count)
         return
 
     logging.debug('Storing order in the database')
@@ -149,7 +149,7 @@ def _order_node(order_key, email, app_id, steps, retry_count):
         order.put()
         deferred.defer(_create_order_arrival_qr, order_key.id(), _transactional=True)
         deferred.defer(_order_node_iyo_see, app_user, order_key, ipfs_link, _transactional=True)
-        deferred.defer(update_hoster_progress, email, app_id, HosterSteps.FLOW_ADDRESS, _transactional=True)
+        deferred.defer(update_hoster_progress, user_email, app_id, HosterSteps.FLOW_ADDRESS, _transactional=True)
 
         if updated_user_data:
             deferred.defer(put_user_data, app_user, updated_user_data, _transactional=True)
