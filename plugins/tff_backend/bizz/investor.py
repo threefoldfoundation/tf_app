@@ -51,7 +51,7 @@ from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.consts.payment import TOKEN_TYPE_B, TOKEN_TFT
-from plugins.tff_backend.models.global_stats import GlobalStats, CurrencyValue
+from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID, NAMESPACE, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES

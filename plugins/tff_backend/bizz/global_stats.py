@@ -26,7 +26,7 @@ from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import parse_complex_value
 from plugins.tff_backend.models.global_stats import GlobalStats, CurrencyValue
 from plugins.tff_backend.plugin_consts import SUPPORTED_CURRENCIES
-from plugins.tff_backend.to.global_stats import GlobalStatsTO, YahooFinanceCurrencyResultTO, CurrencyValueTO, \
+from plugins.tff_backend.to.global_stats import GlobalStatsTO, YahooFinanceCurrencyResultTO, \
     YahooFinanceCurrencyConversionTO
 
 

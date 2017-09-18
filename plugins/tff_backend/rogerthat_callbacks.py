@@ -34,8 +34,8 @@ from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, a
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed, node_arrived
-from plugins.tff_backend.bizz.investor import invest, investment_agreement_signed, investment_agreement_signed_by_admin, \
-    invest_complete
+from plugins.tff_backend.bizz.investor import invest, investment_agreement_signed, \
+    investment_agreement_signed_by_admin, invest_complete
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_info_in_userdata, \
     is_user_in_roles

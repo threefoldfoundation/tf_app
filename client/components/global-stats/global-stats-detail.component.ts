@@ -14,7 +14,6 @@ import * as _ from 'lodash';
 export class GlobalStatsDetailComponent {
   @Output() onSave = new EventEmitter<GlobalStats>();
 
-  private _globalStats: GlobalStats;
 
   get globalStats() {
     return this._globalStats;
@@ -22,12 +21,15 @@ export class GlobalStatsDetailComponent {
 
   @Input() status: ApiRequestStatus;
   @Input() updateStatus: ApiRequestStatus;
-  newCurrency: string;
 
   @Input()
   set globalStats(value: GlobalStats) {
     this._globalStats = _.cloneDeep<GlobalStats>(value);
   }
+
+  newCurrency: string;
+
+  private _globalStats: GlobalStats;
 
   addCurrency() {
     if (this.globalStats.currencies.every(c => c.currency !== this.newCurrency)) {

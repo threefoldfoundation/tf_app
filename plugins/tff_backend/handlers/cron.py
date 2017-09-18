@@ -15,13 +15,15 @@
 #
 # @@license_version:1.3@@
 
+import webapp2
 from google.appengine.api import taskqueue
 from google.appengine.ext import deferred
+
 from plugins.rogerthat_api.api import friends
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.global_stats import update_currencies
 from plugins.tff_backend.bizz.payment import sync_transactions, sync_wallets
-import webapp2
+
 
 class PaymentSyncHandler(webapp2.RequestHandler):
     def get(self):
