@@ -22,21 +22,9 @@ KEY_ALGORITHM = u'ed25519'
 KEY_NAME = u'threefold'
 
 THREEFOLD_APP_ID = u'em-be-threefold-token'
-FULL_CURRENCY_NAMES = {
-    'USD': 'dollar',
-    'EUR': 'euro',
-    'YEN': 'yen',
-    'UAE': 'dirham',
-    'GBP': 'pound',
-    'BTC': 'bitcoin',
-}
-CURRENCY_RATES = {
-    'USD': 5.0,
-    'EUR': 4.2,
-    'YEN': 543.6,
-    'UAE': 18.6,
-    'GBP': 3.83,
-    'BTC': .0011,
-}
+
 SUPPORTED_CRYPTO_CURRENCIES = {'BTC'}
+CRYPTO_CURRENCY_NAMES = {
+    'BTC': 'Bitcoin'
+}
 SUPPORTED_CURRENCIES = list_currencies() | SUPPORTED_CRYPTO_CURRENCIES

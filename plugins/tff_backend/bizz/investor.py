@@ -53,7 +53,8 @@ from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.consts.payment import TOKEN_TYPE_B, TOKEN_TFT
 from plugins.tff_backend.models.global_stats import GlobalStats, CurrencyValue
 from plugins.tff_backend.models.investor import InvestmentAgreement
-from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID, NAMESPACE
+from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID, NAMESPACE, \
+    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES
 from plugins.tff_backend.to.investor import InvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step
@@ -96,43 +97,31 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
                                         address=billing_address,
                                         status=InvestmentAgreement.STATUS_CREATED)
         agreement.put()
-        answer_yes = AnswerTO()
-        answer_yes.type = u'button'
-        answer_yes.action = None
-        answer_yes.id = u'confirm'
-        answer_yes.caption = u'Confirm'
-        answer_yes.color = u'84B53F'
-        answer_yes.ui_flags = 0
-        answer_no = AnswerTO()
-        answer_no.type = u'button'
-        answer_no.action = None
-        answer_no.id = u'cancel'
-        answer_no.caption = u'Cancel'
-        answer_no.ui_flags = 0
-        answer_no.color = u'989898'
+        answer_yes = AnswerTO(type=u'button', action=None, id=u'confirm', caption=u'Confirm', ui_flags=0, color=None)
+        answer_no = AnswerTO(type=u'button', action=None, id=u'cancel', caption=u'Cancel', ui_flags=0, color=None)
         answers = [answer_yes, answer_no]
 
-        message = MessageCallbackResultTypeTO()
-        message.alert_flags = Message.ALERT_FLAG_SILENT
-        message.answers = answers
-        message.branding = get_main_branding_hash()
-        message.dismiss_button_ui_flags = 0
-        message.flags = Message.FLAG_AUTO_LOCK
-        message.step_id = u'confirm_investment'
         params = {
             'token_count': token_count,
             'amount': amount,
             'currency': currency,
             'per_token': get_investment_amount(currency, 1)
         }
-        message.message = u'We are ready to process your purchase. Is the following information correct?\n\n' \
-                          u'You would like to buy %(token_count)s Threefold Tokens for a total amount of' \
-                          u' **%(amount)s %(currency)s** (%(per_token)s %(currency)s per token).\n\n' \
-                          u'After confirming, you will receive your personalised investment agreement.' % params
-        message.tag = json.dumps({'__rt__.tag': 'invest_complete', 'investment_id': agreement.id}).decode('utf-8')
+        msg = u'We are ready to process your purchase. Is the following information correct?\n\n' \
+              u'You would like to buy %(token_count)s Threefold Tokens for a total amount of' \
+              u' **%(amount)s %(currency)s** (%(per_token)s %(currency)s per token).\n\n' \
+              u'After confirming, you will receive your personalised investment agreement.' % params
+        tag = json.dumps({'__rt__.tag': 'invest_complete', 'investment_id': agreement.id}).decode('utf-8')
+        message = MessageCallbackResultTypeTO(alert_flags=Message.ALERT_FLAG_SILENT,
+                                              answers=answers,
+                                              branding=get_main_branding_hash(),
+                                              dismiss_button_ui_flags=0,
+                                              flags=Message.FLAG_AUTO_LOCK,
+                                              step_id=u'confirm_investment',
+                                              message=msg,
+                                              tag=tag)
 
-        result = FlowMemberResultCallbackResultTO()
-        result.type = TYPE_MESSAGE
+        result = FlowMemberResultCallbackResultTO(type=TYPE_MESSAGE)
         result.value = message
         return result
     except Exception as e:
@@ -166,13 +155,19 @@ def invest_complete(status, answer_id, received_timestamp, member, message_key, 
         deferred.defer(_invest, agreement_key, email, app_id, 0)
 
 
+def _get_currency_name(currency):
+    if currency in SUPPORTED_CRYPTO_CURRENCIES:
+        return CRYPTO_CURRENCY_NAMES[currency]
+    return get_currency_name(currency, locale='en_GB')
+
+
 def _invest(agreement_key, email, app_id, retry_count):
     app_user = create_app_user_by_email(email, app_id)
     logging.debug('Creating Token agreement')
     agreement = agreement_key.get()
     if not agreement:
         raise BusinessException('Cannot find investment agreement with key %s' % agreement_key)
-    currency_full = get_currency_name(agreement.currency, locale='en_GB')
+    currency_full = _get_currency_name(agreement.currency)
     pdf_name = 'token_%s.pdf' % agreement_key.id()
     pdf_contents = create_token_agreement_pdf(agreement.name, agreement.address, agreement.amount, currency_full,
                                               agreement.currency)
