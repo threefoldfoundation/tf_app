@@ -14,27 +14,27 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
+from framework.to import TO
 from mcfw.properties import unicode_property, typed_property, long_property, unicode_list_property
 
 
-class RogerthatConfiguration(object):
+class RogerthatConfiguration(TO):
     api_key = unicode_property('1')
     sik = unicode_property('2')
     url = unicode_property('3')
     payment_secret = unicode_property('4')
 
 
-class IPFSConfiguration(object):
+class IPFSConfiguration(TO):
     secret = unicode_property('1')
 
 
-class LedgerConfiguration(object):
+class LedgerConfiguration(TO):
     url = unicode_property('1')
     secret = unicode_property('1')
 
 
-class OdooConfiguration(object):
+class OdooConfiguration(TO):
     url = unicode_property('1')
     database = unicode_property('2')
     username = unicode_property('3')
@@ -46,18 +46,18 @@ class OdooConfiguration(object):
     stock_id = long_property('8')
 
 
-class OrchestatorConfiguration(object):
+class OrchestatorConfiguration(TO):
     jwt = unicode_property('1')
 
 
-class InvestorConfiguration(object):
+class InvestorConfiguration(TO):
     support_emails = unicode_list_property('1')
 
 
-class TffConfiguration(object):
+class TffConfiguration(TO):
     rogerthat = typed_property('1', RogerthatConfiguration, False)
     ipfs = typed_property('2', IPFSConfiguration, False)
     ledger = typed_property('3', LedgerConfiguration, False)
     odoo = typed_property('4', OdooConfiguration, False)
     orchestator = typed_property('5', OrchestatorConfiguration, False)
-    investor = orchestator = typed_property('6', InvestorConfiguration, False)
+    investor = typed_property('6', InvestorConfiguration, False)

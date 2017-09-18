@@ -126,20 +126,20 @@ export function tffReducer(state: ITffState = initialTffState,
     case actions.TffActionTypes.GET_GLOBAL_STATS:
       return Object.assign({}, state, {
         globalStats: initialTffState.globalStats,
-        globalStatsListStatus: apiRequestLoading,
+        globalStatsStatus: apiRequestLoading,
       });
     case actions.TffActionTypes.GET_GLOBAL_STATS_COMPLETE:
       return Object.assign({}, state, {
         globalStats: action.payload,
-        globalStatsListStatus: apiRequestSuccess,
+        globalStatsStatus: apiRequestSuccess,
       });
     case actions.TffActionTypes.GET_GLOBAL_STATS_FAILED:
       return Object.assign({}, state, {
-        globalStatsListStatus: action.payload,
+        globalStatsStatus: action.payload,
       });
     case actions.TffActionTypes.UPDATE_GLOBAL_STATS:
       return Object.assign({}, state, {
-        updateGlobalStatsListStatus: apiRequestLoading,
+        updateGlobalStatsStatus: apiRequestLoading,
       });
     case actions.TffActionTypes.UPDATE_GLOBAL_STATS_COMPLETE:
       const updateStatsAction = (<UpdateGlobalStatsCompleteAction>action).payload;
@@ -149,11 +149,11 @@ export function tffReducer(state: ITffState = initialTffState,
           ...state.globalStatsList.filter(gs => gs.id !== updateStatsAction.id),
           updateStatsAction
         ] : [],
-        updateGlobalStatsListStatus: apiRequestSuccess,
+        updateGlobalStatsStatus: apiRequestSuccess,
       });
     case actions.TffActionTypes.UPDATE_GLOBAL_STATS_FAILED:
       return Object.assign({}, state, {
-        updateGlobalStatsListStatus: action.payload,
+        updateGlobalStatsStatus: action.payload,
       });
     default:
       return state;

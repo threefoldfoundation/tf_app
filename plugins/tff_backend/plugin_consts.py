@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+from babel.numbers import list_currencies
 
 NAMESPACE = u'tff_backend'
 
@@ -37,3 +38,5 @@ CURRENCY_RATES = {
     'GBP': 3.83,
     'BTC': .0011,
 }
+SUPPORTED_CRYPTO_CURRENCIES = {'BTC'}
+SUPPORTED_CURRENCIES = list_currencies() | SUPPORTED_CRYPTO_CURRENCIES

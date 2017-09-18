@@ -27,14 +27,15 @@ from plugins.rogerthat_api.to.messaging import Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import FormResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
-    FormAcknowledgedCallbackResultTO, SendApiCallCallbackResultTO
+    FormAcknowledgedCallbackResultTO, SendApiCallCallbackResultTO, MessageAcknowledgedCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.api.rogerthat.global_stats import api_list_global_stats
 from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, api_iyo_see_detail
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed, node_arrived
-from plugins.tff_backend.bizz.investor import invest, investment_agreement_signed, investment_agreement_signed_by_admin
+from plugins.tff_backend.bizz.investor import invest, investment_agreement_signed, investment_agreement_signed_by_admin, \
+    invest_complete
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_info_in_userdata, \
     is_user_in_roles
@@ -46,6 +47,7 @@ TAG_MAPPING = {
     'sign_order_node_tos': order_node_signed,
     'node_arrival': node_arrived,
     'invest': invest,
+    'invest_complete': invest_complete,
     'sign_investment_agreement': investment_agreement_signed,
     'sign_investment_agreement_admin': investment_agreement_signed_by_admin,
 }
@@ -97,6 +99,21 @@ def form_update(rt_settings, request_id, status, form_result, answer_id, member,
     result = f(status, form_result, answer_id, member, message_key, tag, received_timestamp, acked_timestamp,
                parent_message_key, result_key, service_identity, user_details)
     return result and serialize_complex_value(result, FormAcknowledgedCallbackResultTO, False, skip_missing=True)
+
+
+def messaging_update(rt_settings, request_id, status, answer_id, received_timestamp, member, message_key, tag,
+                     acked_timestamp, parent_message_key, service_identity, user_details, **kwargs):
+    if not is_flag_set(Message.STATUS_ACKED, status):
+        return None
+
+    user_details = log_and_parse_user_details(user_details)
+    f = TAG_MAPPING.get(parse_to_human_readable_tag(tag))
+    if not f:
+        return None
+
+    result = f(status, answer_id, received_timestamp, member, message_key, tag, acked_timestamp, parent_message_key,
+               service_identity, user_details)
+    return result and serialize_complex_value(result, MessageAcknowledgedCallbackResultTO, False, skip_missing=True)
 
 
 def friend_register(rt_settings, request_id, params, response):

@@ -19,6 +19,7 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import deferred
 from plugins.rogerthat_api.api import friends
 from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz.global_stats import update_currencies
 from plugins.tff_backend.bizz.payment import sync_transactions, sync_wallets
 import webapp2
 
@@ -31,15 +32,15 @@ class PaymentSyncHandler(webapp2.RequestHandler):
 class BackupHandler(webapp2.RequestHandler):
     def get(self):
         models_to_backup = []
-        
+
         # intercom_support
         models_to_backup.extend(['IntercomConversation',
                                  'RogerthatConversation'])
-        
+
         # its_tyo_online_auth
         models_to_backup.extend(['Profile',
                                  'Session'])
-        
+
         # tff_backend
         models_to_backup.extend(['GlobalStats',
                                  'NodeOrder',
@@ -51,7 +52,7 @@ class BackupHandler(webapp2.RequestHandler):
                                  'ThreeFoldTransaction',
                                  'ThreeFoldPendingTransaction'
                                  ])
-        
+
         for model_to_backup in models_to_backup:
             taskqueue.add(
                 url='/_ah/datastore_admin/backup.create',
@@ -70,3 +71,8 @@ class RebuildSyncedRolesHandler(webapp2.RequestHandler):
     def get(self):
         api_key = get_rogerthat_api_key()
         friends.rebuild_synced_roles(api_key, members=[], service_identities=[])
+
+
+class UpdateGlobalStatsHandler(webapp2.RequestHandler):
+    def get(self):
+        deferred.defer(update_currencies)

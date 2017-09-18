@@ -2,7 +2,15 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MdButtonModule, MdIconModule, MdInputModule, MdListModule, MdSelectModule } from '@angular/material';
+import {
+  MdButtonModule,
+  MdChipsModule,
+  MdIconModule,
+  MdInputModule,
+  MdListModule, MdProgressSpinnerModule,
+  MdSelectModule,
+  MdSlideToggleModule
+} from '@angular/material';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
@@ -17,7 +25,7 @@ import { TffRoutes } from './tff.routes';
 import './operators';
 
 const MATERIAL_IMPORTS = [
-  MdButtonModule, MdInputModule, MdListModule, MdIconModule, MdSelectModule
+  MdButtonModule, MdInputModule, MdListModule, MdIconModule, MdSelectModule, MdChipsModule, MdSlideToggleModule, MdProgressSpinnerModule
 ];
 
 @NgModule({

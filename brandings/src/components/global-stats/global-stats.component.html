@@ -1,9 +1,13 @@
 <ion-card *ngFor="let stats of globalStats">
   <ion-card-header>{{ stats.id }} - {{ stats.name }}</ion-card-header>
   <ion-card-content>
-    <p>{{ 'x_tokens_raised' | translate : { count: stats.token_count } }} </p>
     <p>{{ 'current_value' | translate : { value: getDollarValue(stats.value) } }}</p>
+    <p>{{ 'x_tokens_raised' | translate : { count: stats.token_count } }} </p>
     <p>{{ 'market_cap' | translate : { value: getDollarValue(stats.market_cap) } }}</p>
+    <h3 *ngIf="stats.currencies.length">{{ 'value_in_other_currencies' | translate }}</h3>
+    <div *ngFor="let currency of stats.currencies">
+      <p>{{ currency.currency}} {{ getValue(currency) }}</p>
+    </div>
     <p>{{ 'currently_x_unlocked' | translate : { total: stats.token_count, unlocked: stats.unlocked_count } }}</p>
     <div>
       <progress class="progress" [max]="stats.token_count" [value]="stats.unlocked_count"></progress>

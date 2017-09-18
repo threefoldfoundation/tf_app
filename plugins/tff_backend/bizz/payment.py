@@ -32,8 +32,8 @@ from framework.utils import now, get_epoch_from_datetime, urlencode
 from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.exceptions import BusinessException
-from plugins.tff_backend.consts.payment import TOKEN_TFF, TOKEN_TYPE_A, TOKEN_TYPE_B, TOKEN_TYPE_C, \
-    TOKEN_TYPE_D, TOKEN_TFF_CONTRIBUTOR
+from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_TYPE_A, TOKEN_TYPE_B, TOKEN_TYPE_C, \
+    TOKEN_TYPE_D, TOKEN_TFT_CONTRIBUTOR
 from plugins.tff_backend.models.payment import ThreeFoldWallet, ThreeFoldTransaction, \
     ThreeFoldPendingTransaction, ThreeFoldBlockHeight
 from plugins.tff_backend.plugin_consts import NAMESPACE, THREEFOLD_APP_ID
@@ -64,7 +64,7 @@ def get_asset_ids(app_user):
     app_id = get_app_id_from_app_user(app_user)
     if app_id != THREEFOLD_APP_ID and not DEBUG:
         return []
-    tokens = [TOKEN_TFF]
+    tokens = [TOKEN_TFT]
     if app_user:
         w_key = ThreeFoldWallet.create_key(app_user)
         w = w_key.get()
@@ -320,16 +320,16 @@ def get_spendable_amount_of_transaction(transaction):
 @arguments(app_user=users.User, token_type=unicode, token_count=(int, long), memo=unicode)
 def transfer_genesis_coins_to_user(app_user, token_type, token_count, memo=None):
     if TOKEN_TYPE_A == token_type:
-        token = TOKEN_TFF
+        token = TOKEN_TFT
         unlock_timestamps = [0]
         unlock_amounts = [token_count]
     elif TOKEN_TYPE_B == token_type:
-        token = TOKEN_TFF
+        token = TOKEN_TFT
         d = datetime.now() + relativedelta(months=12)
         unlock_timestamps = [get_epoch_from_datetime(d)]
         unlock_amounts = [token_count]
     elif TOKEN_TYPE_C == token_type:
-        token = TOKEN_TFF
+        token = TOKEN_TFT
         unlock_timestamps = []
         unlock_amounts = []
         a = token_count / 48
@@ -343,7 +343,7 @@ def transfer_genesis_coins_to_user(app_user, token_type, token_count, memo=None)
         unlock_amounts = [token_count - sum(unlock_amounts)] + unlock_amounts
 
     elif TOKEN_TYPE_D == token_type:
-        token = TOKEN_TFF_CONTRIBUTOR
+        token = TOKEN_TFT_CONTRIBUTOR
         unlock_timestamps = [0]
         unlock_amounts = [token_count]
     else:

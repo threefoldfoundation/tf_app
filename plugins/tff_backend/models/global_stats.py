@@ -14,10 +14,18 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+
 from google.appengine.ext import ndb
 
 from framework.models.common import NdbModel
 from plugins.tff_backend.plugin_consts import NAMESPACE
+
+
+class CurrencyValue(NdbModel):
+    currency = ndb.StringProperty()
+    value = ndb.FloatProperty()
+    timestamp = ndb.IntegerProperty()
+    auto_update = ndb.BooleanProperty(default=True)
 
 
 class GlobalStats(NdbModel):
@@ -25,7 +33,8 @@ class GlobalStats(NdbModel):
     name = ndb.StringProperty()
     token_count = ndb.IntegerProperty()
     unlocked_count = ndb.IntegerProperty()
-    value = ndb.IntegerProperty()  # e.g. 5$ per token
+    value = ndb.IntegerProperty()  # Value in dollar
+    currencies = ndb.LocalStructuredProperty(CurrencyValue, repeated=True)  # Value per other currency
     market_cap = ndb.ComputedProperty(lambda self: self.value * self.unlocked_count, indexed=False)
 
     @property

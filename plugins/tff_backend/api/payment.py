@@ -27,7 +27,7 @@ from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.payment import get_asset_ids, get_token_from_asset_id, get_balance, get_transactions, \
     get_asset_id_from_token, get_app_user_from_asset_id, get_transaction_of_type_pending
-from plugins.tff_backend.consts.payment import PROVIDER_ID, TOKEN_TFF_CONTRIBUTOR, TOKEN_TYPE_D, TOKEN_TYPE_A
+from plugins.tff_backend.consts.payment import PROVIDER_ID, TOKEN_TFT_CONTRIBUTOR, TOKEN_TYPE_D, TOKEN_TYPE_A
 from plugins.tff_backend.models.payment import ThreeFoldPendingTransaction
 from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.to.payment import PaymentProviderAssetTO, PaymentAssetBalanceTO, \
@@ -144,7 +144,7 @@ def api_create_transaction(data):
     from_user = get_app_user_from_asset_id(data.from_asset_id)
     to_user = get_app_user_from_asset_id(data.to_asset_id)
     token = get_token_from_asset_id(data.from_asset_id)
-    if token == TOKEN_TFF_CONTRIBUTOR:
+    if token == TOKEN_TFT_CONTRIBUTOR:
         token_type = TOKEN_TYPE_D
     else:
         token_type = TOKEN_TYPE_A

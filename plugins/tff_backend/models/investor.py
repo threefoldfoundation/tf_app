@@ -17,6 +17,8 @@ class InvestmentAgreement(NdbModel):
     amount = ndb.FloatProperty(indexed=False)
     token_count = ndb.IntegerProperty(indexed=False)
     currency = ndb.StringProperty(indexed=False, choices=FULL_CURRENCY_NAMES.keys())
+    name = ndb.StringProperty(indexed=False)
+    address = ndb.StringProperty(indexed=False)
 
     iyo_see_id = ndb.StringProperty(indexed=False)
     signature_payload = ndb.StringProperty(indexed=False)
@@ -42,9 +44,7 @@ class InvestmentAgreement(NdbModel):
         return self.key.id()
 
     @classmethod
-    def create_key(cls, subscription_id=None):
-        if subscription_id is None:
-            subscription_id = cls.allocate_ids(1)[0]
+    def create_key(cls, subscription_id):
         return ndb.Key(cls, subscription_id, namespace=NAMESPACE)
 
     @classmethod
