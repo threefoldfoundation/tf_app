@@ -143,7 +143,7 @@ def create_odoo_quotation(billing_info, shipping_info):
         },
         'shipping': None
     }
-    if shipping_info:
+    if shipping_info and shipping_info.name and shipping_info.email and shipping_info.phone and shipping_info.address:
         customer['shipping'] = {
             'name': shipping_info.name,
             'email': shipping_info.email,
