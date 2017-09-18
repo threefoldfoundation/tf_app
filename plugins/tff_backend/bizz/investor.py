@@ -24,18 +24,20 @@ from types import NoneType
 from google.appengine.api import users, mail
 from google.appengine.ext import deferred, ndb
 
+from babel.numbers import get_currency_name
 from framework.plugin_loader import get_config
 from framework.utils import now
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.rogerthat_api.api import messaging, system
+from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO
-from plugins.rogerthat_api.to.messaging import Message, AttachmentTO
+from plugins.rogerthat_api.to.messaging import Message, AttachmentTO, AnswerTO
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FormAcknowledgedCallbackResultTO, \
-    MessageCallbackResultTypeTO, TYPE_MESSAGE
+    MessageCallbackResultTypeTO, TYPE_MESSAGE, FlowMemberResultCallbackResultTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agreements import create_token_agreement_pdf
 from plugins.tff_backend.bizz.authentication import Roles, Organization
@@ -48,10 +50,11 @@ from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
-from plugins.tff_backend.consts.payment import TOKEN_TYPE_B
+from plugins.tff_backend.consts.payment import TOKEN_TYPE_B, TOKEN_TFT
+from plugins.tff_backend.models.global_stats import GlobalStats, CurrencyValue
 from plugins.tff_backend.models.investor import InvestmentAgreement
-from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID, FULL_CURRENCY_NAMES, \
-    CURRENCY_RATES, NAMESPACE
+from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID, NAMESPACE, \
+    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES
 from plugins.tff_backend.to.investor import InvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step
@@ -59,68 +62,125 @@ from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user
 from requests.exceptions import HTTPError
 
 
-@returns()
+@returns(FlowMemberResultCallbackResultTO)
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
            flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
            flow_params=unicode)
 def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
            flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    agreement_key = InvestmentAgreement.create_key()
-    deferred.defer(_invest, agreement_key, user_details[0].email, user_details[0].app_id, steps, 0)
-
-
-def _invest(agreement_key, email, app_id, steps, retry_count):
-    app_user = create_app_user_by_email(email, app_id)
-    logging.info('User %s wants to invest', app_user)
-
-    overview_step = get_step(steps, 'message_overview')
-    if overview_step and overview_step.answer_id == u"button_use":
-        api_key = get_rogerthat_api_key()
-        user_data_keys = ['name', 'billing_address', 'address']
-        current_user_data = system.get_user_data(api_key, email, app_id, user_data_keys)
-        name = current_user_data['name']
-        if current_user_data['billing_address']:
-            billing_address = current_user_data['billing_address']
+    try:
+        email = user_details[0].email
+        app_id = user_details[0].app_id
+        app_user = create_app_user_by_email(email, app_id)
+        logging.info('User %s wants to invest', email)
+        token_count = int(get_step_value(steps, 'message_get_order_size_ITO'))
+        currency = get_step_value(steps, 'message_get_currency').replace('_cur', '')
+        amount = get_investment_amount(currency, token_count)
+        overview_step = get_step(steps, 'message_overview')
+        if overview_step and overview_step.answer_id == u"button_use":
+            api_key = get_rogerthat_api_key()
+            user_data_keys = ['name', 'billing_address', 'address']
+            current_user_data = system.get_user_data(api_key, email, app_id, user_data_keys)
+            name = current_user_data['name']
+            billing_address = current_user_data['billing_address'] or current_user_data['address']
         else:
-            billing_address = current_user_data['address']
-    else:
-        name = get_step_value(steps, 'message_name')
-        billing_address = get_step_value(steps, 'message_billing_address')
-    currency = get_step_value(steps, 'message_get_currency')
-    token_count = int(get_step_value(steps, 'message_get_order_size_ITO'))
+            name = get_step_value(steps, 'message_name')
+            billing_address = get_step_value(steps, 'message_billing_address')
 
+        agreement = InvestmentAgreement(creation_time=now(),
+                                        app_user=app_user,
+                                        token_count=token_count,
+                                        amount=amount,
+                                        currency=currency,
+                                        name=name,
+                                        address=billing_address,
+                                        status=InvestmentAgreement.STATUS_CREATED)
+        agreement.put()
+        answer_yes = AnswerTO(type=u'button', action=None, id=u'confirm', caption=u'Confirm', ui_flags=0, color=None)
+        answer_no = AnswerTO(type=u'button', action=None, id=u'cancel', caption=u'Cancel', ui_flags=0, color=None)
+        answers = [answer_yes, answer_no]
+
+        params = {
+            'token_count': token_count,
+            'amount': amount,
+            'currency': currency,
+            'per_token': get_investment_amount(currency, 1)
+        }
+        msg = u'We are ready to process your purchase. Is the following information correct?\n\n' \
+              u'You would like to buy %(token_count)s Threefold Tokens for a total amount of' \
+              u' **%(amount)s %(currency)s** (%(per_token)s %(currency)s per token).\n\n' \
+              u'After confirming, you will receive your personalised investment agreement.' % params
+        tag = json.dumps({'__rt__.tag': 'invest_complete', 'investment_id': agreement.id}).decode('utf-8')
+        message = MessageCallbackResultTypeTO(alert_flags=Message.ALERT_FLAG_SILENT,
+                                              answers=answers,
+                                              branding=get_main_branding_hash(),
+                                              dismiss_button_ui_flags=0,
+                                              flags=Message.FLAG_AUTO_LOCK,
+                                              step_id=u'confirm_investment',
+                                              message=msg,
+                                              tag=tag)
+
+        result = FlowMemberResultCallbackResultTO(type=TYPE_MESSAGE)
+        result.value = message
+        return result
+    except Exception as e:
+        logging.exception(e)
+        return _create_error_message(FlowMemberResultCallbackResultTO())
+
+
+def get_currency_rate(currency):
+    global_stats = GlobalStats.create_key(TOKEN_TFT).get()  # type: GlobalStats
+    currency_stats = filter(lambda c: c.currency == currency, global_stats.currencies)  # type: list[CurrencyValue]
+    if not currency_stats:
+        raise BusinessException('No stats are set for currency %s', currency)
+    return currency_stats[0].value
+
+
+def get_investment_amount(currency, token_count):
+    # type: (unicode, long) -> float
+    decimals_after_comma = 8 if currency == 'BTC' else 2
+    return round(get_currency_rate(currency) * token_count, decimals_after_comma)
+
+
+@returns()
+@arguments(status=int, answer_id=unicode, received_timestamp=int, member=unicode, message_key=unicode, tag=unicode,
+           acked_timestamp=int, parent_message_key=unicode, service_identity=unicode, user_details=[UserDetailsTO])
+def invest_complete(status, answer_id, received_timestamp, member, message_key, tag, acked_timestamp,
+                    parent_message_key, service_identity, user_details):
+    email = user_details[0].email
+    app_id = user_details[0].app_id
+    if answer_id == u'confirm':
+        agreement_key = InvestmentAgreement.create_key(json.loads(tag)['investment_id'])
+        deferred.defer(_invest, agreement_key, email, app_id, 0)
+
+
+def _get_currency_name(currency):
+    if currency in SUPPORTED_CRYPTO_CURRENCIES:
+        return CRYPTO_CURRENCY_NAMES[currency]
+    return get_currency_name(currency, locale='en_GB')
+
+
+def _invest(agreement_key, email, app_id, retry_count):
+    app_user = create_app_user_by_email(email, app_id)
     logging.debug('Creating Token agreement')
+    agreement = agreement_key.get()
+    if not agreement:
+        raise BusinessException('Cannot find investment agreement with key %s' % agreement_key)
+    currency_full = _get_currency_name(agreement.currency)
     pdf_name = 'token_%s.pdf' % agreement_key.id()
-
-    currency_short = currency.replace("_cur", "")
-    decimals_after_comma = 8 if currency_short == 'BTC' else 2
-    currency_full = FULL_CURRENCY_NAMES[currency_short]
-    amount = round(token_count * CURRENCY_RATES[currency_short], decimals_after_comma)
-
-    pdf_contents = create_token_agreement_pdf(name, billing_address, amount, currency_full, currency_short)
+    pdf_contents = create_token_agreement_pdf(agreement.name, agreement.address, agreement.amount, currency_full,
+                                              agreement.currency)
     ipfs_link = store_pdf(pdf_name, pdf_contents)
     if not ipfs_link:
-        logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
-        deferred.defer(_invest, agreement_key, email, app_id, steps, retry_count + 1, _countdown=retry_count)
+        logging.error('Failed to create IPFS document with name %s and retry_count %s', pdf_name, retry_count)
+        deferred.defer(_invest, agreement_key, email, app_id, retry_count + 1, _countdown=retry_count)
         return
 
     logging.debug('Storing Investment Agreement in the datastore')
 
-    def trans():
-        agreement = InvestmentAgreement(key=agreement_key,
-                                        creation_time=now(),
-                                        app_user=app_user,
-                                        token_count=token_count,
-                                        amount=amount,
-                                        currency=currency_short,
-                                        status=InvestmentAgreement.STATUS_CREATED)
-        agreement.put()
-        deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, ipfs_link,
-                       _transactional=True)
-        deferred.defer(update_investor_progress, email, app_id, InvestorSteps.FLOW_AMOUNT, _transactional=True)
-
-    ndb.transaction(trans)
+    deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, ipfs_link)
+    deferred.defer(update_investor_progress, email, app_id, InvestorSteps.FLOW_AMOUNT)
 
 
 def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, ipfs_link):

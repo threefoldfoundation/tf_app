@@ -27,11 +27,10 @@ from poster.encode import multipart_encode, MultipartParam
 
 def store_pdf(pdf_name, pdf_contents):
     logging.debug('Storing IPFS document')
-    params = []
-    params.append(MultipartParam("FileItem1",
-                                 filename=pdf_name,
-                                 filetype='application/pdf',
-                                 value=pdf_contents))
+    params = [MultipartParam("FileItem1",
+                             filename=pdf_name,
+                             filetype='application/pdf',
+                             value=pdf_contents)]
 
     payloadgen, headers = multipart_encode(params)
     payload = str().join(payloadgen)
@@ -47,6 +46,7 @@ def store_pdf(pdf_name, pdf_contents):
         deadline=10)
 
     if result.status_code != 200:
+        logging.error('Failed to store PDF on IPFS. %s %s', result.status_code, result.content)
         return None
 
     return u'https://gateway.ipfs.io/ipfs/%s' % json.loads(result.content)['Hash']

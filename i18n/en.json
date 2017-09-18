@@ -1,9 +1,12 @@
 {
   "ThreeFold Foundation": "ThreeFold Foundation",
   "tff": {
+    "add_currency": "Add currency",
     "amount_in_dollar": "Amount in dollar",
     "arrival_time": "Arrival time",
     "arrived": "Arrived",
+    "auto_update": "Auto update",
+    "auto_update_explanation": "Enabling auto update will update the currency rates every few hours with values from an exchange.",
     "back": "Back",
     "billing_address": "Billing address",
     "cancel_order": "Cancel order",
@@ -13,6 +16,9 @@
     "created": "Created",
     "currency": "Currency",
     "email": "Email",
+    "errors": {
+      "invalid_currencies": "Invalid currencies: {{ currencies }}"
+    },
     "global_stats": "Global stats",
     "i_am_a_member": "I am a member",
     "i_am_new": "I am new here",
@@ -42,12 +48,14 @@
     "sign_in_to_threefold": "Sign in to threefold",
     "signed": "Signed",
     "status": "Status",
+    "symbol": "Symbol",
     "thats_an_error": "That's an error",
     "threefold": "Threefold",
     "tokens": "Tokens",
     "total_tokens": "Total tokens",
     "unlocked_tokens": "Unlocked tokens",
     "user": "User",
+    "value": "Value",
     "value_in_dollars": "Value in dollars",
     "x_tokens": "{{ count }} tokens"
   }

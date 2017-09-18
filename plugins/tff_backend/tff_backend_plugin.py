@@ -26,7 +26,8 @@ from plugins.tff_backend import rogerthat_callbacks
 from plugins.tff_backend.api import investor, payment, nodes, global_stats
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings
 from plugins.tff_backend.configuration import TffConfiguration
-from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, BackupHandler
+from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler,\
+    BackupHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 
 
@@ -39,6 +40,7 @@ class TffBackendPlugin(BrandingPlugin):
         assert (isinstance(rogerthat_api_plugin, RogerthatApiPlugin))
         rogerthat_api_plugin.subscribe('messaging.flow_member_result', rogerthat_callbacks.flow_member_result)
         rogerthat_api_plugin.subscribe('messaging.form_update', rogerthat_callbacks.form_update)
+        rogerthat_api_plugin.subscribe('messaging.update', rogerthat_callbacks.messaging_update)
         rogerthat_api_plugin.subscribe('friend.is_in_roles', rogerthat_callbacks.friend_is_in_roles)
         rogerthat_api_plugin.subscribe('friend.update', rogerthat_callbacks.friend_update)
         rogerthat_api_plugin.subscribe('friend.invited', rogerthat_callbacks.friend_invited)
@@ -59,6 +61,7 @@ class TffBackendPlugin(BrandingPlugin):
             yield Handler(url='/admin/cron/tff_backend/payment/sync', handler=PaymentSyncHandler)
             yield Handler(url='/admin/cron/tff_backend/backup', handler=BackupHandler)
             yield Handler(url='/admin/cron/tff_backend/rebuild_synced_roles', handler=RebuildSyncedRolesHandler)
+            yield Handler(url='/admin/cron/tff_backend/global_stats', handler=UpdateGlobalStatsHandler)
 
     def get_client_routes(self):
         return ['/orders<route:.*>', '/investment-agreements<route:.*>', '/global-stats<route:.*>']

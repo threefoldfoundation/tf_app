@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+from babel.numbers import list_currencies
 
 NAMESPACE = u'tff_backend'
 
@@ -21,19 +22,9 @@ KEY_ALGORITHM = u'ed25519'
 KEY_NAME = u'threefold'
 
 THREEFOLD_APP_ID = u'em-be-threefold-token'
-FULL_CURRENCY_NAMES = {
-    'USD': 'dollar',
-    'EUR': 'euro',
-    'YEN': 'yen',
-    'UAE': 'dirham',
-    'GBP': 'pound',
-    'BTC': 'bitcoin',
+
+SUPPORTED_CRYPTO_CURRENCIES = {'BTC'}
+CRYPTO_CURRENCY_NAMES = {
+    'BTC': 'Bitcoin'
 }
-CURRENCY_RATES = {
-    'USD': 5.0,
-    'EUR': 4.2,
-    'YEN': 543.6,
-    'UAE': 18.6,
-    'GBP': 3.83,
-    'BTC': .0011,
-}
+SUPPORTED_CURRENCIES = list_currencies() | SUPPORTED_CRYPTO_CURRENCIES

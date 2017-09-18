@@ -1,6 +1,7 @@
 import { TffService } from './tff.service';
 import { TffConfig } from './tff-config.service';
 import {
+  ApiRequestStatusComponent,
   GlobalStatsDetailComponent,
   GlobalStatsDetailPageComponent,
   GlobalStatsListPageComponent,
@@ -20,6 +21,7 @@ export const TFF_PROVIDERS: any[] = [
 ];
 
 export const TFF_COMPONENTS: any[] = [
+  ApiRequestStatusComponent,
   GlobalStatsDetailComponent,
   GlobalStatsDetailPageComponent,
   GlobalStatsListPageComponent,

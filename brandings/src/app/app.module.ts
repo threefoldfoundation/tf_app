@@ -11,7 +11,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { SERVICES } from '../services/index';
 import { MissingTranslationWarnHandler } from '../util/missing-translation-handler';
 import { COMPONENTS } from '../components/index';
-import { CurrencyPipe, I18nPluralPipe } from '@angular/common';
+import { CurrencyPipe, DecimalPipe, I18nPluralPipe } from '@angular/common';
 import { AppVersion } from '@ionic-native/app-version';
 import { InAppBrowser } from '@ionic-native/in-app-browser';
 import { MarkdownPipe } from '../pipes/markdown.pipe';
@@ -55,6 +55,7 @@ const IONIC_NATIVE_PLUGINS = [ AppVersion, InAppBrowser, StatusBar, SplashScreen
     PAGES
   ],
   providers: [
+    DecimalPipe,
     CurrencyPipe,
     I18nPluralPipe,
     SERVICES,
