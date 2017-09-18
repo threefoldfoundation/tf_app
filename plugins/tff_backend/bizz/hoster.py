@@ -129,7 +129,7 @@ def _order_node(order_key, user_email, app_id, steps, retry_count):
 
     logging.debug('Creating Hosting agreement')
     pdf_name = 'node_%s.pdf' % order_key.id()
-    pdf_contents = create_hosting_agreement_pdf(billing_info.name, billing_address)
+    pdf_contents = create_hosting_agreement_pdf(billing_info.name, billing_info.address)
     ipfs_link = store_pdf(pdf_name, pdf_contents)
     if not ipfs_link:
         logging.error(u"Failed to create IPFS document with name %s and retry_count %s", pdf_name, retry_count)
