@@ -131,6 +131,8 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
 
 def get_currency_rate(currency):
     global_stats = GlobalStats.create_key(TOKEN_TFT).get()  # type: GlobalStats
+    if currency == 'USD':
+        return global_stats.value
     currency_stats = filter(lambda c: c.currency == currency, global_stats.currencies)  # type: list[CurrencyValue]
     if not currency_stats:
         raise BusinessException('No stats are set for currency %s', currency)
