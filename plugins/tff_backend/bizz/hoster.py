@@ -50,7 +50,7 @@ from plugins.tff_backend.bizz.todo.hoster import HosterSteps
 from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping, NodeOrderStatus, ContactInfo
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
-from plugins.tff_backend.to.nodes import NodeOrderTO
+from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderDetailsTO
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 
@@ -415,6 +415,19 @@ def get_node_order(order_id):
     if not order:
         raise HttpNotFoundException('order_not_found')
     return order
+
+
+@returns(NodeOrderDetailsTO)
+@arguments(order_id=(int, long))
+def get_node_order_details(order_id):
+    node_order = get_node_order(order_id)
+    if node_order.tos_iyo_see_id:
+        iyo_organization_id = get_iyo_organization_id()
+        username = get_iyo_username(node_order.app_user)
+        see_document = get_see_document(iyo_organization_id, username, node_order.tos_iyo_see_id)
+    else:
+        see_document = None
+    return NodeOrderDetailsTO.from_model(node_order, see_document)
 
 
 @returns(NodeOrder)

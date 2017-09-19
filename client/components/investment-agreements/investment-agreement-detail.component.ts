@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { InvestmentAgreement, InvestmentAgreementsStatuses, } from '../../interfaces/index';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { INVESTMENT_AGREEMENT_STATUSES } from '../../interfaces/investment-agreements.interfaces';
+import { INVESTMENT_AGREEMENT_STATUSES, InvestmentAgreementDetail } from '../../interfaces/investment-agreements.interfaces';
 
 @Component({
   moduleId: module.id,
@@ -16,7 +16,7 @@ import { INVESTMENT_AGREEMENT_STATUSES } from '../../interfaces/investment-agree
 
 export class InvestmentAgreementDetailComponent {
   statuses = InvestmentAgreementsStatuses;
-  @Input() investmentAgreement: InvestmentAgreement;
+  @Input() investmentAgreement: InvestmentAgreementDetail;
   @Input() status: ApiRequestStatus;
   @Input() updateStatus: ApiRequestStatus;
   @Output() onUpdate = new EventEmitter<InvestmentAgreement>();

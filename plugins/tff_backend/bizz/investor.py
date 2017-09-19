@@ -55,7 +55,7 @@ from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID, NAMESPACE, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES
-from plugins.tff_backend.to.investor import InvestmentAgreementTO
+from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
@@ -422,10 +422,24 @@ def get_investment_agreements(cursor=None, status=None):
 @returns(InvestmentAgreement)
 @arguments(agreement_id=(int, long))
 def get_investment_agreement(agreement_id):
+    # type: (long) -> InvestmentAgreement
     agreement = InvestmentAgreement.get_by_id(agreement_id)
     if not agreement:
         raise HttpNotFoundException('investment_agreement_not_found')
     return agreement
+
+
+@returns(InvestmentAgreementDetailsTO)
+@arguments(agreement_id=(int, long))
+def get_investment_agreement_details(agreement_id):
+    agreement = get_investment_agreement(agreement_id)
+    if agreement.iyo_see_id:
+        iyo_organization_id = get_iyo_organization_id()
+        username = get_iyo_username(agreement.app_user)
+        see_document = get_see_document(iyo_organization_id, username, agreement.iyo_see_id)
+    else:
+        see_document = None
+    return InvestmentAgreementDetailsTO.from_model(agreement, see_document)
 
 
 @returns(InvestmentAgreement)

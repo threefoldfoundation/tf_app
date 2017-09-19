@@ -1,3 +1,5 @@
+import { SeeDocumentDetails } from './iyo-see.interfaces';
+
 export enum NodeOrderStatuses {
   CANCELED = -1,
   CREATED = 0,
@@ -29,6 +31,10 @@ export interface NodeOrder {
   arrival_time: number | null;
   cancel_time: number | null;
   arrival_qr_code_url: string | null;
+}
+
+export interface NodeOrderDetail extends NodeOrder {
+  see_document: SeeDocumentDetails;
 }
 
 export interface NodeOrderList {

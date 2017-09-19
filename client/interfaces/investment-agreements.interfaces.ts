@@ -1,3 +1,5 @@
+import { SeeDocumentDetails } from './iyo-see.interfaces';
+
 export enum InvestmentAgreementsStatuses {
   CANCELED = -1,
   CREATED = 0,
@@ -11,10 +13,10 @@ export interface GetInvestmentAgreementsPayload {
 }
 
 export const INVESTMENT_AGREEMENT_STATUSES = {
-  [InvestmentAgreementsStatuses.CANCELED]: 'tff.canceled',
-  [InvestmentAgreementsStatuses.CREATED]: 'tff.created',
-  [InvestmentAgreementsStatuses.SIGNED]: 'tff.signed',
-  [InvestmentAgreementsStatuses.PAID]: 'tff.paid',
+  [ InvestmentAgreementsStatuses.CANCELED ]: 'tff.canceled',
+  [ InvestmentAgreementsStatuses.CREATED ]: 'tff.created',
+  [ InvestmentAgreementsStatuses.SIGNED ]: 'tff.signed',
+  [ InvestmentAgreementsStatuses.PAID ]: 'tff.paid',
 };
 
 export interface InvestmentAgreement {
@@ -34,6 +36,11 @@ export interface InvestmentAgreement {
   paid_time: number | null;
   cancel_time: number | null;
   modification_time: number;
+}
+
+
+export interface InvestmentAgreementDetail extends InvestmentAgreement {
+  see_document: SeeDocumentDetails | null;
 }
 
 export interface InvestmentAgreementList {

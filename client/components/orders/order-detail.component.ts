@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { NodeOrder, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/nodes.interfaces';
+import { NodeOrder, NodeOrderDetail, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/nodes.interfaces';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 
@@ -15,7 +15,7 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
 
 export class OrderDetailComponent {
   statuses = NodeOrderStatuses;
-  @Input() nodeOrder: NodeOrder;
+  @Input() nodeOrder: NodeOrderDetail;
   @Input() status: ApiRequestStatus;
   @Input() updateStatus: ApiRequestStatus;
   @Output() onUpdate = new EventEmitter<NodeOrder>();

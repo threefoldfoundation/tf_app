@@ -21,9 +21,10 @@ from framework.bizz.authentication import get_current_session
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.authentication import Scopes
-from plugins.tff_backend.bizz.investor import get_investment_agreements, get_investment_agreement, \
-    put_investment_agreement
-from plugins.tff_backend.to.investor import InvestmentAgreementListTO, InvestmentAgreementTO
+from plugins.tff_backend.bizz.investor import get_investment_agreements, put_investment_agreement, \
+    get_investment_agreement_details
+from plugins.tff_backend.to.investor import InvestmentAgreementListTO, InvestmentAgreementTO, \
+    InvestmentAgreementDetailsTO
 
 
 @rest('/investment-agreements', 'get', Scopes.ADMINS)
@@ -34,10 +35,10 @@ def api_get_investment_agreements(cursor=None, status=None):
 
 
 @rest('/investment-agreements/<agreement_id:[^/]+>', 'get', Scopes.ADMINS)
-@returns(InvestmentAgreementTO)
+@returns(InvestmentAgreementDetailsTO)
 @arguments(agreement_id=(int, long))
 def api_get_investment_agreement(agreement_id):
-    return InvestmentAgreementTO.from_model(get_investment_agreement(agreement_id))
+    return get_investment_agreement_details(agreement_id)
 
 
 @rest('/investment-agreements/<agreement_id:[^/]+>', 'put', Scopes.PAYMENT_ADMIN)

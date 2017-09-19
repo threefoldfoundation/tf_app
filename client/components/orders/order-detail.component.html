@@ -10,7 +10,7 @@
     <p>{{ 'tff.phone' | translate}}: {{ nodeOrder.billing_info.phone }}</p>
     <p>{{ 'tff.billing_address' | translate}}: {{ nodeOrder.billing_info.address }}</p>
     <p>{{ 'tff.status' | translate}}: {{ getOrderStatus() }}</p>
-    <iyo-see [id]="nodeOrder.tos_iyo_see_id"></iyo-see>
+    <iyo-see [document]="nodeOrder.see_document"></iyo-see>
     <md-divider></md-divider>
     <h3>{{ 'tff.shipping_information' | translate }}</h3>
     <div *ngIf="nodeOrder.shipping_info">

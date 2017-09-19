@@ -22,6 +22,7 @@ from framework.to import TO
 from mcfw.properties import long_property, unicode_property, typed_property
 from plugins.tff_backend.models.hoster import NodeOrder  # noQA
 from plugins.tff_backend.to import PaginatedResultTO
+from plugins.tff_backend.to.iyo.see import IYOSeeDocument
 
 
 class ContactInfoTO(TO):
@@ -47,6 +48,16 @@ class NodeOrderTO(TO):
     cancel_time = long_property('cancel_time')
     modification_time = long_property('modification_time')
     arrival_qr_code_url = unicode_property('arrival_qr_code_url')
+
+
+class NodeOrderDetailsTO(NodeOrderTO):
+    see_document = typed_property('see_document', IYOSeeDocument)
+
+    @classmethod
+    def from_model(cls, model, see_document):
+        to = super(NodeOrderDetailsTO, cls).from_model(model)
+        to.see_document = see_document
+        return to
 
 
 class NodeOrderListTO(PaginatedResultTO):
