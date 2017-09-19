@@ -50,7 +50,7 @@ class InvestmentAgreementListTO(PaginatedResultTO):
 
     @classmethod
     def from_query(cls, models, cursor, more):
-        # type: (list[InvestmentAgreementListTO], ndb.Cursor, bool) -> object
+        # type: (list[InvestmentAgreement], ndb.Cursor, bool) -> object
         assert isinstance(cursor, (ndb.Cursor, NoneType))
         orders = [InvestmentAgreementTO.from_model(model) for model in models]
         return cls(cursor and cursor.to_websafe_string().decode('utf-8'), more, orders)

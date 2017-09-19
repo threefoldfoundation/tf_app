@@ -23,6 +23,8 @@ export interface InvestmentAgreement {
   amount: number;
   token_count: number;
   currency: string;
+  name: string;
+  address: string;
   iyo_see_id: string;
   signature_payload: string | null;
   signature: string | null;

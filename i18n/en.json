@@ -2,6 +2,7 @@
   "ThreeFold Foundation": "ThreeFold Foundation",
   "tff": {
     "add_currency": "Add currency",
+    "address": "Address",
     "amount_in_dollar": "Amount in dollar",
     "arrival_time": "Arrival time",
     "arrived": "Arrived",
@@ -25,6 +26,7 @@
     "investment_agreement_detail": "Investment agreement detail",
     "investment_agreement_x": "Investment agreement {{ investmentAgreementId }}",
     "investment_agreements": "Investment agreements",
+    "iyo_see_url": "ItsYou.Online see url",
     "load_more": "Load more",
     "mark_as_paid": "Mark as paid",
     "mark_as_paid_info": "A message will be sent to you in the Threefold app, click the sign button in the message to confirm.",

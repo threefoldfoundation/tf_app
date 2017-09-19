@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { NodeOrder, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/nodes.interfaces';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
+import { getIyoSeeUrl } from '../../util';
 
 @Component({
   moduleId: module.id,

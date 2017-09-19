@@ -3,6 +3,7 @@ import { InvestmentAgreement, InvestmentAgreementsStatuses, } from '../../interf
 import { TranslateService } from '@ngx-translate/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import { INVESTMENT_AGREEMENT_STATUSES } from '../../interfaces/investment-agreements.interfaces';
+import { getIyoSeeUrl } from '../../util';
 
 @Component({
   moduleId: module.id,
@@ -33,6 +34,10 @@ export class InvestmentAgreementDetailComponent {
   }
 
   constructor(private translate: TranslateService) {
+  }
+
+  get investmentUrl(): string {
+    return getIyoSeeUrl(this.investmentAgreement.iyo_see_id);
   }
 
   getStatus(): string {

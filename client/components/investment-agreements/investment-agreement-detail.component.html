@@ -10,11 +10,14 @@
     <p>{{ 'tff.amount_in_dollar' | translate }}: {{ investmentAgreement.amount | currency : 'USD' }}</p>
     <p>{{ 'tff.status' | translate}}: {{ getStatus() }}</p>
     <p>{{ 'tff.user' | translate}}: {{ investmentAgreement.app_user }}</p>
+    <p *ngIf="investmentAgreement.name">{{ 'tff.name' | translate}}: {{ investmentAgreement.name }}</p>
+    <p *ngIf="investmentAgreement.address">{{ 'tff.address' | translate}}: {{ investmentAgreement.address }}</p>
     <p *ngIf="investmentAgreement.paid_time">
       {{ 'tff.paid_time' | translate }}: {{ investmentAgreement.paid_time | timestamp }}
     </p>
-    <p>{{ 'tff.modification_time' | translate }}: {{ investmentAgreement.modification_time | timestamp }}</p>
+    <iyo-see [id]="investmentAgreement.iyo_see_id"></iyo-see>
     <p>{{ 'tff.created' | translate }}: {{ investmentAgreement.creation_time | timestamp }}</p>
+    <p>{{ 'tff.modification_time' | translate }}: {{ investmentAgreement.modification_time | timestamp }}</p>
     <p *ngIf="investmentAgreement.status === statuses.CANCELED">
       {{ 'tff.cancel_time' | translate }}: {{ investmentAgreement.cancel_time | timestamp }}</p>
     <button *ngIf="canMarkAsPaid" md-button (click)="markAsPaid()">{{ 'tff.mark_as_paid' | translate }}</button>
