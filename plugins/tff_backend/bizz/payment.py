@@ -36,7 +36,7 @@ from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_TYPE_A, TOKEN_TY
     TOKEN_TYPE_D, TOKEN_TFT_CONTRIBUTOR
 from plugins.tff_backend.models.payment import ThreeFoldWallet, ThreeFoldTransaction, \
     ThreeFoldPendingTransaction, ThreeFoldBlockHeight
-from plugins.tff_backend.plugin_consts import NAMESPACE, THREEFOLD_APP_ID
+from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.utils.app import get_app_id_from_app_user
 
 
@@ -62,7 +62,7 @@ def get_token_from_asset_id(asset_id):
 @arguments(app_user=users.User)
 def get_asset_ids(app_user):
     app_id = get_app_id_from_app_user(app_user)
-    if app_id != THREEFOLD_APP_ID and not DEBUG:
+    if app_id != get_config(NAMESPACE).rogerthat.app_id and not DEBUG:
         return []
     tokens = [TOKEN_TFT]
     if app_user:

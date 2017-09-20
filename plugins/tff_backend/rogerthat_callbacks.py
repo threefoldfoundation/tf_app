@@ -19,6 +19,7 @@ import logging
 
 from google.appengine.ext import deferred
 
+from framework.plugin_loader import get_config
 from mcfw.properties import object_factory
 from mcfw.rpc import parse_complex_value, serialize_complex_value
 from plugins.rogerthat_api.to import UserDetailsTO
@@ -39,7 +40,7 @@ from plugins.tff_backend.bizz.investor import invest, investment_agreement_signe
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_info_in_userdata, \
     is_user_in_roles
-from plugins.tff_backend.plugin_consts import THREEFOLD_APP_ID
+from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 
 TAG_MAPPING = {
@@ -126,7 +127,7 @@ def friend_register(rt_settings, request_id, params, response):
 
 def friend_invited(rt_settings, request_id, user_details, **kwargs):
     user_details = log_and_parse_user_details(user_details)
-    if user_details[0].app_id == THREEFOLD_APP_ID:
+    if user_details[0].app_id == get_config(NAMESPACE).rogerthat.app_id:
         return ACCEPT_ID
     return DECLINE_ID
 

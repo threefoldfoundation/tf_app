@@ -23,6 +23,7 @@ class RogerthatConfiguration(TO):
     sik = unicode_property('2')
     url = unicode_property('3')
     payment_secret = unicode_property('4')
+    app_id = unicode_property('app_id')
 
 
 class IPFSConfiguration(TO):

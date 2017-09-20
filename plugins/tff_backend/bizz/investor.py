@@ -53,7 +53,7 @@ from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.consts.payment import TOKEN_TYPE_B, TOKEN_TFT
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement
-from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, THREEFOLD_APP_ID, NAMESPACE, \
+from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
@@ -445,7 +445,7 @@ def get_investment_agreement_details(agreement_id):
 @returns(InvestmentAgreement)
 @arguments(agreement_id=(int, long), agreement=InvestmentAgreementTO, admin_user=users.User)
 def put_investment_agreement(agreement_id, agreement, admin_user):
-    admin_app_user = create_app_user_by_email(admin_user.email(), THREEFOLD_APP_ID)
+    admin_app_user = create_app_user_by_email(admin_user.email(), get_config(NAMESPACE).rogerthat.app_id)
     # type: (long, InvestmentAgreement, users.User) -> InvestmentAgreement
     agreement_model = InvestmentAgreement.get_by_id(agreement_id)  # type: InvestmentAgreement
     if not agreement_model:
