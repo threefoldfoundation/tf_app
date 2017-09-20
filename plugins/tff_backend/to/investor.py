@@ -49,6 +49,7 @@ class InvestmentAgreementDetailsTO(InvestmentAgreementTO):
     @classmethod
     def from_model(cls, model, see_document):
         # type: (InvestmentAgreement, IYOSeeDocument) -> cls
+        assert isinstance(model, InvestmentAgreement)
         to = super(InvestmentAgreementDetailsTO, cls).from_model(model)
         to.see_document = see_document
         return to
