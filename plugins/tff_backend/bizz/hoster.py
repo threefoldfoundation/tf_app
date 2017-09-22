@@ -19,15 +19,14 @@ import base64
 import json
 import logging
 
+from framework.utils import now, try_or_defer
 from google.appengine.api import users
 from google.appengine.ext import ndb, deferred
-
-from framework.utils import now, try_or_defer
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.rogerthat_api.api import qr, messaging, system
-from plugins.rogerthat_api.to import UserDetailsTO
+from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
 from plugins.rogerthat_api.to.messaging import AttachmentTO, Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
@@ -325,6 +324,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         deferred.defer(add_user_to_role, user_detail, Roles.HOSTERS)
         deferred.defer(invite_user_to_organization, get_iyo_username(user_detail), Organization.HOSTERS)
         deferred.defer(update_hoster_progress, user_detail.email, user_detail.app_id, HosterSteps.FLOW_SIGN)
+        deferred.defer(send_payment_instructions, user_detail.email, user_detail.app_id, order.id)
 
         logging.debug('Sending confirmation message')
         message = MessageCallbackResultTypeTO()
@@ -505,3 +505,31 @@ def check_if_node_comes_online(order_id):
         deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED)
     else:
         deferred.defer(check_if_node_comes_online, order_id, _countdown=1 * 60 * 60)
+        
+
+@returns()
+@arguments(email=unicode, app_id=unicode, order_id=(int, long))
+def send_payment_instructions(email, app_id, order_id):
+    order = get_node_order(order_id)
+
+    message = u"""Please use the following transfer details
+Amount: USD 600 - Bank : Mashreq Bank - IBAN : AE230330000019120028156 - BIC : BOMLAEAD
+
+For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
+Please use the SO%(order_id)s as reference.
+""" % {"order_id": order.odoo_sale_order_id}
+
+    member = MemberTO()
+    member.member = email
+    member.app_id = app_id
+    member.alert_flags = Message.ALERT_FLAG_VIBRATE
+    
+    messaging.send(api_key=get_rogerthat_api_key(),
+                   parent_message_key=None,
+                   message=message,
+                   answers=[],
+                   flags=0,
+                   members=[member],
+                   branding=get_main_branding_hash(),
+                   tag=None)
+    
