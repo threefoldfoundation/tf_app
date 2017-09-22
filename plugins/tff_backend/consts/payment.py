@@ -17,6 +17,7 @@
 
 PROVIDER_ID = u"threefold"
 
+TOKEN_ITFT = u"iTFT"
 TOKEN_TFT = u"TFT"
 TOKEN_TFT_CONTRIBUTOR = u"TFTC"
 
