@@ -21,18 +21,19 @@ import json
 import logging
 from types import NoneType
 
-from google.appengine.api import users, mail
-from google.appengine.ext import deferred, ndb
-
 from babel.numbers import get_currency_name
+from requests.exceptions import HTTPError
+
 from framework.plugin_loader import get_config
 from framework.utils import now
+from google.appengine.api import users, mail
+from google.appengine.ext import deferred, ndb
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.rogerthat_api.api import messaging, system
 from plugins.rogerthat_api.exceptions import BusinessException
-from plugins.rogerthat_api.to import UserDetailsTO
+from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
 from plugins.rogerthat_api.to.messaging import Message, AttachmentTO, AnswerTO
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
@@ -59,7 +60,6 @@ from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgr
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-from requests.exceptions import HTTPError
 
 
 @returns(FlowMemberResultCallbackResultTO)
@@ -366,6 +366,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         deferred.defer(add_user_to_role, user_detail, Roles.INVESTOR)
         deferred.defer(invite_user_to_organization, get_iyo_username(user_detail), Organization.INVESTORS)
         deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.PAY)
+        deferred.defer(send_payment_instructions, user_detail.email, user_detail.app_id, agreement.id)
 
         deferred.defer(_inform_support_of_new_investment, agreement.iyo_username, agreement.id, agreement.token_count)
 
@@ -483,3 +484,27 @@ Please visit https://tff-backend.appspot.com/investment-agreements to find more 
                        to=email,
                        subject=subject,
                        body=body)
+
+
+@returns()
+@arguments(email=unicode, app_id=unicode, agreement_id=(int, long))
+def send_payment_instructions(email, app_id, agreement_id):
+
+    message = u"""Please use the following transfer details
+
+Please use the %(agreement_id)s as reference.
+""" % {"agreement_id": agreement_id}
+
+    member = MemberTO()
+    member.member = email
+    member.app_id = app_id
+    member.alert_flags = Message.ALERT_FLAG_VIBRATE
+    
+    messaging.send(api_key=get_rogerthat_api_key(),
+                   parent_message_key=None,
+                   message=message,
+                   answers=[],
+                   flags=0,
+                   members=[member],
+                   branding=get_main_branding_hash(),
+                   tag=None)
