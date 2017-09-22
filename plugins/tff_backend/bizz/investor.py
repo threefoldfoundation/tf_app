@@ -47,11 +47,10 @@ from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
 from plugins.tff_backend.bizz.iyo.user import invite_user_to_organization
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
-from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
-from plugins.tff_backend.consts.payment import TOKEN_TYPE_B, TOKEN_TFT, TOKEN_ITFT
+from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
@@ -522,19 +521,18 @@ def send_payment_instructions(email, app_id, agreement_id):
     if agreement.currency == "BTC":
         amount_formatted = '{:.8f}'.format(agreement.amount)
         message = u"""Please use the following transfer details
-Amount: USD %(amount)s - Bank : Mashreq Bank - IBAN : AE230330000019120028156 - BIC : BOMLAEAD
-
-For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
-
-Payment must be made from a bank account registered under your name. Please use "FIRSTNAME LASTNAME AMOUNT iTFT" as reference.
-"""
-    else:
-        amount_formatted = '{:.2f}'.format(agreement.amount)
-        message = u"""Please use the following transfer details
 Amount: BTC %(amount)s - wallet 3GTf7gWhvWqfsurxXpEj6DU7SVoLM3wC6A
 
 Please inform us by email at payments@threefoldtoken.com when you have made payment."""
 
+    else:
+        amount_formatted = '{:.2f}'.format(agreement.amount)
+        message = u"""Please use the following transfer details
+Amount: USD %(amount)s - Bank : Mashreq Bank - IBAN : AE230330000019120028156 - BIC : BOMLAEAD
+
+For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
+
+Payment must be made from a bank account registered under your name. Please use "FIRSTNAME LASTNAME AMOUNT iTFT" as reference."""
 
     member = MemberTO()
     member.member = email
