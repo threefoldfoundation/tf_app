@@ -67,9 +67,9 @@ from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user
            flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
            flow_params=unicode)
 def invest_tft(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
-           flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
-           flush_id, flush_message_flow_id, service_identity, user_details, flow_params, TOKEN_TFT) 
+               flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
+    return invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
+                  flush_id, flush_message_flow_id, service_identity, user_details, flow_params, TOKEN_TFT)
 
 
 @returns(FlowMemberResultCallbackResultTO)
@@ -78,9 +78,9 @@ def invest_tft(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
            flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
            flow_params=unicode)
 def invest_itft(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
-           flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
-           flush_id, flush_message_flow_id, service_identity, user_details, flow_params, TOKEN_ITFT) 
+                flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
+    return invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
+                  flush_id, flush_message_flow_id, service_identity, user_details, flow_params, TOKEN_ITFT)
 
 
 @returns(FlowMemberResultCallbackResultTO)
@@ -97,7 +97,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         logging.info('User %s wants to invest', email)
         currency = get_step_value(steps, 'message_get_currency').replace('_cur', '')
         if token == TOKEN_ITFT:
-            token_count = 0 # will be calculated when payment arrived
+            token_count = 0  # will be calculated when payment arrived
             amount = float(get_step_value(steps, 'message_get_order_size_ITO'))
         else:
             token_count = int(get_step_value(steps, 'message_get_order_size_ITO'))
@@ -134,7 +134,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
             'currency': currency
         }
         msg = u'We are ready to process your purchase. Is the following information correct?\n\n' \
-              u'You would like to buy $(token)s for a total amount of' \
+              u'You would like to buy %(token)s for a total amount of' \
               u' **%(amount)s %(currency)s**.\n\n' \
               u'After confirming, you will receive your personalised investment agreement.' % params
         tag = json.dumps({'__rt__.tag': 'invest_complete', 'investment_id': agreement.id}).decode('utf-8')
@@ -433,8 +433,8 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
         agreement.put()
         user_email, app_id, = get_app_user_tuple(agreement.app_user)
         # deactivate granting tokens for now
-#         deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TOKEN_TYPE_B, agreement.token_count,
-#                        _transactional=True)
+        # deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TOKEN_TYPE_B, agreement.token_count,
+        #                _transactional=True)
         deferred.defer(update_investor_progress, user_email.email(), app_id, InvestorSteps.ASSIGN_TOKENS,
                        _transactional=True)
 
