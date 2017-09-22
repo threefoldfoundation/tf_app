@@ -23,26 +23,26 @@ from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
 
 class AgreementsTestingPageHandler(webapp2.RequestHandler):
     def get(self, *args, **kwargs):
-        version = self.request.get("version", "order")
-        currency = self.request.get("currency", "USD")
-        
+        type_ = self.request.get("type", "hoster")
         name = u"__NAME__"
         address = u"__ADDRESS__"
-        amount = 123.45678912
         
-        if version == "hoster":
+        if type_ == "hoster":
             pdf = create_hosting_agreement_pdf(name, address)
-        elif version == "tft":
-            pdf = create_token_agreement_pdf(name, address, amount, _get_currency_name(currency), currency, TOKEN_TFT)
-        elif version == "tft_btc":
-            pdf = create_token_agreement_pdf(name, address, amount, _get_currency_name(currency), currency, TOKEN_TFT)
-        elif version == "itft":
-            pdf = create_token_agreement_pdf(name, address, amount, _get_currency_name(currency), currency, TOKEN_ITFT)
+        elif type_ == "investor":
+            token = self.request.get("token", TOKEN_TFT)
+            currency = self.request.get("currency", "USD")
+            amount = 123.456789123456789
+
+            if token == TOKEN_ITFT:
+                pdf = create_token_agreement_pdf(name, address, amount, _get_currency_name(currency), currency, token)
+            else:
+                pdf = create_token_agreement_pdf(name, address, amount, _get_currency_name(currency), currency, TOKEN_TFT)
         else:
             pdf = None
         
         if not pdf:
-            self.response.out.write(u"Failed to generate pdf for this version")
+            self.response.out.write(u"Failed to generate pdf for this type")
             return
         
         self.response.headers['Content-Type'] = 'application/pdf'
