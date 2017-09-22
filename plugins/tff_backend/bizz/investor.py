@@ -96,9 +96,14 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         app_id = user_details[0].app_id
         app_user = create_app_user_by_email(email, app_id)
         logging.info('User %s wants to invest', email)
-        token_count = int(get_step_value(steps, 'message_get_order_size_ITO'))
         currency = get_step_value(steps, 'message_get_currency').replace('_cur', '')
-        amount = get_investment_amount(currency, token_count)
+        if token == TOKEN_ITFT:
+            token_count = 0 # will be calculated when payment arrived
+            amount = float(get_step_value(steps, 'message_get_order_size_ITO'))
+        else:
+            token_count = int(get_step_value(steps, 'message_get_order_size_ITO'))
+            amount = get_investment_amount(currency, token_count)
+
         overview_step = get_step(steps, 'message_overview')
         if overview_step and overview_step.answer_id == u"button_use":
             api_key = get_rogerthat_api_key()
@@ -126,14 +131,12 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
 
         params = {
             'token': token,
-            'token_count': token_count,
             'amount': amount,
-            'currency': currency,
-            'per_token': get_investment_amount(currency, 1)
+            'currency': currency
         }
         msg = u'We are ready to process your purchase. Is the following information correct?\n\n' \
-              u'You would like to buy %(token_count)s $(token)s for a total amount of' \
-              u' **%(amount)s %(currency)s** (%(per_token)s %(currency)s per token).\n\n' \
+              u'You would like to buy $(token)s for a total amount of' \
+              u' **%(amount)s %(currency)s**.\n\n' \
               u'After confirming, you will receive your personalised investment agreement.' % params
         tag = json.dumps({'__rt__.tag': 'invest_complete', 'investment_id': agreement.id}).decode('utf-8')
         message = MessageCallbackResultTypeTO(alert_flags=Message.ALERT_FLAG_SILENT,
@@ -429,8 +432,9 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
         agreement.paid_time = now()
         agreement.put()
         user_email, app_id, = get_app_user_tuple(agreement.app_user)
-        deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TOKEN_TYPE_B, agreement.token_count,
-                       _transactional=True)
+        # deactivate granting tokens for now
+#         deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TOKEN_TYPE_B, agreement.token_count,
+#                        _transactional=True)
         deferred.defer(update_investor_progress, user_email.email(), app_id, InvestorSteps.ASSIGN_TOKENS,
                        _transactional=True)
 
