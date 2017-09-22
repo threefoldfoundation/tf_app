@@ -29,6 +29,7 @@ from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler,\
     BackupHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
+from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
 
 
 class TffBackendPlugin(BrandingPlugin):
@@ -51,6 +52,7 @@ class TffBackendPlugin(BrandingPlugin):
 
     def get_handlers(self, auth):
         yield Handler('/', IndexPageHandler)
+        yield Handler('/testing/agreements', AgreementsTestingPageHandler)
         authenticated_handlers = [nodes, investor, global_stats]
         for _module in authenticated_handlers:
             for url, handler in rest_functions(_module, authentication=AUTHENTICATED):

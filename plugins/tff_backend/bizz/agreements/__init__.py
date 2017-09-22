@@ -19,8 +19,10 @@ import os
 import time
 
 import jinja2
-
 from xhtml2pdf import pisa
+
+from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
+
 
 try:
     from cStringIO import StringIO
@@ -53,13 +55,22 @@ def create_hosting_agreement_pdf(full_name, address):
     return pdf_contents
 
 
-def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short):
+def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short, token=None):
+    if not token:
+        token = TOKEN_TFT
+    
+    if token == TOKEN_ITFT:
+        html_file = 'token_itft.html'
+    elif currency_short == 'BTC':
+        html_file = 'token_tft_btc.html'
+    else:
+        html_file = 'token_tft.html'
+        
     if currency_short == 'BTC':
         amount_formatted = '{:.8f}'.format(amount)
-        html_file = 'token_btc.html'
     else:
         amount_formatted = '{:.2f}'.format(amount)
-        html_file = 'token.html'
+        
     template_variables = {
         'logo_path': 'assets/logo.jpg',
         'effective_date': _get_effective_date(),
