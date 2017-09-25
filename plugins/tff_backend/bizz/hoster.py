@@ -322,7 +322,6 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
 
         # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.HOSTERS)
-        deferred.defer(invite_user_to_organization, get_iyo_username(user_detail), Organization.HOSTERS)
         deferred.defer(update_hoster_progress, user_detail.email, user_detail.app_id, HosterSteps.FLOW_SIGN)
         deferred.defer(send_payment_instructions, user_detail.email, user_detail.app_id, order.id)
 
@@ -505,7 +504,7 @@ def check_if_node_comes_online(order_id):
         deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED)
     else:
         deferred.defer(check_if_node_comes_online, order_id, _countdown=1 * 60 * 60)
-        
+
 
 @returns()
 @arguments(email=unicode, app_id=unicode, order_id=(int, long))
@@ -523,7 +522,7 @@ Please use the SO%(order_id)s as reference.
     member.member = email
     member.app_id = app_id
     member.alert_flags = Message.ALERT_FLAG_VIBRATE
-    
+
     messaging.send(api_key=get_rogerthat_api_key(),
                    parent_message_key=None,
                    message=message,
@@ -532,4 +531,3 @@ Please use the SO%(order_id)s as reference.
                    members=[member],
                    branding=get_main_branding_hash(),
                    tag=None)
-    

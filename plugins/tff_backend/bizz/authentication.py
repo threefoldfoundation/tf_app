@@ -24,46 +24,40 @@ from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_NAMESPACE
 
 config = get_config(IYO_NAMESPACE)
 ROOT_ORGANIZATION = config.root_organization.name
-USERS_REGEX = re.compile('^user:memberof:%s.(public|hosters|members|investors|ambassadors)$' % ROOT_ORGANIZATION)
+USERS_REGEX = re.compile('^user:memberof:%s.(admins|team|public|members)$' % ROOT_ORGANIZATION)
 
 
 class Roles(object):
     ADMINS = 'admins'
-    PAYMENT_ADMINS = 'payment-admin'
+    TEAM = 'team'
     PUBLIC = 'public'
     HOSTERS = 'hosters'
     MEMBERS = 'members'
     INVESTOR = 'investors'
-    AMBASSADORS = 'ambassadors'
 
 
 class PluginRoles(object):
-    ADMINS = 'tff-admins'
-    PAYMENT_ADMINS = 'tff-payment-admin'
-    PUBLIC = 'tff-public'
-    HOSTERS = 'tff-hosters'
-    MEMBERS = 'tff-members'
-    INVESTOR = 'tff-investors'
-    AMBASSADORS = 'tff-ambassadors'
+    ADMINS = 'tff.admins'
+    # Anyone who works for Threefold and is part of our team
+    TEAM = 'tff.team'
+    # Anyone who registers on website
+    PUBLIC = 'tff.public'
+    # Everyone who signs up has this role
+    # Threefold members, anyone who is or ambassador, token holder or hoster
+    MEMBERS = 'tff.members'
 
 
 class Organization(object):
-    ADMINS = '%s.admins' % ROOT_ORGANIZATION
-    PAYMENT_ADMINS = '%s.%s' % (ROOT_ORGANIZATION, Roles.PAYMENT_ADMINS)
+    ADMINS = '%s.%s' % (ROOT_ORGANIZATION, Roles.ADMINS)
+    TEAM = '%s.%s' % (ROOT_ORGANIZATION, Roles.TEAM)
     PUBLIC = '%s.%s' % (ROOT_ORGANIZATION, Roles.PUBLIC)
-    HOSTERS = '%s.%s' % (ROOT_ORGANIZATION, Roles.HOSTERS)
     MEMBERS = '%s.%s' % (ROOT_ORGANIZATION, Roles.MEMBERS)
-    INVESTORS = '%s.%s' % (ROOT_ORGANIZATION, Roles.INVESTOR)
-    AMBASSADORS = '%s.%s' % (ROOT_ORGANIZATION, Roles.AMBASSADORS)
 
     ROLES = {
         Roles.ADMINS: ADMINS,
-        Roles.PAYMENT_ADMINS: PAYMENT_ADMINS,
+        Roles.TEAM: TEAM,
         Roles.PUBLIC: PUBLIC,
-        Roles.HOSTERS: HOSTERS,
         Roles.MEMBERS: MEMBERS,
-        Roles.INVESTOR: INVESTORS,
-        Roles.AMBASSADORS: AMBASSADORS,
     }
 
     @staticmethod
@@ -75,67 +69,28 @@ class Scope(object):
     _memberof = 'user:memberof:%s'
     ROOT_ADMINS = _memberof % ROOT_ORGANIZATION
     ADMINS = _memberof % Organization.ADMINS
-    PAYMENT_ADMINS = _memberof % Organization.PAYMENT_ADMINS
+    TEAM = _memberof % Organization.TEAM
     PUBLIC = _memberof % Organization.PUBLIC
-    HOSTERS = _memberof % Organization.HOSTERS
     MEMBERS = _memberof % Organization.MEMBERS
-    INVESTORS = _memberof % Organization.INVESTORS
-    AMBASSADORS = _memberof % Organization.AMBASSADORS
 
 
 class Scopes(object):
     ADMINS = [Scope.ADMINS, Scope.ROOT_ADMINS]
-    PAYMENT_ADMIN = [Scope.ROOT_ADMINS, Scope.PAYMENT_ADMINS]
-    PUBLIC = ADMINS + [Scope.PUBLIC]
-    HOSTERS = PUBLIC + [Scope.HOSTERS]
+    TEAM = ADMINS + [Scope.TEAM]
+    PUBLIC = TEAM + [Scope.PUBLIC]
     MEMBERS = PUBLIC + [Scope.MEMBERS]
-    INVESTORS = PUBLIC + [Scope.INVESTORS]
-    AMBASSADORS = PUBLIC + [Scope.AMBASSADORS]
-
-
-class UserPermissions(object):
-    users = []  # type: list of unicode
-    admin = False
-    payment_admin = False
-
-    def __init__(self, admin, payment_admin, users):
-        """
-        Args:
-            admin (boolean)
-            payment_admin (boolean)
-            users (list of unicode)
-        """
-        self.admin = admin
-        self.payment_admin = payment_admin
-        self.users = users
 
 
 def get_permissions_from_scopes(scopes):
-    admin = False
-    payment_admin = False
-    users = []
+    permissions = []
     for scope in scopes:
-        if scope == Scope.ADMINS or scope == Scope.ROOT_ADMINS:
-            admin = True
-            continue
-        if scope == Scope.PAYMENT_ADMINS:
-            payment_admin = True
         users_re = USERS_REGEX.match(scope)
-        # e.g. {root_org}.hosters
+        # e.g. {root_org}.members
         if users_re:
             groups = users_re.groups()
-            users.append(groups[0])
-            continue
-    return UserPermissions(admin, payment_admin, users)
+            permissions.append(groups[0])
+    return permissions
 
 
 def get_permission_strings(scopes):
-    perms = []
-    permissions = get_permissions_from_scopes(scopes)
-    if permissions.admin:
-        perms.append(PluginRoles.ADMINS)
-    if permissions.payment_admin:
-        perms.append(PluginRoles.PAYMENT_ADMINS)
-    for perm in permissions.users:
-        perms.append('tff-%s' % perm)
-    return perms
+    return ['tff.%s' % p for p in get_permissions_from_scopes(scopes)]
