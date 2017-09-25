@@ -24,9 +24,9 @@ from mcfw.rpc import parse_complex_value
 from plugins.rogerthat_api.rogerthat_api_plugin import RogerthatApiPlugin
 from plugins.tff_backend import rogerthat_callbacks
 from plugins.tff_backend.api import investor, payment, nodes, global_stats
-from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings
+from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings, Roles
 from plugins.tff_backend.configuration import TffConfiguration
-from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler,\
+from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler, \
     BackupHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
@@ -70,7 +70,7 @@ class TffBackendPlugin(BrandingPlugin):
 
     def get_modules(self):
         perms = get_permissions_from_scopes(get_current_session().scopes)
-        if perms.admin or perms.payment_admin:
+        if Roles.TEAM in perms or Roles.ADMINS in perms:
             yield Module(u'tff_orders', [], 1)
             yield Module(u'tff_investment_agreements', [], 2)
             yield Module(u'tff_global_stats', [], 3)

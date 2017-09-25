@@ -28,21 +28,21 @@ from plugins.tff_backend.to.investor import InvestmentAgreementListTO, Investmen
     InvestmentAgreementDetailsTO
 
 
-@rest('/investment-agreements', 'get', Scopes.ADMINS)
+@rest('/investment-agreements', 'get', Scopes.TEAM)
 @returns(InvestmentAgreementListTO)
 @arguments(cursor=unicode, status=(int, long))
 def api_get_investment_agreements(cursor=None, status=None):
     return InvestmentAgreementListTO.from_query(*get_investment_agreements(cursor, status))
 
 
-@rest('/investment-agreements/<agreement_id:[^/]+>', 'get', Scopes.ADMINS)
+@rest('/investment-agreements/<agreement_id:[^/]+>', 'get', Scopes.TEAM)
 @returns(InvestmentAgreementDetailsTO)
 @arguments(agreement_id=(int, long))
 def api_get_investment_agreement(agreement_id):
     return get_investment_agreement_details(agreement_id)
 
 
-@rest('/investment-agreements/<agreement_id:[^/]+>', 'put', Scopes.PAYMENT_ADMIN)
+@rest('/investment-agreements/<agreement_id:[^/]+>', 'put', Scopes.ADMINS)
 @returns(InvestmentAgreementTO)
 @arguments(agreement_id=(int, long), data=InvestmentAgreementTO)
 def api_put_investment_agreement(agreement_id, data):

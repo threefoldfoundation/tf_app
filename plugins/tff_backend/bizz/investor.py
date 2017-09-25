@@ -41,11 +41,10 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FormAckn
     MessageCallbackResultTypeTO, TYPE_MESSAGE, FlowMemberResultCallbackResultTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agreements import create_token_agreement_pdf
-from plugins.tff_backend.bizz.authentication import Roles, Organization
+from plugins.tff_backend.bizz.authentication import Roles
 from plugins.tff_backend.bizz.hoster import get_publickey_label, _create_error_message
 from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
-from plugins.tff_backend.bizz.iyo.user import invite_user_to_organization
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
@@ -390,7 +389,6 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
 
         # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.INVESTOR)
-        deferred.defer(invite_user_to_organization, get_iyo_username(user_detail), Organization.INVESTORS)
         deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.PAY)
         deferred.defer(send_payment_instructions, user_detail.email, user_detail.app_id, agreement.id)
 
@@ -517,11 +515,9 @@ Please visit https://tff-backend.appspot.com/investment-agreements to find more 
 @arguments(email=unicode, app_id=unicode, agreement_id=(int, long))
 def send_payment_instructions(email, app_id, agreement_id):
     agreement = InvestmentAgreement.get_by_id(agreement_id)
-
     params = {
         'currency': agreement.currency
     }
-
     if agreement.currency == "BTC":
         params['amount'] = '{:.8f}'.format(agreement.amount)
         message = u"""Please use the following transfer details
@@ -552,7 +548,7 @@ Payment must be made from a bank account registered under your name. Please use 
     member.member = email
     member.app_id = app_id
     member.alert_flags = Message.ALERT_FLAG_VIBRATE
-    
+
     messaging.send(api_key=get_rogerthat_api_key(),
                    parent_message_key=None,
                    message=message % params,
