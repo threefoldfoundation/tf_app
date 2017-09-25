@@ -67,6 +67,11 @@ def user_registered(user_detail, origin, data):
         
         jwt = qr_content
         decoded_jwt = decode_jwt_cached(jwt)
+        username = decoded_jwt.get('username', None)
+        if not username:
+            logging.warn('Could not find username in jwt.')
+            return
+    
         missing_scopes = [s for s in required_scopes if s and s not in decoded_jwt['scope']]
         if missing_scopes:
             logging.warn('Access token is missing required scopes %s', missing_scopes)
@@ -102,7 +107,7 @@ def user_registered(user_detail, origin, data):
     intercom_plugin = get_plugin('intercom_support')
     if intercom_plugin:
         client = Client()
-        client.oauth.session.headers['Authorization'] = 'token %s' % access_token
+        client.oauth.session.headers['Authorization'] = 'bearer %s' % jwt
         response_data = client.api.users.GetUserInformation(username).json()
         # todo: user 'userview' object from IYO library when it is updated to included validated emails/phone numbers
         name = None
