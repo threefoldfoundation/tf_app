@@ -84,6 +84,9 @@ class Scopes(object):
 def get_permissions_from_scopes(scopes):
     permissions = []
     for scope in scopes:
+        if scope == Scope.ROOT_ADMINS:
+            permissions.append(Roles.ADMINS)
+            break
         users_re = USERS_REGEX.match(scope)
         # e.g. {root_org}.members
         if users_re:
