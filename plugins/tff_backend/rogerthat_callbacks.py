@@ -123,7 +123,7 @@ def friend_register(rt_settings, request_id, params, response):
         return
 
     user_details = log_and_parse_user_details(params['user_details'])
-    return user_registered(user_details[0], params['data'])
+    return user_registered(user_details[0], params['origin'], params['data'])
 
 
 def friend_invited(rt_settings, request_id, user_details, **kwargs):
