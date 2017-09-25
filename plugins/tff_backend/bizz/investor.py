@@ -517,22 +517,36 @@ Please visit https://tff-backend.appspot.com/investment-agreements to find more 
 @arguments(email=unicode, app_id=unicode, agreement_id=(int, long))
 def send_payment_instructions(email, app_id, agreement_id):
     agreement = InvestmentAgreement.get_by_id(agreement_id)
-    
+
+    params = {
+        'currency': agreement.currency
+    }
+
     if agreement.currency == "BTC":
-        amount_formatted = '{:.8f}'.format(agreement.amount)
+        params['amount'] = '{:.8f}'.format(agreement.amount)
         message = u"""Please use the following transfer details
-Amount: BTC %(amount)s - wallet 3GTf7gWhvWqfsurxXpEj6DU7SVoLM3wC6A
+Amount: %(currency)s %(amount)s - wallet 3GTf7gWhvWqfsurxXpEj6DU7SVoLM3wC6A
 
 Please inform us by email at payments@threefoldtoken.com when you have made payment."""
 
     else:
-        amount_formatted = '{:.2f}'.format(agreement.amount)
+        params['amount'] = '{:.2f}'.format(agreement.amount)
         message = u"""Please use the following transfer details
-Amount: USD %(amount)s - Bank : Mashreq Bank - IBAN : AE230330000019120028156 - BIC : BOMLAEAD
+Amount: %(currency)s %(amount)s - Bank : Mashreq Bank - IBAN : %(iban)s - BIC : BOMLAEAD
 
 For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
 
 Payment must be made from a bank account registered under your name. Please use "FIRSTNAME LASTNAME AMOUNT iTFT" as reference."""
+
+        if  agreement.currency == "EUR":
+            params['iban'] = 'AE930330000019120028157'
+        elif agreement.currency == "GBP":
+            params['iban'] = 'AE780330000019120032792'
+        elif agreement.currency == "AED":
+            params['iban'] = 'AE500330000019120028155'
+        else:
+            params['iban'] = 'AE230330000019120028156'
+
 
     member = MemberTO()
     member.member = email
@@ -541,7 +555,7 @@ Payment must be made from a bank account registered under your name. Please use 
     
     messaging.send(api_key=get_rogerthat_api_key(),
                    parent_message_key=None,
-                   message=message % {"amount": amount_formatted},
+                   message=message % params,
                    answers=[],
                    flags=0,
                    members=[member],
