@@ -98,7 +98,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         currency = get_step_value(steps, 'message_get_currency').replace('_cur', '')
         if token == TOKEN_ITFT:
             token_count = 0  # will be calculated when payment arrived
-            amount = float(get_step_value(steps, 'message_get_order_size_ITO'))
+            amount = float(get_step_value(steps, 'message_get_order_size_ITO').replace(',', '.'))
         else:
             token_count = int(get_step_value(steps, 'message_get_order_size_ITO'))
             amount = get_investment_amount(currency, token_count)
