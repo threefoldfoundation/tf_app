@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-import logging
 import os
 import time
 
@@ -73,7 +72,8 @@ def create_token_agreement_pdf(full_name, address, amount, currency_full, curren
     conversion = {}
     if token:
         stats = get_global_stats(TOKEN_TFT)
-        conversion = {currency.currency: round_currency_amount(currency.value, 1) for currency in stats.currencies}
+        conversion = {currency.currency: round_currency_amount(currency.currency, currency.value) for currency in
+                      stats.currencies}
     currency_messages = []
     for currency in BANK_ACCOUNTS:
         account = BANK_ACCOUNTS[currency]
