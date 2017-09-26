@@ -19,11 +19,10 @@ import hashlib
 import json
 import logging
 
-from google.appengine.ext import deferred, ndb
-from google.appengine.ext.deferred.deferred import PermanentTaskFailure
-
 from framework.bizz.session import create_session
 from framework.plugin_loader import get_config, get_plugin
+from google.appengine.ext import deferred, ndb
+from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
@@ -32,6 +31,7 @@ from plugins.its_you_online_auth.libs.itsyouonline import Client
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.to import UserDetailsTO
+from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_QR, REGISTRATION_ORIGIN_OAUTH
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Organization, Roles
@@ -47,26 +47,56 @@ from plugins.tff_backend.utils.app import create_app_user_by_email
 
 
 @returns()
-@arguments(user_detail=UserDetailsTO, data=unicode)
-def user_registered(user_detail, data):
-    # type: (UserDetailsTO, unicode) -> None
+@arguments(user_detail=UserDetailsTO, origin=unicode, data=unicode)
+def user_registered(user_detail, origin, data):
     logging.info('User %s:%s registered', user_detail.email, user_detail.app_id)
     data = json.loads(data)
-    access_token_data = data.get('result', {})
-    access_token = access_token_data.get('access_token')
-    username = access_token_data.get('info', {}).get('username')
-    if not access_token or not username:
-        logging.warn('No access_token/username in %s', data)
-        return
-    scopes = [s for s in access_token_data.get('scope', '').split(',') if s]
+    
     required_scopes = get_config(IYO_AUTH_NAMESPACE).required_scopes.split(',')
-    missing_scopes = [s for s in required_scopes if s and s not in scopes]
-    if missing_scopes:
-        logging.warn('Access token is missing required scopes %s', missing_scopes)
-    scopes.append('offline_access')
-    logging.debug('Creating JWT with scopes %s', scopes)
-    jwt = create_jwt(access_token, scope=','.join(scopes))
-    decoded_jwt = decode_jwt_cached(jwt)
+    if origin == REGISTRATION_ORIGIN_QR:
+        qr_type = data.get('qr_type', None)
+        qr_content = data.get('qr_content', None)
+        
+        if not qr_type or not qr_content:
+            logging.warn('No qr_type/qr_content in %s', data)
+            return
+        
+        if qr_type != 'jwt':
+            logging.warn('Unsupported qr_type %s', qr_type)
+            return
+        
+        jwt = qr_content
+        decoded_jwt = decode_jwt_cached(jwt)
+        username = decoded_jwt.get('username', None)
+        if not username:
+            logging.warn('Could not find username in jwt.')
+            return
+    
+        missing_scopes = [s for s in required_scopes if s and s not in decoded_jwt['scope']]
+        if missing_scopes:
+            logging.warn('Access token is missing required scopes %s', missing_scopes)
+    
+    elif origin == REGISTRATION_ORIGIN_OAUTH:
+        access_token_data = data.get('result', {})
+        access_token = access_token_data.get('access_token')
+        username = access_token_data.get('info', {}).get('username')
+        
+        if not access_token or not username:
+            logging.warn('No access_token/username in %s', data)
+            return
+        
+        scopes = [s for s in access_token_data.get('scope', '').split(',') if s]
+        missing_scopes = [s for s in required_scopes if s and s not in scopes]
+        if missing_scopes:
+            logging.warn('Access token is missing required scopes %s', missing_scopes)
+        scopes.append('offline_access')
+        logging.debug('Creating JWT with scopes %s', scopes)
+        jwt = create_jwt(access_token, scope=','.join(scopes))
+        decoded_jwt = decode_jwt_cached(jwt)
+        
+    else:
+        return
+    
     logging.debug('Decoded JWT: %s', decoded_jwt)
     scopes = decoded_jwt['scope']
     # Creation session such that the JWT is automatically up to date
@@ -77,7 +107,7 @@ def user_registered(user_detail, data):
     intercom_plugin = get_plugin('intercom_support')
     if intercom_plugin:
         client = Client()
-        client.oauth.session.headers['Authorization'] = 'token %s' % access_token
+        client.oauth.session.headers['Authorization'] = 'bearer %s' % jwt
         response_data = client.api.users.GetUserInformation(username).json()
         # todo: user 'userview' object from IYO library when it is updated to included validated emails/phone numbers
         name = None
