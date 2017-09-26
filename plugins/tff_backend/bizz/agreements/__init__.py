@@ -14,15 +14,17 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
+import logging
 import os
 import time
 
 import jinja2
-from xhtml2pdf import pisa
 
+from babel.numbers import get_currency_name
+from plugins.tff_backend.bizz.global_stats import get_global_stats
+from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
-
+from xhtml2pdf import pisa
 
 try:
     from cStringIO import StringIO
@@ -55,22 +57,34 @@ def create_hosting_agreement_pdf(full_name, address):
     return pdf_contents
 
 
-def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short, token=None):
-    if not token:
-        token = TOKEN_TFT
-    
+def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short, token=TOKEN_TFT):
+    from plugins.tff_backend.bizz.investor import round_currency_amount
     if token == TOKEN_ITFT:
         html_file = 'token_itft.html'
     elif currency_short == 'BTC':
         html_file = 'token_tft_btc.html'
     else:
         html_file = 'token_tft.html'
-        
+
     if currency_short == 'BTC':
         amount_formatted = '{:.8f}'.format(amount)
     else:
         amount_formatted = '{:.2f}'.format(amount)
-        
+    conversion = {}
+    if token:
+        stats = get_global_stats(TOKEN_TFT)
+        conversion = {currency.currency: round_currency_amount(currency.value, 1) for currency in stats.currencies}
+    currency_messages = []
+    for currency in BANK_ACCOUNTS:
+        account = BANK_ACCOUNTS[currency]
+        if currency == 'BTC':
+            currency_messages.append(
+                u'when using Bitcoin: to the Company’s BitCoin wallet hosted by BitOasis Technologies FZE, at the'
+                u' following digital address: <b>%s</b> (the “<b>Wallet</b>”)' % account)
+        else:
+            currency_messages.append(
+                u'when using %s: to the Company’s bank account at Mashreq Bank, IBAN: <b>%s</b> SWIFT/BIC:'
+                u' <b>BOMLAEAD</b>' % (get_currency_name(currency, locale='en_GB'), account))
     template_variables = {
         'logo_path': 'assets/logo.jpg',
         'effective_date': _get_effective_date(),
@@ -78,7 +92,9 @@ def create_token_agreement_pdf(full_name, address, amount, currency_full, curren
         'address': address,
         'amount': amount_formatted,
         'currency_full': currency_full,
-        'currency_short': currency_short
+        'currency_short': currency_short,
+        'currency_messages': currency_messages,
+        'conversion': conversion
     }
 
     source_html = JINJA_ENVIRONMENT.get_template(html_file).render(template_variables)

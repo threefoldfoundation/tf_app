@@ -21,13 +21,12 @@ import json
 import logging
 from types import NoneType
 
-from babel.numbers import get_currency_name
-from requests.exceptions import HTTPError
-
-from framework.plugin_loader import get_config
-from framework.utils import now
 from google.appengine.api import users, mail
 from google.appengine.ext import deferred, ndb
+
+from babel.numbers import get_currency_name
+from framework.plugin_loader import get_config
+from framework.utils import now
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -49,6 +48,7 @@ from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organiz
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
+from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement
@@ -58,6 +58,7 @@ from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgr
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+from requests.exceptions import HTTPError
 
 
 @returns(FlowMemberResultCallbackResultTO)
@@ -166,8 +167,12 @@ def get_currency_rate(currency):
 
 def get_investment_amount(currency, token_count):
     # type: (unicode, long) -> float
+    return round_currency_amount(currency, get_currency_rate(currency) * token_count)
+
+
+def round_currency_amount(currency, amount):
     decimals_after_comma = 8 if currency == 'BTC' else 2
-    return round(get_currency_rate(currency) * token_count, decimals_after_comma)
+    return round(amount, decimals_after_comma)
 
 
 @returns()
@@ -516,7 +521,8 @@ Please visit https://tff-backend.appspot.com/investment-agreements to find more 
 def send_payment_instructions(email, app_id, agreement_id):
     agreement = InvestmentAgreement.get_by_id(agreement_id)
     params = {
-        'currency': agreement.currency
+        'currency': agreement.currency,
+        'iban': BANK_ACCOUNTS.get(agreement.currency, BANK_ACCOUNTS['USD'])
     }
     if agreement.currency == "BTC":
         params['amount'] = '{:.8f}'.format(agreement.amount)
@@ -533,16 +539,6 @@ Amount: %(currency)s %(amount)s - Bank : Mashreq Bank - IBAN : %(iban)s - BIC : 
 For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
 
 Payment must be made from a bank account registered under your name. Please use "FIRSTNAME LASTNAME AMOUNT iTFT" as reference."""
-
-        if  agreement.currency == "EUR":
-            params['iban'] = 'AE930330000019120028157'
-        elif agreement.currency == "GBP":
-            params['iban'] = 'AE780330000019120032792'
-        elif agreement.currency == "AED":
-            params['iban'] = 'AE500330000019120028155'
-        else:
-            params['iban'] = 'AE230330000019120028156'
-
 
     member = MemberTO()
     member.member = email

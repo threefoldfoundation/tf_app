@@ -79,10 +79,10 @@
 
 <div id="headerContent" align="center">
   <img class="logo" src="{{ logo_path }}" width="895" height="222"/>
-  <p class="title">TF iToken Purchase Agreement</p>
+  <p class="title">iTFT Purchase Agreement</p>
 </div>
 <div id="footerContent" align="left">
-  Document Version 1.4
+  Document Version 1.5
 </div>
 
 <div>
@@ -102,7 +102,7 @@
     </tr>
     <tr>
       <td><b>Purchase Price</b></td>
-      <td>Five US Dollar (5 US $) per TF iToken;</td>
+      <td>Five U.S. Dollar (5 US $) per iTFT</td>
     </tr>
     </tbody>
   </table>
@@ -119,26 +119,23 @@
 
   <p>Before its Private Token Offering (“<b>PTO</b>”), the Threefold Foundation is launching an Internal Token Offering
     (“<b>ITO</b>”) for friends, family and ambassadors. In exchange for the payment of the Purchase Amount, the Company
-    hereby issues to
-    the Purchaser certain digital tokens (the “internal TF Tokens” or “<b>iTFT's</b>”), which on the occurrence of the
-    PTO will be exchanged against digital tokens of the ThreeFold Foundation (the “<b>TF Tokens</b>” or “<b>TFT's</b>”),
-    subject to the terms set forth below.</p>
+    hereby issues to the Purchaser certain digital tokens (the “internal ThreeFold Tokens” or “<b>iTFT's</b>”), which on
+    the occurrence of the PTO will be exchanged against digital tokens of the ThreeFold Foundation (the “<b>ThreeFold
+      Tokens</b>” or “<b>TFT's</b>”), subject to the terms set forth below.</p>
 
   <p><b>1. Internal Token Offering</b></p>
   <p>Subject to the terms set out hereinafter, including Purchaser’s payment of the entire Purchase Amount, the Company
     sells and transfers to the Purchaser, and the Purchaser accepts and acquires, the entire rights and title to such
-    number
-    of iTFT's corresponding to the above mentioned Purchase Amount (converted, as the case may be, into US Dollars as
-    per Section 4 below) divided by the Purchase Price.</p>
+    number of iTFT's corresponding to the above mentioned Purchase Amount (converted, as the case may be, into US
+    Dollars as per Section 4 below) divided by the Purchase Price.</p>
   <p>Upon Company's reasonable request, the Purchaser will provide all information, including a network address to which
     the iTFT's will be sent upon receipt of the Purchase Amount. The Purchaser will furthermore execute and deliver to
-    the
-    Company any and all other transaction documents related to this Agreement as may be reasonably requested by the
+    the Company any and all other transaction documents related to this Agreement as may be reasonably requested by the
     Company, including verification of non-US/China/Canada person status under the applicable securities laws.</p>
 
   <p><b>2. Exchange against TFT's</b></p>
   <p>If and when the ThreeFold Foundation’s Private Token Offering takes place, any and all iTFT's held by the Purchaser
-    will automatically be converted into a corresponding number of TFT's on the first day of the PTO.</p>
+    will automatically be exchanged against a corresponding number of TFT's on the first day of the PTO.</p>
 
   <p><b>3. Lock-up Period</b></p>
   <p>Unless explicitly agreed to by the Company or the ThreeFold Foundation, Purchaser will not be allowed to sell or
@@ -154,33 +151,45 @@
     </li>
   </ol>
   <p><b>4. Payment</b></p>
-  <p>The Company will accept payment for the iTFT's purchased under this Agreement in U.S. Dollars and Bitcoin.
-    Purchaser shall make the required payment to the Company in consideration for Purchaser’s purchase of the Right
-    pursuant to the Agreement by wire transfer to the Company within three business days as from the Effective Date, as
-    follows:
+  <p>The Company will accept payment for the iTFT's purchased under this Agreement in U.S. Dollars, Euro, Pound
+    Sterling, United Arab Emirates Dirham and Bitcoin. Purchaser shall make the required payment to the Company in
+    consideration for Purchaser’s purchase of the Right pursuant to the Agreement by wire transfer to the Company within
+    three business days as from the Effective Date, as follows:
   <p>
   <ul>
-    <li>when using Bitcoin: to the Company’s BitCoin wallet hosted by BitOasis Technologies FZE, at the following
-      digital address: <b>3GTf7gWhvWqfsurxXpEj6DU7SVoLM3wC6A</b> (the “<b>Wallet</b>”); or
-    </li>
-    <li>when using U.S. Dollars: to the Company’s bank account at Mashreq Bank, IBAN: <b>AE23 0330 0000 1912 0028
-      156</b> SWIFT/BIC: <b>BOMLAEAD</b></li>
+    {% for msg in currency_messages %}
+    <li>{{ msg }}{% if not loop.last %}; or {% endif %}</li>
+    {% endfor %}
   </ul>
 
   <p>For purposes of this Agreement, the value of the Purchase Amount shall be deemed in U.S. Dollar even when the
-    Purchaser pays in Bitcoin. On the day on which the Bitcoin payment has been received by the Company in its Wallet,
-    the Purchase Amount will be converted in United Arab Emirates Dirham (AED) first at the conversion rate quoted on
-    the website of BitOasis Technologies FZE, and then immediately thereafter from AED in U.S. Dollars at the conversion
-    rate quoted on the website of Oanda.com, both on such date at 11.59 PM Gulf Standard Time.</p>
+    Purchaser pays in any of the other currencies mentioned above.
+  </p>
+  <p>Conversion of other currencies stated above to U.S. Dollars will be made as follows:</p>
+  <ul>
+    <li>For purchases made in Bitcoin, on the day on which the Bitcoin payment has been received by the Company in its
+      Wallet, the Purchase Amount will be converted in AED first at the conversion rate quoted on the website of
+      BitOasis Technologies FZE, and then immediately thereafter from AED in U.S. Dollars at the conversion rate quoted
+      on the website of Oanda.com, both on such date at 11.59 PM Gulf Standard Time.
+    </li>
+    <li>For purchases made in EUR, GBP or AED, the Purchase Amount will be converted in U.S. Dollars at the following
+      conversion rate:
+      <ul>
+        <li>1 U.S. Dollar = {{ conversion['EUR'] }} Euro;</li>
+        <li>1 U.S. Dollar = {{ conversion['GBP'] }} Pound Sterling;</li>
+        <li>1 U.S. Dollar = 3.67 United Arab Emirates Dirham.</li>
+      </ul>
+    </li>
+  </ul>
 
   <p><b>5. Disclaimer</b></p>
   <p><b>THE COMPANY MAKES NO WARRANTY WHATSOEVER, NEITHER IN ITS OWN NAME NOR IN THE NAME OF THE THREEFOLD FOUNDATION,
-    WITH RESPECT TO THE iTFT's AND/OR THE TFT's, INCLUDING ANY (i)
-    WARRANTY OF MERCHANTABILITY; (ii) WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE; (iii) WARRANTY OF TITLE; OR (iv)
-    WARRANTY AGAINST INFRINGEMENT OF INTELLECTUAL PROPERTY RIGHTS OF A THIRD PARTY; WHETHER ARISING BY LAW, COURSE OF
-    DEALING, COURSE OF PERFORMANCE, USAGE OF TRADE, OR OTHERWISE. EXCEPT AS EXPRESSLY SET FORTH HEREIN, PURCHASER
-    ACKNOWLEDGES THAT IT HAS NOT RELIED UPON ANY REPRESENTATION OR WARRANTY MADE BY THE COMPANY, OR ANY OTHER PERSON ON
-    THE COMPANY'S BEHALF.</b></p>
+    WITH RESPECT TO THE iTFT's AND/OR THE TFT's, INCLUDING ANY (i) WARRANTY OF MERCHANTABILITY; (ii) WARRANTY OF FITNESS
+    FOR A PARTICULAR PURPOSE; (iii) WARRANTY OF TITLE; OR (iv) WARRANTY AGAINST INFRINGEMENT OF INTELLECTUAL PROPERTY
+    RIGHTS OF A THIRD PARTY; WHETHER ARISING BY LAW, COURSE OF DEALING, COURSE OF PERFORMANCE, USAGE OF TRADE, OR
+    OTHERWISE. EXCEPT AS EXPRESSLY SET FORTH HEREIN, PURCHASER ACKNOWLEDGES THAT IT HAS NOT RELIED UPON ANY
+    REPRESENTATION OR WARRANTY MADE BY THE COMPANY, OR ANY OTHER PERSON ON THE COMPANY'S BEHALF.
+  </b></p>
 
   <p><b>6. Purchaser representations</b></p>
   <ol class="ol-alpha">
@@ -242,41 +251,39 @@
   </ol>
 
   <p><b>7. Electronic signatures</b></p>
-  Each Party agrees that the electronic signatures, whether digital or encrypted, of the Parties included in this
-  Agreement or any other agreement entered into between the Parties after the Effective date, are intended to
-  authenticate such agreement and to have the same force and effect as manual signatures. Delivery of a copy of this
-  Agreement or any other document contemplated hereby bearing an original or electronic signature by facsimile
-  transmission, by electronic mail in “portable document format” (“.pdf”) form, or by any other electronic means
-  intended to preserve the original graphic and pictorial appearance of a document, will have the same effect as
-  physical delivery of the paper document bearing an original or electronic signature.
+  <p>Each Party agrees that the electronic signatures, whether digital or encrypted, of the Parties included in this
+    Agreement or any other agreement entered into between the Parties after the Effective date, are intended to
+    authenticate such agreement and to have the same force and effect as manual signatures. Delivery of a copy of this
+    Agreement or any other document contemplated hereby bearing an original or electronic signature by facsimile
+    transmission, by electronic mail in “portable document format” (“.pdf”) form, or by any other electronic means
+    intended to preserve the original graphic and pictorial appearance of a document, will have the same effect as
+    physical delivery of the paper document bearing an original or electronic signature.</p>
 
   <p><b>8. Assignment</b></p>
-  The Purchaser agrees that the Company may transfer and assign the Agreement in its discretion provided notice of such
-  assignment is sent to the Purchaser within fifteen days of such assignment. The Purchaser may not transfer, sell or
-  assign its rights and obligations under this Agreement.
+  <p> The Purchaser agrees that the Company may transfer and assign the Agreement in its discretion provided notice of
+    such assignment is sent to the Purchaser within fifteen days of such assignment. The Purchaser may not transfer,
+    sell or assign its rights and obligations under this Agreement.</p>
 
   <p><b>9. Amendments</b></p>
-  No amendment modifying, adding to or omitting from, or terminating this Agreement will be binding upon a Party unless
-  made in writing and signed by or in the name of the Parties involved.
+  <p>No amendment modifying, adding to or omitting from, or terminating this Agreement will be binding upon a Party
+    unless made in writing and signed by or in the name of the Parties involved. </p>
 
   <p><b>10. Partial Invalidity</b></p>
-  The nullity of one of the provisions of this Agreement shall have no bearing on the validity of the other provision of
-  this Agreement.
-  In such case the Parties to this Agreement shall in good faith negotiate on the provisions of this Agreement so that
-  the same economic balance between the rights and obligations of the Parties to this Agreement are safeguarded to the
-  same extent as if the invalid provision had been valid.
+  <p>The nullity of one of the provisions of this Agreement shall have no bearing on the validity of the other provision
+    of this Agreement.</p>
+  <p>In such case the Parties to this Agreement shall in good faith negotiate on the provisions of this Agreement so
+    that the same economic balance between the rights and obligations of the Parties to this Agreement are safeguarded
+    to the same extent as if the invalid provision had been valid.</p>
 
   <p><b>11. Governing Law</b></p>
-  This Agreement is subject to the laws of Sharjah (United Arab Emirates).
+  <p>This Agreement is subject to the laws of Sharjah (United Arab Emirates).</p>
 
   <p><b>12. Jurisdiction</b></p>
-  Any dispute which may arise between the Parties in relation to the validity, the interpretation or the execution of
-  this Agreement will be submitted to the exclusive jurisdiction of the Courts of Sharjah, United Arab Emirates.
+  <p>Any dispute which may arise between the Parties in relation to the validity, the interpretation or the execution of
+    this Agreement will be submitted to the exclusive jurisdiction of the Courts of Sharjah, United Arab Emirates.</p>
+  <p>Signed on the Effective Date in two originals, each of the Parties acknowledging having received one original.</p>
 
-
-  Signed on the Effective Date in two originals, each of the Parties acknowledging having received one original.
-
-  <table style="padding:0.2em; margin-top: 10em;">
+  <table style="margin-top: 10px;">
     <thead>
     <tr>
       <td style="width:50%;">The Company</td>
@@ -289,6 +296,12 @@
       <td>{{ full_name }}</td>
     </tr>
     </tbody>
+  </table>
+  <table style="margin-top: 30px;">
+    <thead>
+    <td style="width: 50%;">Signature</td>
+    <td style="width: 50%;">Signature</td>
+    </thead>
   </table>
 </div>
 </body>

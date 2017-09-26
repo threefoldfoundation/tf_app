@@ -19,9 +19,10 @@ import base64
 import json
 import logging
 
-from framework.utils import now, try_or_defer
 from google.appengine.api import users
 from google.appengine.ext import ndb, deferred
+
+from framework.utils import now, try_or_defer
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -34,11 +35,10 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemb
     FormAcknowledgedCallbackResultTO, MessageCallbackResultTypeTO, TYPE_MESSAGE
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agreements import create_hosting_agreement_pdf
-from plugins.tff_backend.bizz.authentication import Roles, Organization
+from plugins.tff_backend.bizz.authentication import Roles
 from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
-from plugins.tff_backend.bizz.iyo.user import invite_user_to_organization
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.nodes import get_node_status
 from plugins.tff_backend.bizz.odoo import create_odoo_quotation, get_odoo_serial_number
