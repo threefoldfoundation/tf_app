@@ -1,4 +1,4 @@
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -7,7 +7,8 @@ import {
   MdChipsModule,
   MdIconModule,
   MdInputModule,
-  MdListModule, MdProgressSpinnerModule,
+  MdListModule,
+  MdProgressSpinnerModule,
   MdSelectModule,
   MdSlideToggleModule
 } from '@angular/material';
@@ -47,6 +48,7 @@ const MATERIAL_IMPORTS = [
   ],
   providers: [
     DatePipe,
+    CurrencyPipe,
     TFF_PROVIDERS,
   ],
   exports: [

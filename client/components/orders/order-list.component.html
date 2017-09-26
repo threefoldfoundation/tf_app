@@ -6,8 +6,8 @@
   <md-nav-list *ngIf="orders">
     <md-list-item *ngFor="let order of orders.results" [routerLink]="order.id">
       <h4 mdLine>{{ 'tff.node_order_x' | translate : { orderId: order.id } }}</h4>
-      <p mdLine>{{ order.order_time | timestamp }} {{ order.billing_info.name }}</p>
-      <p mdLine>{{ 'tff.modified_on' | translate}} {{ order.modification_time | timestamp }}</p>
+      <p mdLine>{{ order.billing_info.name }}</p>
+      <p mdLine>{{ order.order_time | timestamp }}</p>
     </md-list-item>
     <button md-button *ngIf="orders.more" (click)="loadMore()">
       {{ 'tff.load_more' | translate }}

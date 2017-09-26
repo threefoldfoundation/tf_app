@@ -3,6 +3,7 @@ import { InvestmentAgreement, InvestmentAgreementsStatuses, } from '../../interf
 import { TranslateService } from '@ngx-translate/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import { INVESTMENT_AGREEMENT_STATUSES, InvestmentAgreementDetail } from '../../interfaces/investment-agreements.interfaces';
+import { CurrencyPipe } from '@angular/common';
 
 @Component({
   moduleId: module.id,
@@ -32,7 +33,13 @@ export class InvestmentAgreementDetailComponent {
     this._canMarkAsPaid = input;
   }
 
-  constructor(private translate: TranslateService) {
+  constructor(private translate: TranslateService,
+              private currencyPipe: CurrencyPipe) {
+  }
+
+  getAmount() {
+    return this.currencyPipe.transform(this.investmentAgreement.amount, this.investmentAgreement.currency, false,
+      this.investmentAgreement.currency === 'BTC' ? '1.8-8' : '1.2-2');
   }
 
   getStatus(): string {

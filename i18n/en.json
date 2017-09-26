@@ -3,7 +3,7 @@
   "tff": {
     "add_currency": "Add currency",
     "address": "Address",
-    "amount_in_dollar": "Amount in dollar",
+    "amount": "Amount",
     "arrival_time": "Arrival time",
     "arrived": "Arrived",
     "auto_update": "Auto update",

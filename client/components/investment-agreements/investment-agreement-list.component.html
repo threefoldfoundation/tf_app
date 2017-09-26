@@ -9,11 +9,9 @@
       <h4 mdLine>
         {{ 'tff.investment_agreement_x' | translate : { investmentAgreementId: investmentAgreement.id } }}
       </h4>
-      <p mdLine>
-        {{ investmentAgreement.token_count }} {{ 'tff.tokens' | translate }} - {{ investmentAgreement.creation_time |
-        timestamp }}
-      </p>
-      <p mdLine>{{ 'tff.modified_on' | translate}} {{ investmentAgreement.modification_time | timestamp }}</p>
+      <p mdLine *ngIf="investmentAgreement.name">{{ investmentAgreement.name }}</p>
+      <p mdLine> {{ investmentAgreement.token_count }} {{ 'tff.tokens' | translate }}</p>
+      <p mdLine>{{ investmentAgreement.creation_time | timestamp }}</p>
     </md-list-item>
     <button md-button *ngIf="investmentAgreements.more" (click)="loadMore()">
       {{ 'tff.load_more' | translate }}
