@@ -15,25 +15,25 @@
 #
 # @@license_version:1.3@@
 
+from datetime import datetime
 import hashlib
 import hmac
 import json
 import logging
 import time
 import uuid
-from datetime import datetime
-
-from google.appengine.api import urlfetch, users
-from google.appengine.ext import deferred, ndb
 
 from dateutil.relativedelta import relativedelta
+
 from framework.plugin_loader import get_config
 from framework.utils import now, get_epoch_from_datetime, urlencode
+from google.appengine.api import urlfetch, users
+from google.appengine.ext import deferred, ndb
 from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_TYPE_A, TOKEN_TYPE_B, TOKEN_TYPE_C, \
-    TOKEN_TYPE_D, TOKEN_TFT_CONTRIBUTOR
+    TOKEN_TYPE_D, TOKEN_TFT_CONTRIBUTOR, TOKEN_TYPE_I, TOKEN_ITFT
 from plugins.tff_backend.models.payment import ThreeFoldWallet, ThreeFoldTransaction, \
     ThreeFoldPendingTransaction, ThreeFoldBlockHeight
 from plugins.tff_backend.plugin_consts import NAMESPACE
@@ -317,28 +317,35 @@ def get_spendable_amount_of_transaction(transaction):
 
 
 @returns()
-@arguments(app_user=users.User, token_type=unicode, token_count=(int, long), memo=unicode)
-def transfer_genesis_coins_to_user(app_user, token_type, token_count, memo=None):
+@arguments(app_user=users.User, token_type=unicode, token_count=(int, long), memo=unicode, epoch=(int, long))
+def transfer_genesis_coins_to_user(app_user, token_type, token_count, memo=None, epoch=0):
+    if epoch > 0:
+        date_signed = datetime.utcfromtimestamp(epoch)
+    else:
+        date_signed = datetime.now()
+
     if TOKEN_TYPE_A == token_type:
         token = TOKEN_TFT
         unlock_timestamps = [0]
         unlock_amounts = [token_count]
+
     elif TOKEN_TYPE_B == token_type:
         token = TOKEN_TFT
-        d = datetime.now() + relativedelta(months=12)
+        d = date_signed + relativedelta(months=12)
         unlock_timestamps = [get_epoch_from_datetime(d)]
         unlock_amounts = [token_count]
+
     elif TOKEN_TYPE_C == token_type:
         token = TOKEN_TFT
         unlock_timestamps = []
         unlock_amounts = []
         a = token_count / 48
         for i in xrange(0, 39):
-            d = datetime.now() + relativedelta(months=48 - i)
+            d = date_signed + relativedelta(months=48 - i)
             unlock_timestamps = [get_epoch_from_datetime(d)] + unlock_timestamps
             unlock_amounts = [a] + unlock_amounts
 
-        d = datetime.now() + relativedelta(months=9)
+        d = date_signed + relativedelta(months=9)
         unlock_timestamps = [get_epoch_from_datetime(d)] + unlock_timestamps
         unlock_amounts = [token_count - sum(unlock_amounts)] + unlock_amounts
 
@@ -346,6 +353,12 @@ def transfer_genesis_coins_to_user(app_user, token_type, token_count, memo=None)
         token = TOKEN_TFT_CONTRIBUTOR
         unlock_timestamps = [0]
         unlock_amounts = [token_count]
+
+    elif TOKEN_TYPE_I == token_type:
+        token = TOKEN_ITFT
+        unlock_timestamps = [0]
+        unlock_amounts = [token_count]
+
     else:
         raise Exception(u"Unknown token type")
 
