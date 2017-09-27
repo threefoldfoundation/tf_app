@@ -488,11 +488,14 @@ def put_node_order(order_id, order):
     # Only support updating the status for now
     if order_model.status != order.status:
         order_model.status = order.status
+        human_user, app_id = get_app_user_tuple(order_model.app_user)
         if order_model.status == NodeOrderStatus.CANCELED:
             order_model.cancel_time = now()
+            if order_model.odoo_sale_order_id:
+                deferred.defer(cancel_odoo_quotation, order_model.odoo_sale_order_id)
+            deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED) # nuke todo list
         elif order_model.status == NodeOrderStatus.SENT:
             order_model.send_time = now()
-            human_user, app_id = get_app_user_tuple(order_model.app_user)
             deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_SENT)
             deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
         elif order_model.status == NodeOrderStatus.APPROVED:
