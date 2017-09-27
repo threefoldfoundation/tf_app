@@ -58,6 +58,17 @@ class InvestmentAgreement(NdbModel):
             .filter(cls.status == status)
 
     @classmethod
+    def list_by_user(cls, app_user):
+        return cls.query() \
+            .filter(cls.app_user == app_user)
+
+    @classmethod
+    def list_by_status_and_user(cls, app_user, statuses):
+        # type: (users.User, int) -> list[InvestmentAgreement]
+        statuses = [statuses] if isinstance(statuses, int) else statuses
+        return [investment for investment in cls.list_by_user(app_user) if investment.status in statuses]
+
+    @classmethod
     def fetch_page(cls, cursor=None, status=None):
         # type: (unicode) -> tuple[list[InvestmentAgreement], ndb.Cursor, bool]
         qry = cls.list_by_status(status) if status is not None else cls.list()

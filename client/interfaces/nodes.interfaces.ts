@@ -2,10 +2,11 @@ import { SeeDocumentDetails } from './iyo-see.interfaces';
 
 export enum NodeOrderStatuses {
   CANCELED = -1,
-  CREATED = 0,
+  APPROVED = 0,
   SIGNED = 1,
   SENT = 2,
-  ARRIVED = 3
+  ARRIVED = 3,
+  WAITING_APPROVAL = 4,
 }
 
 export interface ContactInfo {
@@ -50,8 +51,9 @@ export interface GetNodeOrdersPayload {
 
 export const ORDER_STATUSES = {
   [ NodeOrderStatuses.CANCELED ]: 'tff.canceled',
-  [ NodeOrderStatuses.CREATED ]: 'tff.created',
+  [ NodeOrderStatuses.APPROVED ]: 'tff.approved',
   [ NodeOrderStatuses.SIGNED ]: 'tff.signed',
   [ NodeOrderStatuses.SENT ]: 'tff.sent',
   [ NodeOrderStatuses.ARRIVED ]: 'tff.arrived',
+  [ NodeOrderStatuses.WAITING_APPROVAL ]: 'tff.waiting_approval',
 };

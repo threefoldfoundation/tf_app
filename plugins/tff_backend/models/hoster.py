@@ -24,10 +24,12 @@ from plugins.tff_backend.plugin_consts import NAMESPACE
 
 class NodeOrderStatus(object):
     CANCELED = -1
-    CREATED = 0
+    APPROVED = 0
     SIGNED = 1
     SENT = 2
     ARRIVED = 3
+    # Admins must manually check if user has invested >= REQUIRED_TOKEN_COUNT_TO_HOST tokens
+    WAITING_APPROVAL = 4
 
 
 class ContactInfo(NdbModel):
@@ -44,7 +46,7 @@ class NodeOrder(NdbModel):
     app_user = ndb.UserProperty()
     billing_info = ndb.LocalStructuredProperty(ContactInfo)  # type: ContactInfo
     shipping_info = ndb.LocalStructuredProperty(ContactInfo)  # type: ContactInfo
-    status = ndb.IntegerProperty(default=NodeOrderStatus.CREATED)
+    status = ndb.IntegerProperty()
     tos_iyo_see_id = ndb.StringProperty(indexed=False)
     signature_payload = ndb.StringProperty(indexed=False)
     signature = ndb.StringProperty(indexed=False)
@@ -54,7 +56,7 @@ class NodeOrder(NdbModel):
     arrival_time = ndb.IntegerProperty()
     cancel_time = ndb.IntegerProperty()
     modification_time = ndb.IntegerProperty()
-    arrival_qr_code_url = ndb.StringProperty()
+    arrival_qr_code_url = ndb.StringProperty(indexed=False)
     odoo_sale_order_id = ndb.IntegerProperty()
 
     def _pre_put_hook(self):
@@ -102,6 +104,11 @@ class NodeOrder(NdbModel):
         return qry \
             .order(-cls.modification_time) \
             .fetch_page(cls.NODE_ORDERS_PER_PAGE, start_cursor=ndb.Cursor(urlsafe=cursor))
+
+    @classmethod
+    def list_by_user(cls, app_user):
+        return cls.query() \
+            .filter(cls.app_user == app_user)
 
 
 class PublicKeyMapping(NdbModel):

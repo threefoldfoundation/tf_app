@@ -24,7 +24,6 @@ class HosterSteps(object):
     FLOW_INIT = 'FLOW_INIT'
     FLOW_ADDRESS = 'FLOW_ADDRESS'
     FLOW_SIGN = 'FLOW_SIGN'
-    PAY = 'PAY'
     NODE_SENT = 'NODE_SENT'
     NODE_DELIVERY_CONFIRMED = 'NODE_DELIVERY_CONFIRMED'
     NODE_POWERED = 'NODE_POWERED'
@@ -35,7 +34,6 @@ class HosterSteps(object):
         FLOW_INIT: 'Initiate “become a hoster process” in the TF app',
         FLOW_SIGN: 'Sign the hoster agreement',
         FLOW_ADDRESS: 'Share shipping address, telephone number, name with shipping company',
-        PAY: 'Make payment',
         NODE_SENT: 'Receive confirmation of sending',
         NODE_DELIVERY_CONFIRMED: 'Confirm delivery of node',
         NODE_POWERED: 'Hook up node to Internet and power',
@@ -48,7 +46,6 @@ class HosterSteps(object):
                 cls.FLOW_INIT,
                 cls.FLOW_ADDRESS,
                 cls.FLOW_SIGN,
-                cls.PAY,
                 cls.NODE_SENT,
                 cls.NODE_DELIVERY_CONFIRMED,
                 cls.NODE_POWERED]
