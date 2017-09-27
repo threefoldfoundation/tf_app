@@ -156,11 +156,18 @@ def create_odoo_quotation(billing_info, shipping_info):
     return _save_quotation(cfg, erp_client, billing_id, shipping_id)
 
 
-def cancel_odoo_order(quotation_id):
+def cancel_odoo_quotation(order_id):
     cfg = get_config(NAMESPACE)
     erp_client = _get_erp_client(cfg)
-    erp_client.model('sale.order.line')
-    # todo figure out how do mark order as canceled
+
+    sale_order_model = erp_client.model('sale.order')
+    sale_order = sale_order_model.browse(order_id)
+
+    order_data = {
+        'state': 'cancel'
+    }
+
+    sale_order.write(order_data)
 
 
 def get_odoo_serial_number(order_id):
