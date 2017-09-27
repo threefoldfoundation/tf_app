@@ -41,7 +41,7 @@ from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.nodes import get_node_status
-from plugins.tff_backend.bizz.odoo import create_odoo_quotation, get_odoo_serial_number, cancel_odoo_order
+from plugins.tff_backend.bizz.odoo import create_odoo_quotation, get_odoo_serial_number, cancel_odoo_quotation
 from plugins.tff_backend.bizz.rogerthat import put_user_data
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
@@ -200,6 +200,20 @@ def _create_quotation(app_user, order_id, ipfs_link, attachment_name):
                        odoo_sale_order_name, _transactional=True)
 
     ndb.transaction(trans)
+    
+
+@returns()
+@arguments(order_id=(int, long))
+def _cancel_quotation(order_id):
+    def trans():
+        node_order = get_node_order(order_id)
+        if node_order.odoo_sale_order_id:
+            cancel_odoo_quotation(node_order.odoo_sale_order_id)
+
+        node_order.populate(status=NodeOrderStatus.CANCELED, cancel_time=now())
+        node_order.put()
+
+    ndb.transaction(trans)
 
 
 @returns()
@@ -286,7 +300,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
 
         if answer_id != FormTO.POSITIVE:
             logging.info('Zero-Node order was canceled')
-            deferred.defer(_cancel_node_order, order.id)
+            deferred.defer(_cancel_quotation, order.id)
             return None
 
         logging.info('Received signature for Zero-Node order')
@@ -345,14 +359,6 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
     except:
         logging.exception('An unexpected error occurred')
         return _create_error_message(FormAcknowledgedCallbackResultTO())
-
-
-@ndb.transactional()
-def _cancel_node_order(node_order_id):
-    node_order = get_node_order(node_order_id)
-    node_order.populate(status=NodeOrderStatus.CANCELED, cancel_time=now())
-    node_order.put()
-    cancel_odoo_order(node_order.odoo_sale_order_id)
 
 
 def get_publickey_label(public_key, user_details):
