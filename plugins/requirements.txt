@@ -7,3 +7,4 @@ xhtml2pdf==0.0.6
 poster==0.8.1
 ERPpeek==1.6.3
 babel==2.5.1
+qrcode==5.3

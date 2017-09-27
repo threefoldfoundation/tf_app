@@ -55,6 +55,12 @@ class InvestorConfiguration(TO):
     support_emails = unicode_list_property('1')
 
 
+class AppleConfiguration(TO):
+    username = unicode_property('username')
+    password = unicode_property('password')
+    iyo_username = unicode_property('iyo_username')
+
+
 class TffConfiguration(TO):
     rogerthat = typed_property('1', RogerthatConfiguration, False)
     ipfs = typed_property('2', IPFSConfiguration, False)
@@ -62,3 +68,4 @@ class TffConfiguration(TO):
     odoo = typed_property('4', OdooConfiguration, False)
     orchestator = typed_property('5', OrchestatorConfiguration, False)
     investor = typed_property('6', InvestorConfiguration, False)
+    apple = typed_property('apple', AppleConfiguration)  # type: AppleConfiguration
