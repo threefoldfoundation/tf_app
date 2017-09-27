@@ -19,9 +19,10 @@ import base64
 import json
 import logging
 
-from google.appengine.api import users
+from google.appengine.api import users, mail
 from google.appengine.ext import ndb, deferred
 
+from framework.plugin_loader import get_config
 from framework.utils import now, try_or_defer
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
@@ -49,7 +50,7 @@ from plugins.tff_backend.bizz.todo.hoster import HosterSteps
 from plugins.tff_backend.consts.hoster import REQUIRED_TOKEN_COUNT_TO_HOST
 from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping, NodeOrderStatus, ContactInfo
 from plugins.tff_backend.models.investor import InvestmentAgreement
-from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
+from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderDetailsTO
 from plugins.tff_backend.utils import get_step_value, get_step
@@ -169,9 +170,9 @@ def _order_node(order_key, user_email, app_id, steps):
                          REQUIRED_TOKEN_COUNT_TO_HOST)
             deferred.defer(_create_node_order_pdf, order_key.id(), _transactional=True)
         else:
-            # TODO: Should probably notify admins of this order
             logging.info('User has not invested more than %s tokens, an admin needs to approve this order manually.',
                          REQUIRED_TOKEN_COUNT_TO_HOST)
+            deferred.defer(_inform_support_of_new_node_order, order_key.id(), _transactional=True)
         if updated_user_data:
             deferred.defer(put_user_data, app_user, updated_user_data, _transactional=True)
 
@@ -570,3 +571,30 @@ Please use the SO%(order_id)s as reference.
                    members=[member],
                    branding=get_main_branding_hash(),
                    tag=None)
+
+
+def _inform_support_of_new_node_order(node_order_id):
+    node_order = get_node_order(node_order_id)
+    cfg = get_config(NAMESPACE)
+    iyo_username = get_iyo_username(node_order.app_user)
+
+    subject = 'New Node Order by %s' % node_order.billing_info.name
+    body = """Hello,
+
+We just received a new Node order from %(name)s (IYO username %(iyo_username)s) with id %(node_order_id)s.
+This order needs to be manually approved since this user has not invested more than %(min_tokens)s tokens yet via the app.
+Check the old investment agreements to verify if this user can sign up as a hoster and if not, contact him.
+
+Please visit https://tff-backend.appspot.com/orders/%(node_order_id)s to approve or cancel this order.
+""" % {
+        'name': node_order.billing_info.name,
+        'iyo_username': iyo_username,
+        'node_order_id': node_order.id,
+        'min_tokens': REQUIRED_TOKEN_COUNT_TO_HOST
+    }
+
+    for email in cfg.investor.support_emails:
+        mail.send_mail(sender='no-reply@tff-backend.appspotmail.com',
+                       to=email,
+                       subject=subject,
+                       body=body)
