@@ -25,11 +25,7 @@ export class InvestmentAgreementListPageComponent implements OnInit {
 
   ngOnInit() {
     this.investmentAgreements$ = this.store.let(getInvestmentAgreements);
-    this.investmentAgreements$.first().subscribe(orders => {
-      if (!orders.results.length) {
-        this.store.dispatch(new GetInvestmentAgreementsAction({ cursor: null, status: InvestmentAgreementsStatuses.CREATED }));
-      }
-    });
+    this.store.dispatch(new GetInvestmentAgreementsAction({ cursor: null, status: InvestmentAgreementsStatuses.CREATED }));
     this.listStatus$ = this.store.let(getInvestmentAgreementsStatus);
   }
 

@@ -26,11 +26,7 @@ export class OrderListPageComponent implements OnInit {
 
   ngOnInit() {
     this.orders$ = this.store.let(getOrders);
-    this.store.let(getOrders).first().subscribe(orders => {
-      if (!orders.results.length) {
-        this.store.dispatch(new GetOrdersAction({ cursor: null, status: NodeOrderStatuses.SIGNED }));
-      }
-    });
+    this.store.dispatch(new GetOrdersAction({ cursor: null, status: NodeOrderStatuses.SIGNED }));
     this.listStatus$ = this.store.let(getOrdersStatus);
   }
 
