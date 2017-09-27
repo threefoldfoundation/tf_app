@@ -52,8 +52,10 @@ class TffBackendPlugin(BrandingPlugin):
         rogerthat_api_plugin.subscribe('system.api_call', rogerthat_callbacks.system_api_call)
 
     def get_handlers(self, auth):
-        yield Handler('/', IndexPageHandler)
-        yield Handler('/testing/agreements', AgreementsTestingPageHandler)
+        yield Handler(url='/', handler=IndexPageHandler)
+        yield Handler(url='/testing/agreements', handler=AgreementsTestingPageHandler)
+        yield Handler(url='/refresh', handler=RefreshHandler)
+        yield Handler(url='/refresh/callback', handler=RefreshCallbackHandler)
         authenticated_handlers = [nodes, investor, global_stats]
         for _module in authenticated_handlers:
             for url, handler in rest_functions(_module, authentication=AUTHENTICATED):
@@ -65,8 +67,6 @@ class TffBackendPlugin(BrandingPlugin):
             yield Handler(url='/admin/cron/tff_backend/backup', handler=BackupHandler)
             yield Handler(url='/admin/cron/tff_backend/rebuild_synced_roles', handler=RebuildSyncedRolesHandler)
             yield Handler(url='/admin/cron/tff_backend/global_stats', handler=UpdateGlobalStatsHandler)
-            yield Handler(url='/refresh', handler=RefreshHandler)
-            yield Handler(url='/refresh/callback', handler=RefreshCallbackHandler)
 
     def get_client_routes(self):
         return ['/orders<route:.*>', '/investment-agreements<route:.*>', '/global-stats<route:.*>']
