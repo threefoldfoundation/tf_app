@@ -69,7 +69,8 @@ def _get_erp_client(cfg):
                           transport=GAEXMLRPCTransport())
 
 
-def _save_customer(cfg, erp_client, customer):
+def _save_customer(erp_client, customer):
+    # type: (erppeek.Client, object) -> tuple
     res_partner_model = erp_client.model('res.partner')
 
     contact = {
@@ -151,8 +152,15 @@ def create_odoo_quotation(billing_info, shipping_info):
             'address': shipping_info.address
         }
 
-    billing_id, shipping_id = _save_customer(cfg, erp_client, customer)
+    billing_id, shipping_id = _save_customer(erp_client, customer)
     return _save_quotation(cfg, erp_client, billing_id, shipping_id)
+
+
+def cancel_odoo_order(quotation_id):
+    cfg = get_config(NAMESPACE)
+    erp_client = _get_erp_client(cfg)
+    erp_client.model('sale.order.line')
+    # todo figure out how do mark order as canceled
 
 
 def get_odoo_serial_number(order_id):
