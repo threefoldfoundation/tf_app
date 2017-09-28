@@ -30,7 +30,7 @@ class InvestmentAgreementTO(TO):
     app_user = unicode_property('app_user')
     amount = float_property('amount')
     referrer = unicode_property('referrer')
-    token = long_property('token')
+    token = unicode_property('token')
     token_count = long_property('token_count')
     currency = unicode_property('currency')
     name = unicode_property('name')
