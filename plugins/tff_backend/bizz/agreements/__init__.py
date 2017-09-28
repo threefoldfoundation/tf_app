@@ -72,8 +72,8 @@ def create_token_agreement_pdf(full_name, address, amount, currency_full, curren
     conversion = {}
     if token:
         stats = get_global_stats(TOKEN_TFT)
-        conversion = {currency.currency: round_currency_amount(currency.currency, currency.value) for currency in
-                      stats.currencies}
+        conversion = {currency.currency: round_currency_amount(currency.currency, currency.value / stats.value) for
+                      currency in stats.currencies}
     currency_messages = []
     for currency in BANK_ACCOUNTS:
         account = BANK_ACCOUNTS[currency]
