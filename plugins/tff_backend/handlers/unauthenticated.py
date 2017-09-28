@@ -132,6 +132,14 @@ class JWTQrHandler(webapp2.RequestHandler):
 
 class AppleReviewQrHandler(JWTQrHandler):
 
+    def get(self):
+        auth = self.request.authorization
+        if auth is None or not self.check_auth(auth):
+            self.response.set_status(httplib.UNAUTHORIZED)
+            self.response.headers['WWW-Authenticate'] = 'Basic realm="Login required"'
+            return
+        super(AppleReviewQrHandler, self).get()
+
     def check_auth(self, auth):
         encoded_auth = auth[1]
         username_colon_pass = base64.b64decode(encoded_auth)
@@ -141,11 +149,6 @@ class AppleReviewQrHandler(JWTQrHandler):
         return username == config.apple.username and password == config.apple.password
 
     def get_session(self):
-        auth = self.request.authorization
-        if auth is None or not self.check_auth(auth):
-            self.response.set_status(httplib.UNAUTHORIZED)
-            self.response.headers['WWW-Authenticate'] = 'Basic realm="Login required"'
-            return
         username = get_config(NAMESPACE).apple.iyo_username
         session = Session.list_active_user(username).get()
         if not session:
