@@ -245,7 +245,7 @@ def _create_quotation(app_user, order_id, ipfs_link, attachment_name):
                        odoo_sale_order_name, _transactional=True)
 
     ndb.transaction(trans)
-    
+
 
 @returns()
 @arguments(order_id=(int, long))
@@ -415,10 +415,9 @@ def get_publickey_label(public_key, user_details):
 @returns()
 @arguments(order_id=(int, long))
 def _create_order_arrival_qr(order_id):
-    human_readable_id = NodeOrder.create_human_readable_id(order_id)
     api_key = get_rogerthat_api_key()
     qr_details = qr.create(api_key,
-                           description=u'Confirm arrival of order\n%s' % human_readable_id,
+                           description=u'Confirm node arrival',
                            tag=json.dumps({u'__rt__.tag': u'node_arrival',
                                            u'order_id': order_id}),
                            flow=u'node_arrival',
@@ -493,7 +492,8 @@ def put_node_order(order_id, order):
             order_model.cancel_time = now()
             if order_model.odoo_sale_order_id:
                 deferred.defer(cancel_odoo_quotation, order_model.odoo_sale_order_id)
-            deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED) # nuke todo list
+            deferred.defer(update_hoster_progress, human_user.email(), app_id,
+                           HosterSteps.NODE_POWERED)  # nuke todo list
         elif order_model.status == NodeOrderStatus.SENT:
             order_model.send_time = now()
             deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_SENT)
