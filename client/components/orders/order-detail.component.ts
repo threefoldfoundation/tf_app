@@ -27,19 +27,19 @@ export class OrderDetailComponent {
     return this.translate.instant(ORDER_STATUSES[ this.nodeOrder.status ]);
   }
 
-  markAsSent() {
-    this.onUpdate.emit(Object.assign({}, this.nodeOrder, { status: NodeOrderStatuses.SENT }));
-  }
-
-  cancelOrder() {
-    this.onUpdate.emit(Object.assign({}, this.nodeOrder, { status: NodeOrderStatuses.CANCELED }));
-  }
-
   canCancel() {
-    return [ NodeOrderStatuses.SIGNED, NodeOrderStatuses.CREATED ].includes(this.nodeOrder.status);
+    return [ NodeOrderStatuses.SIGNED, NodeOrderStatuses.APPROVED, NodeOrderStatuses.WAITING_APPROVAL ].includes(this.nodeOrder.status);
   }
 
   canMarkAsSent() {
     return NodeOrderStatuses.SIGNED === this.nodeOrder.status;
+  }
+
+  canApprove() {
+    return NodeOrderStatuses.WAITING_APPROVAL === this.nodeOrder.status;
+  }
+
+  setOrderStatus(status: NodeOrderStatuses) {
+    this.onUpdate.emit(Object.assign({}, this.nodeOrder, { status: status }));
   }
 }

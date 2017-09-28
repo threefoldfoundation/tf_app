@@ -14,16 +14,4 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
-PROVIDER_ID = u"threefold"
-
-TOKEN_ITFT = u"iTFT"
-TOKEN_TFT = u"TFT"
-TOKEN_TFT_CONTRIBUTOR = u"TFTC"
-
-TOKEN_TYPE_A = u"TFT_A"
-TOKEN_TYPE_B = u"TFT_B"
-TOKEN_TYPE_C = u"TFT_C"
-TOKEN_TYPE_D = u"TFT_D"
-TOKEN_TYPE_I = u"iTFT_A"
-
+REQUIRED_TOKEN_COUNT_TO_HOST = 120

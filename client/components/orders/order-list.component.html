@@ -1,5 +1,5 @@
 <div class="orders-content">
-  <md-select [(ngModel)]="status" (ngModelChange)="onStatusChange()">
+  <md-select [(ngModel)]="status" (ngModelChange)="onStatusChange()" style="width: 200px;">
     <md-option *ngFor="let status of statuses" [value]="status.value">{{ status.label | translate }}</md-option>
   </md-select>
   <h2>{{ getStatusString() | translate }}</h2>

@@ -15,7 +15,7 @@
 #
 # @@license_version:1.3@@
 from framework.to import TO
-from mcfw.properties import unicode_property, typed_property, long_property, unicode_list_property
+from mcfw.properties import unicode_property, typed_property, long_property, unicode_list_property, bool_property
 
 
 class RogerthatConfiguration(TO):
@@ -69,3 +69,4 @@ class TffConfiguration(TO):
     orchestator = typed_property('5', OrchestatorConfiguration, False)
     investor = typed_property('6', InvestorConfiguration, False)
     apple = typed_property('apple', AppleConfiguration)  # type: AppleConfiguration
+    backup_disabled = bool_property('backup_disabled')

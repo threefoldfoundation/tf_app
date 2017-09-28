@@ -4,6 +4,8 @@
     "add_currency": "Add currency",
     "address": "Address",
     "amount": "Amount",
+    "approve_order": "Approve order",
+    "approved": "Approved",
     "arrival_time": "Arrival time",
     "arrived": "Arrived",
     "auto_update": "Auto update",
@@ -14,12 +16,13 @@
     "cancel_time": "Cancel time",
     "canceled": "Canceled",
     "close": "Close",
-    "created": "Created",
     "currency": "Currency",
+    "created": "Created",
     "document_url": "Document url",
     "email": "Email",
     "errors": {
-      "invalid_currencies": "Invalid currencies: {{ currencies }}"
+      "invalid_currencies": "Invalid currencies: {{ currencies }}",
+      "invalid_status": "Invalid status"
     },
     "global_stats": "Global stats",
     "i_am_a_member": "I am a member",
@@ -33,7 +36,7 @@
     "mark_as_sent": "Mark as sent",
     "modification_time": "Modification time",
     "modified_on": "Modified on",
-    "name": "name",
+    "name": "Name",
     "node_order_x": "Node order {{ orderId }}",
     "order_detail": "Order detail",
     "order_time": "Order time",
@@ -59,6 +62,7 @@
     "user": "User",
     "value": "Value",
     "value_in_dollars": "Value in dollars",
+    "waiting_approval": "Waiting for approval",
     "x_tokens": "{{ count }} tokens"
   }
 }

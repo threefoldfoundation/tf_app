@@ -10,7 +10,8 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
   templateUrl: 'order-list.component.html',
   styles: [ `.orders-content {
     padding: 16px;
-  }` ]
+  }
+  ` ]
 })
 export class OrderListComponent {
 
