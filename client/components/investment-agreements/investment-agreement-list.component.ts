@@ -6,8 +6,6 @@ import {
   InvestmentAgreementsStatuses
 } from '../../interfaces/index';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { CurrencyValue } from '../../interfaces/global-stats.interfaces';
-import { DecimalPipe } from '@angular/common';
 
 @Component({
   moduleId: module.id,

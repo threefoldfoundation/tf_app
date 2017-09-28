@@ -37,11 +37,6 @@ export class InvestmentAgreementDetailComponent {
               private currencyPipe: CurrencyPipe) {
   }
 
-  getAmount() {
-    return this.currencyPipe.transform(this.investmentAgreement.amount, this.investmentAgreement.currency, false,
-      this.investmentAgreement.currency === 'BTC' ? '1.8-8' : '1.2-2');
-  }
-
   getStatus(): string {
     return this.translate.instant(INVESTMENT_AGREEMENT_STATUSES[ this.investmentAgreement.status ]);
   }

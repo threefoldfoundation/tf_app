@@ -21,13 +21,12 @@ import json
 import logging
 from types import NoneType
 
-from babel.numbers import get_currency_name
-from requests.exceptions import HTTPError
-
-from framework.plugin_loader import get_config
-from framework.utils import now
 from google.appengine.api import users, mail
 from google.appengine.ext import deferred, ndb
+
+from babel.numbers import get_currency_name
+from framework.plugin_loader import get_config
+from framework.utils import now
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -60,6 +59,7 @@ from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgr
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+from requests.exceptions import HTTPError
 
 
 @returns(FlowMemberResultCallbackResultTO)
@@ -309,9 +309,8 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
     member_user, app_id = get_app_user_tuple(admin_app_user)
     message = u"""Enter your pin code to mark investment %s as paid.
 - from: %s\n
-- amount of tokens: %s\n
-- amount: %s $
-""" % (agreement_key.id(), agreement.iyo_username, agreement.token_count, agreement.amount)
+- amount: %s %s
+""" % (agreement_key.id(), agreement.iyo_username, agreement.amount, agreement.currency)
 
     messaging.send_form(api_key=get_rogerthat_api_key(),
                         parent_message_key=None,
