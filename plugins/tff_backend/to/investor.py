@@ -61,13 +61,8 @@ class InvestmentAgreementDetailsTO(InvestmentAgreementTO):
 class InvestmentAgreementListTO(PaginatedResultTO):
     results = typed_property('results', InvestmentAgreementTO, True)
 
-    def __init__(self, cursor=None, more=False, results=None):
-        super(InvestmentAgreementListTO, self).__init__(cursor, more)
-        self.results = results or []
-
     @classmethod
     def from_query(cls, models, cursor, more):
-        # type: (list[InvestmentAgreement], ndb.Cursor, bool) -> object
         assert isinstance(cursor, (ndb.Cursor, NoneType))
-        orders = [InvestmentAgreementTO.from_model(model) for model in models]
-        return cls(cursor and cursor.to_websafe_string().decode('utf-8'), more, orders)
+        results = [InvestmentAgreementTO.from_model(model) for model in models]
+        return cls(cursor and cursor.to_websafe_string().decode('utf-8'), more, results)

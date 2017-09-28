@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+from plugins.rogerthat_api.plugin_utils import Enum
 
 PROVIDER_ID = u"threefold"
 
@@ -21,9 +22,10 @@ TOKEN_ITFT = u"iTFT"
 TOKEN_TFT = u"TFT"
 TOKEN_TFT_CONTRIBUTOR = u"TFTC"
 
-TOKEN_TYPE_A = u"TFT_A"
-TOKEN_TYPE_B = u"TFT_B"
-TOKEN_TYPE_C = u"TFT_C"
-TOKEN_TYPE_D = u"TFT_D"
-TOKEN_TYPE_I = u"iTFT_A"
 
+class TokenType(Enum):
+    A = u'TFT_A'
+    B = u'TFT_B'
+    C = u'TFT_C'
+    D = u'TFT_D'
+    I = u'iTFT_A'

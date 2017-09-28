@@ -31,6 +31,19 @@ indexes:
 - kind: ThreeFoldPendingTransaction
   properties:
   - name: app_users
+  - name: timestamp
+    direction: desc
+
+- kind: ThreeFoldPendingTransaction
+  properties:
+  - name: app_users
+  - name: token_type
+  - name: timestamp
+    direction: desc
+
+- kind: ThreeFoldPendingTransaction
+  properties:
+  - name: app_users
   - name: synced
   - name: token
   - name: timestamp

@@ -15,25 +15,26 @@
 #
 # @@license_version:1.3@@
 
-from datetime import datetime
 import hashlib
 import hmac
 import json
 import logging
 import time
 import uuid
+from datetime import datetime
+from types import NoneType
 
-from dateutil.relativedelta import relativedelta
-
-from framework.plugin_loader import get_config
-from framework.utils import now, get_epoch_from_datetime, urlencode
 from google.appengine.api import urlfetch, users
 from google.appengine.ext import deferred, ndb
+
+from dateutil.relativedelta import relativedelta
+from framework.plugin_loader import get_config
+from framework.utils import now, get_epoch_from_datetime, urlencode
 from mcfw.consts import DEBUG
+from mcfw.exceptions import HttpBadRequestException
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.exceptions import BusinessException
-from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_TYPE_A, TOKEN_TYPE_B, TOKEN_TYPE_C, \
-    TOKEN_TYPE_D, TOKEN_TFT_CONTRIBUTOR, TOKEN_TYPE_I, TOKEN_ITFT
+from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_TFT_CONTRIBUTOR, TOKEN_ITFT, TokenType
 from plugins.tff_backend.models.payment import ThreeFoldWallet, ThreeFoldTransaction, \
     ThreeFoldPendingTransaction, ThreeFoldBlockHeight
 from plugins.tff_backend.plugin_consts import NAMESPACE
@@ -135,7 +136,20 @@ def get_transactions(app_user, token):
 @returns(ndb.Query)
 @arguments(app_user=users.User, token=unicode)
 def get_transaction_of_type_pending(app_user, token):
-    return ThreeFoldPendingTransaction.list_by_user(app_user, token)
+    return ThreeFoldPendingTransaction.list_unsynced_by_user(app_user, token)
+
+
+@returns(tuple)
+@arguments(app_user=users.User, token_type=(unicode, NoneType), page_size=(int, long), cursor=unicode)
+def get_pending_transactions(app_user, token_type, page_size, cursor):
+    # type: (users.User, unicode, long, unicode) -> tuple[list[ThreeFoldPendingTransaction], ndb.Cursor, bool]
+    if token_type:
+        validate_token_type(token_type)
+        return ThreeFoldPendingTransaction.list_by_user_and_token_type(app_user, token_type) \
+            .fetch_page(page_size, start_cursor=ndb.Cursor(urlsafe=cursor))
+    else:
+        return ThreeFoldPendingTransaction.list_by_user(app_user) \
+            .fetch_page(page_size, start_cursor=ndb.Cursor(urlsafe=cursor))
 
 
 @returns()
@@ -316,26 +330,32 @@ def get_spendable_amount_of_transaction(transaction):
     return unlocked_amount - amount_spent
 
 
-@returns()
+def validate_token_type(token_type):
+    if token_type not in TokenType.all():
+        raise HttpBadRequestException(u'Unknown token type', {'possible_token_types': TokenType.all()})
+
+
+@returns(ThreeFoldPendingTransaction)
 @arguments(app_user=users.User, token_type=unicode, token_count=(int, long), memo=unicode, epoch=(int, long))
 def transfer_genesis_coins_to_user(app_user, token_type, token_count, memo=None, epoch=0):
+    validate_token_type(token_type)
     if epoch > 0:
         date_signed = datetime.utcfromtimestamp(epoch)
     else:
         date_signed = datetime.now()
 
-    if TOKEN_TYPE_A == token_type:
+    if TokenType.A == token_type:
         token = TOKEN_TFT
         unlock_timestamps = [0]
         unlock_amounts = [token_count]
 
-    elif TOKEN_TYPE_B == token_type:
+    elif TokenType.B == token_type:
         token = TOKEN_TFT
         d = date_signed + relativedelta(months=12)
         unlock_timestamps = [get_epoch_from_datetime(d)]
         unlock_amounts = [token_count]
 
-    elif TOKEN_TYPE_C == token_type:
+    elif TokenType.C == token_type:
         token = TOKEN_TFT
         unlock_timestamps = []
         unlock_amounts = []
@@ -349,12 +369,12 @@ def transfer_genesis_coins_to_user(app_user, token_type, token_count, memo=None,
         unlock_timestamps = [get_epoch_from_datetime(d)] + unlock_timestamps
         unlock_amounts = [token_count - sum(unlock_amounts)] + unlock_amounts
 
-    elif TOKEN_TYPE_D == token_type:
+    elif TokenType.D == token_type:
         token = TOKEN_TFT_CONTRIBUTOR
         unlock_timestamps = [0]
         unlock_amounts = [token_count]
 
-    elif TOKEN_TYPE_I == token_type:
+    elif TokenType.I == token_type:
         token = TOKEN_ITFT
         unlock_timestamps = [0]
         unlock_amounts = [token_count]
@@ -391,6 +411,7 @@ def transfer_genesis_coins_to_user(app_user, token_type, token_count, memo=None,
                                      synced=False,
                                      synced_status=ThreeFoldPendingTransaction.STATUS_PENDING)
     pt.put()
+    return pt
 
 
 @returns()
