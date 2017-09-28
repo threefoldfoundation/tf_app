@@ -117,8 +117,30 @@ class RefreshCallbackHandler(webapp2.RequestHandler):
         self.redirect(str(url))
 
 
-class AppleReviewQrHandler(webapp2.RequestHandler):
+class JWTQrHandler(webapp2.RequestHandler):
+    def get_session(self):
+        return get_current_session()
+
     def get(self):
+        session = self.get_session()
+        if not session:
+            self.abort(httplib.UNAUTHORIZED)
+        img = qrcode.make(session.jwt)
+        self.response.headers['Content-Type'] = 'image/png'
+        img.save(self.response.out)
+
+
+class AppleReviewQrHandler(JWTQrHandler):
+
+    def check_auth(self, auth):
+        encoded_auth = auth[1]
+        username_colon_pass = base64.b64decode(encoded_auth)
+        username, password = map(lambda x: x.lower().strip(), username_colon_pass.split(':'))
+        config = get_config(NAMESPACE)
+        assert isinstance(config, TffConfiguration)
+        return username == config.apple.username and password == config.apple.password
+
+    def get_session(self):
         auth = self.request.authorization
         if auth is None or not self.check_auth(auth):
             self.response.set_status(httplib.UNAUTHORIZED)
@@ -128,15 +150,4 @@ class AppleReviewQrHandler(webapp2.RequestHandler):
         session = Session.list_active_user(username).get()
         if not session:
             logging.error('No session found for %s! Login with this account to resolve the issue', username)
-            self.abort(httplib.UNAUTHORIZED)
-        img = qrcode.make(session.jwt)
-        self.response.headers['Content-Type'] = 'image/png'
-        img.save(self.response.out)
-
-    def check_auth(self, auth):
-        encoded_auth = auth[1]
-        username_colon_pass = base64.b64decode(encoded_auth)
-        username, password = map(lambda x: x.lower().strip(), username_colon_pass.split(':'))
-        config = get_config(NAMESPACE)
-        assert isinstance(config, TffConfiguration)
-        return username == config.apple.username and password == config.apple.password
+        return session

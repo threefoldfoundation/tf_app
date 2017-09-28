@@ -30,7 +30,8 @@ from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, Payment
     BackupHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
-from plugins.tff_backend.handlers.unauthenticated import RefreshCallbackHandler, RefreshHandler, AppleReviewQrHandler
+from plugins.tff_backend.handlers.unauthenticated import RefreshCallbackHandler, RefreshHandler, AppleReviewQrHandler, \
+    JWTQrHandler
 
 
 class TffBackendPlugin(BrandingPlugin):
@@ -56,7 +57,8 @@ class TffBackendPlugin(BrandingPlugin):
         yield Handler(url='/testing/agreements', handler=AgreementsTestingPageHandler)
         yield Handler(url='/refresh', handler=RefreshHandler)
         yield Handler(url='/refresh/callback', handler=RefreshCallbackHandler)
-        yield Handler(url='/apple', handler=AppleReviewQrHandler)
+        yield Handler(url='/qr', handler=JWTQrHandler)
+        yield Handler(url='/qr/apple', handler=AppleReviewQrHandler)
         authenticated_handlers = [nodes, investor, global_stats]
         for _module in authenticated_handlers:
             for url, handler in rest_functions(_module, authentication=AUTHENTICATED):
