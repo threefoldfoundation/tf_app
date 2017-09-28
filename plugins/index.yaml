@@ -10,7 +10,7 @@ indexes:
   - name: status
   - name: modification_time
     direction: desc
-    
+
 # ======================================================= PAYMENT ======================================================
 
 - kind: ThreeFoldTransaction
@@ -27,7 +27,7 @@ indexes:
   - name: token
   - name: timestamp
     direction: desc
-    
+
 - kind: ThreeFoldPendingTransaction
   properties:
   - name: app_users
@@ -35,7 +35,7 @@ indexes:
   - name: token
   - name: timestamp
     direction: desc
-    
+
 - kind: ThreeFoldPendingTransaction
   properties:
   - name: synced
