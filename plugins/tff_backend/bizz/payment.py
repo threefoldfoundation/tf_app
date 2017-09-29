@@ -331,7 +331,7 @@ def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None, epoc
 
     elif TOKEN_TYPE_B == token_type:
         token = TOKEN_TFT
-        d = date_signed + relativedelta(months=12)
+        d = date_signed + relativedelta(months=6)
         unlock_timestamps = [get_epoch_from_datetime(d)]
         unlock_amounts = [amount]
 
