@@ -18,10 +18,12 @@
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
+from framework.models.common import NdbModel
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
-class ThreeFoldBlockHeight(ndb.Model):
+class ThreeFoldBlockHeight(NdbModel):
+    NAMESPACE = NAMESPACE
     timestamp = ndb.IntegerProperty()
     height = ndb.IntegerProperty()
     updating = ndb.BooleanProperty()
@@ -43,7 +45,8 @@ class ThreeFoldBlockHeight(ndb.Model):
         return bh
 
 
-class ThreeFoldWallet(ndb.Model):
+class ThreeFoldWallet(NdbModel):
+    NAMESPACE = NAMESPACE
     tokens = ndb.StringProperty(repeated=True)
     next_unlock_timestamp = ndb.IntegerProperty()
 
@@ -56,18 +59,14 @@ class ThreeFoldWallet(ndb.Model):
         return ndb.Key(cls, app_user.email(), namespace=NAMESPACE)
 
     @classmethod
-    def query(cls, *args, **kwargs):
-        kwargs['namespace'] = NAMESPACE
-        return super(ThreeFoldWallet, cls).query(*args, **kwargs)
-
-    @classmethod
     def list_update_needed(cls, now_):
         return ThreeFoldWallet.query() \
             .filter(ThreeFoldWallet.next_unlock_timestamp > 0) \
             .filter(ThreeFoldWallet.next_unlock_timestamp < now_)
 
 
-class ThreeFoldTransaction(ndb.Model):
+class ThreeFoldTransaction(NdbModel):
+    NAMESPACE = NAMESPACE
     timestamp = ndb.IntegerProperty()
     height = ndb.IntegerProperty()
     unlock_timestamps = ndb.IntegerProperty(repeated=True, indexed=False)
@@ -91,11 +90,6 @@ class ThreeFoldTransaction(ndb.Model):
         return cls(namespace=NAMESPACE)
 
     @classmethod
-    def query(cls, *args, **kwargs):
-        kwargs['namespace'] = NAMESPACE
-        return super(ThreeFoldTransaction, cls).query(*args, **kwargs)
-
-    @classmethod
     def list_by_user(cls, app_user, token):
         return ThreeFoldTransaction.query() \
             .filter(ThreeFoldTransaction.app_users == app_user) \
@@ -111,7 +105,8 @@ class ThreeFoldTransaction(ndb.Model):
             .order(-ThreeFoldTransaction.timestamp)  # NOQA
 
 
-class ThreeFoldPendingTransaction(ndb.Model):
+class ThreeFoldPendingTransaction(NdbModel):
+    NAMESPACE = NAMESPACE
     STATUS_PENDING = u'pending'
     STATUS_CONFIRMED = u"confirmed"
     STATUS_FAILED = u'failed'
@@ -137,11 +132,6 @@ class ThreeFoldPendingTransaction(ndb.Model):
     @classmethod
     def create_key(cls, transaction_id):
         return ndb.Key(cls, u"%s" % transaction_id, namespace=NAMESPACE)
-
-    @classmethod
-    def query(cls, *args, **kwargs):
-        kwargs['namespace'] = NAMESPACE
-        return super(ThreeFoldPendingTransaction, cls).query(*args, **kwargs)
 
     @classmethod
     def count_pending(cls):
