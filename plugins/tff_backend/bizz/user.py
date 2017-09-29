@@ -122,7 +122,11 @@ def popuplate_intercom_user(username, jwt):
         assert isinstance(intercom_plugin, IntercomSupportPlugin)
         client = Client()
         client.oauth.session.headers['Authorization'] = 'bearer %s' % jwt
-        response_data = userview(client.api.users.GetUserInformation(username).json())
+        data = client.api.users.GetUserInformation(username).json()
+        # Fix IYO bug where organizations aren't being set
+        if data.get('organizations') is None:
+            data['organizations'] = []
+        response_data = userview(data)
         name = None
         email = None
         phone = None
