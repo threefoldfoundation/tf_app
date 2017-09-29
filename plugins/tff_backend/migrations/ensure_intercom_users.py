@@ -20,7 +20,9 @@ from framework.bizz.job import run_job
 from framework.models.session import Session
 from plugins.tff_backend.bizz.user import popuplate_intercom_user
 
-_is_guid = lambda x: bool(re.findall('[a-z0-9]{32}', x))
+
+def _is_guid(val):
+    return bool(re.findall('[a-z0-9]{32}', val))
 
 
 def ensure_intercom_users():

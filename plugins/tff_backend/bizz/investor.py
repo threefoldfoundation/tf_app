@@ -537,7 +537,7 @@ Amount: %(currency)s %(amount)s - Bank : Mashreq Bank - IBAN : %(iban)s - BIC : 
 
 For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
 
-Payment must be made from a bank account registered under your name. Please use "FIRSTNAME LASTNAME AMOUNT iTFT" as reference."""
+Payment must be made from a bank account registered under your name. Please use "FIRSTNAME LASTNAME AMOUNT iTFT" as reference."""  # noQA
 
     member = MemberTO()
     member.member = email
