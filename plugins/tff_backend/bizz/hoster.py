@@ -571,7 +571,7 @@ Amount: USD 600 - Bank : Mashreq Bank - IBAN : AE230330000019120028156 - BIC : B
 
 For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
 Please use the SO%(order_id)s as reference.
-""" % {"order_id": order.odoo_sale_order_id}
+""" % {"order_id": order.odoo_sale_order_id}  # noQA
 
     member = MemberTO()
     member.member = email
@@ -597,7 +597,7 @@ def _inform_support_of_new_node_order(node_order_id):
     body = """Hello,
 
 We just received a new Node order from %(name)s (IYO username %(iyo_username)s) with id %(node_order_id)s.
-This order needs to be manually approved since this user has not invested more than %(min_tokens)s tokens yet via the app.
+This order needs to be manually approved since this user has not invested more than %(tokens)s tokens yet via the app.
 Check the old investment agreements to verify if this user can sign up as a hoster and if not, contact him.
 
 Please visit https://tff-backend.appspot.com/orders/%(node_order_id)s to approve or cancel this order.
@@ -605,7 +605,7 @@ Please visit https://tff-backend.appspot.com/orders/%(node_order_id)s to approve
         'name': node_order.billing_info.name,
         'iyo_username': iyo_username,
         'node_order_id': node_order.id,
-        'min_tokens': REQUIRED_TOKEN_COUNT_TO_HOST
+        'tokens': REQUIRED_TOKEN_COUNT_TO_HOST
     }
 
     for email in cfg.investor.support_emails:
