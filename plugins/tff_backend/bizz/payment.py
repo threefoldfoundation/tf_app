@@ -317,8 +317,8 @@ def get_spendable_amount_of_transaction(transaction):
 
 
 @returns()
-@arguments(app_user=users.User, token_type=unicode, token_count=(int, long), memo=unicode, epoch=(int, long))
-def transfer_genesis_coins_to_user(app_user, token_type, token_count, memo=None, epoch=0):
+@arguments(app_user=users.User, token_type=unicode, amount=(int, long), memo=unicode, epoch=(int, long))
+def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None, epoch=0):
     if epoch > 0:
         date_signed = datetime.utcfromtimestamp(epoch)
     else:
@@ -327,19 +327,19 @@ def transfer_genesis_coins_to_user(app_user, token_type, token_count, memo=None,
     if TOKEN_TYPE_A == token_type:
         token = TOKEN_TFT
         unlock_timestamps = [0]
-        unlock_amounts = [token_count]
+        unlock_amounts = [amount]
 
     elif TOKEN_TYPE_B == token_type:
         token = TOKEN_TFT
         d = date_signed + relativedelta(months=12)
         unlock_timestamps = [get_epoch_from_datetime(d)]
-        unlock_amounts = [token_count]
+        unlock_amounts = [amount]
 
     elif TOKEN_TYPE_C == token_type:
         token = TOKEN_TFT
         unlock_timestamps = []
         unlock_amounts = []
-        a = token_count / 48
+        a = amount / 48
         for i in xrange(0, 39):
             d = date_signed + relativedelta(months=48 - i)
             unlock_timestamps = [get_epoch_from_datetime(d)] + unlock_timestamps
@@ -347,17 +347,17 @@ def transfer_genesis_coins_to_user(app_user, token_type, token_count, memo=None,
 
         d = date_signed + relativedelta(months=9)
         unlock_timestamps = [get_epoch_from_datetime(d)] + unlock_timestamps
-        unlock_amounts = [token_count - sum(unlock_amounts)] + unlock_amounts
+        unlock_amounts = [amount - sum(unlock_amounts)] + unlock_amounts
 
     elif TOKEN_TYPE_D == token_type:
         token = TOKEN_TFT_CONTRIBUTOR
         unlock_timestamps = [0]
-        unlock_amounts = [token_count]
+        unlock_amounts = [amount]
 
     elif TOKEN_TYPE_I == token_type:
         token = TOKEN_ITFT
         unlock_timestamps = [0]
-        unlock_amounts = [token_count]
+        unlock_amounts = [amount]
 
     else:
         raise Exception(u"Unknown token type")
@@ -383,7 +383,7 @@ def transfer_genesis_coins_to_user(app_user, token_type, token_count, memo=None,
                                      unlock_amounts=unlock_amounts,
                                      token=token,
                                      token_type=token_type,
-                                     amount=token_count,
+                                     amount=amount,
                                      memo=memo,
                                      app_users=[app_user],
                                      from_user=None,

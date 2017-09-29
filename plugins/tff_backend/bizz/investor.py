@@ -435,7 +435,7 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
         agreement.paid_time = now()
         agreement.put()
         user_email, app_id, = get_app_user_tuple(agreement.app_user)
-        deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TOKEN_TYPE_I, agreement.token_count,
+        deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TOKEN_TYPE_I, agreement.token_count * 100,
                        _transactional=True)
         deferred.defer(update_investor_progress, user_email.email(), app_id, InvestorSteps.ASSIGN_TOKENS,
                        _transactional=True)
