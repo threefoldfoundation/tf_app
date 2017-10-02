@@ -21,14 +21,16 @@ from google.appengine.ext import deferred
 
 from framework.plugin_loader import get_config
 from mcfw.properties import object_factory
-from mcfw.rpc import parse_complex_value, serialize_complex_value
+from mcfw.rpc import parse_complex_value, serialize_complex_value, returns, arguments
+from plugins.rogerthat_api.models.settings import RogerthatSettings
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.friends import ACCEPT_ID, DECLINE_ID
 from plugins.rogerthat_api.to.messaging import Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import FormResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
-    FormAcknowledgedCallbackResultTO, SendApiCallCallbackResultTO, MessageAcknowledgedCallbackResultTO
+    FormAcknowledgedCallbackResultTO, SendApiCallCallbackResultTO, MessageAcknowledgedCallbackResultTO, \
+    PokeCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.api.rogerthat.global_stats import api_list_global_stats
 from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, api_iyo_see_detail
@@ -36,11 +38,11 @@ from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed, node_arrived
 from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \
-    investment_agreement_signed_by_admin, invest_complete
+    investment_agreement_signed_by_admin, invest_complete, start_invest
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_info_in_userdata, \
     is_user_in_roles
-from plugins.tff_backend.plugin_consts import NAMESPACE
+from plugins.tff_backend.plugin_consts import NAMESPACE, BUY_TOKENS_TAG
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 
 TAG_MAPPING = {
@@ -48,10 +50,14 @@ TAG_MAPPING = {
     'sign_order_node_tos': order_node_signed,
     'node_arrival': node_arrived,
     'invest': invest_tft,
-    'invest_itft': invest_itft,
+    BUY_TOKENS_TAG: invest_itft,
     'invest_complete': invest_complete,
     'sign_investment_agreement': investment_agreement_signed,
     'sign_investment_agreement_admin': investment_agreement_signed_by_admin,
+}
+
+POKE_TAG_MAPPING = {
+    'start_invest': start_invest
 }
 
 API_METHOD_MAPPING = {
@@ -116,6 +122,19 @@ def messaging_update(rt_settings, request_id, status, answer_id, received_timest
     result = f(status, answer_id, received_timestamp, member, message_key, tag, acked_timestamp, parent_message_key,
                service_identity, user_details)
     return result and serialize_complex_value(result, MessageAcknowledgedCallbackResultTO, False, skip_missing=True)
+
+
+@returns(dict)
+@arguments(rt_settings=RogerthatSettings, id_=unicode, email=unicode, tag=unicode, result_key=unicode, context=unicode,
+           service_identity=unicode, user_details=[dict], timestamp=(int, long))
+def messaging_poke(rt_settings, id_, email, tag, result_key, context, service_identity, user_details, timestamp):
+    handler = POKE_TAG_MAPPING.get(parse_to_human_readable_tag(tag))
+    if not handler:
+        logging.info('Ignoring poke with tag %s', tag)
+        return None
+    user_details = log_and_parse_user_details(user_details[0])
+    result = handler(email, tag, result_key, context, service_identity, user_details)
+    return result and serialize_complex_value(result, PokeCallbackResultTO, False, skip_missing=True)
 
 
 def friend_register(rt_settings, request_id, params, response):

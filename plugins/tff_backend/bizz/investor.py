@@ -39,8 +39,8 @@ from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormRes
 from plugins.rogerthat_api.to.messaging.service_callback_results import FormAcknowledgedCallbackResultTO, \
     MessageCallbackResultTypeTO, TYPE_MESSAGE, FlowMemberResultCallbackResultTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.agreements import create_token_agreement_pdf
 from plugins.tff_backend.bizz.authentication import Roles
+from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.bizz.hoster import get_publickey_label, _create_error_message
 from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
@@ -51,13 +51,13 @@ from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TOKEN_TYPE_I
-from plugins.tff_backend.models.global_stats import GlobalStats
+from plugins.tff_backend.models.global_stats import GlobalStats, CurrencyValue
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
-    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES
+    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW, BUY_TOKENS_TAG
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
-from plugins.tff_backend.utils import get_step_value, get_step
+from plugins.tff_backend.utils import get_step_value, get_step, round_currency_amount
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from requests.exceptions import HTTPError
 
@@ -97,12 +97,8 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         app_user = create_app_user_by_email(email, app_id)
         logging.info('User %s wants to invest', email)
         currency = get_step_value(steps, 'message_get_currency').replace('_cur', '')
-        if token == TOKEN_ITFT:
-            token_count = 0  # will be calculated when payment arrived
-            amount = float(get_step_value(steps, 'message_get_order_size_ITO').replace(',', '.'))
-        else:
-            token_count = int(get_step_value(steps, 'message_get_order_size_ITO'))
-            amount = get_investment_amount(currency, token_count)
+        token_count = long(get_step_value(steps, 'message_get_order_size_ITO'))
+        amount = get_investment_amount(currency, token_count)
 
         overview_step = get_step(steps, 'message_overview')
         if overview_step and overview_step.answer_id == u"button_use":
@@ -171,9 +167,28 @@ def get_investment_amount(currency, token_count):
     return round_currency_amount(currency, get_currency_rate(currency) * token_count)
 
 
-def round_currency_amount(currency, amount):
-    decimals_after_comma = 8 if currency == 'BTC' else 2
-    return round(amount, decimals_after_comma)
+@returns()
+@arguments(email=unicode, tag=unicode, result_key=unicode, context=unicode, service_identity=unicode,
+           user_details=UserDetailsTO)
+def start_invest(email, tag, result_key, context, service_identity, user_details):
+    # type: (unicode, unicode, unicode, unicode, unicode, UserDetailsTO) -> None
+    logging.info('Starting invest flow for user %s', user_details.email)
+    members = [MemberTO(member=user_details.email, app_id=user_details.app_id, alert_flags=0)]
+    flow_params = json.dumps({'currencies': _get_conversion_rates()})
+    messaging.start_local_flow(get_rogerthat_api_key(), None, members, service_identity, tag=BUY_TOKENS_TAG,
+                               context=context, flow=BUY_TOKENS_FLOW, flow_params=flow_params)
+
+
+def _get_conversion_rates():
+    result = []
+    stats = get_global_stats(TOKEN_ITFT)
+    for currency in stats.currencies:
+        result.append({
+            'name': _get_currency_name(currency.currency),
+            'symbol': currency.currency,
+            'value': currency.value
+        })
+    return result
 
 
 @returns()
@@ -195,6 +210,7 @@ def _get_currency_name(currency):
 
 
 def _invest(agreement_key, email, app_id, retry_count):
+    from plugins.tff_backend.bizz.agreements import create_token_agreement_pdf
     app_user = create_app_user_by_email(email, app_id)
     logging.debug('Creating Token agreement')
     agreement = agreement_key.get()
