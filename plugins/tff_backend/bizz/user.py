@@ -23,6 +23,7 @@ from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
 from framework.bizz.session import create_session
+from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
 from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments
@@ -103,11 +104,11 @@ def user_registered(user_detail, origin, data):
     logging.debug('Decoded JWT: %s', decoded_jwt)
     scopes = decoded_jwt['scope']
     # Creation session such that the JWT is automatically up to date
-    create_session(username, scopes, jwt, secret=username)
+    _, session = create_session(username, scopes, jwt, secret=username)
 
     deferred.defer(invite_user_to_organization, username, Organization.PUBLIC)
     deferred.defer(add_user_to_role, user_detail, Roles.PUBLIC)
-    deferred.defer(popuplate_intercom_user, username, jwt)
+    deferred.defer(popuplate_intercom_user, session.key)
 
 
 def _convert_to_str(data):
@@ -122,19 +123,22 @@ def _convert_to_str(data):
     return data
 
 
-def popuplate_intercom_user(username, jwt):
+def popuplate_intercom_user(session_key):
     """
     Creates or updates an intercom user with information from itsyou.online
     Args:
-        username (unicode): itsyou.online username
-        jwt (unicode): itsyou.online JWT
+        session_key (ndb.Key): key of the Session for this user
     """
     intercom_plugin = get_plugin('intercom_support')
     if intercom_plugin:
+        session = session_key.get()
+        if not session:
+            return
+        assert isinstance(session, Session)
         assert isinstance(intercom_plugin, IntercomSupportPlugin)
         client = Client()
-        client.oauth.session.headers['Authorization'] = 'bearer %s' % jwt
-        data = client.api.users.GetUserInformation(username).json()
+        client.oauth.session.headers['Authorization'] = 'bearer %s' % session.jwt
+        data = client.api.users.GetUserInformation(session.user_id).json()
         response_data = userview(_convert_to_str(data))
         name = None
         email = None
@@ -145,7 +149,7 @@ def popuplate_intercom_user(username, jwt):
             email = response_data.validatedemailaddresses[0].emailaddress
         if response_data.validatedphonenumbers:
             phone = response_data.validatedphonenumbers[0].phonenumber
-        intercom_plugin.create_user(username, name, email, phone)
+        intercom_plugin.create_user(session.user_id, name, email, phone)
 
 
 @returns(unicode)

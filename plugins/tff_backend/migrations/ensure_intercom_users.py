@@ -34,8 +34,5 @@ def _get_users():
 
 
 def _ensure_intercom_user(session_key):
-    session = session_key.get()
-    if not session:
-        return
-    if not _is_guid(session.key.id()):
-        popuplate_intercom_user(session.user_id, session.jwt)
+    if not _is_guid(session_key.id()):
+        popuplate_intercom_user(session_key)
