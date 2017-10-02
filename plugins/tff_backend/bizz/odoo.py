@@ -166,11 +166,12 @@ def cancel_odoo_quotation(order_id):
     order_data = {
         'state': 'cancel'
     }
-    
+
     try:
         sale_order.write(order_data)
-    except:
-        logging.exception('Failed to cancel odoo order with id %s.', order_id)
+    except xmlrpclib.Fault as e:
+        if 'One of the documents you are trying to access has been deleted' not in e.message:
+            raise e
 
 
 def get_odoo_serial_number(order_id):
