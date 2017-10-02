@@ -45,7 +45,6 @@ from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.models.user import ProfilePointer, TffProfile
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
-from plugins.tff_backend.to import convert_to_unicode
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
 from plugins.tff_backend.utils.app import create_app_user_by_email
 
@@ -111,15 +110,15 @@ def user_registered(user_detail, origin, data):
     deferred.defer(popuplate_intercom_user, username, jwt)
 
 
-def _convert_to_unicode(data):
-    if isinstance(data, basestring):
+def _convert_to_str(data):
+    if isinstance(data, unicode):
         return data.encode('utf-8')
     elif isinstance(data, list):
         for i, list_item in enumerate(data):
-            data[i] = convert_to_unicode(list_item)
+            data[i] = _convert_to_str(list_item)
     elif isinstance(data, dict):
         for key, val in data.iteritems():
-            data[key] = convert_to_unicode(val)
+            data[key] = _convert_to_str(val)
     return data
 
 
@@ -136,10 +135,7 @@ def popuplate_intercom_user(username, jwt):
         client = Client()
         client.oauth.session.headers['Authorization'] = 'bearer %s' % jwt
         data = client.api.users.GetUserInformation(username).json()
-        logging.debug('User info before convert: %s', data)
-        data = _convert_to_unicode(data)
-        logging.debug('User info after convert: %s', data)
-        response_data = userview(data)
+        response_data = userview(_convert_to_str(data))
         name = None
         email = None
         phone = None
