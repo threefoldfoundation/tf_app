@@ -31,5 +31,4 @@ class PaginatedResultTO(TO):
     more = bool_property('more')
 
     def __init__(self, cursor=None, more=False):
-        self.cursor = cursor
-        self.more = more
+        super(PaginatedResultTO, self).__init__(cursor=cursor, more=more)

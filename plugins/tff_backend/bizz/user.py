@@ -45,6 +45,7 @@ from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.models.user import ProfilePointer, TffProfile
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
+from plugins.tff_backend.to import convert_to_unicode
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
 from plugins.tff_backend.utils.app import create_app_user_by_email
 
@@ -110,6 +111,18 @@ def user_registered(user_detail, origin, data):
     deferred.defer(popuplate_intercom_user, username, jwt)
 
 
+def _convert_to_unicode(data):
+    if isinstance(data, basestring):
+        return data.encode('utf-8')
+    elif isinstance(data, list):
+        for i, list_item in enumerate(data):
+            data[i] = convert_to_unicode(list_item)
+    elif isinstance(data, dict):
+        for key, val in data.iteritems():
+            data[key] = convert_to_unicode(val)
+    return data
+
+
 def popuplate_intercom_user(username, jwt):
     """
     Creates or updates an intercom user with information from itsyou.online
@@ -126,7 +139,7 @@ def popuplate_intercom_user(username, jwt):
         # Fix IYO bug where organizations aren't being set
         if data.get('organizations') is None:
             data['organizations'] = []
-        response_data = userview(data)
+        response_data = userview(_convert_to_unicode(data))
         name = None
         email = None
         phone = None
