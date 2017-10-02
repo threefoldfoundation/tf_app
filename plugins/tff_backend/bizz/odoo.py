@@ -166,8 +166,11 @@ def cancel_odoo_quotation(order_id):
     order_data = {
         'state': 'cancel'
     }
-
-    sale_order.write(order_data)
+    
+    try:
+        sale_order.write(order_data)
+    except:
+        logging.exception('Failed to cancel odoo order with id %s.', order_id)
 
 
 def get_odoo_serial_number(order_id):
