@@ -26,3 +26,6 @@ CRYPTO_CURRENCY_NAMES = {
     'BTC': 'Bitcoin'
 }
 SUPPORTED_CURRENCIES = list_currencies() | SUPPORTED_CRYPTO_CURRENCIES
+
+BUY_TOKENS_FLOW = u'buy_tokens_ITO_v4'
+BUY_TOKENS_TAG = u'invest_itft'
