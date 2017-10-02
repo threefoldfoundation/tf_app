@@ -136,10 +136,10 @@ def popuplate_intercom_user(username, jwt):
         client = Client()
         client.oauth.session.headers['Authorization'] = 'bearer %s' % jwt
         data = client.api.users.GetUserInformation(username).json()
-        # Fix IYO bug where organizations aren't being set
-        if data.get('organizations') is None:
-            data['organizations'] = []
-        response_data = userview(_convert_to_unicode(data))
+        logging.debug('User info before convert: %s', data)
+        data = _convert_to_unicode(data)
+        logging.debug('User info after convert: %s', data)
+        response_data = userview(data)
         name = None
         email = None
         phone = None
