@@ -9,7 +9,7 @@ import {
   NodeOrderList
 } from '../interfaces/index';
 import { type } from '../../../framework/client/core/utils/type';
-import { ApiErrorResponse } from '../../../framework/client/sample/interfaces/rpc.interfaces';
+import { ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
 
 const category = '[TFF]';
 
@@ -63,7 +63,7 @@ export class GetOrdersCompleteAction implements Action {
 export class GetOrdersFailedAction implements Action {
   type = TffActionTypes.GET_ORDERS_FAILED;
 
-  constructor(public payload: ApiErrorResponse) {
+  constructor(public payload: ApiRequestStatus) {
   }
 }
 
@@ -88,7 +88,7 @@ export class GetOrderCompleteAction implements Action {
 export class GetOrderFailedAction implements Action {
   type = TffActionTypes.GET_ORDER_FAILED;
 
-  constructor(public payload: ApiErrorResponse) {
+  constructor(public payload: ApiRequestStatus) {
   }
 }
 
@@ -109,7 +109,7 @@ export class UpdateOrderCompleteAction implements Action {
 export class UpdateOrderFailedAction implements Action {
   type = TffActionTypes.UPDATE_ORDER_FAILED;
 
-  constructor(public payload: ApiErrorResponse) {
+  constructor(public payload: ApiRequestStatus) {
   }
 }
 
@@ -130,7 +130,7 @@ export class GetInvestmentAgreementsCompleteAction implements Action {
 export class GetInvestmentAgreementsFailedAction implements Action {
   type = TffActionTypes.GET_INVESTMENT_AGREEMENTS_FAILED;
 
-  constructor(public payload: ApiErrorResponse) {
+  constructor(public payload: ApiRequestStatus) {
   }
 }
 
@@ -155,7 +155,7 @@ export class GetInvestmentAgreementCompleteAction implements Action {
 export class GetInvestmentAgreementFailedAction implements Action {
   type = TffActionTypes.GET_INVESTMENT_AGREEMENT_FAILED;
 
-  constructor(public payload: ApiErrorResponse) {
+  constructor(public payload: ApiRequestStatus) {
   }
 }
 
@@ -176,7 +176,7 @@ export class UpdateInvestmentAgreementCompleteAction implements Action {
 export class UpdateInvestmentAgreementFailedAction implements Action {
   type = TffActionTypes.UPDATE_INVESTMENT_AGREEMENT_FAILED;
 
-  constructor(public payload: ApiErrorResponse) {
+  constructor(public payload: ApiRequestStatus) {
   }
 }
 
@@ -195,7 +195,7 @@ export class GetGlobalStatsListCompleteAction implements Action {
 export class GetGlobalStatsListFailedAction implements Action {
   type = TffActionTypes.GET_GLOBAL_STATS_LIST_FAILED;
 
-  constructor(public payload: ApiErrorResponse) {
+  constructor(public payload: ApiRequestStatus) {
   }
 }
 
@@ -220,7 +220,7 @@ export class GetGlobalStatsCompleteAction implements Action {
 export class GetGlobalStatsFailedAction implements Action {
   type = TffActionTypes.GET_GLOBAL_STATS_FAILED;
 
-  constructor(public payload: ApiErrorResponse) {
+  constructor(public payload: ApiRequestStatus) {
   }
 }
 
@@ -241,7 +241,7 @@ export class UpdateGlobalStatsCompleteAction implements Action {
 export class UpdateGlobalStatsFailedAction implements Action {
   type = TffActionTypes.UPDATE_GLOBAL_STATS_FAILED;
 
-  constructor(public payload: ApiErrorResponse) {
+  constructor(public payload: ApiRequestStatus) {
   }
 }
 

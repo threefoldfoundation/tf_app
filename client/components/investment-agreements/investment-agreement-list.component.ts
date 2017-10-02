@@ -20,13 +20,13 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
 export class InvestmentAgreementListComponent {
 
   @Input() investmentAgreements: InvestmentAgreementList;
+  @Input() status: InvestmentAgreementsStatuses;
   @Input() listStatus: ApiRequestStatus;
   @Output() onLoadInvestmentAgreements = new EventEmitter<GetInvestmentAgreementsPayload>();
   statuses: { label: string, value: InvestmentAgreementsStatuses }[] = Object.keys(INVESTMENT_AGREEMENT_STATUSES).map(status => ({
     label: INVESTMENT_AGREEMENT_STATUSES[ parseInt(status) ],
     value: parseInt(status)
   }));
-  status: InvestmentAgreementsStatuses = InvestmentAgreementsStatuses.CREATED;
 
   getStatusString(): string {
     return INVESTMENT_AGREEMENT_STATUSES[ this.status ];

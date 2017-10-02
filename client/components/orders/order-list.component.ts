@@ -14,15 +14,14 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
   ` ]
 })
 export class OrderListComponent {
-
   @Input() orders: NodeOrderList;
   @Input() listStatus: ApiRequestStatus;
+  @Input() status: NodeOrderStatuses;
   @Output() onLoadOrders = new EventEmitter<GetNodeOrdersPayload>();
   statuses: { label: string, value: NodeOrderStatuses }[] = Object.keys(ORDER_STATUSES).map(status => ({
     label: ORDER_STATUSES[ parseInt(status) ],
     value: parseInt(status)
   }));
-  status: NodeOrderStatuses = NodeOrderStatuses.SIGNED;
 
   getStatusString(): string {
     return ORDER_STATUSES[ this.status ];
