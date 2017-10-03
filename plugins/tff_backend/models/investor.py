@@ -36,6 +36,7 @@ class InvestmentAgreement(NdbModel):
     paid_time = ndb.IntegerProperty()
     cancel_time = ndb.IntegerProperty()
     modification_time = ndb.IntegerProperty()
+    version = ndb.StringProperty()
 
     def _pre_put_hook(self):
         self.modification_time = now()
