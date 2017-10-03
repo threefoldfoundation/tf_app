@@ -13,7 +13,7 @@
     "back": "Back",
     "billing_address": "Billing address",
     "btc_price": "Bitcoin price",
-    "btc_price_on_payment_receive": "Bitcoin price at the time the payment was received",
+    "btc_price_on_payment_receive": "Bitcoin price at the time the payment was received. See https://coinmarketcap.com/currencies/bitcoin for the pricing",
     "cancel_investment": "Cancel investment",
     "cancel_order": "Cancel order",
     "cancel_time": "Cancel time",
