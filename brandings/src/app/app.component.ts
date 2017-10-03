@@ -64,7 +64,7 @@ export class AppComponent implements OnInit {
         if (page) {
           this.rootPage = page.page;
         } else {
-          console.error('Cannot find page for menu item', rogerthat.menuItem);
+          console.error('Cannot find page for menu item', JSON.stringify(rogerthat.menuItem));
         }
         this.platformReady = true;
         this.cdRef.detectChanges();
