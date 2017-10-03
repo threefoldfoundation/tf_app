@@ -54,7 +54,7 @@ from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TOKEN_TYPE
 from plugins.tff_backend.models.global_stats import GlobalStats, CurrencyValue
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
-    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW, BUY_TOKENS_TAG
+    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_TAG, BUY_TOKENS_FLOW_V3
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step, round_currency_amount
@@ -96,9 +96,17 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         app_id = user_details[0].app_id
         app_user = create_app_user_by_email(email, app_id)
         logging.info('User %s wants to invest', email)
+        try:
+            version = db.Key(steps[0].message_flow_id).name()
+        except db.BadKeyError:
+            version = steps[0].message_flow_id
         currency = get_step_value(steps, 'message_get_currency').replace('_cur', '')
-        token_count = float(get_step_value(steps, 'message_get_order_size_ITO'))
-        amount = get_investment_amount(currency, token_count)
+        if version == BUY_TOKENS_FLOW_V3:
+            amount = float(get_step_value(steps, 'message_get_order_size_ITO').replace(',', '.'))
+            token_count = get_token_count(currency, amount)
+        else:
+            token_count = float(get_step_value(steps, 'message_get_order_size_ITO'))
+            amount = get_investment_amount(currency, token_count)
 
         overview_step = get_step(steps, 'message_overview')
         if overview_step and overview_step.answer_id == u"button_use":
@@ -110,10 +118,6 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         else:
             name = get_step_value(steps, 'message_name')
             billing_address = get_step_value(steps, 'message_billing_address')
-        try:
-            version = db.Key(steps[0].message_flow_id).name()
-        except:
-            version = steps[0].message_flow_id
         precision = 2
         agreement = InvestmentAgreement(creation_time=now(),
                                         app_user=app_user,
@@ -173,6 +177,11 @@ def get_investment_amount(currency, token_count):
     return round_currency_amount(currency, get_currency_rate(currency) * token_count)
 
 
+def get_token_count(currency, amount):
+    # type: (unicode, float) -> float
+    return amount / get_currency_rate(currency)
+
+
 @returns()
 @arguments(email=unicode, tag=unicode, result_key=unicode, context=unicode, service_identity=unicode,
            user_details=UserDetailsTO)
@@ -182,7 +191,7 @@ def start_invest(email, tag, result_key, context, service_identity, user_details
     members = [MemberTO(member=user_details.email, app_id=user_details.app_id, alert_flags=0)]
     flow_params = json.dumps({'currencies': _get_conversion_rates()})
     messaging.start_local_flow(get_rogerthat_api_key(), None, members, service_identity, tag=BUY_TOKENS_TAG,
-                               context=context, flow=BUY_TOKENS_FLOW, flow_params=flow_params)
+                               context=context, flow=BUY_TOKENS_FLOW_V3, flow_params=flow_params)
 
 
 def _get_conversion_rates():
