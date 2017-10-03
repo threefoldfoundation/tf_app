@@ -27,6 +27,7 @@ class PaymentAssetRequiredActionTO(object):
 class PaymentAssetBalanceTO(object):
     amount = long_property('1')
     description = unicode_property('2')
+    precision = long_property('3')
 
 
 class PaymentProviderAssetTO(object):

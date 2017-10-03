@@ -66,9 +66,11 @@ def api_get_asset(asset_id):
     available_balance = PaymentAssetBalanceTO()
     available_balance.amount = available_amount
     available_balance.description = None
+    available_balance.precision = 2
     total_balance = PaymentAssetBalanceTO()
     total_balance.amount = total_amount
     total_balance.description = total_description
+    total_balance.precision = 2
 
     to = PaymentProviderAssetTO()
     to.provider_id = PROVIDER_ID
