@@ -230,7 +230,7 @@ def _set_token_count(agreement, token_count=None, precision=2):
     logging.info('Setting token count for agreement %s', agreement.to_dict())
     if agreement.status == InvestmentAgreement.STATUS_CREATED:
         if agreement.currency == 'USD':
-            agreement.token_count = long((agreement.amount / stats.value) * pow(10, precision))
+            agreement.token_amount = long((agreement.amount / stats.value) * pow(10, precision))
         else:
             currency_stats = filter(lambda s: s.currency == agreement.currency, stats.currencies)[0]
             if not currency_stats:
