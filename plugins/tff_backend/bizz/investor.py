@@ -482,7 +482,7 @@ def put_investment_agreement(agreement_id, agreement, admin_user):
         raise HttpNotFoundException('investment_agreement_not_found')
     if agreement_model.status == InvestmentAgreement.STATUS_CANCELED:
         raise HttpBadRequestException('order_canceled')
-    if agreement_model.status != InvestmentAgreement.STATUS_SIGNED:
+    if agreement.status not in (InvestmentAgreement.STATUS_SIGNED, InvestmentAgreement.STATUS_CANCELED):
         raise HttpBadRequestException('invalid_status')
     # Only support updating the status for now
     agreement_model.status = agreement.status

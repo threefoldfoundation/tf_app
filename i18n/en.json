@@ -12,6 +12,7 @@
     "auto_update_explanation": "Enabling auto update will update the currency rates every few hours with values from an exchange.",
     "back": "Back",
     "billing_address": "Billing address",
+    "cancel_investment": "Cancel investment",
     "cancel_order": "Cancel order",
     "cancel_time": "Cancel time",
     "canceled": "Canceled",
