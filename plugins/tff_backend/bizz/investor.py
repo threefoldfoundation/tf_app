@@ -22,7 +22,7 @@ import logging
 from types import NoneType
 
 from google.appengine.api import users, mail
-from google.appengine.ext import deferred, ndb
+from google.appengine.ext import deferred, ndb, db
 
 from babel.numbers import get_currency_name
 from framework.plugin_loader import get_config
@@ -110,6 +110,10 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         else:
             name = get_step_value(steps, 'message_name')
             billing_address = get_step_value(steps, 'message_billing_address')
+        try:
+            version = db.Key(steps[0].message_flow_id).name()
+        except:
+            version = steps[0].message_flow_id
         precision = 2
         agreement = InvestmentAgreement(creation_time=now(),
                                         app_user=app_user,
@@ -120,7 +124,8 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
                                         currency=currency,
                                         name=name,
                                         address=billing_address,
-                                        status=InvestmentAgreement.STATUS_CREATED)
+                                        status=InvestmentAgreement.STATUS_CREATED,
+                                        version=version)
         agreement.put()
         answer_yes = AnswerTO(type=u'button', action=None, id=u'confirm', caption=u'Confirm', ui_flags=0, color=None)
         answer_no = AnswerTO(type=u'button', action=None, id=u'cancel', caption=u'Cancel', ui_flags=0, color=None)
