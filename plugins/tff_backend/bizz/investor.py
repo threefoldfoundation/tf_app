@@ -44,12 +44,13 @@ from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.bizz.hoster import get_publickey_label, _create_error_message
 from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
+from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
-from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS
+from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS, ACCOUNT_NUMBERS
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TOKEN_TYPE_I
 from plugins.tff_backend.models.global_stats import GlobalStats, CurrencyValue
 from plugins.tff_backend.models.investor import InvestmentAgreement
@@ -594,7 +595,8 @@ def send_payment_instructions(email, app_id, agreement_id):
     agreement = InvestmentAgreement.get_by_id(agreement_id)
     params = {
         'currency': agreement.currency,
-        'iban': BANK_ACCOUNTS.get(agreement.currency, BANK_ACCOUNTS['USD'])
+        'iban': BANK_ACCOUNTS.get(agreement.currency, BANK_ACCOUNTS['USD']),
+        'account_number': ACCOUNT_NUMBERS.get(agreement.currency)
     }
     if agreement.currency == "BTC":
         params['amount'] = '{:.8f}'.format(agreement.amount)
@@ -606,22 +608,47 @@ Please inform us by email at payments@threefoldtoken.com when you have made paym
     else:
         params['amount'] = '{:.2f}'.format(agreement.amount)
         message = u"""Please use the following transfer details
-Amount: %(currency)s %(amount)s - Bank : Mashreq Bank - IBAN : %(iban)s - BIC : BOMLAEAD
+Amount: %(currency)s %(amount)s
+
+Bank: Mashreq Bank
+
+Bank address: Al Hawai Tower, Ground Floor Sheikh Zayed Road - PO Box 36612 - UAE Dubai
+
+Account number: %(account_number)s
+
+IBAN: %(iban)s / BIC : BOMLAEAD
 
 For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
 
-Payment must be made from a bank account registered under your name. Please use "FIRSTNAME LASTNAME AMOUNT iTFT" as reference."""  # noQA
+**Payment must be made from a bank account registered under your name.** Please use "FIRSTNAME LASTNAME AMOUNT iTFT" as reference."""  # noQA
 
-    member = MemberTO()
-    member.member = email
-    member.app_id = app_id
-    member.alert_flags = Message.ALERT_FLAG_VIBRATE
+    msg = message % params
+    subject = u'ThreeFold payment instructions'
 
+    deferred.defer(_send_payment_instructions_via_app, msg, email, app_id)
+    deferred.defer(_send_payment_instructions_via_email, msg, subject, agreement.app_user)
+
+
+def _send_payment_instructions_via_app(message, email, app_id):
+    member = MemberTO(email=email, app_id=app_id, alert_flags=Message.ALERT_FLAG_VIBRATE)
     messaging.send(api_key=get_rogerthat_api_key(),
                    parent_message_key=None,
-                   message=message % params,
+                   message=message,
                    answers=[],
                    flags=Message.FLAG_ALLOW_DISMISS,
                    members=[member],
                    branding=get_main_branding_hash(),
                    tag=None)
+
+
+def _send_payment_instructions_via_email(app_user, message, subject):
+    user_information = get_user(get_iyo_username(app_user))
+    email = user_information.validatedemailaddresses and user_information.validatedemailaddresses[0].emailaddress
+    if not email:
+        logging.error('Could not find email address to send payment information to for user %s', app_user,
+                      _suppress=False)
+        return
+    mail.send_mail(sender='no-reply@tff-backend.appspotmail.com',
+                   to=email,
+                   subject=subject,
+                   body=message.replace('**', ''))  # remove markdown
