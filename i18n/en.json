@@ -12,13 +12,15 @@
     "auto_update_explanation": "Enabling auto update will update the currency rates every few hours with values from an exchange.",
     "back": "Back",
     "billing_address": "Billing address",
+    "btc_price": "Bitcoin price",
+    "btc_price_on_payment_receive": "Bitcoin price at the time the payment was received",
     "cancel_investment": "Cancel investment",
     "cancel_order": "Cancel order",
     "cancel_time": "Cancel time",
     "canceled": "Canceled",
     "close": "Close",
-    "currency": "Currency",
     "created": "Created",
+    "currency": "Currency",
     "document_url": "Document url",
     "email": "Email",
     "errors": {
@@ -64,6 +66,7 @@
     "value": "Value",
     "value_in_dollars": "Value in dollars",
     "waiting_approval": "Waiting for approval",
-    "x_tokens": "{{ count }} tokens"
+    "x_tokens": "{{ count }} tokens",
+    "x_tokens_will_be_assigned": "{{ tokens }} tokens will be assigned to this user."
   }
 }

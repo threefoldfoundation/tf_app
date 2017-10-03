@@ -19,9 +19,21 @@
     <p>{{ 'tff.modification_time' | translate }}: {{ investmentAgreement.modification_time | timestamp }}</p>
     <p *ngIf="investmentAgreement.status === statuses.CANCELED">
       {{ 'tff.cancel_time' | translate }}: {{ investmentAgreement.cancel_time | timestamp }}</p>
-    <button type="button" color="warn" *ngIf="canCancelInvestment" md-button (click)="cancelInvestment()">
-      {{ 'tff.cancel_investment' | translate }}
-    </button>
-    <button *ngIf="canMarkAsPaid" md-button (click)="markAsPaid()">{{ 'tff.mark_as_paid' | translate }}</button>
+    <form #form="ngForm">
+      <div *ngIf="investmentAgreement.currency === 'BTC' && canUpdate">
+        <md-form-field>
+          <input mdInput type="number" name="btc_price" [placeholder]="'tff.btc_price' | translate" required
+                 [(ngModel)]="btcPrice">
+        </md-form-field>
+        <p>{{'tff.btc_price_on_payment_receive' | translate }}</p>
+        <p>{{ 'tff.x_tokens_will_be_assigned' | translate : {tokens: getTokenCount() } }}</p>
+      </div>
+      <button type="button" color="warn" *ngIf="canCancelInvestment" md-button (click)="cancelInvestment()">
+        {{ 'tff.cancel_investment' | translate }}
+      </button>
+      <button type="button" md-button (click)="markAsPaid()" [disabled]="!form.form.valid" *ngIf="canUpdate">
+        {{ 'tff.mark_as_paid' | translate }}
+      </button>
+    </form>
   </div>
 </div>

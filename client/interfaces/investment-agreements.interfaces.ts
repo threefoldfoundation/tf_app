@@ -1,5 +1,12 @@
 import { SeeDocumentDetails } from './iyo-see.interfaces';
 
+/**
+ * Numbers after comma for tokens
+ * @type {number}
+ */
+export const TOKEN_PRESICION = 2;
+export const TOKEN_PRECISION_MULTIPLIER = Math.pow(10, TOKEN_PRESICION);
+
 export enum InvestmentAgreementsStatuses {
   CANCELED = -1,
   CREATED = 0,
@@ -23,6 +30,7 @@ export interface InvestmentAgreement {
   id: number;
   app_user: string;
   amount: number;
+  token: string;
   token_count: number;
   currency: string;
   name: string;
