@@ -55,6 +55,7 @@ class PaymentProviderTransactionTO(object):
     timestamp = long_property('7')
     from_asset_id = unicode_property('8')
     to_asset_id = unicode_property('9')
+    precision = long_property('10')
 
 
 class GetPaymentTransactionsResponseTO(object):

@@ -124,6 +124,7 @@ def api_get_transactions(asset_id, transaction_type, cursor=None):
         to.timestamp = t.timestamp
         to.from_asset_id = get_asset_id_from_token(t.from_user, t.token) if t.from_user else None
         to.to_asset_id = get_asset_id_from_token(t.to_user, t.token)
+        to.precision = 2 # todo precision
         rto.transactions.append(to)
 
     rto.cursor = unicode(new_cursor.urlsafe()) if has_more and new_cursor else None
@@ -142,6 +143,9 @@ def api_create_transaction(data):
     if not (data.id or data.amount or data.from_asset_id or data.to_asset_id):
         to.status = ThreeFoldPendingTransaction.STATUS_FAILED
         return to
+    
+    if data.precision is MISSING:
+        data.precision = 2
 
     from_user = get_app_user_from_asset_id(data.from_asset_id)
     to_user = get_app_user_from_asset_id(data.to_asset_id)
@@ -162,6 +166,7 @@ def api_create_transaction(data):
         elif pt.synced:
             return pt.synced_status
 
+        # todo precision
         pt.unlock_timestamps = [0]
         pt.unlock_amounts = [data.amount]
         pt.token = token
