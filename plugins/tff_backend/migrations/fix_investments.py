@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+import logging
 
 from google.appengine.ext import ndb
 
@@ -26,24 +27,20 @@ def fix_investments():
     to_put = []
     to_fix = []
     for agreement in investments:  # type: InvestmentAgreement
-        if not agreement.token_precision:
-            agreement.token_count = agreement.token_count * 100
-            agreement.token_precision = 2
-            to_put.append(agreement)
-        else:
+        if not agreement.token_count:
             if not agreement.iyo_see_id:
                 _set_token_count(agreement)
                 to_put.append(agreement)
             elif agreement.currency != 'BTC':
                 to_fix.append(agreement.id)
-    return len(to_put), to_fix
     ndb.put_multi(to_put)
+    logging.warn('These investment agreements need manual migration: %s', to_fix)
 
 
 def manual_fix():
     mapping = {
         5667908084563968: 0.85
-    }
+    }  # Incomplete
     to_put = []
     agreements = ndb.get_multi([InvestmentAgreement.create_key(id) for id in mapping])
     for agreement in agreements:  # type: InvestmentAgreement
@@ -52,5 +49,4 @@ def manual_fix():
         agreement.token_count = long(token_count_float * pow(10, precision))
         agreement.token_precision = precision
         to_put.append(agreement)
-    return to_put
     ndb.put_multi(to_put)
