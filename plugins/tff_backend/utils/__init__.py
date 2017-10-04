@@ -70,3 +70,8 @@ def set_flag(flag, value):
 
 def unset_flag(flag, value):
     return value & ~flag
+
+
+def round_currency_amount(currency, amount):
+    decimals_after_comma = 8 if currency == 'BTC' else 2
+    return round(amount, decimals_after_comma)

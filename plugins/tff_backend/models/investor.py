@@ -13,10 +13,15 @@ class InvestmentAgreement(NdbModel):
     STATUS_SIGNED = 1
     STATUS_PAID = 2
 
+    def _compute_token_count(self):
+        return round(float(self.token_count) / pow(10, self.token_precision), self.token_precision)
+
     app_user = ndb.UserProperty()
     amount = ndb.FloatProperty(indexed=False)
     token = ndb.StringProperty(indexed=False)
-    token_count = ndb.IntegerProperty(indexed=False)
+    token_count_float = ndb.ComputedProperty(_compute_token_count, indexed=False)  # Real amount of tokens
+    token_count = ndb.IntegerProperty(indexed=False, default=0)  # amount of tokens x 10 ^ token_precision
+    token_precision = ndb.IntegerProperty(indexed=False, default=0)
     currency = ndb.StringProperty(indexed=False)
     name = ndb.StringProperty(indexed=False)
     address = ndb.StringProperty(indexed=False)
@@ -31,6 +36,7 @@ class InvestmentAgreement(NdbModel):
     paid_time = ndb.IntegerProperty()
     cancel_time = ndb.IntegerProperty()
     modification_time = ndb.IntegerProperty()
+    version = ndb.StringProperty()
 
     def _pre_put_hook(self):
         self.modification_time = now()

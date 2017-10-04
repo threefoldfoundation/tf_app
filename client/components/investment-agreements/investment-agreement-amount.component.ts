@@ -8,7 +8,7 @@ import { CurrencyPipe } from '@angular/common';
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<span *ngIf="amount">{{ 'tff.amount' | translate }}: {{ getAmount() }}</span>
-  &nbsp;(<span *ngIf="tokenCount">{{ 'tff.x_tokens' | translate: {count: tokenCount} }}</span>)`,
+  &ngsp;<span *ngIf="tokenCount">({{ 'tff.x_tokens' | translate: {count: tokenCount} }})</span>`,
 })
 
 export class InvestmentAgreementAmountComponent {

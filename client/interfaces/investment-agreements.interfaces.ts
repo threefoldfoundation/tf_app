@@ -23,7 +23,19 @@ export interface InvestmentAgreement {
   id: number;
   app_user: string;
   amount: number;
+  token: string;
+  /**
+   * Actual token count (float)
+   */
+  token_count_float: number;
+  /**
+   * Token count multiplied by (10 ^ token_precision)
+   */
   token_count: number;
+  /**
+   * Numbers after comma
+   */
+  token_precision: number;
   currency: string;
   name: string;
   address: string;
