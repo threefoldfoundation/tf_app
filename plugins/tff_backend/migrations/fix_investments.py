@@ -38,13 +38,18 @@ def fix_investments():
 
 
 def manual_fix():
+    to_fix = [5667908084563968]
     mapping = {
         5667908084563968: 0.85
     }  # Incomplete
     to_put = []
-    agreements = ndb.get_multi([InvestmentAgreement.create_key(id) for id in mapping])
+    agreements = ndb.get_multi([InvestmentAgreement.create_key(id) for id in to_fix])
     for agreement in agreements:  # type: InvestmentAgreement
-        token_count_float = agreement.amount / (mapping[agreement.id] * 5)
+        if agreement.currency == 'USD':
+            conversion = 1
+        else:
+            conversion = mapping[agreement.id]
+        token_count_float = agreement.amount / (conversion * 5)
         precision = 8 if agreement.currency == 'BTC' else 2
         agreement.token_count = long(token_count_float * pow(10, precision))
         agreement.token_precision = precision
