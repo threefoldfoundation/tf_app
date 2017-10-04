@@ -31,8 +31,8 @@ class IPFSConfiguration(TO):
 
 
 class LedgerConfiguration(TO):
-    url = unicode_property('1')
-    secret = unicode_property('1')
+    url = unicode_property('url')
+    secret = unicode_property('secret')
 
 
 class OdooConfiguration(TO):
