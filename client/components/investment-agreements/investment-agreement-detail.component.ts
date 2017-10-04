@@ -44,7 +44,7 @@ export class InvestmentAgreementDetailComponent {
     // Defaults to the value
     let defaultPrice = 0;
     if (this.investmentAgreement && this.globalStats) {
-      defaultPrice = (this.investmentAgreement.token_count * this.globalStats.value) / this.investmentAgreement.amount;
+      defaultPrice = (this.investmentAgreement.token_count_float * this.globalStats.value) / this.investmentAgreement.amount;
     }
     return this._btcPrice || defaultPrice;
   }
@@ -72,7 +72,7 @@ export class InvestmentAgreementDetailComponent {
     // When the admin user has signed that message, then it will be marked as paid
     let updatedProperties = {
       status: InvestmentAgreementsStatuses.SIGNED,
-      token_count: this.getTokenCount()
+      token_count_float: this.getTokenCount()
     };
     this.onUpdate.emit(<InvestmentAgreement>{ ...this.investmentAgreement, ...updatedProperties });
   }

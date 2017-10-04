@@ -14,13 +14,13 @@ class InvestmentAgreement(NdbModel):
     STATUS_PAID = 2
 
     def _compute_token_count(self):
-        return round(float(self.token_amount) / pow(10, self.token_precision), self.token_precision)
+        return round(float(self.token_count) / pow(10, self.token_precision), self.token_precision)
 
     app_user = ndb.UserProperty()
     amount = ndb.FloatProperty(indexed=False)
     token = ndb.StringProperty(indexed=False)
-    token_count = ndb.ComputedProperty(_compute_token_count, indexed=False)
-    token_amount = ndb.IntegerProperty(indexed=False, default=0)
+    token_count_float = ndb.ComputedProperty(_compute_token_count, indexed=False)  # Real amount of tokens
+    token_count = ndb.IntegerProperty(indexed=False, default=0)  # amount of tokens x 10 ^ token_precision
     token_precision = ndb.IntegerProperty(indexed=False, default=0)
     currency = ndb.StringProperty(indexed=False)
     name = ndb.StringProperty(indexed=False)
