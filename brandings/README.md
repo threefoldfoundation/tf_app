@@ -63,3 +63,14 @@ To test it, either upload it as a branding on your rogerthat server or add this 
   setTimeout(() => rogerthat.callbacks._ready(), 250);
 </script>
 ```
+
+
+## Deployment on rogerthat
+
+This branding can be used on menu items with the following tags, the appropriate page will be opened when clicking on the menu item.
+
+- todo_list
+- global_stats
+- iyo_see
+- referrals_invite
+- set_referrer
