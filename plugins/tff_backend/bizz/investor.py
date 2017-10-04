@@ -630,7 +630,7 @@ For the attention of Green IT Globe Holdings FZC, a company incorporated under t
 
 
 def _send_payment_instructions_via_app(message, email, app_id):
-    member = MemberTO(email=email, app_id=app_id, alert_flags=Message.ALERT_FLAG_VIBRATE)
+    member = MemberTO(member=email, app_id=app_id, alert_flags=Message.ALERT_FLAG_VIBRATE)
     messaging.send(api_key=get_rogerthat_api_key(),
                    parent_message_key=None,
                    message=message,
