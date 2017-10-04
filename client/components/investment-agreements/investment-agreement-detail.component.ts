@@ -28,16 +28,8 @@ export class InvestmentAgreementDetailComponent {
   @Output() onUpdate = new EventEmitter<InvestmentAgreement>();
 
   private _btcPrice: number;
+
   constructor(private translate: TranslateService) {
-  }
-
-  get canMarkAsPaid(): boolean {
-    return InvestmentAgreementsStatuses.SIGNED === this.investmentAgreement.status && this.canUpdate;
-  }
-
-  get canCancelInvestment(): boolean {
-    return [ InvestmentAgreementsStatuses.CREATED, InvestmentAgreementsStatuses.SIGNED ].includes(this.investmentAgreement.status)
-      && this.canUpdate;
   }
 
   get btcPrice() {
@@ -53,9 +45,13 @@ export class InvestmentAgreementDetailComponent {
     this._btcPrice = value;
   }
 
+  get canMarkAsPaid(): boolean {
+    return InvestmentAgreementsStatuses.SIGNED === this.investmentAgreement.status && this.canUpdate;
+  }
+
   get canCancelInvestment(): boolean {
     return [ InvestmentAgreementsStatuses.CREATED, InvestmentAgreementsStatuses.SIGNED ].includes(this.investmentAgreement.status)
-      && this._canUpdate;
+      && this.canUpdate;
   }
 
   getStatus(): string {
@@ -75,10 +71,6 @@ export class InvestmentAgreementDetailComponent {
       token_count_float: this.getTokenCount()
     };
     this.onUpdate.emit(<InvestmentAgreement>{ ...this.investmentAgreement, ...updatedProperties });
-  }
-
-  cancelInvestment() {
-    this.onUpdate.emit(<InvestmentAgreement>{ ...this.investmentAgreement, status: InvestmentAgreementsStatuses.CANCELED });
   }
 
   cancelInvestment() {
