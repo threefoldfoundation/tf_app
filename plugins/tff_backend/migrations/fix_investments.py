@@ -45,7 +45,7 @@ def manual_fix():
     agreements = ndb.get_multi([InvestmentAgreement.create_key(id) for id in mapping])
     for agreement in agreements:  # type: InvestmentAgreement
         token_count_float = agreement.amount / (mapping[agreement.id] * 5)
-        precision = 2
+        precision = 8 if agreement.currency == 'BTC' else 2
         agreement.token_count = long(token_count_float * pow(10, precision))
         agreement.token_precision = precision
         to_put.append(agreement)

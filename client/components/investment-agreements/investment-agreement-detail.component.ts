@@ -2,11 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { InvestmentAgreement, InvestmentAgreementsStatuses, } from '../../interfaces/index';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import {
-  INVESTMENT_AGREEMENT_STATUSES,
-  InvestmentAgreementDetail,
-  TOKEN_PRECISION_MULTIPLIER
-} from '../../interfaces/investment-agreements.interfaces';
+import { INVESTMENT_AGREEMENT_STATUSES, InvestmentAgreementDetail, } from '../../interfaces/investment-agreements.interfaces';
 import { GlobalStats } from '../../interfaces/global-stats.interfaces';
 
 @Component({
@@ -60,12 +56,12 @@ export class InvestmentAgreementDetailComponent {
 
   getTokenCount(): number {
     const amount = this.globalStats ? (this.investmentAgreement.amount * this.btcPrice / this.globalStats.value) : 0;
-    return Math.round(amount * TOKEN_PRECISION_MULTIPLIER) / TOKEN_PRECISION_MULTIPLIER;
+    return Math.round(amount * this.investmentAgreement.token_precision) / this.investmentAgreement.token_precision;
   }
 
   markAsPaid() {
     // Mark as signed, a message will be sent to the current user his account in the threefold app.
-    // When the admin user has signed that message, then it will be marked as paid
+    // When the admin user has signed that message, only then it will be marked as paid
     let updatedProperties = {
       status: InvestmentAgreementsStatuses.SIGNED,
       token_count_float: this.getTokenCount()
