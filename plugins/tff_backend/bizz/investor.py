@@ -48,6 +48,7 @@ from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_docume
 from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
+from plugins.tff_backend.bizz.rogerthat import send_rogerthat_message
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
@@ -517,6 +518,7 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
                        long(agreement.token_count_float * 100), _transactional=True)
         deferred.defer(update_investor_progress, user_email.email(), app_id, InvestorSteps.ASSIGN_TOKENS,
                        _transactional=True)
+        deferred.defer(_send_tokens_assigned_message, user_email.email(), app_id, agreement.id, _transactional=True)
 
     ndb.transaction(trans)
 
@@ -662,3 +664,14 @@ def _send_payment_instructions_via_email(message, subject, app_user):
                    to=email,
                    subject=subject,
                    body=message.replace('**', ''))  # remove markdown
+
+
+def _send_tokens_assigned_message(user_email, app_id, investment_agreement_id):
+    message = 'Dear ThreeFold Member, we have just assigned your tokens to your wallet. ' \
+              'It may take up to an hour for them to appear in your wallet. ' \
+              'We would like to take this opportunity to remind you to have a paper backup of your wallet. ' \
+              'You can make such a backup by writing down the 29 words you can use to restore the wallet. ' \
+              'You can find these 29 words by going to Settings -> Security -> threefold. ' \
+              'Thank you once again for getting on board!'
+    member = MemberTO(member=user_email, app_id=app_id, alert_flags=0)
+    send_rogerthat_message(member, message)
