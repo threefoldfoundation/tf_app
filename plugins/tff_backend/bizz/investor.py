@@ -103,10 +103,10 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         currency = get_step_value(steps, 'message_get_currency').replace('_cur', '')
         if version == BUY_TOKENS_FLOW_V3:
             amount = float(get_step_value(steps, 'message_get_order_size_ITO').replace(',', '.'))
-            token_count = get_token_count(currency, amount)
+            token_count_float = get_token_count(currency, amount)
         else:
-            token_count = float(get_step_value(steps, 'message_get_order_size_ITO'))
-            amount = get_investment_amount(currency, token_count)
+            token_count_float = float(get_step_value(steps, 'message_get_order_size_ITO'))
+            amount = get_investment_amount(currency, token_count_float)
 
         overview_step = get_step(steps, 'message_overview')
         if overview_step and overview_step.answer_id == u"button_use":
@@ -123,7 +123,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
                                         app_user=app_user,
                                         token=token,
                                         amount=amount,
-                                        token_amount=long(token_count * pow(10, precision)),
+                                        token_count=long(token_count_float * pow(10, precision)),
                                         token_precision=precision,
                                         currency=currency,
                                         name=name,
@@ -224,28 +224,28 @@ def _get_currency_name(currency):
     return get_currency_name(currency, locale='en_GB')
 
 
-def _set_token_count(agreement, token_count=None, precision=2):
+def _set_token_count(agreement, token_count_float=None, precision=2):
     # type: (InvestmentAgreement) -> None
     stats = get_global_stats(agreement.token)
     logging.info('Setting token count for agreement %s', agreement.to_dict())
     if agreement.status == InvestmentAgreement.STATUS_CREATED:
         if agreement.currency == 'USD':
-            agreement.token_amount = long((agreement.amount / stats.value) * pow(10, precision))
+            agreement.token_count = long((agreement.amount / stats.value) * pow(10, precision))
         else:
             currency_stats = filter(lambda s: s.currency == agreement.currency, stats.currencies)[0]
             if not currency_stats:
                 raise HttpBadRequestException('Could not find currency conversion for currency %s', agreement.currency)
-            agreement.token_amount = long((agreement.amount / currency_stats.value) * pow(10, precision))
-    # token_amount can be overwritten when marking the investment as paid for BTC
+            agreement.token_count = long((agreement.amount / currency_stats.value) * pow(10, precision))
+    # token_count can be overwritten when marking the investment as paid for BTC
     elif agreement.status == InvestmentAgreement.STATUS_SIGNED:
         if agreement.currency == 'BTC':
-            if not token_count:
-                raise HttpBadRequestException('token_count must be provided when setting token count for BTC')
+            if not token_count_float:
+                raise HttpBadRequestException('token_count_float must be provided when setting token count for BTC')
             # The course of BTC changes how much tokens are granted
-            if agreement.token_amount:
+            if agreement.token_count:
                 logging.debug('Overwriting token_count for investment agreement %s from %s to %s',
-                              agreement.id, agreement.token_amount, token_count)
-            agreement.token_amount = long(token_count * pow(10, precision))
+                              agreement.id, agreement.token_count, token_count_float)
+            agreement.token_count = long(token_count_float * pow(10, precision))
     agreement.token_precision = precision
 
 
@@ -367,12 +367,12 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
     message = u"""Enter your pin code to mark investment %(investment)s as paid.
 - from: %(user)s\n
 - amount: %(amount)s %(currency)s
-- %(token_count)s %(token_type)s tokens
+- %(token_count_float)s %(token_type)s tokens
 """ % {'investment': agreement_key.id(),
        'user': agreement.iyo_username,
        'amount': agreement.amount,
        'currency': agreement.currency,
-       'token_count': agreement.token_count,
+       'token_count_float': agreement.token_count_float,
        'token_type': agreement.token}
 
     messaging.send_form(api_key=get_rogerthat_api_key(),
@@ -460,7 +460,8 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.PAY)
         deferred.defer(send_payment_instructions, user_detail.email, user_detail.app_id, agreement.id)
 
-        deferred.defer(_inform_support_of_new_investment, agreement.iyo_username, agreement.id, agreement.token_count)
+        deferred.defer(_inform_support_of_new_investment, agreement.iyo_username, agreement.id,
+                       agreement.token_count_float)
 
         logging.debug('Sending confirmation message')
         message = MessageCallbackResultTypeTO()
@@ -506,7 +507,7 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
         agreement.put()
         user_email, app_id, = get_app_user_tuple(agreement.app_user)
         deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TOKEN_TYPE_I,
-                       long(agreement.token_count * 100), _transactional=True)
+                       long(agreement.token_count_float * 100), _transactional=True)
         deferred.defer(update_investor_progress, user_email.email(), app_id, InvestorSteps.ASSIGN_TOKENS,
                        _transactional=True)
 
@@ -561,7 +562,7 @@ def put_investment_agreement(agreement_id, agreement, admin_user):
     elif agreement_model.status == InvestmentAgreement.STATUS_SIGNED:
         agreement_model.paid_time = now()
         if agreement.currency == 'BTC':
-            _set_token_count(agreement_model, agreement.token_count)
+            _set_token_count(agreement_model, agreement.token_count_float)
         deferred.defer(_send_ito_agreement_to_admin, agreement_model.key, admin_app_user)
     agreement_model.put()
     return agreement_model
@@ -573,12 +574,12 @@ def _inform_support_of_new_investment(iyo_username, agreement_id, token_count):
     subject = "New investment agreement signed"
     body = """Hello,
 
-We just received a new investment from %(iyo_username)s with id %(agreement_id)s for %(token_count)s tokens
+We just received a new investment from %(iyo_username)s with id %(agreement_id)s for %(token_count_float)s tokens
 
 Please visit https://tff-backend.appspot.com/investment-agreements to find more details, and collect all the money!
 """ % {"iyo_username": iyo_username,
        "agreement_id": agreement_id,
-       "token_count": token_count}
+       "token_count_float": token_count}
 
     for email in cfg.investor.support_emails:
         mail.send_mail(sender="no-reply@tff-backend.appspotmail.com",

@@ -6,7 +6,7 @@
   <div *ngIf="investmentAgreement">
     <h2>{{ 'tff.investment_agreement_x' | translate : { investmentAgreementId: investmentAgreement.id } }}</h2>
     <investment-agreement-amount [amount]="investmentAgreement.amount" [currency]="investmentAgreement.currency"
-                                 [tokenCount]="investmentAgreement.token_count"></investment-agreement-amount>
+                                 [tokenCount]="investmentAgreement.token_count_float"></investment-agreement-amount>
     <p>{{ 'tff.status' | translate}}: {{ getStatus() }}</p>
     <p>{{ 'tff.user' | translate}}: {{ investmentAgreement.app_user }}</p>
     <p *ngIf="investmentAgreement.name">{{ 'tff.name' | translate}}: {{ investmentAgreement.name }}</p>

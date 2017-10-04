@@ -31,7 +31,7 @@ export interface InvestmentAgreement {
   app_user: string;
   amount: number;
   token: string;
-  token_count: number;
+  token_count_float: number;
   currency: string;
   name: string;
   address: string;
