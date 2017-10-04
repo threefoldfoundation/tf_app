@@ -148,11 +148,11 @@ def _order_node(order_key, user_email, app_id, steps):
                            members=[MemberTO(member=member_user.email(), app_id=app_id, alert_flags=0)],
                            message=msg,
                            answers=[
-                               AnswerTO(id='ok', caption='Ok', action=None, type='button', ui_flags=0, color=None)],
+                               AnswerTO(id=u'ok', caption=u'Ok', action=None, type=u'button', ui_flags=0, color=None)],
                            flags=Message.FLAG_AUTO_LOCK,
                            alert_flags=Message.ALERT_FLAG_VIBRATE,
                            branding=get_main_branding_hash(),
-                           tag='no_multiple_node_orders_allowed')
+                           tag=u'no_multiple_node_orders_allowed')
             return
 
     def trans():
