@@ -641,7 +641,7 @@ def _send_payment_instructions_via_app(message, email, app_id):
                    tag=None)
 
 
-def _send_payment_instructions_via_email(app_user, message, subject):
+def _send_payment_instructions_via_email(message, subject, app_user):
     user_information = get_user(get_iyo_username(app_user))
     email = user_information.validatedemailaddresses and user_information.validatedemailaddresses[0].emailaddress
     if not email:
