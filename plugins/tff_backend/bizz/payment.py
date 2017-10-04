@@ -15,20 +15,20 @@
 #
 # @@license_version:1.3@@
 
-from datetime import datetime
 import hashlib
 import hmac
 import json
 import logging
 import time
 import uuid
+from datetime import datetime
 
-from dateutil.relativedelta import relativedelta
-
-from framework.plugin_loader import get_config
-from framework.utils import now, get_epoch_from_datetime, urlencode
 from google.appengine.api import urlfetch, users
 from google.appengine.ext import deferred, ndb
+
+from dateutil.relativedelta import relativedelta
+from framework.plugin_loader import get_config
+from framework.utils import now, get_epoch_from_datetime, urlencode
 from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.exceptions import BusinessException
@@ -265,7 +265,8 @@ def _migrate_pending_transactions(keys):
         new_transaction.to_user = pt.to_user
 
         new_transaction.put()
-        deferred.defer(_save_transaction_to_backlog, new_transaction.id, _transactional=True)
+        deferred.defer(_save_transaction_to_backlog, new_transaction.id, 'git', _transactional=True)
+        deferred.defer(_save_transaction_to_backlog, new_transaction.id, 'tierion', _transactional=True)
 
     ndb.transaction(lambda: trans(keys), xg=True)
 
@@ -394,8 +395,10 @@ def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None, epoc
 
 
 @returns()
-@arguments(transaction_id=(int, long))
-def _save_transaction_to_backlog(transaction_id):
+@arguments(transaction_id=(int, long), backlog_type=unicode)
+def _save_transaction_to_backlog(transaction_id, backlog_type):
+    if backlog_type not in ('tierion', 'git'):
+        raise Exception('Invalid backlog_type')
     cfg = get_config(NAMESPACE)
     if not (cfg.ledger.url or cfg.ledger.secret):
         if DEBUG:
@@ -418,7 +421,7 @@ def _save_transaction_to_backlog(transaction_id):
     headers = {
         'Authorization': cfg.ledger.secret
     }
-    url = cfg.ledger.url + '/transactions'
+    url = cfg.ledger.url + '/transactions/%s' % backlog_type
     result = urlfetch.fetch(url, json.dumps(data), urlfetch.POST, headers, deadline=30)
     if result.status_code not in (200, 201):
         logging.info('Status:%s Content: %s', result.status_code, result.content)
