@@ -55,6 +55,7 @@
     "shipping_information": "Shipping information",
     "sign_in_to_threefold": "Sign in to threefold",
     "signed": "Signed",
+    "so_number": "SO number: {{ number }}",
     "status": "Status",
     "symbol": "Symbol",
     "thats_an_error": "That's an error",
