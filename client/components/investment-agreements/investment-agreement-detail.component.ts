@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { InvestmentAgreement, InvestmentAgreementsStatuses, } from '../../interfaces/index';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { INVESTMENT_AGREEMENT_STATUSES, InvestmentAgreementDetail } from '../../interfaces/investment-agreements.interfaces';
-import { CurrencyPipe } from '@angular/common';
+import { INVESTMENT_AGREEMENT_STATUSES, InvestmentAgreementDetail, } from '../../interfaces/investment-agreements.interfaces';
+import { GlobalStats } from '../../interfaces/global-stats.interfaces';
 
 @Component({
   moduleId: module.id,
@@ -14,36 +14,62 @@ import { CurrencyPipe } from '@angular/common';
     padding: 16px;
   }` ]
 })
-
 export class InvestmentAgreementDetailComponent {
   statuses = InvestmentAgreementsStatuses;
   @Input() investmentAgreement: InvestmentAgreementDetail;
+  @Input() globalStats: GlobalStats;
   @Input() status: ApiRequestStatus;
   @Input() updateStatus: ApiRequestStatus;
+  @Input() canUpdate: boolean = false;
   @Output() onUpdate = new EventEmitter<InvestmentAgreement>();
 
-  private _canMarkAsPaid: boolean = false;
+  private _btcPrice: number;
+
+  constructor(private translate: TranslateService) {
+  }
+
+  get btcPrice() {
+    // Defaults to the value
+    let defaultPrice = 0;
+    if (this.investmentAgreement && this.globalStats) {
+      defaultPrice = (this.investmentAgreement.token_count_float * this.globalStats.value) / this.investmentAgreement.amount;
+    }
+    return this._btcPrice || defaultPrice;
+  }
+
+  set btcPrice(value: number) {
+    this._btcPrice = value;
+  }
 
   get canMarkAsPaid(): boolean {
-    return InvestmentAgreementsStatuses.SIGNED === this.investmentAgreement.status && this._canMarkAsPaid;
+    return InvestmentAgreementsStatuses.SIGNED === this.investmentAgreement.status && this.canUpdate;
   }
 
-  @Input()
-  set canMarkAsPaid(input: boolean) {
-    this._canMarkAsPaid = input;
-  }
-
-  constructor(private translate: TranslateService,
-              private currencyPipe: CurrencyPipe) {
+  get canCancelInvestment(): boolean {
+    return [ InvestmentAgreementsStatuses.CREATED, InvestmentAgreementsStatuses.SIGNED ].includes(this.investmentAgreement.status)
+      && this.canUpdate;
   }
 
   getStatus(): string {
     return this.translate.instant(INVESTMENT_AGREEMENT_STATUSES[ this.investmentAgreement.status ]);
   }
 
+  getTokenCount(): number {
+    const amount = this.globalStats ? (this.investmentAgreement.amount * this.btcPrice / this.globalStats.value) : 0;
+    return Math.round(amount * this.investmentAgreement.token_precision) / this.investmentAgreement.token_precision;
+  }
+
   markAsPaid() {
     // Mark as signed, a message will be sent to the current user his account in the threefold app.
-    // When the admin user has signed, then it will be marked as paid
-    this.onUpdate.emit(Object.assign({}, this.investmentAgreement, { status: InvestmentAgreementsStatuses.SIGNED }));
+    // When the admin user has signed that message, only then it will be marked as paid
+    let updatedProperties = {
+      status: InvestmentAgreementsStatuses.SIGNED,
+      token_count_float: this.getTokenCount()
+    };
+    this.onUpdate.emit(<InvestmentAgreement>{ ...this.investmentAgreement, ...updatedProperties });
+  }
+
+  cancelInvestment() {
+    this.onUpdate.emit(<InvestmentAgreement>{ ...this.investmentAgreement, status: InvestmentAgreementsStatuses.CANCELED });
   }
 }

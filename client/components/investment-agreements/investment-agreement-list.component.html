@@ -12,7 +12,7 @@
       <p mdLine *ngIf="investmentAgreement.name">{{ investmentAgreement.name }}</p>
       <investment-agreement-amount mdLine [amount]="investmentAgreement.amount"
                                    [currency]="investmentAgreement.currency"
-                                   [tokenCount]="investmentAgreement.token_count"></investment-agreement-amount>
+                                   [tokenCount]="investmentAgreement.token_count_float"></investment-agreement-amount>
       <p mdLine>{{ investmentAgreement.creation_time | timestamp }}</p>
     </md-list-item>
     <button md-button *ngIf="investmentAgreements.more" (click)="loadMore()">

@@ -131,7 +131,7 @@ def _order_node(order_key, user_email, app_id, steps):
 
     # Check if user has invested >= 120 tokens
     paid_orders = InvestmentAgreement.list_by_status_and_user(app_user, InvestmentAgreement.STATUS_PAID)
-    total_tokens = sum([o.token_count for o in paid_orders])
+    total_tokens = sum([o.token_count_float for o in paid_orders])
     can_host = total_tokens >= REQUIRED_TOKEN_COUNT_TO_HOST
     if can_host:
         # Check if user has no previous node order. If so, send message stating that.
@@ -148,11 +148,11 @@ def _order_node(order_key, user_email, app_id, steps):
                            members=[MemberTO(member=member_user.email(), app_id=app_id, alert_flags=0)],
                            message=msg,
                            answers=[
-                               AnswerTO(id='ok', caption='Ok', action=None, type='button', ui_flags=0, color=None)],
+                               AnswerTO(id=u'ok', caption=u'Ok', action=None, type=u'button', ui_flags=0, color=None)],
                            flags=Message.FLAG_AUTO_LOCK,
                            alert_flags=Message.ALERT_FLAG_VIBRATE,
                            branding=get_main_branding_hash(),
-                           tag='no_multiple_node_orders_allowed')
+                           tag=u'no_multiple_node_orders_allowed')
             return
 
     def trans():
