@@ -46,6 +46,7 @@ class InvestmentAgreementTO(TO):
     paid_time = long_property('paid_time')
     cancel_time = long_property('cancel_time')
     modification_time = long_property('modification_time')
+    reference = unicode_property('reference')
 
 
 class InvestmentAgreementDetailsTO(InvestmentAgreementTO):

@@ -25,6 +25,7 @@ class InvestmentAgreement(NdbModel):
     currency = ndb.StringProperty(indexed=False)
     name = ndb.StringProperty(indexed=False)
     address = ndb.StringProperty(indexed=False)
+    reference = ndb.StringProperty(indexed=False)
 
     iyo_see_id = ndb.StringProperty(indexed=False)
     signature_payload = ndb.StringProperty(indexed=False)

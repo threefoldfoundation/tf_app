@@ -39,6 +39,7 @@ export interface InvestmentAgreement {
   currency: string;
   name: string;
   address: string;
+  reference: string;
   iyo_see_id: string;
   signature_payload: string | null;
   signature: string | null;
