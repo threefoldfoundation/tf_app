@@ -497,6 +497,7 @@ def put_node_order(order_id, order):
         elif order_model.status == NodeOrderStatus.SENT:
             order_model.send_time = now()
             deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_SENT)
+            # TODO: send notification via TF app + email
             deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
         elif order_model.status == NodeOrderStatus.APPROVED:
             deferred.defer(_create_node_order_pdf, order_id)

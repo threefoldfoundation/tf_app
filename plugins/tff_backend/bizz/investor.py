@@ -52,10 +52,10 @@ from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS, ACCOUNT_NUMBERS
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TOKEN_TYPE_I
-from plugins.tff_backend.models.global_stats import GlobalStats, CurrencyValue
+from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
-    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_TAG, BUY_TOKENS_FLOW_V3
+    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_TAG, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step, round_currency_amount
@@ -97,12 +97,9 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         app_id = user_details[0].app_id
         app_user = create_app_user_by_email(email, app_id)
         logging.info('User %s wants to invest', email)
-        try:
-            version = db.Key(steps[0].message_flow_id).name()
-        except db.BadKeyError:
-            version = steps[0].message_flow_id
+        version = db.Key(steps[0].message_flow_id).name()
         currency = get_step_value(steps, 'message_get_currency').replace('_cur', '')
-        if version == BUY_TOKENS_FLOW_V3:
+        if version in (BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED):
             amount = float(get_step_value(steps, 'message_get_order_size_ITO').replace(',', '.'))
             token_count_float = get_token_count(currency, amount)
         else:
@@ -132,6 +129,10 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
                                         status=InvestmentAgreement.STATUS_CREATED,
                                         version=version)
         agreement.put()
+
+        if version == BUY_TOKENS_FLOW_V3_PAUSED:
+            return None
+
         answer_yes = AnswerTO(type=u'button', action=None, id=u'confirm', caption=u'Confirm', ui_flags=0, color=None)
         answer_no = AnswerTO(type=u'button', action=None, id=u'cancel', caption=u'Cancel', ui_flags=0, color=None)
         answers = [answer_yes, answer_no]
@@ -192,7 +193,7 @@ def start_invest(email, tag, result_key, context, service_identity, user_details
     members = [MemberTO(member=user_details.email, app_id=user_details.app_id, alert_flags=0)]
     flow_params = json.dumps({'currencies': _get_conversion_rates()})
     messaging.start_local_flow(get_rogerthat_api_key(), None, members, service_identity, tag=BUY_TOKENS_TAG,
-                               context=context, flow=BUY_TOKENS_FLOW_V3, flow_params=flow_params)
+                               context=context, flow=BUY_TOKENS_FLOW_V3_PAUSED, flow_params=flow_params)
 
 
 def _get_conversion_rates():
