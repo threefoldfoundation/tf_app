@@ -4,17 +4,16 @@
   </md-select>
   <h2>{{ getStatusString() | translate }}</h2>
   <md-nav-list *ngIf="investmentAgreements">
-    <md-list-item *ngFor="let investmentAgreement of investmentAgreements.results"
-                  [routerLink]="investmentAgreement.id">
-      <h4 mdLine>
-        {{ 'tff.investment_agreement_x' | translate : { investmentAgreementId: investmentAgreement.id } }}
-      </h4>
-      <p mdLine *ngIf="investmentAgreement.name">{{ investmentAgreement.name }}</p>
-      <investment-agreement-amount mdLine [amount]="investmentAgreement.amount"
-                                   [currency]="investmentAgreement.currency"
-                                   [tokenCount]="investmentAgreement.token_count_float"></investment-agreement-amount>
-      <p mdLine>{{ investmentAgreement.creation_time | timestamp }}</p>
-    </md-list-item>
+    <a *ngFor="let agreement of investmentAgreements.results" [routerLink]="agreement.id">
+      <md-list-item>
+        <h4 mdLine>{{ 'tff.investment_agreement_x' | translate : { id: agreement.id, ref: agreement.reference } }}</h4>
+        <p mdLine *ngIf="agreement.name">{{ agreement.name }}</p>
+        <investment-agreement-amount mdLine [amount]="agreement.amount"
+                                     [currency]="agreement.currency"
+                                     [tokenCount]="agreement.token_count_float"></investment-agreement-amount>
+        <p mdLine>{{ agreement.creation_time | timestamp }}</p>
+      </md-list-item>
+    </a>
     <button md-button *ngIf="investmentAgreements.more" (click)="loadMore()">
       {{ 'tff.load_more' | translate }}
     </button>

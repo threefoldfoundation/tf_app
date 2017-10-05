@@ -107,7 +107,7 @@ def user_registered(user_detail, origin, data):
     _, session = create_session(username, scopes, jwt, secret=username)
 
     deferred.defer(invite_user_to_organization, username, Organization.PUBLIC)
-    deferred.defer(add_user_to_role, user_detail, Roles.PUBLIC)
+    deferred.defer(add_user_to_public_role, user_detail)
     deferred.defer(popuplate_intercom_user, session.key)
 
 
@@ -292,3 +292,12 @@ def is_user_in_roles(user_detail, roles):
         if has_access_to_organization(client, organization_id, username):
             result.append(role.id)
     return result
+
+
+@returns()
+@arguments(user_detail=UserDetailsTO)
+def add_user_to_public_role(user_detail):
+    if is_user_in_roles(user_detail, [Roles.MEMBERS]):
+        logging.info('User is already in members role, not adding to public role')
+    else:
+        add_user_to_role(user_detail, Roles.PUBLIC)

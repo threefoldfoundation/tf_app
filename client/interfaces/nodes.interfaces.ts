@@ -22,6 +22,7 @@ export interface NodeOrder {
   billing_info: ContactInfo;
   shipping_info: ContactInfo;
   status: NodeOrderStatuses;
+  odoo_sale_order_id: string;
   tos_iyo_see_id: string;
   signature_payload: string | null;
   signature: string | null;
