@@ -297,7 +297,10 @@ def is_user_in_roles(user_detail, roles):
 @returns()
 @arguments(user_detail=UserDetailsTO)
 def add_user_to_public_role(user_detail):
-    if is_user_in_roles(user_detail, [Roles.MEMBERS]):
+    client = get_itsyouonline_client()
+    username = get_iyo_username(user_detail)
+    organization_id = Organization.get_by_role_name(Roles.MEMBERS)
+    if has_access_to_organization(client, organization_id, username):
         logging.info('User is already in members role, not adding to public role')
     else:
         add_user_to_role(user_detail, Roles.PUBLIC)
