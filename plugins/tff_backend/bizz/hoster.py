@@ -229,24 +229,21 @@ def _order_node_iyo_see(app_user, node_order_id, ipfs_link):
 @returns()
 @arguments(app_user=users.User, order_id=(int, long), ipfs_link=unicode, attachment_name=unicode)
 def _create_quotation(app_user, order_id, ipfs_link, attachment_name):
-    def trans():
-        order = get_node_order(order_id)
-        config = get_config(NAMESPACE)
-        assert isinstance(config, TffConfiguration)
-        product_id = config.odoo.product_ids.get(order.socket)
-        if not product_id:
-            logging.warn('Could not find appropriate product for socket %s. Falling back to EU socket.', order.socket)
-            product_id = config.odoo.product_ids['EU']
-        odoo_sale_order_id, odoo_sale_order_name = create_odoo_quotation(order.billing_info, order.shipping_info,
-                                                                         product_id)
+    order = get_node_order(order_id)
+    config = get_config(NAMESPACE)
+    assert isinstance(config, TffConfiguration)
+    product_id = config.odoo.product_ids.get(order.socket)
+    if not product_id:
+        logging.warn('Could not find appropriate product for socket %s. Falling back to EU socket.', order.socket)
+        product_id = config.odoo.product_ids['EU']
+    odoo_sale_order_id, odoo_sale_order_name = create_odoo_quotation(order.billing_info, order.shipping_info,
+                                                                     product_id)
 
-        order.odoo_sale_order_id = odoo_sale_order_id
-        order.put()
+    order.odoo_sale_order_id = odoo_sale_order_id
+    order.put()
 
-        deferred.defer(_send_order_node_sign_message, app_user, order_id, ipfs_link, attachment_name,
-                       odoo_sale_order_name, _transactional=True)
-
-    ndb.transaction(trans)
+    deferred.defer(_send_order_node_sign_message, app_user, order_id, ipfs_link, attachment_name,
+                   odoo_sale_order_name)
 
 
 @returns()
