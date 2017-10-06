@@ -206,20 +206,6 @@ def api_create_transaction(data):
     return to
 
 
-@rest('/payment/target/info', 'get', custom_auth_method=custom_auth_method)
-@returns(TargetInfoTO)
-@arguments(app_user=unicode, target=unicode, currency=unicode)
-def api_get_target_info(app_user, target, currency):
-
-    # todo ruben find target
-
-    to = TargetInfoTO()
-    to.name = None
-    to.asset_id = None
-
-    return None
-
-
 @rest('/payment/api_call', 'get', custom_auth_method=custom_auth_method)
 @returns(unicode)
 @arguments(app_user=unicode, method=unicode, params=unicode)
