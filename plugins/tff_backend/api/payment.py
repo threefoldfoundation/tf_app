@@ -31,7 +31,8 @@ from plugins.tff_backend.consts.payment import PROVIDER_ID, TOKEN_TFT_CONTRIBUTO
 from plugins.tff_backend.models.payment import ThreeFoldPendingTransaction
 from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.to.payment import PaymentProviderAssetTO, PaymentAssetBalanceTO, \
-    PaymentProviderTransactionTO, GetPaymentTransactionsResponseTO, CreateTransactionResponseTO
+    PaymentProviderTransactionTO, GetPaymentTransactionsResponseTO, CreateTransactionResponseTO, TargetInfoTO,\
+    PublicPaymentProviderTransactionTO
 
 
 def custom_auth_method(f, requestHandler):
@@ -85,6 +86,25 @@ def api_get_asset(asset_id):
     to.has_balance = True
     to.has_transactions = True
     to.required_action = None
+    return to
+
+
+@rest('/payment/transactions/<transaction_id:[^/]+>/public', 'get', custom_auth_method=custom_auth_method)
+@returns(PublicPaymentProviderTransactionTO)
+@arguments(transaction_id=unicode)
+def api_get_public_transaction_detail(transaction_id):
+    pt = ThreeFoldPendingTransaction.create_key(transaction_id).get()
+    if not pt:
+        return None
+
+    to = PublicPaymentProviderTransactionTO()
+    to.id = pt.id
+    to.timestamp = pt.timestamp
+    to.currency = pt.token
+    to.amount = pt.amount
+    to.precision = pt.precision
+    to.status = pt.synced_status
+
     return to
 
 
@@ -184,3 +204,24 @@ def api_create_transaction(data):
 
     to.status = ndb.transaction(trans)
     return to
+
+
+@rest('/payment/target/info', 'get', custom_auth_method=custom_auth_method)
+@returns(TargetInfoTO)
+@arguments(app_user=unicode, target=unicode, currency=unicode)
+def api_get_target_info(app_user, target, currency):
+
+    # todo ruben find target
+
+    to = TargetInfoTO()
+    to.name = None
+    to.asset_id = None
+
+    return None
+
+
+@rest('/payment/api_call', 'get', custom_auth_method=custom_auth_method)
+@returns(unicode)
+@arguments(app_user=unicode, method=unicode, params=unicode)
+def api_call(app_user, method, params):
+    return None

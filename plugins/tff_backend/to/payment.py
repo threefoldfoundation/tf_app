@@ -45,6 +45,15 @@ class PaymentProviderAssetTO(object):
     required_action = typed_property('12', PaymentAssetRequiredActionTO)
 
 
+class PublicPaymentProviderTransactionTO(object):
+    id = unicode_property('1')
+    timestamp = long_property('2')
+    currency = unicode_property('3')
+    amount = long_property('4')
+    precision = long_property('5')
+    status = unicode_property('6')
+
+
 class PaymentProviderTransactionTO(object):
     id = unicode_property('1')
     type = unicode_property('2')
@@ -65,3 +74,8 @@ class GetPaymentTransactionsResponseTO(object):
 
 class CreateTransactionResponseTO(object):
     status = unicode_property('1')
+
+
+class TargetInfoTO(object):
+    name = unicode_property('1')
+    asset_id = unicode_property('2')
