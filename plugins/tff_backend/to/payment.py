@@ -74,8 +74,3 @@ class GetPaymentTransactionsResponseTO(object):
 
 class CreateTransactionResponseTO(object):
     status = unicode_property('1')
-
-
-class TargetInfoTO(object):
-    name = unicode_property('1')
-    asset_id = unicode_property('2')
