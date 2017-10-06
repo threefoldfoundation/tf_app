@@ -47,6 +47,7 @@ def parse_to_human_readable_tag(tag):
 @returns(BaseFlowStepTO)
 @arguments(steps=[BaseFlowStepTO], step_id=unicode)
 def get_step(steps, step_id):
+    # type: (list[BaseFlowStepTO], unicode) -> Optional[BaseFlowStepTO]
     for step in reversed(steps):
         if step.step_id == step_id:
             return step

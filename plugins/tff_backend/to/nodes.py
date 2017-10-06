@@ -49,6 +49,7 @@ class NodeOrderTO(TO):
     modification_time = long_property('modification_time')
     arrival_qr_code_url = unicode_property('arrival_qr_code_url')
     odoo_sale_order_id = long_property('odoo_sale_order_id')
+    socket = unicode_property('socket')
 
 
 class NodeOrderDetailsTO(NodeOrderTO):

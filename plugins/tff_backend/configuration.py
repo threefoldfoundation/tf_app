@@ -43,7 +43,7 @@ class OdooConfiguration(TO):
 
     incoterm = long_property('5')
     payment_term = long_property('6')
-    product_id = long_property('7')
+    product_ids = typed_property('product_ids', dict)  # key: the node's socket type, value: product id
     stock_id = long_property('8')
 
 

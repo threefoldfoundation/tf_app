@@ -14,10 +14,11 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
+from google.appengine.api import datastore_errors
 from google.appengine.ext import ndb
 
 from framework.models.common import NdbModel
+from framework.plugin_loader import get_config
 from framework.utils import chunks, now
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
@@ -39,6 +40,15 @@ class ContactInfo(NdbModel):
     address = ndb.StringProperty(indexed=False)
 
 
+def _validate_socket(prop, value):
+    # type: (ndb.StringProperty, object) -> unicode
+    socket_types = get_config(NAMESPACE).odoo.product_ids.keys()
+    if value in socket_types:
+        return value
+    else:
+        raise datastore_errors.BadValueError('Value %r for property %s is not an allowed choice' % (value, prop._name))
+
+
 class NodeOrder(NdbModel):
     NAMESPACE = NAMESPACE
     NODE_ORDERS_PER_PAGE = 50
@@ -58,6 +68,7 @@ class NodeOrder(NdbModel):
     modification_time = ndb.IntegerProperty()
     arrival_qr_code_url = ndb.StringProperty(indexed=False)
     odoo_sale_order_id = ndb.IntegerProperty()
+    socket = ndb.StringProperty(indexed=False, validator=_validate_socket)
 
     def _pre_put_hook(self):
         self.modification_time = now()

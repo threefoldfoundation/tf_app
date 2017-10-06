@@ -33,6 +33,7 @@ export interface NodeOrder {
   arrival_time: number | null;
   cancel_time: number | null;
   arrival_qr_code_url: string | null;
+  socket: string;
 }
 
 export interface NodeOrderDetail extends NodeOrder {
