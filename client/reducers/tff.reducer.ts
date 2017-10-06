@@ -3,6 +3,7 @@ import * as actions from '../actions/threefold.action';
 import { GetOrderCompleteAction } from '../actions/threefold.action';
 import { GetInvestmentAgreementsPayload, GetNodeOrdersPayload, InvestmentAgreementList, NodeOrderList } from '../interfaces/index';
 import { apiRequestLoading, apiRequestSuccess } from '../../../framework/client/rpc/rpc.interfaces';
+import { updateItem } from '../../../framework/client/ngrx/redux-utils';
 
 export function tffReducer(state: ITffState = initialTffState,
                            action: actions.TffActions): ITffState {
@@ -54,12 +55,17 @@ export function tffReducer(state: ITffState = initialTffState,
     case actions.TffActionTypes.UPDATE_ORDER:
       return {
         ...state,
-        updateOrderStatus: apiRequestLoading,
+        updateOrderStatus: apiRequestLoading
       };
     case actions.TffActionTypes.UPDATE_ORDER_COMPLETE:
+      const updateOrderPayload = (<actions.UpdateOrderCompleteAction>action).payload;
       return {
         ...state,
-        order: (<actions.UpdateOrderCompleteAction>action).payload,
+        order: updateOrderPayload,
+        orders: {
+          ...state.orders,
+          results: updateItem(state.orders.results, updateOrderPayload, 'id')
+        },
         updateOrderStatus: apiRequestSuccess,
       };
     case actions.TffActionTypes.UPDATE_ORDER_FAILED:
@@ -81,7 +87,7 @@ export function tffReducer(state: ITffState = initialTffState,
         investmentAgreements: {
           cursor: (<InvestmentAgreementList>action.payload).cursor,
           more: (<InvestmentAgreementList>action.payload).more,
-          results: state.investmentAgreements.results.concat((<InvestmentAgreementList>action.payload).results)
+          results: [ ...state.investmentAgreements.results, ...(<InvestmentAgreementList>action.payload).results ]
         },
         investmentAgreementsStatus: apiRequestSuccess,
       };
@@ -118,9 +124,14 @@ export function tffReducer(state: ITffState = initialTffState,
         updateInvestmentAgreementStatus: apiRequestLoading,
       };
     case actions.TffActionTypes.UPDATE_INVESTMENT_AGREEMENT_COMPLETE:
+      const updateInvestPayload = (<actions.UpdateInvestmentAgreementCompleteAction>action).payload;
       return {
         ...state,
-        investmentAgreement: (<actions.UpdateInvestmentAgreementCompleteAction>action).payload,
+        investmentAgreement: updateInvestPayload,
+        investmentAgreements: {
+          ...state.investmentAgreements,
+          results: updateItem(state.investmentAgreements.results, updateInvestPayload, 'id')
+        },
         updateInvestmentAgreementStatus: apiRequestSuccess,
       };
     case actions.TffActionTypes.UPDATE_INVESTMENT_AGREEMENT_FAILED:
@@ -173,14 +184,10 @@ export function tffReducer(state: ITffState = initialTffState,
         updateGlobalStatsStatus: apiRequestLoading,
       };
     case actions.TffActionTypes.UPDATE_GLOBAL_STATS_COMPLETE:
-      const updateStatsAction = (<actions.UpdateGlobalStatsCompleteAction>action).payload;
       return {
         ...state,
         globalStats: (<actions.UpdateGlobalStatsCompleteAction>action).payload,
-        globalStatsList: state.globalStatsList ? [
-          ...state.globalStatsList.filter(gs => gs.id !== updateStatsAction.id),
-          updateStatsAction
-        ] : [],
+        globalStatsList: updateItem(state.globalStatsList, (<actions.UpdateGlobalStatsCompleteAction>action).payload, 'id'),
         updateGlobalStatsStatus: apiRequestSuccess,
       };
     case actions.TffActionTypes.UPDATE_GLOBAL_STATS_FAILED:

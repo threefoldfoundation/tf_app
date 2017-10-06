@@ -47,6 +47,7 @@ from plugins.tff_backend.bizz.rogerthat import put_user_data, send_rogerthat_mes
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
 from plugins.tff_backend.bizz.todo.hoster import HosterSteps
+from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.consts.hoster import REQUIRED_TOKEN_COUNT_TO_HOST
 from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping, NodeOrderStatus, ContactInfo
 from plugins.tff_backend.models.investor import InvestmentAgreement
@@ -128,7 +129,8 @@ def _order_node(order_key, user_email, app_id, steps):
                                         email=shipping_email,
                                         phone=shipping_phone,
                                         address=shipping_address)
-
+    socket_step = get_step(steps, 'message_socket')
+    socket = socket_step and socket_step.answer_id.replace('button_', '')
     # Check if user has invested >= 120 tokens
     paid_orders = InvestmentAgreement.list_by_status_and_user(app_user, InvestmentAgreement.STATUS_PAID)
     total_tokens = sum([o.token_count_float for o in paid_orders])
@@ -156,7 +158,8 @@ def _order_node(order_key, user_email, app_id, steps):
                           billing_info=billing_info,
                           shipping_info=shipping_info,
                           order_time=now(),
-                          status=NodeOrderStatus.APPROVED if can_host else NodeOrderStatus.WAITING_APPROVAL)
+                          status=NodeOrderStatus.APPROVED if can_host else NodeOrderStatus.WAITING_APPROVAL,
+                          socket=socket)
         order.put()
         if can_host:
             logging.info('User has invested more than %s tokens, immediately creating node order PDF.',
@@ -227,9 +230,15 @@ def _order_node_iyo_see(app_user, node_order_id, ipfs_link):
 @arguments(app_user=users.User, order_id=(int, long), ipfs_link=unicode, attachment_name=unicode)
 def _create_quotation(app_user, order_id, ipfs_link, attachment_name):
     def trans():
-        order = NodeOrder.get_by_id(order_id)
-
-        odoo_sale_order_id, odoo_sale_order_name = create_odoo_quotation(order.billing_info, order.shipping_info)
+        order = get_node_order(order_id)
+        config = get_config(NAMESPACE)
+        assert isinstance(config, TffConfiguration)
+        product_id = config.odoo.product_ids.get(order.socket)
+        if not product_id:
+            logging.warn('Could not find appropriate product for socket %s. Falling back to EU socket.', order.socket)
+            product_id = config.odoo.product_ids['EU']
+        odoo_sale_order_id, odoo_sale_order_name = create_odoo_quotation(order.billing_info, order.shipping_info,
+                                                                         product_id)
 
         order.odoo_sale_order_id = odoo_sale_order_id
         order.put()

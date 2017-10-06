@@ -30,14 +30,15 @@ export class OrderListPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.orders$ = this.store.let(getOrders);
     this.listStatus$ = this.store.let(getOrdersStatus);
+    this.listType$ = this.store.let(getNodeOrdersType);
+    this.orders$ = this.store.let(getOrders).withLatestFrom(this.listType$)
+      .map(([ result, status ]) => ({ ...result, results: result.results.filter(o => o.status === status) }));
     this._sub = this.orders$.first().subscribe(result => {
       if (!result.results.length) {
         this.store.dispatch(new GetOrdersAction({ cursor: null, status: NodeOrderStatuses.SIGNED }));
       }
     });
-    this.listType$ = this.store.let(getNodeOrdersType);
   }
 
   ngOnDestroy() {

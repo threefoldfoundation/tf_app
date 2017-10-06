@@ -29,14 +29,15 @@ export class InvestmentAgreementListPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.investmentAgreements$ = this.store.let(getInvestmentAgreements);
+    this.listType$ = this.store.let(getInvestmentAgreementsType);
     this.listStatus$ = this.store.let(getInvestmentAgreementsStatus);
+    this.investmentAgreements$ = this.store.let(getInvestmentAgreements).withLatestFrom(this.listType$)
+      .map(([ result, status ]) => ({ ...result, results: result.results.filter(o => o.status === status) }));
     this._sub = this.investmentAgreements$.first().subscribe(result => {
       if (!result.results.length) {
         this.store.dispatch(new GetInvestmentAgreementsAction({ cursor: null, status: InvestmentAgreementsStatuses.CREATED }));
       }
     });
-    this.listType$ = this.store.let(getInvestmentAgreementsType);
   }
 
   ngOnDestroy() {
