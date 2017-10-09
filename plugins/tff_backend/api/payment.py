@@ -15,6 +15,7 @@
 #
 # @@license_version:1.3@@
 
+import json
 import logging
 
 from framework.plugin_loader import get_config
@@ -210,4 +211,9 @@ def api_create_transaction(data):
 @returns(unicode)
 @arguments(app_user=unicode, method=unicode, params=unicode)
 def api_call(app_user, method, params):
+    if method == u"pay":
+        return json.dumps({u'success': True,
+                           u'provider_id': PROVIDER_ID,
+                           u'transaction_id': u'trans id',
+                           u'status': u'status'})
     return None
