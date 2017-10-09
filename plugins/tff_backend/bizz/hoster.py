@@ -191,7 +191,7 @@ def _create_node_order_pdf(node_order_id, retry_count=0):
     if not ipfs_link:
         retry_count += 1
         logging.info('Retrying creating IPFS PDF after %s tries', retry_count)
-        deferred.defer(_create_node_order_pdf, node_order_id, _countdown=retry_count)
+        deferred.defer(_create_node_order_pdf, node_order_id, retry_count, _countdown=retry_count)
         return
     deferred.defer(_create_order_arrival_qr, node_order_id)
     deferred.defer(_order_node_iyo_see, node_order.app_user, node_order_id, ipfs_link)
