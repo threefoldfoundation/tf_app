@@ -43,7 +43,7 @@ class OdooConfiguration(TO):
 
     incoterm = long_property('5')
     payment_term = long_property('6')
-    product_id = long_property('7')
+    product_ids = typed_property('product_ids', dict)  # key: the node's socket type, value: product id
     stock_id = long_property('8')
 
 
@@ -62,11 +62,11 @@ class AppleConfiguration(TO):
 
 
 class TffConfiguration(TO):
-    rogerthat = typed_property('1', RogerthatConfiguration, False)
-    ipfs = typed_property('2', IPFSConfiguration, False)
-    ledger = typed_property('3', LedgerConfiguration, False)
-    odoo = typed_property('4', OdooConfiguration, False)
-    orchestator = typed_property('5', OrchestatorConfiguration, False)
-    investor = typed_property('6', InvestorConfiguration, False)
+    rogerthat = typed_property('1', RogerthatConfiguration, False)  # type: RogerthatConfiguration
+    ipfs = typed_property('2', IPFSConfiguration, False)  # type: IPFSConfiguration
+    ledger = typed_property('3', LedgerConfiguration, False)  # type: LedgerConfiguration
+    odoo = typed_property('4', OdooConfiguration, False)  # type: OdooConfiguration
+    orchestator = typed_property('5', OrchestatorConfiguration, False)  # type: OrchestatorConfiguration
+    investor = typed_property('6', InvestorConfiguration, False)  # type: InvestorConfiguration
     apple = typed_property('apple', AppleConfiguration)  # type: AppleConfiguration
     backup_disabled = bool_property('backup_disabled')

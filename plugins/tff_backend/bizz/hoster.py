@@ -43,10 +43,11 @@ from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_docum
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.nodes import get_node_status
 from plugins.tff_backend.bizz.odoo import create_odoo_quotation, get_odoo_serial_number, cancel_odoo_quotation
-from plugins.tff_backend.bizz.rogerthat import put_user_data
+from plugins.tff_backend.bizz.rogerthat import put_user_data, send_rogerthat_message
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
 from plugins.tff_backend.bizz.todo.hoster import HosterSteps
+from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.consts.hoster import REQUIRED_TOKEN_COUNT_TO_HOST
 from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping, NodeOrderStatus, ContactInfo
 from plugins.tff_backend.models.investor import InvestmentAgreement
@@ -128,7 +129,8 @@ def _order_node(order_key, user_email, app_id, steps):
                                         email=shipping_email,
                                         phone=shipping_phone,
                                         address=shipping_address)
-
+    socket_step = get_step(steps, 'message_socket')
+    socket = socket_step and socket_step.answer_id.replace('button_', '')
     # Check if user has invested >= 120 tokens
     paid_orders = InvestmentAgreement.list_by_status_and_user(app_user, InvestmentAgreement.STATUS_PAID)
     total_tokens = sum([o.token_count_float for o in paid_orders])
@@ -143,16 +145,9 @@ def _order_node(order_key, user_email, app_id, steps):
             msg = u'Dear ThreeFold Member, we sadly cannot grant your request to host an additional ThreeFold Node:' \
                   u' We are currently only allowing one Node to be hosted per ThreeFold Member and location.' \
                   u' This will allow us to build a bigger base and a more diverse Grid.'
-            messaging.send(api_key=get_rogerthat_api_key(),
-                           parent_message_key=None,
-                           members=[MemberTO(member=member_user.email(), app_id=app_id, alert_flags=0)],
-                           message=msg,
-                           answers=[
-                               AnswerTO(id=u'ok', caption=u'Ok', action=None, type=u'button', ui_flags=0, color=None)],
-                           flags=Message.FLAG_AUTO_LOCK,
-                           alert_flags=Message.ALERT_FLAG_VIBRATE,
-                           branding=get_main_branding_hash(),
-                           tag=u'no_multiple_node_orders_allowed')
+            member = MemberTO(member=member_user.email(), app_id=app_id, alert_flags=0)
+            buttons = [AnswerTO(id=u'ok', caption=u'Ok', action=None, type=u'button', ui_flags=0, color=None)]
+            send_rogerthat_message(member, msg, buttons)
             return
 
     def trans():
@@ -163,7 +158,8 @@ def _order_node(order_key, user_email, app_id, steps):
                           billing_info=billing_info,
                           shipping_info=shipping_info,
                           order_time=now(),
-                          status=NodeOrderStatus.APPROVED if can_host else NodeOrderStatus.WAITING_APPROVAL)
+                          status=NodeOrderStatus.APPROVED if can_host else NodeOrderStatus.WAITING_APPROVAL,
+                          socket=socket)
         order.put()
         if can_host:
             logging.info('User has invested more than %s tokens, immediately creating node order PDF.',
@@ -233,18 +229,21 @@ def _order_node_iyo_see(app_user, node_order_id, ipfs_link):
 @returns()
 @arguments(app_user=users.User, order_id=(int, long), ipfs_link=unicode, attachment_name=unicode)
 def _create_quotation(app_user, order_id, ipfs_link, attachment_name):
-    def trans():
-        order = NodeOrder.get_by_id(order_id)
+    order = get_node_order(order_id)
+    config = get_config(NAMESPACE)
+    assert isinstance(config, TffConfiguration)
+    product_id = config.odoo.product_ids.get(order.socket)
+    if not product_id:
+        logging.warn('Could not find appropriate product for socket %s. Falling back to EU socket.', order.socket)
+        product_id = config.odoo.product_ids['EU']
+    odoo_sale_order_id, odoo_sale_order_name = create_odoo_quotation(order.billing_info, order.shipping_info,
+                                                                     product_id)
 
-        odoo_sale_order_id, odoo_sale_order_name = create_odoo_quotation(order.billing_info, order.shipping_info)
+    order.odoo_sale_order_id = odoo_sale_order_id
+    order.put()
 
-        order.odoo_sale_order_id = odoo_sale_order_id
-        order.put()
-
-        deferred.defer(_send_order_node_sign_message, app_user, order_id, ipfs_link, attachment_name,
-                       odoo_sale_order_name, _transactional=True)
-
-    ndb.transaction(trans)
+    deferred.defer(_send_order_node_sign_message, app_user, order_id, ipfs_link, attachment_name,
+                   odoo_sale_order_name)
 
 
 @returns()
@@ -497,6 +496,7 @@ def put_node_order(order_id, order):
         elif order_model.status == NodeOrderStatus.SENT:
             order_model.send_time = now()
             deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_SENT)
+            deferred.defer(_send_node_order_sent_message, human_user.email(), app_id, order_id)
             deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
         elif order_model.status == NodeOrderStatus.APPROVED:
             deferred.defer(_create_node_order_pdf, order_id)
@@ -577,15 +577,7 @@ Please use the SO%(order_id)s as reference.
     member.member = email
     member.app_id = app_id
     member.alert_flags = Message.ALERT_FLAG_VIBRATE
-
-    messaging.send(api_key=get_rogerthat_api_key(),
-                   parent_message_key=None,
-                   message=message,
-                   answers=[],
-                   flags=0,
-                   members=[member],
-                   branding=get_main_branding_hash(),
-                   tag=None)
+    send_rogerthat_message(member, message)
 
 
 def _inform_support_of_new_node_order(node_order_id):
@@ -613,3 +605,11 @@ Please visit https://tff-backend.appspot.com/orders/%(node_order_id)s to approve
                        to=email,
                        subject=subject,
                        body=body)
+
+
+def _send_node_order_sent_message(user_email, app_id, node_order_id):
+    msg = u'Dear ThreeFold Hoster, your node (order %s) is on its way to you. ' \
+          u'When it arrives, please follow the instructions included in the box to get it up and running. ' \
+          u'Thank you once again for extending the ThreeFold Grid!' % node_order_id
+    member = MemberTO(member=user_email, app_id=app_id, alert_flags=0)
+    send_rogerthat_message(member, msg)

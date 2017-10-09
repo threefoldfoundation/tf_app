@@ -101,7 +101,7 @@ def _save_customer(erp_client, customer):
     return partner_contact.id, partner_delivery.id
 
 
-def _save_quotation(cfg, erp_client, billing_id, shipping_id):
+def _save_quotation(cfg, erp_client, billing_id, shipping_id, product_id):
     sale_order_model = erp_client.model('sale.order')
     sale_order_line_model = erp_client.model('sale.order.line')
 
@@ -121,7 +121,7 @@ def _save_quotation(cfg, erp_client, billing_id, shipping_id):
         'order_partner_id': billing_id,
         'product_uos_qty': 1,
         'product_uom': 1,
-        'product_id': cfg.odoo.product_id,
+        'product_id': product_id,
         'state': 'draft'
     }
 
@@ -131,7 +131,9 @@ def _save_quotation(cfg, erp_client, billing_id, shipping_id):
     return order.id, order.name
 
 
-def create_odoo_quotation(billing_info, shipping_info):
+def create_odoo_quotation(billing_info, shipping_info, product_id):
+    logging.info('Creating quotation: \nbilling_info: %s\nshipping_info: %s\nproduct_id: %s', billing_info,
+                 shipping_info, product_id)
     cfg = get_config(NAMESPACE)
     erp_client = _get_erp_client(cfg)
 
@@ -153,7 +155,7 @@ def create_odoo_quotation(billing_info, shipping_info):
         }
 
     billing_id, shipping_id = _save_customer(erp_client, customer)
-    return _save_quotation(cfg, erp_client, billing_id, shipping_id)
+    return _save_quotation(cfg, erp_client, billing_id, shipping_id, product_id)
 
 
 def cancel_odoo_quotation(order_id):
