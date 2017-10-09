@@ -590,7 +590,7 @@ def _inform_support_of_new_node_order(node_order_id):
 
 We just received a new Node order from %(name)s (IYO username %(iyo_username)s) with id %(node_order_id)s.
 This order needs to be manually approved since this user has not invested more than %(tokens)s tokens yet via the app.
-Check the old investment agreements to verify if this user can sign up as a hoster and if not, contact him.
+Check the old purchase agreements to verify if this user can sign up as a hoster and if not, contact him.
 
 Please visit https://tff-backend.appspot.com/orders/%(node_order_id)s to approve or cancel this order.
 """ % {
