@@ -17,6 +17,8 @@
 
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
+from plugins.tff_backend.bizz.audit.audit import audit
+from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.bizz.hoster import get_node_orders, put_node_order, get_node_order_details
 from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO, NodeOrderDetailsTO
@@ -31,13 +33,14 @@ def api_get_node_orders(cursor=None, status=None):
 
 @rest('/orders/<order_id:[^/]+>', 'get', Scopes.TEAM)
 @returns(NodeOrderDetailsTO)
-@arguments(order_id=unicode)
+@arguments(order_id=(int, long))
 def api_get_node_order(order_id):
-    return get_node_order_details(long(order_id))
+    return get_node_order_details(order_id)
 
 
+@audit(AuditLogType.UPDATE_NODE_ORDER, 'order_id')
 @rest('/orders/<order_id:[^/]+>', 'put', Scopes.ADMINS)
 @returns(NodeOrderTO)
-@arguments(order_id=unicode, data=NodeOrderTO)
+@arguments(order_id=(int, long), data=NodeOrderTO)
 def api_put_node_order(order_id, data):
-    return NodeOrderTO.from_model(put_node_order(long(order_id), data))
+    return NodeOrderTO.from_model(put_node_order(order_id, data))

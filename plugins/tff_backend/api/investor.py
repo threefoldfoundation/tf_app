@@ -21,6 +21,8 @@ from framework.bizz.authentication import get_current_session
 from framework.plugin_loader import get_auth_plugin
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
+from plugins.tff_backend.bizz.audit.audit import audit
+from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.bizz.investor import get_investment_agreements, put_investment_agreement, \
     get_investment_agreement_details
@@ -42,6 +44,7 @@ def api_get_investment_agreement(agreement_id):
     return get_investment_agreement_details(agreement_id)
 
 
+@audit(AuditLogType.UPDATE_INVESTMENT_AGREEMENT, 'agreement_id')
 @rest('/investment-agreements/<agreement_id:[^/]+>', 'put', Scopes.ADMINS)
 @returns(InvestmentAgreementTO)
 @arguments(agreement_id=(int, long), data=InvestmentAgreementTO)

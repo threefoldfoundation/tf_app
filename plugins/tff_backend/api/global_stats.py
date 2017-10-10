@@ -16,6 +16,8 @@
 # @@license_version:1.3@@
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
+from plugins.tff_backend.bizz.audit.audit import audit
+from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.bizz.global_stats import list_global_stats, get_global_stats, put_global_stats
 from plugins.tff_backend.to.global_stats import GlobalStatsTO
@@ -35,6 +37,7 @@ def api_get_global_stat(stats_id):
     return GlobalStatsTO.from_model(get_global_stats(stats_id))
 
 
+@audit(AuditLogType.UPDATE_GLOBAL_STATS, 'stats_id')
 @rest('/global-stats/<stats_id:[^/]+>', 'put', Scopes.ADMINS)
 @returns(GlobalStatsTO)
 @arguments(stats_id=unicode, data=GlobalStatsTO)
