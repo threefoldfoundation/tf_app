@@ -207,13 +207,14 @@ def api_create_transaction(data):
     return to
 
 
-@rest('/payment/api_call', 'get', custom_auth_method=custom_auth_method)
+@rest('/payment/create_transaction', 'get', custom_auth_method=custom_auth_method)
 @returns(unicode)
-@arguments(app_user=unicode, method=unicode, params=unicode)
-def api_call(app_user, method, params):
-    if method == u"pay":
-        return json.dumps({u'success': True,
-                           u'provider_id': PROVIDER_ID,
-                           u'transaction_id': u'trans id',
-                           u'status': u'status'})
-    return None
+@arguments(app_user=unicode,  params=unicode)
+def create_transaction(app_user, params):
+    # todo
+    # check if we can reuse /transactions POST
+    # else process params and create pending transaction
+    return json.dumps({u'success': True,
+                       u'provider_id': PROVIDER_ID,
+                       u'transaction_id': u'trans id',
+                       u'status': u'status'})
