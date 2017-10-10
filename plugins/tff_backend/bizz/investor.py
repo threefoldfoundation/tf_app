@@ -150,7 +150,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         msg = u'We are ready to process your purchase. Is the following information correct?\n\n' \
               u'You would like to buy %(token)s for a total amount of' \
               u' **%(amount)s %(currency)s**.\n\n' \
-              u'After confirming, you will receive your personalised investment agreement.' % params
+              u'After confirming, you will receive your personalised purchase agreement.' % params
         tag = json.dumps({'__rt__.tag': 'invest_complete', 'investment_id': agreement.id}).decode('utf-8')
         message = MessageCallbackResultTypeTO(alert_flags=Message.ALERT_FLAG_SILENT,
                                               answers=answers,
@@ -286,7 +286,7 @@ def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, ipfs_link)
     organization_id = get_iyo_organization_id()
 
     doc_id = u'Internal Token Offering %s' % agreement_key.id()
-    doc_category = u'Investment Agreement'
+    doc_category = u'Purchase Agreement'
     iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
                                      globalid=organization_id,
                                      uniqueid=doc_id,
@@ -294,8 +294,8 @@ def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, ipfs_link)
                                      category=doc_category,
                                      link=ipfs_link,
                                      content_type=u'application/pdf',
-                                     markdown_short_description=u'Internal Token Offering - Investment Agreement',
-                                     markdown_full_description=u'Internal Token Offering - Investment Agreement')
+                                     markdown_short_description=u'Internal Token Offering - Purchase Agreement',
+                                     markdown_full_description=u'Internal Token Offering - Purchase Agreement')
     logging.debug('Creating IYO SEE document: %s', iyo_see_doc)
     try:
         create_see_document(iyo_username, iyo_see_doc)
@@ -319,7 +319,7 @@ def _send_ito_agreement_sign_message(agreement_key, app_user, ipfs_link, attachm
     logging.debug('Sending SIGN widget to app user')
     widget = SignTO()
     widget.algorithm = KEY_ALGORITHM
-    widget.caption = u'Please enter your PIN code to digitally sign the investment agreement'
+    widget.caption = u'Please enter your PIN code to digitally sign the purchase agreement'
     widget.key_name = KEY_NAME
     widget.payload = base64.b64encode(ipfs_link).decode('utf-8')
 
@@ -340,7 +340,7 @@ def _send_ito_agreement_sign_message(agreement_key, app_user, ipfs_link, attachm
     messaging.send_form(api_key=get_rogerthat_api_key(),
                         parent_message_key=None,
                         member=member_user.email(),
-                        message=u'Please review the investment agreement and press the "Sign" button to accept.',
+                        message=u'Please review the purchase agreement and press the "Sign" button to accept.',
                         form=form,
                         flags=0,
                         alert_flags=Message.ALERT_FLAG_VIBRATE,
@@ -371,7 +371,7 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
     form.widget = widget
 
     member_user, app_id = get_app_user_tuple(admin_app_user)
-    message = u"""Enter your pin code to mark investment %(investment)s (reference %(reference)s as paid.
+    message = u"""Enter your pin code to mark purchase agreement %(investment)s (reference %(reference)s as paid.
 - from: %(user)s\n
 - amount: %(amount)s %(currency)s
 - %(token_count_float)s %(token_type)s tokens
@@ -581,16 +581,16 @@ def put_investment_agreement(agreement_id, agreement, admin_user):
 def _inform_support_of_new_investment(iyo_username, agreement_id, token_count):
     cfg = get_config(NAMESPACE)
 
-    subject = "New investment agreement signed"
+    subject = "New purchase agreement signed"
     body = """Hello,
 
-We just received a new investment from %(iyo_username)s with id %(agreement_id)s for %(token_count_float)s tokens
+We just received a new purchase agreement (%(agreement_id)s) from %(iyo_username)s for %(token_count_float)s tokens.
 
 Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more details, and collect all the money!
 """ % {"iyo_username": iyo_username,
        "agreement_id": agreement_id,
        'base_url': BASE_URL,
-       "token_count_float": token_count}
+       "token_count_float": token_count}  # noQA
 
     for email in cfg.investor.support_emails:
         mail.send_mail(sender="no-reply@tff-backend.appspotmail.com",

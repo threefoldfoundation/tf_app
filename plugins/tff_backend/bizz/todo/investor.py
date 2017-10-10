@@ -83,6 +83,6 @@ class InvestorSteps(object):
 
         return {
             'id': 'investor',
-            'name': 'Become an investor',
+            'name': 'Become a token holder',
             'items': list(reversed(items))
         }
