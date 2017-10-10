@@ -41,3 +41,25 @@ indexes:
   - name: synced
   - name: timestamp
     direction: desc
+
+
+# ===================================================== Audit logs =====================================================
+
+- kind: AuditLog
+  properties:
+  - name: audit_type
+  - name: user_id
+  - name: timestamp
+    direction: desc
+
+- kind: AuditLog
+  properties:
+  - name: audit_type
+  - name: timestamp
+    direction: desc
+
+- kind: AuditLog
+  properties:
+  - name: user_id
+  - name: timestamp
+    direction: desc

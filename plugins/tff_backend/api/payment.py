@@ -17,16 +17,17 @@
 
 import logging
 
-from framework.plugin_loader import get_config
-from framework.utils import now
 from google.appengine.api import users
 from google.appengine.ext import ndb
+
+from framework.plugin_loader import get_config
+from framework.utils import now
 from mcfw.consts import MISSING
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.payment import get_asset_ids, get_token_from_asset_id, get_balance, get_transactions, \
     get_asset_id_from_token, get_app_user_from_asset_id, get_transaction_of_type_pending
-from plugins.tff_backend.consts.payment import PROVIDER_ID, TOKEN_TFT_CONTRIBUTOR, TOKEN_TYPE_D, TOKEN_TYPE_A,\
+from plugins.tff_backend.consts.payment import PROVIDER_ID, TOKEN_TFT_CONTRIBUTOR, TOKEN_TYPE_D, TOKEN_TYPE_A, \
     TOKEN_ITFT, TOKEN_TYPE_I
 from plugins.tff_backend.models.payment import ThreeFoldPendingTransaction
 from plugins.tff_backend.plugin_consts import NAMESPACE
