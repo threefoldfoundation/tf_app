@@ -80,5 +80,5 @@ class InvestmentAgreement(NdbModel):
         # type: (unicode) -> tuple[list[InvestmentAgreement], ndb.Cursor, bool]
         qry = cls.list_by_status(status) if status is not None else cls.list()
         return qry \
-            .order(-cls.modification_time) \
+            .order(-cls.creation_time) \
             .fetch_page(cls.PER_PAGE, start_cursor=ndb.Cursor(urlsafe=cursor))

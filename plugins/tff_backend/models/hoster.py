@@ -114,7 +114,7 @@ class NodeOrder(NdbModel):
         # type: (unicode) -> tuple[list[NodeOrder], ndb.Cursor, bool]
         qry = cls.list_by_status(status) if status is not None else cls.list()
         return qry \
-            .order(-cls.modification_time) \
+            .order(-cls.order_time) \
             .fetch_page(cls.NODE_ORDERS_PER_PAGE, start_cursor=ndb.Cursor(urlsafe=cursor))
 
     @classmethod
