@@ -43,7 +43,6 @@ export interface NodeOrder {
   send_time: number | null;
   arrival_time: number | null;
   cancel_time: number | null;
-  arrival_qr_code_url: string | null;
   socket: string;
 }
 
@@ -68,6 +67,6 @@ export const ORDER_STATUSES = [
   { value: NodeOrderStatuses.SIGNED, label: 'tff.signed' },
   { value: NodeOrderStatuses.PAID, label: 'tff.paid' },
   { value: NodeOrderStatuses.SENT, label: 'tff.sent' },
-  { value: NodeOrderStatuses.ARRIVED, label: 'tff.arrived' },
+  { value: NodeOrderStatuses.ARRIVED, label: 'tff.arrived_and_came_online' },
   { value: NodeOrderStatuses.CANCELED, label: 'tff.canceled' },
 ];

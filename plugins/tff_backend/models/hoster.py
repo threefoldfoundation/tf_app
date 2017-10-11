@@ -14,9 +14,11 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+
 from google.appengine.api import datastore_errors
 from google.appengine.ext import ndb
 
+from framework.consts import WEEK
 from framework.models.common import NdbModel
 from framework.plugin_loader import get_config
 from framework.utils import chunks, now
@@ -67,7 +69,6 @@ class NodeOrder(NdbModel):
     arrival_time = ndb.IntegerProperty()
     cancel_time = ndb.IntegerProperty()
     modification_time = ndb.IntegerProperty()
-    arrival_qr_code_url = ndb.StringProperty(indexed=False)
     odoo_sale_order_id = ndb.IntegerProperty()
     socket = ndb.StringProperty(indexed=False, validator=_validate_socket)
 
@@ -121,6 +122,11 @@ class NodeOrder(NdbModel):
     def list_by_user(cls, app_user):
         return cls.query() \
             .filter(cls.app_user == app_user)
+
+    @classmethod
+    def list_check_online(cls):
+        two_weeks_ago = now() - (WEEK * 2)
+        return cls.list_by_status(NodeOrderStatus.SENT).filter(cls.send_time < two_weeks_ago)
 
 
 class PublicKeyMapping(NdbModel):
