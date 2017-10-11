@@ -25,7 +25,8 @@
     "email": "Email",
     "errors": {
       "invalid_currencies": "Invalid currencies: {{ currencies }}",
-      "invalid_status": "Invalid status"
+      "invalid_status": "Invalid status",
+      "cannot_change_status": "Cannot update the status, the status might have been changed by someone else."
     },
     "global_stats": "Global stats",
     "i_am_a_member": "I am a member",

@@ -18,13 +18,10 @@ export class OrderListComponent {
   @Input() listStatus: ApiRequestStatus;
   @Input() status: NodeOrderStatuses;
   @Output() onLoadOrders = new EventEmitter<GetNodeOrdersPayload>();
-  statuses: { label: string, value: NodeOrderStatuses }[] = Object.keys(ORDER_STATUSES).map(status => ({
-    label: ORDER_STATUSES[ parseInt(status) ],
-    value: parseInt(status)
-  }));
+  statuses = ORDER_STATUSES;
 
   getStatusString(): string {
-    return ORDER_STATUSES[ this.status ];
+    return ORDER_STATUSES.find(s => s.value === this.status).label;
   }
 
   onStatusChange() {

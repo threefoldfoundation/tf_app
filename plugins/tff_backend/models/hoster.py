@@ -31,6 +31,7 @@ class NodeOrderStatus(object):
     ARRIVED = 3
     # Admins must manually check if user has invested >= REQUIRED_TOKEN_COUNT_TO_HOST tokens
     WAITING_APPROVAL = 4
+    PAID = 5
 
 
 class ContactInfo(NdbModel):

@@ -7,7 +7,18 @@ export enum NodeOrderStatuses {
   SENT = 2,
   ARRIVED = 3,
   WAITING_APPROVAL = 4,
+  PAID = 5,
 }
+
+export const NODE_ORDER_STATUS_MAPPING: { [ key: number ]: NodeOrderStatuses[] } = {
+  [ NodeOrderStatuses.CANCELED ]: [],
+  [ NodeOrderStatuses.WAITING_APPROVAL ]: [ NodeOrderStatuses.CANCELED, NodeOrderStatuses.APPROVED ],
+  [ NodeOrderStatuses.APPROVED ]: [ NodeOrderStatuses.CANCELED, NodeOrderStatuses.SIGNED ],
+  [ NodeOrderStatuses.SIGNED ]: [ NodeOrderStatuses.CANCELED, NodeOrderStatuses.PAID ],
+  [ NodeOrderStatuses.PAID ]: [ NodeOrderStatuses.SENT ],
+  [ NodeOrderStatuses.SENT ]: [],
+  [ NodeOrderStatuses.ARRIVED ]: [],
+};
 
 export interface ContactInfo {
   name: string;
@@ -51,11 +62,12 @@ export interface GetNodeOrdersPayload {
   status: NodeOrderStatuses;
 }
 
-export const ORDER_STATUSES = {
-  [ NodeOrderStatuses.CANCELED ]: 'tff.canceled',
-  [ NodeOrderStatuses.APPROVED ]: 'tff.approved',
-  [ NodeOrderStatuses.SIGNED ]: 'tff.signed',
-  [ NodeOrderStatuses.SENT ]: 'tff.sent',
-  [ NodeOrderStatuses.ARRIVED ]: 'tff.arrived',
-  [ NodeOrderStatuses.WAITING_APPROVAL ]: 'tff.waiting_approval',
-};
+export const ORDER_STATUSES = [
+  { value: NodeOrderStatuses.WAITING_APPROVAL, label: 'tff.waiting_approval' },
+  { value: NodeOrderStatuses.APPROVED, label: 'tff.approved' },
+  { value: NodeOrderStatuses.SIGNED, label: 'tff.signed' },
+  { value: NodeOrderStatuses.PAID, label: 'tff.paid' },
+  { value: NodeOrderStatuses.SENT, label: 'tff.sent' },
+  { value: NodeOrderStatuses.ARRIVED, label: 'tff.arrived' },
+  { value: NodeOrderStatuses.CANCELED, label: 'tff.canceled' },
+];
