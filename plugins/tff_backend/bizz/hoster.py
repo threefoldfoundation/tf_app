@@ -23,17 +23,17 @@ from google.appengine.api import users, mail
 from google.appengine.ext import ndb, deferred
 
 from framework.plugin_loader import get_config
-from framework.utils import now, try_or_defer
+from framework.utils import now
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.rogerthat_api.api import qr, messaging, system
+from plugins.rogerthat_api.api import messaging, system
 from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
 from plugins.rogerthat_api.to.messaging import AttachmentTO, Message, AnswerTO
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
-from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
-    FormAcknowledgedCallbackResultTO, MessageCallbackResultTypeTO, TYPE_MESSAGE
+from plugins.rogerthat_api.to.messaging.service_callback_results import FormAcknowledgedCallbackResultTO, \
+    MessageCallbackResultTypeTO, TYPE_MESSAGE
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agreements import create_hosting_agreement_pdf
 from plugins.tff_backend.bizz.authentication import Roles
@@ -41,9 +41,8 @@ from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
-from plugins.tff_backend.bizz.nodes import get_node_status
-from plugins.tff_backend.bizz.odoo import create_odoo_quotation, get_odoo_serial_number, update_odoo_quotation, \
-    QuotationState, confirm_odoo_quotation
+from plugins.tff_backend.bizz.odoo import create_odoo_quotation, update_odoo_quotation, QuotationState, \
+    confirm_odoo_quotation
 from plugins.tff_backend.bizz.rogerthat import put_user_data, send_rogerthat_message
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
@@ -194,7 +193,6 @@ def _create_node_order_pdf(node_order_id, retry_count=0):
         logging.info('Retrying creating IPFS PDF after %s tries', retry_count)
         deferred.defer(_create_node_order_pdf, node_order_id, retry_count, _countdown=retry_count)
         return
-    deferred.defer(_create_order_arrival_qr, node_order_id)
     deferred.defer(_order_node_iyo_see, node_order.app_user, node_order_id, ipfs_link)
     deferred.defer(update_hoster_progress, user_email.email(), app_id, HosterSteps.FLOW_ADDRESS)
 
@@ -412,40 +410,6 @@ def get_publickey_label(public_key, user_details):
             return None
 
 
-@returns()
-@arguments(order_id=(int, long))
-def _create_order_arrival_qr(order_id):
-    api_key = get_rogerthat_api_key()
-    qr_details = qr.create(api_key,
-                           description=u'Confirm node arrival',
-                           tag=json.dumps({u'__rt__.tag': u'node_arrival',
-                                           u'order_id': order_id}),
-                           flow=u'node_arrival',
-                           branding=get_main_branding_hash())
-
-    try_or_defer(_store_order_arrival_qr, order_id, qr_details.image_uri)
-
-
-@returns()
-@arguments(order_id=(int, long), qr_image_uri=unicode)
-def _store_order_arrival_qr(order_id, qr_image_uri):
-    logging.info('Setting arrival QR code %s for order %s', qr_image_uri, order_id)
-    order = get_node_order(order_id)
-    order.arrival_qr_code_url = qr_image_uri
-    order.put()
-
-
-@returns(FlowMemberResultCallbackResultTO)
-@arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
-           end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
-           flow_params=unicode)
-def node_arrived(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
-                 flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    try_or_defer(_store_order_arrival, tag, now())
-    return None
-
-
 @returns(tuple)
 @arguments(cursor=unicode, status=(int, long))
 def get_node_orders(cursor=None, status=None):
@@ -522,7 +486,6 @@ def put_node_order(order_id, order):
             order_model.send_time = now()
             deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_SENT)
             deferred.defer(_send_node_order_sent_message, human_user.email(), app_id, order_id)
-            deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
         elif order_model.status == NodeOrderStatus.APPROVED:
             deferred.defer(_create_node_order_pdf, order_id)
         elif order_model.status == NodeOrderStatus.PAID:
@@ -532,21 +495,6 @@ def put_node_order(order_id, order):
 
     order_model.put()
     return order_model
-
-
-@returns()
-@arguments(tag=unicode, arrival_time=(int, long))
-def _store_order_arrival(tag, arrival_time):
-    tag_dict = json.loads(tag)
-    order_id = tag_dict['order_id']
-    logging.info('Marking order %s as arrived', order_id)
-    order = get_node_order(order_id)  # type: NodeOrder
-    order.arrival_time = arrival_time
-    order.status = NodeOrderStatus.ARRIVED
-    order.put()
-
-    human_user, app_id = get_app_user_tuple(order.app_user)
-    deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_DELIVERY_CONFIRMED)
 
 
 def _create_error_message(callback_result):
@@ -564,27 +512,6 @@ def _create_error_message(callback_result):
     callback_result.type = TYPE_MESSAGE
     callback_result.value = message
     return callback_result
-
-
-def check_if_node_comes_online(order_id):
-    order = get_node_order(order_id)
-    if not order.odoo_sale_order_id:
-        logging.warn("check_if_node_comes_online failed odoo quotation was not found")
-        deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
-        return
-
-    serial_number = get_odoo_serial_number(order.odoo_sale_order_id)
-    if not serial_number:
-        logging.warn("check_if_node_comes_online failed odoo serial_number was not found")
-        deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
-        return
-
-    status = get_node_status(serial_number)
-    if status and status == u"running":
-        human_user, app_id = get_app_user_tuple(order.app_user)
-        deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED)
-    else:
-        deferred.defer(check_if_node_comes_online, order_id, _countdown=1 * 60 * 60)
 
 
 @returns()

@@ -36,7 +36,7 @@ from plugins.tff_backend.api.rogerthat.global_stats import api_list_global_stats
 from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, api_iyo_see_detail
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
 from plugins.tff_backend.bizz.global_stats import ApiCallException
-from plugins.tff_backend.bizz.hoster import order_node, order_node_signed, node_arrived
+from plugins.tff_backend.bizz.hoster import order_node, order_node_signed
 from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \
     investment_agreement_signed_by_admin, invest_complete, start_invest
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
@@ -48,7 +48,6 @@ from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 TAG_MAPPING = {
     'order_node': order_node,
     'sign_order_node_tos': order_node_signed,
-    'node_arrival': node_arrived,
     'invest': invest_tft,
     BUY_TOKENS_TAG: invest_itft,
     'invest_complete': invest_complete,

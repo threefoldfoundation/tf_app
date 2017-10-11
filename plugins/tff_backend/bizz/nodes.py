@@ -19,25 +19,62 @@ import json
 import logging
 
 from google.appengine.api import urlfetch
+from google.appengine.ext import ndb
+from google.appengine.ext.deferred import deferred
 
+from framework.bizz.job import run_job
 from framework.plugin_loader import get_config
+from framework.utils import now
 from plugins.its_you_online_auth.bizz.authentication import refresh_jwt
+from plugins.rogerthat_api.exceptions import BusinessException
+from plugins.tff_backend.bizz.odoo import get_odoo_serial_number
+from plugins.tff_backend.bizz.todo import HosterSteps, update_hoster_progress
+from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 from plugins.tff_backend.plugin_consts import NAMESPACE
+from plugins.tff_backend.utils.app import get_app_user_tuple
 
 
 def get_node_status(node_id):
     cfg = get_config(NAMESPACE)
-    try:
-        jwt = refresh_jwt(cfg.orchestator.jwt, 3600)
-    except Exception:
-        logging.warn("get_node_status failed to refresh jwt", exc_info=True)
-        return None
+    jwt = refresh_jwt(cfg.orchestator.jwt, 3600)
 
-    headers = {}
-    headers['Authorization'] = u"Bearer %s" % jwt
+    headers = {'Authorization': u"Bearer %s" % jwt}
     result = urlfetch.fetch(url=u"https://orc.threefoldtoken.com/nodes/%s" % node_id, headers=headers, deadline=10)
-    if result.status_code != 200:
-        logging.warn("get_node_status returned status code %s for node_id '%s'", result.status_code, node_id)
-        return None
+    status = result.status_code  # type: int
+    content = result.content  # type: unicode
+    if status != 200:
+        msg = 'get_node_status returned status code %s for node_id %s\nContent: %s' % (status, node_id, content)
+        raise Exception(msg)
 
-    return json.loads(result.content)['status']
+    return json.loads(content)['status']
+
+
+def check_online_nodes():
+    run_job(_get_node_orders, [], check_if_node_comes_online, [])
+
+
+def _get_node_orders():
+    return NodeOrder.list_check_online()
+
+
+@ndb.transactional()
+def check_if_node_comes_online(order_key):
+    order = order_key.get()  # type: NodeOrder
+    order_id = order.id
+    if not order.odoo_sale_order_id:
+        raise BusinessException('Cannot check status of node order without odoo_sale_order_id')
+    serial_number = get_odoo_serial_number(order.odoo_sale_order_id)
+    if not serial_number:
+        raise Exception('Could not find node serial number for order %s on odoo' % order_id)
+
+    status = get_node_status(serial_number)
+    if status == u'running':
+        logging.info('Marking node from node order %s as arrived', order_id)
+        human_user, app_id = get_app_user_tuple(order.app_user)
+        order.populate(arrival_time=now(),
+                       status=NodeOrderStatus.ARRIVED)
+        order.put()
+        deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED,
+                       _transactional=True)
+    else:
+        logging.info('Node from order %s is not online yet', order_id)
