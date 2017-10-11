@@ -1,3 +1,6 @@
+@import '../../../node_modules/@angular/material/theming';
+@import 'theme';
+
 .default-component-padding {
   padding: 16px;
 }
@@ -8,4 +11,8 @@ md-form-field.s-input {
 
 md-form-field.xs-input {
   width: 60px;
+}
+
+.error-message {
+  color: mat-color($app-warn);
 }

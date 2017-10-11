@@ -26,24 +26,28 @@
     <md-divider></md-divider>
     <p>{{ 'tff.modification_time' | translate }}: {{ nodeOrder.modification_time | timestamp }}</p>
     <p>{{ 'tff.order_time' | translate }}: {{ nodeOrder.order_time | timestamp }}</p>
-    <p *ngIf="[statuses.SENT, statuses.ARRIVED].includes(nodeOrder.status) && nodeOrder.send_time">
+    <p *ngIf="nodeOrder.send_time">
       {{ 'tff.send_time' | translate }}: {{ nodeOrder.send_time | timestamp }}
     </p>
-    <p *ngIf="nodeOrder.status === statuses.ARRIVED">
+    <p *ngIf="nodeOrder.arrival_time">
       {{ 'tff.arrival_time' | translate }}: {{ nodeOrder.arrival_time | timestamp }}
     </p>
-    <p *ngIf="nodeOrder.status === statuses.CANCELED">
+    <p *ngIf="nodeOrder.cancel_time">
       {{ 'tff.cancel_time' | translate }}: {{ nodeOrder.cancel_time | timestamp }}</p>
-    <div *ngIf="[statuses.SIGNED, statuses.SENT].includes(nodeOrder.status)">
+    <div *ngIf="nodeOrder.arrival_qr_code_url">
       <img [src]="nodeOrder.arrival_qr_code_url" style="max-width: 400px;"/>
     </div>
-    <button *ngIf="canCancel()" md-button (click)="setOrderStatus(statuses.CANCELED)" color="warn">
+    <button *ngIf="allowedStatuses.includes(statuses.CANCELED)" md-button (click)="setOrderStatus(statuses.CANCELED)"
+            color="warn">
       {{ 'tff.cancel_order' | translate }}
     </button>
-    <button *ngIf="canMarkAsSent()" md-button (click)="setOrderStatus(statuses.SENT)">
+    <button *ngIf="allowedStatuses.includes(statuses.SENT)" md-button (click)="setOrderStatus(statuses.SENT)">
       {{ 'tff.mark_as_sent' | translate }}
     </button>
-    <button *ngIf="canApprove()" md-button (click)="setOrderStatus(statuses.APPROVED)">
+    <button *ngIf="allowedStatuses.includes(statuses.PAID)" md-button (click)="setOrderStatus(statuses.PAID)">
+      {{ 'tff.mark_as_paid' | translate }}
+    </button>
+    <button *ngIf="allowedStatuses.includes(statuses.APPROVED)" md-button (click)="setOrderStatus(statuses.APPROVED)">
       {{ 'tff.approve_order' | translate }}
     </button>
   </div>

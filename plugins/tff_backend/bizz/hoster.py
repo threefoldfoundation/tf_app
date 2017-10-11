@@ -42,7 +42,8 @@ from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.nodes import get_node_status
-from plugins.tff_backend.bizz.odoo import create_odoo_quotation, get_odoo_serial_number, cancel_odoo_quotation
+from plugins.tff_backend.bizz.odoo import create_odoo_quotation, get_odoo_serial_number, update_odoo_quotation, \
+    QuotationState, confirm_odoo_quotation
 from plugins.tff_backend.bizz.rogerthat import put_user_data, send_rogerthat_message
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
@@ -252,7 +253,7 @@ def _cancel_quotation(order_id):
     def trans():
         node_order = get_node_order(order_id)
         if node_order.odoo_sale_order_id:
-            cancel_odoo_quotation(node_order.odoo_sale_order_id)
+            update_odoo_quotation(node_order.odoo_sale_order_id, {'state': QuotationState.CANCEL})
 
         node_order.populate(status=NodeOrderStatus.CANCELED, cancel_time=now())
         node_order.put()
@@ -474,6 +475,25 @@ def get_node_order_details(order_id):
     return NodeOrderDetailsTO.from_model(node_order, see_document)
 
 
+def _get_allowed_status(current_status):
+    # type: (long, long) -> list[long]
+    next_statuses = {
+        NodeOrderStatus.CANCELED: [],
+        NodeOrderStatus.WAITING_APPROVAL: [NodeOrderStatus.CANCELED, NodeOrderStatus.APPROVED],
+        NodeOrderStatus.APPROVED: [NodeOrderStatus.CANCELED, NodeOrderStatus.SIGNED],
+        NodeOrderStatus.SIGNED: [NodeOrderStatus.CANCELED, NodeOrderStatus.PAID],
+        NodeOrderStatus.PAID: [NodeOrderStatus.SENT],
+        NodeOrderStatus.SENT: [],
+        NodeOrderStatus.ARRIVED: [],
+    }
+    return next_statuses.get(current_status)
+
+
+def _can_change_status(current_status, new_status):
+    # type: (long, long) -> bool
+    return new_status in _get_allowed_status(current_status)
+
+
 @returns(NodeOrder)
 @arguments(order_id=(int, long), order=NodeOrderTO)
 def put_node_order(order_id, order):
@@ -481,16 +501,21 @@ def put_node_order(order_id, order):
     order_model = get_node_order(order_id)
     if order_model.status == NodeOrderStatus.CANCELED:
         raise HttpBadRequestException('order_canceled')
-    if order.status not in (NodeOrderStatus.CANCELED, NodeOrderStatus.SENT, NodeOrderStatus.APPROVED):
+    if order.status not in (NodeOrderStatus.CANCELED, NodeOrderStatus.SENT, NodeOrderStatus.APPROVED,
+                            NodeOrderStatus.PAID):
         raise HttpBadRequestException('invalid_status')
     # Only support updating the status for now
     if order_model.status != order.status:
+        if not _can_change_status(order_model.status, order.status):
+            raise HttpBadRequestException('cannot_change_status',
+                                          {'from': order_model.status, 'to': order.status,
+                                           'allowed_new_statuses': _get_allowed_status(order_model.status)})
         order_model.status = order.status
         human_user, app_id = get_app_user_tuple(order_model.app_user)
         if order_model.status == NodeOrderStatus.CANCELED:
             order_model.cancel_time = now()
             if order_model.odoo_sale_order_id:
-                deferred.defer(cancel_odoo_quotation, order_model.odoo_sale_order_id)
+                deferred.defer(update_odoo_quotation, order_model.odoo_sale_order_id, {'state': QuotationState.CANCEL})
             deferred.defer(update_hoster_progress, human_user.email(), app_id,
                            HosterSteps.NODE_POWERED)  # nuke todo list
         elif order_model.status == NodeOrderStatus.SENT:
@@ -500,6 +525,8 @@ def put_node_order(order_id, order):
             deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
         elif order_model.status == NodeOrderStatus.APPROVED:
             deferred.defer(_create_node_order_pdf, order_id)
+        elif order_model.status == NodeOrderStatus.PAID:
+            deferred.defer(confirm_odoo_quotation, order_model.odoo_sale_order_id)
     else:
         logging.debug('Status was already %s, not doing anything', order_model.status)
 
