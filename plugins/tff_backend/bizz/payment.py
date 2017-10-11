@@ -126,6 +126,23 @@ def sync_payment_asset(app_user, asset_id):
         deadline=10)
 
 
+def update_transaction_status(app_user, transaction_id, status):
+    cfg = get_config(NAMESPACE)
+
+    args = dict()
+    args["app_user"] = app_user.email()
+    args["transaction_id"] = transaction_id
+    args["status"] = status
+
+    headers = {'Authorization': cfg.rogerthat.payment_secret}
+
+    urlfetch.fetch(
+        url=u"%s/payments/callbacks/threefold/transaction/status/update?%s" % (cfg.rogerthat.url, urlencode(args)),
+        method=urlfetch.GET,
+        headers=headers,
+        deadline=10)
+
+
 @returns(ndb.Query)
 @arguments(app_user=users.User, token=unicode)
 def get_transactions(app_user, token):

@@ -21,12 +21,12 @@ import logging
 from framework.plugin_loader import get_config
 from framework.utils import now
 from google.appengine.api import users
-from google.appengine.ext import ndb
+from google.appengine.ext import ndb, deferred
 from mcfw.consts import MISSING
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.payment import get_asset_ids, get_token_from_asset_id, get_balance, get_transactions, \
-    get_asset_id_from_token, get_app_user_from_asset_id, get_transaction_of_type_pending
+    get_asset_id_from_token, get_app_user_from_asset_id, get_transaction_of_type_pending, update_transaction_status
 from plugins.tff_backend.consts.payment import PROVIDER_ID, TOKEN_TFT_CONTRIBUTOR, TOKEN_TYPE_D, TOKEN_TYPE_A,\
     TOKEN_ITFT, TOKEN_TYPE_I
 from plugins.tff_backend.models.payment import ThreeFoldPendingTransaction
@@ -214,7 +214,12 @@ def create_transaction(app_user, params):
     # todo
     # check if we can reuse /transactions POST
     # else process params and create pending transaction
+
+    trans_id = u'trans id 123456'
+
+    deferred.defer(update_transaction_status, users.User(app_user), trans_id, u'succeeded', _countdown=5)
+
     return json.dumps({u'success': True,
                        u'provider_id': PROVIDER_ID,
-                       u'transaction_id': u'trans id',
-                       u'status': u'status'})
+                       u'transaction_id': trans_id,
+                       u'status': u'pending'})
