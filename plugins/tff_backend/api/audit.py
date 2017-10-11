@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-import logging
 
 from mcfw.exceptions import HttpBadRequestException
 from mcfw.restapi import rest

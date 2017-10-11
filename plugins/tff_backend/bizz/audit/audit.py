@@ -22,7 +22,7 @@ from six import string_types
 
 from framework.bizz.authentication import get_current_session
 from framework.to import TO
-from plugins.tff_backend.bizz.audit.mapping import AuditLogMapping, AuditLogType, AuditLogMappingTypes
+from plugins.tff_backend.bizz.audit import mapping
 from plugins.tff_backend.models.audit import AuditLog
 from plugins.tff_backend.to.audit import AuditLogDetailsTO, AuditLogDetailsListTO
 
@@ -31,7 +31,7 @@ def audit(audit_type, reference_arg):
     """
         Decorator to be used with @rest function calls
     Args:
-        audit_type (AuditLogType): Use a property of AuditLogType which has a reference to the db model
+        audit_type (mapping.AuditLogType): Use a property of mapping.AuditLogType which has a reference to the db model
         reference_arg (Union[basestring, list[basestring]]: kwarg(s) of the @rest function which are needed to call
          the create_key method of the model
     """
@@ -59,7 +59,7 @@ def audit_log(audit_type, key_args, data, user_id=None):
         Logs an action of the current user. reference_args can be the arguments needed to call the create_key method of
         the model, or an ndb key.
     Args:
-        audit_type (AuditLogType)
+        audit_type (mapping.AuditLogType)
         key_args(Union[string_types, tuple, ndb.Key])
         data (Union[TO, dict])
         user_id (unicode)
@@ -70,8 +70,8 @@ def audit_log(audit_type, key_args, data, user_id=None):
     if not user_id:
         session = get_current_session()
         user_id = session and session.user_id
-    model = AuditLogMapping.get(audit_type)
-    if not isinstance(model, AuditLogMappingTypes):
+    model = mapping.AuditLogMapping.get(audit_type)
+    if not isinstance(model, mapping.AuditLogMappingTypes):
         logging.error('model %s is not a supported audit log type', model)
         return
     if isinstance(key_args, (string_types, int, long)):
@@ -92,7 +92,7 @@ def list_audit_logs(per_page, cursor):
 
 
 def list_audit_logs_by_type(audit_type, per_page, cursor):
-    # type: (AuditLogType, long, unicode) -> tuple[list[AuditLog], unicode, bool]
+    # type: (mapping.AuditLogType, long, unicode) -> tuple[list[AuditLog], unicode, bool]
     return AuditLog.list_by_type(audit_type).fetch_page(per_page, start_cursor=ndb.Cursor(urlsafe=cursor))
 
 
@@ -102,7 +102,7 @@ def list_audit_logs_by_user(user_id, per_page, cursor):
 
 
 def list_audit_logs_by_type_and_user(audit_log_type, user_id, per_page, cursor):
-    # type: (AuditLogType, unicode, long, unicode) -> tuple[list[AuditLog], unicode, bool]
+    # type: (mapping.AuditLogType, unicode, long, unicode) -> tuple[list[AuditLog], unicode, bool]
     return AuditLog.list_by_type_and_user(audit_log_type, user_id).fetch_page(per_page,
                                                                               start_cursor=ndb.Cursor(urlsafe=cursor))
 
