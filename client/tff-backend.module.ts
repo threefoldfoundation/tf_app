@@ -24,6 +24,10 @@ import { TimestampPipe } from './pipes/timestamp.pipe';
 import { TFF_COMPONENTS, TFF_PROVIDERS } from './services/index';
 import { TffRoutes } from './tff.routes';
 import './operators';
+import { ToolbarItemTypes } from '../../framework/client/toolbar/interfaces/index';
+import { AuthenticationService } from '../../framework/client/identity/services/index';
+import { SetThemeAction } from '../../framework/client/identity/actions/index';
+import { AddToolbarItemAction } from '../../framework/client/toolbar/actions/index';
 
 const MATERIAL_IMPORTS = [
   MdButtonModule, MdInputModule, MdListModule, MdIconModule, MdSelectModule, MdChipsModule, MdSlideToggleModule, MdProgressSpinnerModule
@@ -56,10 +60,21 @@ const MATERIAL_IMPORTS = [
   ],
 })
 export class TffBackendModule {
-  constructor(@Optional() @SkipSelf() parentModule: TffBackendModule, private store: Store<IAppState>) {
+  constructor(@Optional() @SkipSelf() parentModule: TffBackendModule, private store: Store<IAppState>, private authService: AuthenticationService) {
     if (parentModule) {
       throw new Error('TffBackendModule already loaded; Import in root module only.');
     }
     this.store.dispatch(new AddRoutesAction(TffRoutes));
+    const themeItem = {
+      id: 'change_theme',
+      type: ToolbarItemTypes.ICON,
+      icon: 'format_color_fill',
+      persistent: true,
+      onclick: () => {
+        let newTheme = this.authService.getLocalTheme() ? null : { cssClass: 'dark-theme', dark: true };
+        this.store.dispatch(new SetThemeAction(newTheme));
+      },
+    };
+    this.store.dispatch(new AddToolbarItemAction(themeItem));
   }
 }
