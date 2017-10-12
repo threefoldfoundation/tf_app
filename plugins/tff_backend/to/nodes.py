@@ -16,6 +16,7 @@
 # @@license_version:1.3@@
 from types import NoneType
 
+from google.appengine.api import search
 from google.appengine.ext import ndb
 
 from framework.to import TO
@@ -74,3 +75,10 @@ class NodeOrderListTO(PaginatedResultTO):
         assert isinstance(cursor, (ndb.Cursor, NoneType))
         orders = [NodeOrderTO.from_model(model) for model in models]
         return cls(cursor and cursor.to_websafe_string().decode('utf-8'), more, orders)
+
+    @classmethod
+    def from_search(cls, models, cursor, more):
+        # type: (list[NodeOrder], search.Cursor, bool) -> object
+        assert isinstance(cursor, (search.Cursor, NoneType))
+        orders = [NodeOrderTO.from_model(model) for model in models]
+        return cls(cursor and cursor.web_safe_string.decode('utf-8'), more, orders)

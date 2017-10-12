@@ -14,5 +14,3 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-REQUIRED_TOKEN_COUNT_TO_HOST = 120
-NODE_ORDER_SEARCH_INDEX = 'node-orders'

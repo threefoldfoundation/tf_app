@@ -1,13 +1,13 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import {
-  GetInvestmentAgreementsPayload,
-  GetNodeOrdersPayload,
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
+  InvestmentAgreementsQuery,
   NodeOrder,
-  NodeOrderList
+  NodeOrderList,
+  NodeOrdersQuery
 } from '../interfaces/index';
 import { TffConfig } from './tff-config.service';
 
@@ -17,12 +17,14 @@ export class TffService {
   constructor(private http: HttpClient) {
   }
 
-  getNodeOrders(payload: GetNodeOrdersPayload) {
+  getNodeOrders(payload: NodeOrdersQuery) {
     let params = new HttpParams();
-    if (payload.cursor) {
-      params = params.set('cursor', payload.cursor);
+    const q = <Array<keyof NodeOrdersQuery>>Object.keys(payload);
+    for (const key of q) {
+      if (payload[ key ] !== null) {
+        params = params.set(key, payload[ key ].toString());
+      }
     }
-    params = params.set('status', payload.status.toString());
     return this.http.get<NodeOrderList>(`${TffConfig.API_URL}/orders`, { params });
   }
 
@@ -34,12 +36,14 @@ export class TffService {
     return this.http.put<NodeOrder>(`${TffConfig.API_URL}/orders/${nodeOrder.id}`, nodeOrder);
   }
 
-  getInvestmentAgreements(payload: GetInvestmentAgreementsPayload) {
+  getInvestmentAgreements(payload: InvestmentAgreementsQuery) {
     let params = new HttpParams();
-    if (payload.cursor) {
-      params = params.set('cursor', payload.cursor);
+    const q = <Array<keyof InvestmentAgreementsQuery>>Object.keys(payload);
+    for (const key of q) {
+      if (payload[ key ] !== null) {
+        params = params.set(key, payload[ key ].toString());
+      }
     }
-    params = params.set('status', payload.status.toString());
     return this.http.get<InvestmentAgreementList>(`${TffConfig.API_URL}/investment-agreements`, { params });
   }
 

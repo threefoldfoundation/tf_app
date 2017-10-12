@@ -1,18 +1,24 @@
 import { Observable } from 'rxjs/Observable';
-import { GlobalStats, InvestmentAgreement, InvestmentAgreementList, NodeOrder, NodeOrderList } from '../interfaces/index';
+import {
+  GlobalStats,
+  InvestmentAgreement,
+  InvestmentAgreementList,
+  InvestmentAgreementsQuery,
+  NodeOrder,
+  NodeOrderList,
+  NodeOrdersQuery
+} from '../interfaces/index';
 import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
-import { InvestmentAgreementsStatuses } from '../interfaces/investment-agreements.interfaces';
-import { NodeOrderStatuses } from '../interfaces/nodes.interfaces';
 
 export interface ITffState {
   orders: NodeOrderList;
   ordersStatus: ApiRequestStatus;
   order: NodeOrder | null;
-  ordersType: NodeOrderStatuses;
+  ordersQuery: NodeOrdersQuery;
   orderStatus: ApiRequestStatus;
   updateOrderStatus: ApiRequestStatus;
   investmentAgreements: InvestmentAgreementList;
-  investmentAgreementsType: InvestmentAgreementsStatuses;
+  investmentAgreementsQuery: InvestmentAgreementsQuery;
   investmentAgreementsStatus: ApiRequestStatus;
   investmentAgreement: InvestmentAgreement | null;
   investmentAgreementStatus: ApiRequestStatus;
@@ -32,7 +38,11 @@ export const initialTffState: ITffState = {
   },
   ordersStatus: apiRequestInitial,
   order: null,
-  ordersType: NodeOrderStatuses.SIGNED,
+  ordersQuery: {
+    cursor: null,
+    status: null,
+    query: null,
+  },
   orderStatus: apiRequestInitial,
   updateOrderStatus: apiRequestInitial,
   investmentAgreements: {
@@ -42,7 +52,11 @@ export const initialTffState: ITffState = {
   },
   investmentAgreementsStatus: apiRequestInitial,
   investmentAgreement: null,
-  investmentAgreementsType: InvestmentAgreementsStatuses.CREATED,
+  investmentAgreementsQuery: {
+    cursor: null,
+    status: null,
+    query: null,
+  },
   investmentAgreementStatus: apiRequestInitial,
   updateInvestmentAgreementStatus: apiRequestInitial,
   globalStatsList: [],
@@ -56,8 +70,8 @@ export function getOrders(state$: Observable<ITffState>) {
   return state$.select(state => state.orders);
 }
 
-export function getNodeOrdersType(state$: Observable<ITffState>) {
-  return state$.select(state => state.ordersType);
+export function getNodeOrdersQuery(state$: Observable<ITffState>) {
+  return state$.select(state => state.ordersQuery);
 }
 
 export function getOrdersStatus(state$: Observable<ITffState>) {
@@ -80,8 +94,8 @@ export function getInvestmentAgreements(state$: Observable<ITffState>) {
   return state$.select(state => state.investmentAgreements);
 }
 
-export function getInvestmentAgreementsType(state$: Observable<ITffState>) {
-  return state$.select(state => state.investmentAgreementsType);
+export function getInvestmentAgreementsQuery(state$: Observable<ITffState>) {
+  return state$.select(state => state.investmentAgreementsQuery);
 }
 
 export function getInvestmentAgreementsStatus(state$: Observable<ITffState>) {

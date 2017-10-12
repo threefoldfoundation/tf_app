@@ -55,6 +55,7 @@ from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.bizz.user import user_code
 from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS, ACCOUNT_NUMBERS
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TOKEN_TYPE_I
+from plugins.tff_backend.dal.investment_agreements import get_investment_agreement
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
@@ -522,22 +523,6 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
         deferred.defer(_send_tokens_assigned_message, user_email.email(), app_id, agreement.id, _transactional=True)
 
     ndb.transaction(trans)
-
-
-@returns(tuple)
-@arguments(cursor=unicode, status=(int, long))
-def get_investment_agreements(cursor=None, status=None):
-    return InvestmentAgreement.fetch_page(cursor, status)
-
-
-@returns(InvestmentAgreement)
-@arguments(agreement_id=(int, long))
-def get_investment_agreement(agreement_id):
-    # type: (long) -> InvestmentAgreement
-    agreement = InvestmentAgreement.get_by_id(agreement_id)
-    if not agreement:
-        raise HttpNotFoundException('investment_agreement_not_found')
-    return agreement
 
 
 @returns(InvestmentAgreementDetailsTO)

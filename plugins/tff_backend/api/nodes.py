@@ -14,21 +14,26 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+from google.appengine.api.search import MAXIMUM_DOCUMENTS_RETURNED_PER_SEARCH
 
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.audit.audit import audit
 from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
-from plugins.tff_backend.bizz.hoster import get_node_orders, put_node_order, get_node_order_details
+from plugins.tff_backend.bizz.hoster import put_node_order, get_node_order_details
+from plugins.tff_backend.dal.node_orders import search_node_orders
 from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO, NodeOrderDetailsTO
+from plugins.tff_backend.utils.search import sanitise_search_query
 
 
 @rest('/orders', 'get', Scopes.TEAM)
 @returns(NodeOrderListTO)
-@arguments(cursor=unicode, status=(int, long))
-def api_get_node_orders(cursor=None, status=None):
-    return NodeOrderListTO.from_query(*get_node_orders(cursor, status))
+@arguments(per_page=(int, long), cursor=unicode, query=unicode, status=(int, long))
+def api_get_node_orders(per_page=20, cursor=None, query=None, status=None):
+    per_page = min(per_page, MAXIMUM_DOCUMENTS_RETURNED_PER_SEARCH)
+    filters = {'status': status}
+    return NodeOrderListTO.from_search(*search_node_orders(sanitise_search_query(query, filters), per_page, cursor))
 
 
 @rest('/orders/<order_id:[^/]+>', 'get', Scopes.TEAM)

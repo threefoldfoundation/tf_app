@@ -1,7 +1,7 @@
 import { Action } from '@ngrx/store';
 import {
-  GetInvestmentAgreementsPayload,
-  GetNodeOrdersPayload,
+  InvestmentAgreementsQuery,
+  NodeOrdersQuery,
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
@@ -49,7 +49,7 @@ export const TffActionTypes = {
 export class GetOrdersAction implements Action {
   type = TffActionTypes.GET_ORDERS;
 
-  constructor(public payload: GetNodeOrdersPayload) {
+  constructor(public payload: NodeOrdersQuery) {
   }
 }
 
@@ -116,7 +116,7 @@ export class UpdateOrderFailedAction implements Action {
 export class GetInvestmentAgreementsAction implements Action {
   type = TffActionTypes.GET_INVESTMENT_AGREEMENTS;
 
-  constructor(public payload: GetInvestmentAgreementsPayload) {
+  constructor(public payload: InvestmentAgreementsQuery) {
   }
 }
 

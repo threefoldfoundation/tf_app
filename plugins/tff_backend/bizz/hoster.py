@@ -24,7 +24,7 @@ from google.appengine.ext import ndb, deferred
 
 from framework.plugin_loader import get_config
 from framework.utils import now
-from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
+from mcfw.exceptions import HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.rogerthat_api.api import messaging, system
@@ -49,6 +49,7 @@ from plugins.tff_backend.bizz.todo import update_hoster_progress
 from plugins.tff_backend.bizz.todo.hoster import HosterSteps
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.consts.hoster import REQUIRED_TOKEN_COUNT_TO_HOST
+from plugins.tff_backend.dal.node_orders import get_node_order
 from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping, NodeOrderStatus, ContactInfo
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE
@@ -408,22 +409,6 @@ def get_publickey_label(public_key, user_details):
         else:
             logging.error('Could not find label for public key %s on itsyou.online', public_key)
             return None
-
-
-@returns(tuple)
-@arguments(cursor=unicode, status=(int, long))
-def get_node_orders(cursor=None, status=None):
-    return NodeOrder.fetch_page(cursor, status)
-
-
-@returns(NodeOrder)
-@arguments(order_id=(int, long))
-def get_node_order(order_id):
-    # type: (int) -> NodeOrder
-    order = NodeOrder.get_by_id(order_id)
-    if not order:
-        raise HttpNotFoundException('order_not_found')
-    return order
 
 
 @returns(NodeOrderDetailsTO)

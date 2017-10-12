@@ -7,9 +7,10 @@ export enum InvestmentAgreementsStatuses {
   PAID = 2,
 }
 
-export interface GetInvestmentAgreementsPayload {
+export interface InvestmentAgreementsQuery {
   cursor: string | null;
   status: InvestmentAgreementsStatuses;
+  query: string | null;
 }
 
 export const INVESTMENT_AGREEMENT_STATUSES = {

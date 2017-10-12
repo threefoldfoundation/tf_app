@@ -2,6 +2,7 @@ from google.appengine.ext import ndb
 
 from framework.models.common import NdbModel
 from framework.utils import now
+from framework.utils.transactions import on_trans_committed
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -42,6 +43,13 @@ class InvestmentAgreement(NdbModel):
     def _pre_put_hook(self):
         self.modification_time = now()
 
+    def _post_put_hook(self, future):
+        from plugins.tff_backend.dal.investment_agreements import index_investment_agreement
+        if ndb.in_transaction():
+            on_trans_committed(index_investment_agreement, self)
+        else:
+            index_investment_agreement(self)
+
     @property
     def iyo_username(self):
         from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
@@ -60,11 +68,6 @@ class InvestmentAgreement(NdbModel):
         return cls.query()
 
     @classmethod
-    def list_by_status(cls, status):
-        return cls.query() \
-            .filter(cls.status == status)
-
-    @classmethod
     def list_by_user(cls, app_user):
         return cls.query() \
             .filter(cls.app_user == app_user)
@@ -74,11 +77,3 @@ class InvestmentAgreement(NdbModel):
         # type: (users.User, int) -> list[InvestmentAgreement]
         statuses = [statuses] if isinstance(statuses, int) else statuses
         return [investment for investment in cls.list_by_user(app_user) if investment.status in statuses]
-
-    @classmethod
-    def fetch_page(cls, cursor=None, status=None):
-        # type: (unicode) -> tuple[list[InvestmentAgreement], ndb.Cursor, bool]
-        qry = cls.list_by_status(status) if status is not None else cls.list()
-        return qry \
-            .order(-cls.creation_time) \
-            .fetch_page(cls.PER_PAGE, start_cursor=ndb.Cursor(urlsafe=cursor))

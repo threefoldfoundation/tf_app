@@ -10,13 +10,13 @@ export function getTffState(state$: Observable<IAppState>) {
 
 
 export const getOrders = compose(fromTff.getOrders, getTffState);
-export const getNodeOrdersType = compose(fromTff.getNodeOrdersType, getTffState);
+export const getNodeOrdersQuery = compose(fromTff.getNodeOrdersQuery, getTffState);
 export const getOrdersStatus = compose(fromTff.getOrdersStatus, getTffState);
 export const getOrder = compose(fromTff.getOrder, getTffState);
 export const getOrderStatus = compose(fromTff.getOrderStatus, getTffState);
 export const updateOrderStatus = compose(fromTff.updateOrderStatus, getTffState);
 export const getInvestmentAgreements = compose(fromTff.getInvestmentAgreements, getTffState);
-export const getInvestmentAgreementsType = compose(fromTff.getInvestmentAgreementsType, getTffState);
+export const getInvestmentAgreementsQuery = compose(fromTff.getInvestmentAgreementsQuery, getTffState);
 export const getInvestmentAgreementsStatus = compose(fromTff.getInvestmentAgreementsStatus, getTffState);
 export const getInvestmentAgreement = compose(fromTff.getInvestmentAgreement, getTffState);
 export const getInvestmentAgreementStatus = compose(fromTff.getInvestmentAgreementStatus, getTffState);

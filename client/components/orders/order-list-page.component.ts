@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
-import { GetNodeOrdersPayload, NodeOrderList, NodeOrderStatuses } from '../../interfaces/nodes.interfaces';
-import { getNodeOrdersType, getOrders, getOrdersStatus } from '../../tff.state';
+import { NodeOrderList, NodeOrdersQuery } from '../../interfaces/nodes.interfaces';
+import { getNodeOrdersQuery, getOrders, getOrdersStatus } from '../../tff.state';
 import { GetOrdersAction } from '../../actions/threefold.action';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
@@ -16,13 +16,13 @@ import { Subscription } from 'rxjs/Subscription';
   template: `
     <tff-order-list [orders]="orders$ | async"
                     [listStatus]="listStatus$ | async"
-                    [status]="listType$ | async"
-                    (onLoadOrders)="loadOrders($event)"></tff-order-list>`
+                    [query]="query$ | async"
+                    (onQuery)="loadOrders($event)"></tff-order-list>`
 })
 export class OrderListPageComponent implements OnInit, OnDestroy {
   orders$: Observable<NodeOrderList>;
   listStatus$: Observable<ApiRequestStatus>;
-  listType$: Observable<NodeOrderStatuses>;
+  query$: Observable<NodeOrdersQuery>;
 
   private _sub: Subscription;
 
@@ -31,12 +31,13 @@ export class OrderListPageComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.listStatus$ = this.store.let(getOrdersStatus);
-    this.listType$ = this.store.let(getNodeOrdersType);
-    this.orders$ = this.store.let(getOrders).withLatestFrom(this.listType$)
-      .map(([ result, status ]) => ({ ...result, results: result.results.filter(o => o.status === status) }));
+    this.query$ = this.store.let(getNodeOrdersQuery);
+    this.orders$ = this.store.let(getOrders).withLatestFrom(this.query$)
+      .map(([ result, query ]) => ({ ...result, results: result.results.filter(o => query.status ? o.status === query.status : true) }));
     this._sub = this.orders$.first().subscribe(result => {
+      // Load some orders on initial page load
       if (!result.results.length) {
-        this.store.dispatch(new GetOrdersAction({ cursor: null, status: NodeOrderStatuses.SIGNED }));
+        this.loadOrders({ cursor: null, status: null, query: null });
       }
     });
   }
@@ -45,7 +46,7 @@ export class OrderListPageComponent implements OnInit, OnDestroy {
     this._sub.unsubscribe();
   }
 
-  loadOrders(payload: GetNodeOrdersPayload) {
+  loadOrders(payload: NodeOrdersQuery) {
     this.store.dispatch(new GetOrdersAction(payload));
   }
 }
