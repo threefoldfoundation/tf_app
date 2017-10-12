@@ -22,6 +22,7 @@ from framework.consts import WEEK
 from framework.models.common import NdbModel
 from framework.plugin_loader import get_config
 from framework.utils import chunks, now
+from framework.utils.transactions import on_trans_committed
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -75,6 +76,13 @@ class NodeOrder(NdbModel):
     def _pre_put_hook(self):
         self.modification_time = now()
 
+    def _post_put_hook(self, future):
+        from plugins.tff_backend.dal.node_orders import index_node_order
+        if ndb.in_transaction():
+            on_trans_committed(index_node_order, self)
+        else:
+            index_node_order(self)
+
     @property
     def iyo_username(self):
         from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
@@ -109,14 +117,6 @@ class NodeOrder(NdbModel):
     def list_by_status(cls, status):
         return cls.query() \
             .filter(cls.status == status)
-
-    @classmethod
-    def fetch_page(cls, cursor=None, status=None):
-        # type: (unicode) -> tuple[list[NodeOrder], ndb.Cursor, bool]
-        qry = cls.list_by_status(status) if status is not None else cls.list()
-        return qry \
-            .order(-cls.order_time) \
-            .fetch_page(cls.NODE_ORDERS_PER_PAGE, start_cursor=ndb.Cursor(urlsafe=cursor))
 
     @classmethod
     def list_by_user(cls, app_user):

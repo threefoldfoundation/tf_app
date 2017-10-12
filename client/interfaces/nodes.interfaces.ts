@@ -50,15 +50,16 @@ export interface NodeOrderDetail extends NodeOrder {
   see_document: SeeDocumentDetails;
 }
 
+export interface NodeOrdersQuery {
+  cursor: string | null;
+  status: NodeOrderStatuses | null;
+  query: string | null;
+}
+
 export interface NodeOrderList {
   cursor: string | null;
   more: boolean;
   results: NodeOrder[];
-}
-
-export interface GetNodeOrdersPayload {
-  cursor: string | null;
-  status: NodeOrderStatuses;
 }
 
 export const ORDER_STATUSES = [

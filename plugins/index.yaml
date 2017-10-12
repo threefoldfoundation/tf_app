@@ -2,19 +2,7 @@ indexes:
 - kind: NodeOrder
   properties:
   - name: status
-  - name: order_time
-    direction: desc
-
-- kind: NodeOrder
-  properties:
-  - name: status
   - name: send_time
-
-- kind: InvestmentAgreement
-  properties:
-  - name: status
-  - name: creation_time
-    direction: desc
 
 # ======================================================= PAYMENT ======================================================
 

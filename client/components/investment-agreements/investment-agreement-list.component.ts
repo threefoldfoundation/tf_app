@@ -1,11 +1,13 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import {
-  GetInvestmentAgreementsPayload,
   INVESTMENT_AGREEMENT_STATUSES,
   InvestmentAgreementList,
+  InvestmentAgreementsQuery,
   InvestmentAgreementsStatuses
 } from '../../interfaces/index';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
+import { Subject } from 'rxjs/Subject';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   moduleId: module.id,
@@ -17,26 +19,45 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
     padding: 16px;
   }` ]
 })
-export class InvestmentAgreementListComponent {
-
-  @Input() investmentAgreements: InvestmentAgreementList;
-  @Input() status: InvestmentAgreementsStatuses;
-  @Input() listStatus: ApiRequestStatus;
-  @Output() onLoadInvestmentAgreements = new EventEmitter<GetInvestmentAgreementsPayload>();
+export class InvestmentAgreementListComponent implements OnInit, OnDestroy {
   statuses: { label: string, value: InvestmentAgreementsStatuses }[] = Object.keys(INVESTMENT_AGREEMENT_STATUSES).map(status => ({
     label: INVESTMENT_AGREEMENT_STATUSES[ parseInt(status) ],
     value: parseInt(status)
   }));
 
-  getStatusString(): string {
-    return INVESTMENT_AGREEMENT_STATUSES[ this.status ];
+  @Input() investmentAgreements: InvestmentAgreementList;
+  @Input() status: InvestmentAgreementsStatuses;
+  @Input() listStatus: ApiRequestStatus;
+  @Output() onQuery = new EventEmitter<InvestmentAgreementsQuery>();
+  private _debouncedQuery = new Subject<InvestmentAgreementsQuery>();
+  private _querySub: Subscription;
+
+  private _query: InvestmentAgreementsQuery;
+
+  get query() {
+    return this._query;
   }
 
-  onStatusChange() {
-    this.onLoadInvestmentAgreements.emit({ cursor: null, status: this.status });
+  @Input() set query(value: InvestmentAgreementsQuery) {
+    this._query = { ...value };
   }
 
-  loadMore() {
-    this.onLoadInvestmentAgreements.emit({ cursor: this.investmentAgreements.cursor, status: this.status });
+  ngOnInit() {
+    this._querySub = this._debouncedQuery
+      .debounceTime(300)
+      .distinctUntilChanged()
+      .subscribe(query => this.onQuery.emit(query));
+  }
+
+  ngOnDestroy() {
+    this._querySub.unsubscribe();
+  }
+
+  submitImmediately() {
+    this.onQuery.emit(this.query);
+  }
+
+  submit() {
+    this._debouncedQuery.next(this.query);
   }
 }

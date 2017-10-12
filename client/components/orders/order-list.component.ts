@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
-import { GetNodeOrdersPayload, NodeOrderList, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/index';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { NodeOrderList, NodeOrdersQuery, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/index';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
+import { Subject } from 'rxjs/Subject';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   moduleId: module.id,
@@ -13,22 +15,41 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
   }
   ` ]
 })
-export class OrderListComponent {
+export class OrderListComponent implements OnInit, OnDestroy {
+  statuses = ORDER_STATUSES;
   @Input() orders: NodeOrderList;
   @Input() listStatus: ApiRequestStatus;
   @Input() status: NodeOrderStatuses;
-  @Output() onLoadOrders = new EventEmitter<GetNodeOrdersPayload>();
-  statuses = ORDER_STATUSES;
+  @Output() onQuery = new EventEmitter<NodeOrdersQuery>();
+  private _debouncedQuery = new Subject<NodeOrdersQuery>();
+  private _querySub: Subscription;
 
-  getStatusString(): string {
-    return ORDER_STATUSES.find(s => s.value === this.status).label;
+  private _query: NodeOrdersQuery;
+
+  get query() {
+    return this._query;
   }
 
-  onStatusChange() {
-    this.onLoadOrders.emit({ cursor: null, status: this.status });
+  @Input() set query(value: NodeOrdersQuery) {
+    this._query = { ...value };
   }
 
-  loadMore() {
-    this.onLoadOrders.emit({ cursor: this.orders.cursor, status: this.status });
+  ngOnInit() {
+    this._querySub = this._debouncedQuery
+      .debounceTime(300)
+      .distinctUntilChanged()
+      .subscribe(query => this.onQuery.emit(query));
+  }
+
+  ngOnDestroy() {
+    this._querySub.unsubscribe();
+  }
+
+  submitImmediately() {
+    this.onQuery.emit(this.query);
+  }
+
+  submit() {
+    this._debouncedQuery.next(this.query);
   }
 }

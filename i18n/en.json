@@ -3,6 +3,7 @@
   "tff": {
     "add_currency": "Add currency",
     "address": "Address",
+    "all": "All",
     "amount": "Amount",
     "approve_order": "Approve order",
     "approved": "Approved",
@@ -24,9 +25,9 @@
     "document_url": "Document url",
     "email": "Email",
     "errors": {
+      "cannot_change_status": "Cannot update the status, the status might have been changed by someone else.",
       "invalid_currencies": "Invalid currencies: {{ currencies }}",
-      "invalid_status": "Invalid status",
-      "cannot_change_status": "Cannot update the status, the status might have been changed by someone else."
+      "invalid_status": "Invalid status"
     },
     "global_stats": "Global stats",
     "i_am_a_member": "I am a member",
@@ -50,6 +51,7 @@
     "phone": "Phone",
     "register_to_threefold": "Register to threefold",
     "save": "Save",
+    "search": "Search",
     "send_time": "Send time",
     "sent": "Sent",
     "shipping_address": "Shipping address",
