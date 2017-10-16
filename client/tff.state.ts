@@ -10,13 +10,13 @@ export function getTffState(state$: Observable<IAppState>): Observable<ITffState
 }
 
 export const getOrders = compose(fromTff._getOrders, getTffState);
-export const getNodeOrdersType = compose(fromTff._getNodeOrdersType, getTffState);
+export const getNodeOrdersQuery = compose(fromTff._getNodeOrdersQuery, getTffState);
 export const getOrdersStatus = compose(fromTff._getOrdersStatus, getTffState);
 export const getOrder = compose(fromTff._getOrder, getTffState);
 export const getOrderStatus = compose(fromTff._getOrderStatus, getTffState);
 export const updateOrderStatus = compose(fromTff._updateOrderStatus, getTffState);
 export const getInvestmentAgreements = compose(fromTff._getInvestmentAgreements, getTffState);
-export const getInvestmentAgreementsType = compose(fromTff._getInvestmentAgreementsType, getTffState);
+export const getInvestmentAgreementsQuery = compose(fromTff._getInvestmentAgreementsQuery, getTffState);
 export const getInvestmentAgreementsStatus = compose(fromTff._getInvestmentAgreementsStatus, getTffState);
 export const getInvestmentAgreement = compose(fromTff._getInvestmentAgreement, getTffState);
 export const getInvestmentAgreementStatus = compose(fromTff._getInvestmentAgreementStatus, getTffState);
@@ -38,21 +38,3 @@ export const getBalanceStatus = compose(fromTff._getBalanceStatus, getTffState);
 export const getUserTransactions = compose(fromTff._getUserTransactions, getTffState);
 export const getUserTransactionsStatus = compose(fromTff._getUserTransactionsStatus, getTffState);
 export const createTransactionStatus = compose(fromTff._createTransactionStatus, getTffState);
-
-export const getOrders = compose(fromTff.getOrders, getTffState);
-export const getNodeOrdersQuery = compose(fromTff.getNodeOrdersQuery, getTffState);
-export const getOrdersStatus = compose(fromTff.getOrdersStatus, getTffState);
-export const getOrder = compose(fromTff.getOrder, getTffState);
-export const getOrderStatus = compose(fromTff.getOrderStatus, getTffState);
-export const updateOrderStatus = compose(fromTff.updateOrderStatus, getTffState);
-export const getInvestmentAgreements = compose(fromTff.getInvestmentAgreements, getTffState);
-export const getInvestmentAgreementsQuery = compose(fromTff.getInvestmentAgreementsQuery, getTffState);
-export const getInvestmentAgreementsStatus = compose(fromTff.getInvestmentAgreementsStatus, getTffState);
-export const getInvestmentAgreement = compose(fromTff.getInvestmentAgreement, getTffState);
-export const getInvestmentAgreementStatus = compose(fromTff.getInvestmentAgreementStatus, getTffState);
-export const updateInvestmentAgreementStatus = compose(fromTff.updateInvestmentAgreementStatus, getTffState);
-export const getGlobalStatsList = compose(fromTff.getGlobalStatsList, getTffState);
-export const getGlobalStatsListStatus = compose(fromTff.getGlobalStatsListStatus, getTffState);
-export const getGlobalStats = compose(fromTff.getGlobalStats, getTffState);
-export const getGlobalStatsStatus = compose(fromTff.getGlobalStatsStatus, getTffState);
-export const updateGlobalStatsStatus = compose(fromTff.updateGlobalStatsStatus, getTffState);

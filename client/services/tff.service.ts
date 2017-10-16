@@ -1,14 +1,19 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
-import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import {
-  GetInvestmentAgreementsPayload,
+  CreateTransactionPayload,
+  GlobalStats,
   InvestmentAgreement,
-  InvestmentAgreementList
-} from '../interfaces/investment-agreements.interfaces';
-import { GetNodeOrdersPayload, NodeOrder, NodeOrderList } from '../interfaces/nodes.interfaces';
-import { CreateTransactionPayload, Transaction, TransactionList, WalletBalance } from '../interfaces/transactions';
+  InvestmentAgreementList,
+  InvestmentAgreementsQuery,
+  NodeOrder,
+  NodeOrderList,
+  NodeOrdersQuery,
+  Transaction,
+  TransactionList,
+  WalletBalance
+} from '../interfaces/index';
 import { TffConfig } from './tff-config.service';
 
 @Injectable()
@@ -18,13 +23,7 @@ export class TffService {
   }
 
   getNodeOrders(payload: NodeOrdersQuery) {
-    let params = new HttpParams();
-    const q = <Array<keyof NodeOrdersQuery>>Object.keys(payload);
-    for (const key of q) {
-      if (payload[ key ] !== null) {
-        params = params.set(key, payload[ key ].toString());
-      }
-    }
+    const params = this._getQueryParams(payload);
     return this.http.get<NodeOrderList>(`${TffConfig.API_URL}/orders`, { params });
   }
 
@@ -37,13 +36,7 @@ export class TffService {
   }
 
   getInvestmentAgreements(payload: InvestmentAgreementsQuery) {
-    let params = new HttpParams();
-    const q = <Array<keyof InvestmentAgreementsQuery>>Object.keys(payload);
-    for (const key of q) {
-      if (payload[ key ] !== null) {
-        params = params.set(key, payload[ key ].toString());
-      }
-    }
+    const params = this._getQueryParams(payload);
     return this.http.get<InvestmentAgreementList>(`${TffConfig.API_URL}/investment-agreements`, { params });
   }
 
@@ -68,13 +61,7 @@ export class TffService {
   }
 
   searchUsers(payload: SearchUsersQuery) {
-    let params = new HttpParams();
-    const q = <[ keyof SearchUsersQuery ]>Object.keys(payload);
-    for (const key of q) {
-      if (payload[ key ] !== null) {
-        params = params.set(key, encodeURIComponent(payload[ key ].toString()));
-      }
-    }
+    const params = this._getQueryParams(payload);
     return this.http.get<UserList>(`${TffConfig.API_URL}/users`, { params });
   }
 
@@ -94,5 +81,16 @@ export class TffService {
     let data: Partial<CreateTransactionPayload> = { ...payload };
     delete data.username;
     return this.http.post<Transaction>(`${TffConfig.API_URL}/users/${encodeURIComponent(payload.username)}/transactions`, data);
+  }
+
+  private _getQueryParams<T>(queryObject: T): HttpParams {
+    let params = new HttpParams();
+    const q = <[ keyof T ]>Object.keys(queryObject);
+    for (const key of q) {
+      if (queryObject[ key ] !== null) {
+        params = params.set(key, encodeURIComponent(queryObject[ key ].toString()));
+      }
+    }
+    return params;
   }
 }

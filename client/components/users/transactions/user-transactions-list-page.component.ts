@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { IAppState } from '../../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../../framework/client/rpc/rpc.interfaces';
 import { GetBalanceAction, GetUserTransactionsAction } from '../../../actions/threefold.action';
-import { TransactionList, WalletBalance } from '../../../interfaces/transactions';
+import { TransactionList, WalletBalance } from '../../../interfaces/transactions.interfaces';
 import { getBalance, getBalanceStatus, getUserTransactions, getUserTransactionsStatus } from '../../../tff.state';
 
 @Component({

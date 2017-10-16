@@ -1,15 +1,20 @@
 import { Action } from '@ngrx/store';
 import { type } from '../../../framework/client/core/utils/type';
 import { ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
-import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
-import { GlobalStats } from '../interfaces/global-stats.interfaces';
+import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/index';
 import {
-  GetInvestmentAgreementsPayload,
+  CreateTransactionPayload,
+  GlobalStats,
   InvestmentAgreement,
-  InvestmentAgreementList
-} from '../interfaces/investment-agreements.interfaces';
-import { GetNodeOrdersPayload, NodeOrder, NodeOrderList } from '../interfaces/nodes.interfaces';
-import { CreateTransactionPayload, Transaction, TransactionList, WalletBalance } from '../interfaces/transactions';
+  InvestmentAgreementList,
+  InvestmentAgreementsQuery,
+  NodeOrder,
+  NodeOrderList,
+  NodeOrdersQuery,
+  Transaction,
+  TransactionList,
+  WalletBalance
+} from '../interfaces/index';
 
 // duplicated code needed else the type of the action type is only 'string'
 

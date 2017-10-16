@@ -2,8 +2,6 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnI
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import {
   INVESTMENT_AGREEMENT_STATUSES,
   InvestmentAgreementList,

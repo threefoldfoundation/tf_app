@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { Transaction, TransactionList } from '../../interfaces/transactions';
+import { Transaction, TransactionList } from '../../interfaces/transactions.interfaces';
 
 @Component({
   moduleId: module.id,

@@ -1,4 +1,6 @@
 import { Observable } from 'rxjs/Observable';
+import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
+import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/interfaces/index';
 import {
   GlobalStats,
   InvestmentAgreement,
@@ -6,15 +8,11 @@ import {
   InvestmentAgreementsQuery,
   NodeOrder,
   NodeOrderList,
-  NodeOrdersQuery
+  NodeOrdersQuery,
+  PaginatedResult,
+  TransactionList,
+  WalletBalance
 } from '../interfaces/index';
-import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
-import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
-import { GlobalStats } from '../interfaces/global-stats.interfaces';
-import { InvestmentAgreement, InvestmentAgreementList, InvestmentAgreementsStatuses } from '../interfaces/investment-agreements.interfaces';
-import { NodeOrder, NodeOrderList, NodeOrderStatuses } from '../interfaces/nodes.interfaces';
-import { PaginatedResult } from '../interfaces/shared.interfaces';
-import { TransactionList, WalletBalance } from '../interfaces/transactions';
 
 export interface ITffState {
   orders: NodeOrderList;
@@ -97,7 +95,7 @@ export function _getOrders(state$: Observable<ITffState>) {
   return state$.select(state => state.orders);
 }
 
-export function getNodeOrdersQuery(state$: Observable<ITffState>) {
+export function _getNodeOrdersQuery(state$: Observable<ITffState>) {
   return state$.select(state => state.ordersQuery);
 }
 
@@ -121,7 +119,7 @@ export function _getInvestmentAgreements(state$: Observable<ITffState>) {
   return state$.select(state => state.investmentAgreements);
 }
 
-export function getInvestmentAgreementsQuery(state$: Observable<ITffState>) {
+export function _getInvestmentAgreementsQuery(state$: Observable<ITffState>) {
   return state$.select(state => state.investmentAgreementsQuery);
 }
 

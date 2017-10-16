@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { IAppState } from '../../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../../framework/client/rpc/rpc.interfaces';
 import { CreateTransactionAction, ResetNewTransactionAction } from '../../../actions/threefold.action';
-import { CreateTransactionPayload, TokenTypes } from '../../../interfaces/transactions';
+import { CreateTransactionPayload, TokenTypes } from '../../../interfaces/transactions.interfaces';
 import { createTransactionStatus } from '../../../tff.state';
 
 @Component({

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { CreateTransactionPayload, TokenTypes } from '../../interfaces/transactions';
+import { CreateTransactionPayload, TokenTypes } from '../../interfaces/transactions.interfaces';
 
 @Component({
   moduleId: module.id,

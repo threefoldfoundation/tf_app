@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 import { ApiRequestStatus } from '../../../../../framework/client/rpc/rpc.interfaces';
-import { WalletBalance } from '../../../interfaces/transactions';
+import { WalletBalance } from '../../../interfaces/transactions.interfaces';
 
 @Component({
   moduleId: module.id,
