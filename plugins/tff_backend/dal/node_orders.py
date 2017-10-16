@@ -64,24 +64,25 @@ def multi_index_node_order(order_keys):
 
 def create_node_order_document(order):
     order_id_str = '%s' % order.id
-    return search.Document(
-        doc_id=order_id_str,
-        fields=[
-            search.AtomField(name='id', value=order_id_str),
-            search.AtomField(name='socket', value=order.socket),
-            search.NumberField(name='so', value=order.odoo_sale_order_id or -1),
-            search.NumberField(name='status', value=order.status),
-            search.DateField(name='order_time', value=datetime.utcfromtimestamp(order.order_time)),
-            search.TextField(name='username', value=order.iyo_username),
-            search.TextField(name='shipping_name', value=order.shipping_info.name),
-            search.TextField(name='shipping_email', value=order.shipping_info.email),
-            search.TextField(name='shipping_phone', value=order.shipping_info.phone),
-            search.TextField(name='shipping_address', value=order.shipping_info.address),
-            search.TextField(name='billing_name', value=order.billing_info.name),
-            search.TextField(name='billing_email', value=order.billing_info.email),
-            search.TextField(name='billing_phone', value=order.billing_info.phone),
-            search.TextField(name='billing_address', value=order.billing_info.address),
-        ])
+    fields = [
+        search.AtomField(name='id', value=order_id_str),
+        search.AtomField(name='socket', value=order.socket),
+        search.NumberField(name='so', value=order.odoo_sale_order_id or -1),
+        search.NumberField(name='status', value=order.status),
+        search.DateField(name='order_time', value=datetime.utcfromtimestamp(order.order_time)),
+        search.TextField(name='username', value=order.iyo_username),
+    ]
+    if order.shipping_info:
+        fields.extend([search.TextField(name='shipping_name', value=order.shipping_info.name),
+                       search.TextField(name='shipping_email', value=order.shipping_info.email),
+                       search.TextField(name='shipping_phone', value=order.shipping_info.phone),
+                       search.TextField(name='shipping_address', value=order.shipping_info.address)])
+    if order.billing_info:
+        fields.extend([search.TextField(name='billing_name', value=order.billing_info.name),
+                       search.TextField(name='billing_email', value=order.billing_info.email),
+                       search.TextField(name='billing_phone', value=order.billing_info.phone),
+                       search.TextField(name='billing_address', value=order.billing_info.address)])
+    return search.Document(order_id_str, fields)
 
 
 def search_node_orders(query=None, per_page=20, cursor=None):

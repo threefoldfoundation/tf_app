@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { Subject } from 'rxjs/Subject';
+import { Subscription } from 'rxjs/Subscription';
+import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import {
   INVESTMENT_AGREEMENT_STATUSES,
   InvestmentAgreementList,
   InvestmentAgreementsQuery,
   InvestmentAgreementsStatuses
 } from '../../interfaces/index';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { Subject } from 'rxjs/Subject';
-import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   moduleId: module.id,
@@ -21,7 +21,7 @@ import { Subscription } from 'rxjs/Subscription';
 })
 export class InvestmentAgreementListComponent implements OnInit, OnDestroy {
   statuses: { label: string, value: InvestmentAgreementsStatuses }[] = Object.keys(INVESTMENT_AGREEMENT_STATUSES).map(status => ({
-    label: INVESTMENT_AGREEMENT_STATUSES[ parseInt(status) ],
+    label: INVESTMENT_AGREEMENT_STATUSES[ <InvestmentAgreementsStatuses>parseInt(status) ],
     value: parseInt(status)
   }));
 
