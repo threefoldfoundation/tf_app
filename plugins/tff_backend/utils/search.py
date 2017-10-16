@@ -36,6 +36,6 @@ def sanitise_search_query(query, filters):
             query = query.replace(s, '')
     filtered_query = query
     for key, value in filters.iteritems():
-        if value and key:
+        if value is not None and key:
             filtered_query += ' %s:%s' % (key, value)
     return filtered_query.strip()
