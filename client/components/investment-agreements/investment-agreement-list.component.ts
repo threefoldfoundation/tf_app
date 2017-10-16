@@ -53,11 +53,16 @@ export class InvestmentAgreementListComponent implements OnInit, OnDestroy {
     this._querySub.unsubscribe();
   }
 
-  submitImmediately() {
-    this.onQuery.emit(this.query);
+  submit(debounced: boolean = true) {
+    this.query = { ...this.query, cursor: null };
+    if (debounced) {
+      this._debouncedQuery.next(this.query);
+    } else {
+      this.onQuery.emit(this.query);
+    }
   }
 
-  submit() {
-    this._debouncedQuery.next(this.query);
+  loadMore() {
+    this.onQuery.emit(this.query);
   }
 }

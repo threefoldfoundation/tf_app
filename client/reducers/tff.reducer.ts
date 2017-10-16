@@ -1,9 +1,9 @@
-import { initialTffState, ITffState } from '../states/index';
+import { updateItem } from '../../../framework/client/ngrx/redux-utils';
+import { apiRequestLoading, apiRequestSuccess } from '../../../framework/client/rpc/rpc.interfaces';
 import * as actions from '../actions/threefold.action';
 import { GetOrderCompleteAction } from '../actions/threefold.action';
-import { InvestmentAgreementsQuery, InvestmentAgreementList, NodeOrderList, NodeOrdersQuery } from '../interfaces/index';
-import { apiRequestLoading, apiRequestSuccess } from '../../../framework/client/rpc/rpc.interfaces';
-import { updateItem } from '../../../framework/client/ngrx/redux-utils';
+import { InvestmentAgreementList, InvestmentAgreementsQuery, NodeOrderList, NodeOrdersQuery } from '../interfaces/index';
+import { initialTffState, ITffState } from '../states/index';
 
 export function tffReducer(state: ITffState = initialTffState,
                            action: actions.TffActions): ITffState {
@@ -22,6 +22,10 @@ export function tffReducer(state: ITffState = initialTffState,
           cursor: (<NodeOrderList>action.payload).cursor,
           more: (<NodeOrderList>action.payload).more,
           results: [ ...state.orders.results, ...(<NodeOrderList>action.payload).results ],
+        },
+        ordersQuery: {
+          ...state.ordersQuery,
+          cursor: (<NodeOrderList>action.payload).cursor
         },
         ordersStatus: apiRequestSuccess,
       };
@@ -90,6 +94,10 @@ export function tffReducer(state: ITffState = initialTffState,
           results: [ ...state.investmentAgreements.results, ...(<InvestmentAgreementList>action.payload).results ]
         },
         investmentAgreementsStatus: apiRequestSuccess,
+        investmentAgreementsQuery: {
+          ...state.investmentAgreementsQuery,
+          cursor: (<InvestmentAgreementList>action.payload).cursor
+        }
       };
     case actions.TffActionTypes.GET_INVESTMENT_AGREEMENTS_FAILED:
       return {

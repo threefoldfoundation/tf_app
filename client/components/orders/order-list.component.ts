@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewEncapsulation } from '@angular/core';
-import { NodeOrderList, NodeOrdersQuery, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/index';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
+import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
+import { NodeOrderList, NodeOrdersQuery, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/index';
 
 @Component({
   moduleId: module.id,
@@ -45,11 +45,16 @@ export class OrderListComponent implements OnInit, OnDestroy {
     this._querySub.unsubscribe();
   }
 
-  submitImmediately() {
-    this.onQuery.emit(this.query);
+  submit(debounced: boolean = true) {
+    this.query = { ...this.query, cursor: null };
+    if (debounced) {
+    this._debouncedQuery.next(this.query);
+    } else {
+      this.onQuery.emit(this.query);
+    }
   }
 
-  submit() {
-    this._debouncedQuery.next(this.query);
+  loadMore() {
+    this.onQuery.emit(this.query);
   }
 }

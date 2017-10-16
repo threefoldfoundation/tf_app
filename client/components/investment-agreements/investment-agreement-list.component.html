@@ -1,6 +1,6 @@
 <div class="investment-agreements-content">
   <form fxLayout="row" fxLayout.sm="column">
-    <md-select name="investment_status" [(ngModel)]="query.status" (ngModelChange)="submitImmediately()"
+    <md-select name="investment_status" [(ngModel)]="query.status" (ngModelChange)="submit(false)"
                [placeholder]="'tff.status' | translate" fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%">
       <md-option [value]="null">{{ 'tff.all' | translate }}</md-option>
     <md-option *ngFor="let status of statuses" [value]="status.value">{{ status.label | translate }}</md-option>
@@ -21,7 +21,7 @@
         <p mdLine>{{ agreement.creation_time | timestamp }}</p>
       </md-list-item>
     </a>
-    <button md-button *ngIf="investmentAgreements.more" (click)="submit()">
+    <button md-button *ngIf="investmentAgreements.more" (click)="loadMore()">
       {{ 'tff.load_more' | translate }}
     </button>
   </md-nav-list>
