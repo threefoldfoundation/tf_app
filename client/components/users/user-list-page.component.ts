@@ -12,8 +12,9 @@ import { getUserList, getUserQueryList } from '../../tff.state';
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <user-list [userList]="userList$ | async" [query]="query$ | async" (onQuery)="onQuery($event)"></user-list>
-    <router-outlet></router-outlet>`
+    <div class="default-component-padding">
+      <user-list [userList]="userList$ | async" [query]="query$ | async" (onQuery)="onQuery($event)"></user-list>
+    </div>`
 })
 
 export class UserListPageComponent implements OnInit {

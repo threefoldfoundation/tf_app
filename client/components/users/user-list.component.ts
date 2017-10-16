@@ -42,7 +42,8 @@ export class UserListComponent implements OnInit, OnDestroy {
     return user.info && user.info.firstname ? `${user.info.firstname} ${user.info.lastname}` : user.username;
   }
 
-  search() {
+  submit() {
+    this.query = { ...this.query, cursor: null };
     this._debouncedQuery.next(this.query);
   }
 

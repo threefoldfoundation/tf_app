@@ -1,10 +1,9 @@
-<form>
+<form (submit)="submit()">
   <md-form-field>
     <input type="search" name="search_users" [(ngModel)]="query.query" mdInput
-           [placeholder]="'tff.search' | translate" (ngModelChange)="search()">
+           [placeholder]="'tff.search' | translate" (ngModelChange)="submit()">
   </md-form-field>
 </form>
-
 <md-nav-list>
   <a *ngFor="let user of userList.results" [routerLink]="[user.username, 'transactions']" md-list-item>
     <h4 mdLine>{{ getUserName(user) }}</h4>

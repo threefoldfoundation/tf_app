@@ -374,7 +374,7 @@ def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None, epoc
     if amount <= 0:
         raise HttpBadRequestException('invalid_amount')
     # Validate that this user has a profile
-    get_profile(get_iyo_username(app_user), False)
+    get_profile(get_iyo_username(app_user))
     if epoch > 0:
         date_signed = datetime.utcfromtimestamp(epoch)
     else:

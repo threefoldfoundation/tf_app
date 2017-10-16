@@ -72,10 +72,9 @@ export class TffService {
     const q = <[ keyof SearchUsersQuery ]>Object.keys(payload);
     for (const key of q) {
       if (payload[ key ] !== null) {
-        params = params.set(key, payload[ key ].toString());
+        params = params.set(key, encodeURIComponent(payload[ key ].toString()));
       }
     }
-    params = params.set('page_size', '1');
     return this.http.get<UserList>(`${TffConfig.API_URL}/users`, { params });
   }
 
