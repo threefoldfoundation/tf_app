@@ -27,17 +27,17 @@ from plugins.tff_backend.to.audit import AuditLogDetailsListTO
 
 @rest('/audit-logs', 'get', Scopes.ADMINS)
 @returns(AuditLogDetailsListTO)
-@arguments(per_page=(int, long), cursor=unicode, type=unicode, user_id=unicode, include_reference=bool)
-def api_list_audit_logs(per_page=100, cursor=None, type=None, user_id=None, include_reference=True):
-    per_page = min(1000, per_page)
+@arguments(page_size=(int, long), cursor=unicode, type=unicode, user_id=unicode, include_reference=bool)
+def api_list_audit_logs(page_size=100, cursor=None, type=None, user_id=None, include_reference=True):
+    page_size = min(1000, page_size)
     if type and type not in AuditLogMapping:
         raise HttpBadRequestException('invalid_type', {'allowed_types': AuditLogMapping.keys()})
     if type and user_id:
-        query_results = list_audit_logs_by_type_and_user(type, user_id, per_page, cursor)
+        query_results = list_audit_logs_by_type_and_user(type, user_id, page_size, cursor)
     elif type:
-        query_results = list_audit_logs_by_type(type, per_page, cursor)
+        query_results = list_audit_logs_by_type(type, page_size, cursor)
     elif user_id:
-        query_results = list_audit_logs_by_user(user_id, per_page, cursor)
+        query_results = list_audit_logs_by_user(user_id, page_size, cursor)
     else:
-        query_results = list_audit_logs(per_page, cursor)
+        query_results = list_audit_logs(page_size, cursor)
     return list_audit_logs_details(query_results, include_reference)

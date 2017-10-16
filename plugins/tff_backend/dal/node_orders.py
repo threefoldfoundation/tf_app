@@ -85,9 +85,9 @@ def create_node_order_document(order):
     return search.Document(order_id_str, fields)
 
 
-def search_node_orders(query=None, per_page=20, cursor=None):
+def search_node_orders(query=None, page_size=20, cursor=None):
     # type: (unicode, int, unicode) -> tuple[list[NodeOrder], search.Cursor, bool]
-    options = search.QueryOptions(limit=per_page,
+    options = search.QueryOptions(limit=page_size,
                                   cursor=search.Cursor(cursor),
                                   ids_only=True,
                                   sort_options=search.SortOptions(

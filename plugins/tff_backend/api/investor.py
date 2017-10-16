@@ -34,12 +34,12 @@ from plugins.tff_backend.utils.search import sanitise_search_query
 
 @rest('/investment-agreements', 'get', Scopes.TEAM)
 @returns(InvestmentAgreementListTO)
-@arguments(per_page=(int, long), cursor=unicode, query=unicode, status=(int, long))
-def api_get_investment_agreements(per_page=20, cursor=None, query=None, status=None):
-    per_page = min(per_page, MAXIMUM_DOCUMENTS_RETURNED_PER_SEARCH)
+@arguments(page_size=(int, long), cursor=unicode, query=unicode, status=(int, long))
+def api_get_investment_agreements(page_size=20, cursor=None, query=None, status=None):
+    page_size = min(page_size, MAXIMUM_DOCUMENTS_RETURNED_PER_SEARCH)
     filters = {'status': status}
     return InvestmentAgreementListTO.from_search(
-        *search_investment_agreements(sanitise_search_query(query, filters), per_page, cursor))
+        *search_investment_agreements(sanitise_search_query(query, filters), page_size, cursor))
 
 
 @rest('/investment-agreements/<agreement_id:[^/]+>', 'get', Scopes.TEAM)
