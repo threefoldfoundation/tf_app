@@ -1,9 +1,13 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { InvestmentAgreement, InvestmentAgreementsStatuses, } from '../../interfaces/index';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { INVESTMENT_AGREEMENT_STATUSES, InvestmentAgreementDetail, } from '../../interfaces/investment-agreements.interfaces';
 import { GlobalStats } from '../../interfaces/global-stats.interfaces';
+import {
+  INVESTMENT_AGREEMENT_STATUSES,
+  InvestmentAgreement,
+  InvestmentAgreementDetail,
+  InvestmentAgreementsStatuses
+} from '../../interfaces/investment-agreements.interfaces';
 
 @Component({
   moduleId: module.id,

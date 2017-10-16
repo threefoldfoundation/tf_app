@@ -3,10 +3,15 @@ import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { getInvestmentAgreements, getInvestmentAgreementsQuery, getInvestmentAgreementsStatus } from '../../tff.state';
 import { InvestmentAgreementList, InvestmentAgreementsQuery } from '../../interfaces/index';
+import { Subscription } from 'rxjs/Subscription';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import { GetInvestmentAgreementsAction } from '../../actions/threefold.action';
-import { Subscription } from 'rxjs/Subscription';
+import {
+  GetInvestmentAgreementsPayload,
+  InvestmentAgreementList,
+} from '../../interfaces/investment-agreements.interfaces';
+import { getInvestmentAgreements, getInvestmentAgreementsStatus, getInvestmentAgreementsType } from '../../tff.state';
 
 @Component({
   moduleId: module.id,

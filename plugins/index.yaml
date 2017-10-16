@@ -15,9 +15,22 @@ indexes:
 
 - kind: ThreeFoldTransaction
   properties:
+  - name: app_users
+  - name: timestamp
+    direction: desc
+
+- kind: ThreeFoldTransaction
+  properties:
   - name: fully_spent
   - name: to_user
   - name: token
+  - name: timestamp
+    direction: desc
+
+- kind: ThreeFoldTransaction
+  properties:
+  - name: fully_spent
+  - name: to_user
   - name: timestamp
     direction: desc
 

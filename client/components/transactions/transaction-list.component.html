@@ -1,0 +1,11 @@
+<md-list *ngIf="transactionList.results.length">
+  <md-list-item *ngFor="let transaction of transactionList.results">
+    <h2 mdLine>{{ 'tff.transaction_status_' + transaction.synced_status | translate }} {{ transaction.id }}</h2>
+    <h3 mdLine>{{ (getAmount(transaction) ) }} {{ transaction.token }}</h3>
+    <p mdLine *ngIf="transaction.memo">{{ transaction.memo }}</p>
+  </md-list-item>
+</md-list>
+<p *ngIf="status.success && transactionList.results.length === 0">
+  <i>{{ 'tff.no_transactions_yet' | translate }}</i>
+</p>
+<tff-api-request-status [status]="status"></tff-api-request-status>

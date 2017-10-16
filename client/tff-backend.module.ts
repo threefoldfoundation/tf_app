@@ -5,6 +5,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   MdButtonModule,
+  MdCardModule,
   MdChipsModule,
   MdIconModule,
   MdInputModule,
@@ -30,7 +31,8 @@ import { TFF_COMPONENTS, TFF_PROVIDERS } from './services/index';
 import { TffRoutes } from './tff.routes';
 
 const MATERIAL_IMPORTS = [
-  MdButtonModule, MdInputModule, MdListModule, MdIconModule, MdSelectModule, MdChipsModule, MdSlideToggleModule, MdProgressSpinnerModule
+  MdButtonModule, MdInputModule, MdListModule, MdIconModule, MdSelectModule, MdChipsModule, MdSlideToggleModule, MdProgressSpinnerModule,
+  MdCardModule
 ];
 
 @NgModule({

@@ -61,14 +61,9 @@ def api_get_asset(asset_id):
     app_user = get_app_user_from_asset_id(asset_id)
     token = get_token_from_asset_id(asset_id)
 
-    available_amount, total_amount, total_description = get_balance(app_user, get_token_from_asset_id(asset_id))
-
-    available_balance = PaymentAssetBalanceTO()
-    available_balance.amount = available_amount
-    available_balance.description = None
-    total_balance = PaymentAssetBalanceTO()
-    total_balance.amount = total_amount
-    total_balance.description = total_description
+    balance = get_balance(app_user, get_token_from_asset_id(asset_id))
+    available_balance = PaymentAssetBalanceTO(amount=balance.available, description=None)
+    total_balance = PaymentAssetBalanceTO(amount=balance.total, description=balance.description)
 
     to = PaymentProviderAssetTO()
     to.provider_id = PROVIDER_ID

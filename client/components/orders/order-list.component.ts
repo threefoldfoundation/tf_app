@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import { NodeOrderList, NodeOrdersQuery, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/index';
+import { GetNodeOrdersPayload, NodeOrderList, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/nodes.interfaces';
 
 @Component({
   moduleId: module.id,

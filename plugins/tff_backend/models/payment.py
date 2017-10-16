@@ -68,8 +68,8 @@ class ThreeFoldWallet(NdbModel):
 class ThreeFoldBaseTransaction(NdbModel):
     NAMESPACE = NAMESPACE
     timestamp = ndb.IntegerProperty()
-    unlock_timestamps = ndb.IntegerProperty(repeated=True, indexed=False)
-    unlock_amounts = ndb.IntegerProperty(repeated=True, indexed=False)
+    unlock_timestamps = ndb.IntegerProperty(repeated=True, indexed=False)  # type: list[int]
+    unlock_amounts = ndb.IntegerProperty(repeated=True, indexed=False)  # type: list[int]
     token = ndb.StringProperty()
     token_type = ndb.StringProperty()
     amount = ndb.IntegerProperty()
@@ -100,17 +100,24 @@ class ThreeFoldTransaction(ThreeFoldBaseTransaction):
             .order(-cls.timestamp)
 
     @classmethod
-    def list_with_amount_left(cls, app_user, token):
+    def list_with_amount_left_by_token(cls, app_user, token):
         return cls.query() \
             .filter(cls.to_user == app_user) \
             .filter(cls.token == token) \
             .filter(cls.fully_spent == False) \
             .order(-cls.timestamp)  # noQA
 
+    @classmethod
+    def list_with_amount_left(cls, app_user):
+        return cls.query() \
+            .filter(cls.to_user == app_user) \
+            .filter(cls.fully_spent == False) \
+            .order(-cls.timestamp)  # noQA
+
 
 class ThreeFoldPendingTransaction(ThreeFoldBaseTransaction):
     STATUS_PENDING = u'pending'
-    STATUS_CONFIRMED = u"confirmed"
+    STATUS_CONFIRMED = u'confirmed'
     STATUS_FAILED = u'failed'
 
     synced = ndb.BooleanProperty()

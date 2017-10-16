@@ -1,0 +1,10 @@
+<md-card *ngFor="let wallet of balance" class="wallet-balance-card">
+  <md-card-content>
+    <p>{{ wallet.token }}</p>
+    <p>{{ 'tff.available_balance' | translate : { balance: getAvailable(wallet) } }}</p>
+    <p>{{ 'tff.total_balance' | translate : { balance: getTotal(wallet) } }}</p>
+  </md-card-content>
+</md-card>
+<p *ngIf="status.success && balance.length === 0">
+  <i>{{ 'tff.user_has_no_wallet_yet' | translate }}</i>
+</p>

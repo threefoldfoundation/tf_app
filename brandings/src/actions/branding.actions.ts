@@ -1,20 +1,20 @@
 import { Action } from '@ngrx/store';
-import { ApiCallResult } from '../services/rogerthat.service';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
-import { SeeDocument } from '../interfaces/see.interfaces';
 import { SetReferralResult } from '../interfaces/referrals.interfaces';
+import { SeeDocument } from '../interfaces/see.interfaces';
+import { ApiCallResult } from '../services/rogerthat.service';
 
 
 export const BrandingActionTypes = {
-  GET_GLOBAL_STATS: `Get global stats`,
-  GET_GLOBAL_STATS_COMPLETE: `Get global stats complete`,
-  GET_GLOBAL_STATS_FAILED: `Get global stats failed`,
-  GET_SEE_DOCUMENTS: `Get see documents `,
-  GET_SEE_DOCUMENTS_COMPLETE: `Get see documents complete`,
-  GET_SEE_DOCUMENTS_FAILED: `Get see documents failed`,
-  SET_REFERRER: `Set referrer`,
-  SET_REFERRER_COMPLETE: `Set referrer complete`,
-  SET_REFERRER_FAILED: `Set referrer failed`,
+  GET_GLOBAL_STATS: 'Get global stats',
+  GET_GLOBAL_STATS_COMPLETE: 'Get global stats complete',
+  GET_GLOBAL_STATS_FAILED: 'Get global stats failed',
+  GET_SEE_DOCUMENTS: 'Get see documents ',
+  GET_SEE_DOCUMENTS_COMPLETE: 'Get see documents complete',
+  GET_SEE_DOCUMENTS_FAILED: 'Get see documents failed',
+  SET_REFERRER: 'Set referrer',
+  SET_REFERRER_COMPLETE: 'Set referrer complete',
+  SET_REFERRER_FAILED: 'Set referrer failed',
 };
 
 export class GetGlobalStatsAction implements Action {
