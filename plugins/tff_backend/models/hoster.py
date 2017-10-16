@@ -79,7 +79,8 @@ class NodeOrder(NdbModel):
     def _post_put_hook(self, future):
         from plugins.tff_backend.dal.node_orders import index_node_order
         if ndb.in_transaction():
-            on_trans_committed(index_node_order, self)
+            from google.appengine.ext import deferred
+            deferred.defer(index_node_order, self, _transactional=True)
         else:
             index_node_order(self)
 

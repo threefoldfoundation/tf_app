@@ -46,7 +46,8 @@ class InvestmentAgreement(NdbModel):
     def _post_put_hook(self, future):
         from plugins.tff_backend.dal.investment_agreements import index_investment_agreement
         if ndb.in_transaction():
-            on_trans_committed(index_investment_agreement, self)
+            from google.appengine.ext import deferred
+            deferred.defer(index_investment_agreement, self, _transactional=True)
         else:
             index_investment_agreement(self)
 
