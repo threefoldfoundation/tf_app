@@ -21,9 +21,9 @@ import jinja2
 
 from babel.numbers import get_currency_name
 from plugins.tff_backend.bizz.global_stats import get_global_stats
-from plugins.tff_backend.utils import round_currency_amount
 from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
+from plugins.tff_backend.utils import round_currency_amount
 from xhtml2pdf import pisa
 
 try:
@@ -58,6 +58,8 @@ def create_hosting_agreement_pdf(full_name, address):
 
 
 def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short, token=TOKEN_TFT):
+    # don't forget to update intercom tags when adding new contracts / tokens
+
     if token == TOKEN_ITFT:
         html_file = 'token_itft.html'
     elif currency_short == 'BTC':

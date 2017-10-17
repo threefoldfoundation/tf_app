@@ -30,8 +30,6 @@ from mcfw.rpc import returns, arguments
 from plugins.intercom_support.intercom_support_plugin import IntercomSupportPlugin
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
     has_access_to_organization
-from plugins.its_you_online_auth.libs.itsyouonline import Client
-from plugins.its_you_online_auth.libs.itsyouonline.userview import userview
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.to import UserDetailsTO
@@ -39,7 +37,7 @@ from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_QR, REGISTRATIO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Organization, Roles
-from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user
+from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user, tag_intercom_users, IntercomTags
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
 from plugins.tff_backend.bizz.iyo.user import get_user, invite_user_to_organization
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
@@ -127,6 +125,7 @@ def popuplate_intercom_user(session_key):
         assert isinstance(intercom_plugin, IntercomSupportPlugin)
         data = get_user(session.user_id, session.jwt)
         upsert_intercom_user(session.user_id, data)
+        tag_intercom_users(IntercomTags.APP_REGISTER, [{'user_id': session.user_id}])
 
 
 @returns(unicode)

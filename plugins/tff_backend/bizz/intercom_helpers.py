@@ -15,13 +15,29 @@
 #
 # @@license_version:1.3@@
 import logging
+from types import NoneType
 
+from enum import Enum
 from framework.plugin_loader import get_plugin, get_config
 from intercom import ResourceNotFound
+from intercom.tag import Tag
+from intercom.user import User
+from mcfw.rpc import arguments, returns
 from plugins.intercom_support.intercom_support_plugin import IntercomSupportPlugin
 from plugins.intercom_support.plugin_consts import NAMESPACE as INTERCOM_NAMESPACE
+from plugins.its_you_online_auth.libs.itsyouonline.userview import userview
 from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.plugin_consts import NAMESPACE
+
+
+class IntercomTags(Enum):
+    HOSTER = 'Hoster'
+    ITFT_PURCHASER = 'iTFT Purchaser'
+    TFT_PURCHASER = 'TFT Purchaser'
+    ITO_INVESTOR = 'ITO Investor'
+    APP_REGISTER = 'appregister'
+    BETTERTOKEN_CONTRACT = 'Bettertoken contract'
+    GREENITGLOBE_CONTRACT = 'GreenITGlobe contract'
 
 
 def get_intercom_plugin():
@@ -31,10 +47,14 @@ def get_intercom_plugin():
     return intercom_plugin
 
 
+@returns(User)
+@arguments(iyo_username=unicode, iyo_user_info=(userview, NoneType))
 def upsert_intercom_user(iyo_username, iyo_user_info=None):
+    # type: (unicode, userview) -> User
     intercom_plugin = get_intercom_plugin()
 
     def _upsert(iyo_username, iyo_user_info):
+        # type: (unicode, userview) -> User
         name = None
         email = None
         phone = None
@@ -64,3 +84,10 @@ def send_intercom_email(iyo_username, subject, message):
         return intercom_plugin.send_message(from_, message, message_type='email', subject=subject, to=to)
     logging.debug('Not sending email with subject "%s" via intercom because intercom plugin was not found', subject)
     return None
+
+
+@returns(Tag)
+@arguments(tag=unicode, iyo_usernames=[unicode])
+def tag_intercom_users(tag, iyo_usernames):
+    users = [{'user_id': username for username in iyo_usernames}]
+    return get_intercom_plugin().tag_users(tag, users)

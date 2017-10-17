@@ -3,6 +3,7 @@ from google.appengine.ext import ndb
 from framework.models.common import NdbModel
 from framework.utils import now
 from framework.utils.transactions import on_trans_committed
+from plugins.tff_backend.consts.payment import TOKEN_TFT
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -19,7 +20,7 @@ class InvestmentAgreement(NdbModel):
 
     app_user = ndb.UserProperty()
     amount = ndb.FloatProperty(indexed=False)
-    token = ndb.StringProperty(indexed=False)
+    token = ndb.StringProperty(indexed=False, default=TOKEN_TFT)
     token_count_float = ndb.ComputedProperty(_compute_token_count, indexed=False)  # Real amount of tokens
     token_count = ndb.IntegerProperty(indexed=False, default=0)  # amount of tokens x 10 ^ token_precision
     token_precision = ndb.IntegerProperty(indexed=False, default=0)
