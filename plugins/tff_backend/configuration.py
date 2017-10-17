@@ -70,3 +70,4 @@ class TffConfiguration(TO):
     investor = typed_property('6', InvestorConfiguration, False)  # type: InvestorConfiguration
     apple = typed_property('apple', AppleConfiguration)  # type: AppleConfiguration
     backup_disabled = bool_property('backup_disabled')
+    intercom_admin_id = long_property('intercom_admin_id')

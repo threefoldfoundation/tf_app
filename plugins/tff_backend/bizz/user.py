@@ -39,6 +39,7 @@ from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_QR, REGISTRATIO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Organization, Roles
+from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
 from plugins.tff_backend.bizz.iyo.user import get_user, invite_user_to_organization
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
@@ -111,18 +112,6 @@ def user_registered(user_detail, origin, data):
     deferred.defer(popuplate_intercom_user, session.key)
 
 
-def _convert_to_str(data):
-    if isinstance(data, unicode):
-        return data.encode('utf-8')
-    elif isinstance(data, list):
-        for i, list_item in enumerate(data):
-            data[i] = _convert_to_str(list_item)
-    elif isinstance(data, dict):
-        for key, val in data.iteritems():
-            data[key] = _convert_to_str(val)
-    return data
-
-
 def popuplate_intercom_user(session_key):
     """
     Creates or updates an intercom user with information from itsyou.online
@@ -136,20 +125,8 @@ def popuplate_intercom_user(session_key):
             return
         assert isinstance(session, Session)
         assert isinstance(intercom_plugin, IntercomSupportPlugin)
-        client = Client()
-        client.oauth.session.headers['Authorization'] = 'bearer %s' % session.jwt
-        data = client.api.users.GetUserInformation(session.user_id).json()
-        response_data = userview(_convert_to_str(data))
-        name = None
-        email = None
-        phone = None
-        if response_data.firstname and response_data.lastname:
-            name = '%s %s' % (response_data.firstname, response_data.lastname)
-        if response_data.validatedemailaddresses:
-            email = response_data.validatedemailaddresses[0].emailaddress
-        if response_data.validatedphonenumbers:
-            phone = response_data.validatedphonenumbers[0].phonenumber
-        intercom_plugin.create_user(session.user_id, name, email, phone)
+        data = get_user(session.user_id, session.jwt)
+        upsert_intercom_user(session.user_id, data)
 
 
 @returns(unicode)

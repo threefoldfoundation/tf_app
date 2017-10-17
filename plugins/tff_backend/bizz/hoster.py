@@ -28,8 +28,8 @@ from mcfw.exceptions import HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.rogerthat_api.api import messaging, system
-from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
-from plugins.rogerthat_api.to.messaging import AttachmentTO, Message, AnswerTO
+from plugins.rogerthat_api.to import UserDetailsTO
+from plugins.rogerthat_api.to.messaging import AttachmentTO, Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FormAcknowledgedCallbackResultTO, \
@@ -41,9 +41,10 @@ from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
+from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.odoo import create_odoo_quotation, update_odoo_quotation, QuotationState, \
     confirm_odoo_quotation
-from plugins.tff_backend.bizz.rogerthat import put_user_data, send_rogerthat_message
+from plugins.tff_backend.bizz.rogerthat import put_user_data
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
 from plugins.tff_backend.bizz.todo.hoster import HosterSteps
@@ -142,13 +143,11 @@ def _order_node(order_key, user_email, app_id, steps):
         can_host = len(active_orders) == 0
         if not can_host:
             logging.info('User already has a node order, sending abort message')
-            member_user, app_id = get_app_user_tuple(app_user)
             msg = u'Dear ThreeFold Member, we sadly cannot grant your request to host an additional ThreeFold Node:' \
                   u' We are currently only allowing one Node to be hosted per ThreeFold Member and location.' \
                   u' This will allow us to build a bigger base and a more diverse Grid.'
-            member = MemberTO(member=member_user.email(), app_id=app_id, alert_flags=0)
-            buttons = [AnswerTO(id=u'ok', caption=u'Ok', action=None, type=u'button', ui_flags=0, color=None)]
-            send_rogerthat_message(member, msg, buttons)
+            subject = u'Your ThreeFold Node request'
+            send_message_and_email(app_user, msg, subject)
             return
 
     def trans():
@@ -470,7 +469,7 @@ def put_node_order(order_id, order):
         elif order_model.status == NodeOrderStatus.SENT:
             order_model.send_time = now()
             deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_SENT)
-            deferred.defer(_send_node_order_sent_message, human_user.email(), app_id, order_id)
+            deferred.defer(_send_node_order_sent_message, order_id)
         elif order_model.status == NodeOrderStatus.APPROVED:
             deferred.defer(_create_node_order_pdf, order_id)
         elif order_model.status == NodeOrderStatus.PAID:
@@ -497,26 +496,6 @@ def _create_error_message(callback_result):
     callback_result.type = TYPE_MESSAGE
     callback_result.value = message
     return callback_result
-
-
-@returns()
-@arguments(email=unicode, app_id=unicode, order_id=(int, long))
-def send_payment_instructions(email, app_id, order_id):
-    """Currently unused since node orders are free"""
-    order = get_node_order(order_id)
-
-    message = u"""Please use the following transfer details
-Amount: USD 600 - Bank : Mashreq Bank - IBAN : AE230330000019120028156 - BIC : BOMLAEAD
-
-For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
-Please use the SO%(order_id)s as reference.
-""" % {"order_id": order.odoo_sale_order_id}  # noQA
-
-    member = MemberTO()
-    member.member = email
-    member.app_id = app_id
-    member.alert_flags = Message.ALERT_FLAG_VIBRATE
-    send_rogerthat_message(member, message)
 
 
 def _inform_support_of_new_node_order(node_order_id):
@@ -546,9 +525,11 @@ Please visit https://tff-backend.appspot.com/orders/%(node_order_id)s to approve
                        body=body)
 
 
-def _send_node_order_sent_message(user_email, app_id, node_order_id):
-    msg = u'Dear ThreeFold Hoster, your node (order %s) is on its way to you. ' \
-          u'When it arrives, please follow the instructions included in the box to get it up and running. ' \
-          u'Thank you once again for extending the ThreeFold Grid!' % node_order_id
-    member = MemberTO(member=user_email, app_id=app_id, alert_flags=0)
-    send_rogerthat_message(member, msg)
+def _send_node_order_sent_message(node_order_id):
+    node_order = get_node_order(node_order_id)
+    subject = u'ThreeFold node ready to ship out'
+    msg = u'Good news, your ThreeFold node (order id %s) has been prepared for shipment.' \
+          u' It will be handed over to our shipping partner soon.' \
+          u'\nThanks again for accepting hosting duties and helping to grow the ThreeFold Grid close to the users.' % \
+          node_order_id
+    send_message_and_email(node_order.app_user, msg, subject)

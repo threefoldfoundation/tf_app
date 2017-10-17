@@ -19,18 +19,22 @@ import httplib
 import logging
 
 from mcfw.rpc import returns, arguments
-from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client
+from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client, get_itsyouonline_client_from_jwt
 from plugins.its_you_online_auth.libs.itsyouonline.AddOrganizationMemberReqBody import AddOrganizationMemberReqBody
+from plugins.its_you_online_auth.libs.itsyouonline.userview import userview
 from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username
-from plugins.tff_backend.to.iyo.user import IYOUser
+from plugins.tff_backend.utils import _convert_to_str
 from requests.exceptions import HTTPError
 
 
-def get_user(username):
-    client = get_itsyouonline_client_from_username(username)
+def get_user(username, jwt=None):
+    if jwt:
+        client = get_itsyouonline_client_from_jwt(jwt)
+    else:
+        client = get_itsyouonline_client_from_username(username)
     result = client.api.users.GetUserInformation(username)
     logging.debug('get_user %s %s', result.status_code, result.text)
-    return IYOUser(**result.json())
+    return userview(_convert_to_str(result.json()))
 
 
 @returns()
