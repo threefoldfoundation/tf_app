@@ -45,10 +45,9 @@ from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.bizz.hoster import get_publickey_label, _create_error_message
 from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
-from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
+from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
-from plugins.tff_backend.bizz.rogerthat import send_rogerthat_message
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
@@ -462,26 +461,30 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         agreement.populate(status=InvestmentAgreement.STATUS_SIGNED,
                            signature=payload_signature,
                            sign_time=now())
-        agreement.put()
+        agreement.put_async()
 
-        # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.INVESTOR)
         deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.PAY)
-        deferred.defer(send_payment_instructions, user_detail.email, user_detail.app_id, agreement.id)
-
-        deferred.defer(_inform_support_of_new_investment, agreement.iyo_username, agreement.id,
-                       agreement.token_count_float)
-
+        deferred.defer(_inform_support_of_new_investment, iyo_username, agreement.id, agreement.token_count_float)
         logging.debug('Sending confirmation message')
+        prefix_message = u'Thank you. We successfully received your digital signature.' \
+                         u' We have stored a copy of this agreement in your ItsYou.Online SEE account.' \
+                         u' We will contact you again when we have received your payment.' \
+                         u' Thanks again for your purchase and your support of the ThreeFold Foundation!' \
+                         u'\n\nWe would like to take this opportunity to remind you once again to keep a back-up of' \
+                         u' your wallet in a safe place, by writing down the 29 words that can be used to restore it' \
+                         u' to a different device.' \
+                         u' As usual, if you have any questions, don\'t hesitate to contact us.\n\n'
+        msg = u'%sReference: %s' % (prefix_message, agreement.reference)
+        deferred.defer(send_payment_instructions, agreement.app_user, agreement.id, prefix_message)
+
         message = MessageCallbackResultTypeTO()
         message.alert_flags = Message.ALERT_FLAG_VIBRATE
         message.answers = []
         message.branding = get_main_branding_hash()
         message.dismiss_button_ui_flags = 0
         message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
-        message.message = u'Thank you. We successfully received your digital signature.' \
-                          u' We have stored a copy of this agreement in your ItsYou.Online SEE account.' \
-                          u'\nReference: %s' % agreement.reference
+        message.message = msg
         message.step_id = u'investment_agreement_accepted'
         message.tag = None
 
@@ -520,7 +523,7 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
                        long(agreement.token_count_float * 100), _transactional=True)
         deferred.defer(update_investor_progress, user_email.email(), app_id, InvestorSteps.ASSIGN_TOKENS,
                        _transactional=True)
-        deferred.defer(_send_tokens_assigned_message, user_email.email(), app_id, agreement.id, _transactional=True)
+        deferred.defer(_send_tokens_assigned_message, agreement.app_user, _transactional=True)
 
     ndb.transaction(trans)
 
@@ -585,18 +588,19 @@ Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more de
 
 
 @returns()
-@arguments(email=unicode, app_id=unicode, agreement_id=(int, long))
-def send_payment_instructions(email, app_id, agreement_id):
+@arguments(app_user=users.User, agreement_id=(int, long), message_prefix=unicode)
+def send_payment_instructions(app_user, agreement_id, message_prefix):
     agreement = get_investment_agreement(agreement_id)
     params = {
         'currency': agreement.currency,
         'iban': BANK_ACCOUNTS.get(agreement.currency, BANK_ACCOUNTS['USD']),
         'account_number': ACCOUNT_NUMBERS.get(agreement.currency),
-        'reference': agreement.reference
+        'reference': agreement.reference,
+        'message_prefix': message_prefix
     }
     if agreement.currency == "BTC":
         params['amount'] = '{:.8f}'.format(agreement.amount)
-        message = u"""Please use the following transfer details
+        message = u"""%(message_prefix)sPlease use the following transfer details
 Amount: %(currency)s %(amount)s - wallet 3GTf7gWhvWqfsurxXpEj6DU7SVoLM3wC6A
 
 Please inform us by email at payments@threefoldtoken.com when you have made payment.
@@ -605,7 +609,7 @@ Reference: %(reference)s"""
 
     else:
         params['amount'] = '{:.2f}'.format(agreement.amount)
-        message = u"""Please use the following transfer details
+        message = u"""%(message_prefix)sPlease use the following transfer details
 Amount: %(currency)s %(amount)s
 
 Bank: Mashreq Bank
@@ -618,46 +622,19 @@ IBAN: %(iban)s / BIC : BOMLAEAD
 
 For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
 
-**Payment must be made from a bank account registered under your name.** Please use %(reference)s as reference."""  # noQA
+Important: The payment must be made from a bank account registered under your name. Please use %(reference)s as reference."""  # noQA
 
     msg = message % params
     subject = u'ThreeFold payment instructions'
-
-    deferred.defer(_send_payment_instructions_via_app, msg, email, app_id)
-    deferred.defer(_send_payment_instructions_via_email, msg, subject, agreement.app_user)
+    send_message_and_email(app_user, msg, subject)
 
 
-def _send_payment_instructions_via_app(message, email, app_id):
-    member = MemberTO(member=email, app_id=app_id, alert_flags=Message.ALERT_FLAG_VIBRATE)
-    messaging.send(api_key=get_rogerthat_api_key(),
-                   parent_message_key=None,
-                   message=message,
-                   answers=[],
-                   flags=Message.FLAG_ALLOW_DISMISS,
-                   members=[member],
-                   branding=get_main_branding_hash(),
-                   tag=None)
-
-
-def _send_payment_instructions_via_email(message, subject, app_user):
-    user_information = get_user(get_iyo_username(app_user))
-    email = user_information.validatedemailaddresses and user_information.validatedemailaddresses[0].emailaddress
-    if not email:
-        logging.error('Could not find email address to send payment information to for user %s', app_user,
-                      _suppress=False)
-        return
-    mail.send_mail(sender='no-reply@tff-backend.appspotmail.com',
-                   to=email,
-                   subject=subject,
-                   body=message.replace('**', ''))  # remove markdown
-
-
-def _send_tokens_assigned_message(user_email, app_id, investment_agreement_id):
+def _send_tokens_assigned_message(app_user):
+    subject = u'ThreeFold tokens assigned'
     message = 'Dear ThreeFold Member, we have just assigned your tokens to your wallet. ' \
               'It may take up to an hour for them to appear in your wallet. ' \
-              'We would like to take this opportunity to remind you to have a paper backup of your wallet. ' \
+              '\n\nWe would like to take this opportunity to remind you to have a paper backup of your wallet. ' \
               'You can make such a backup by writing down the 29 words you can use to restore the wallet. ' \
-              'You can find these 29 words by going to Settings -> Security -> threefold. ' \
-              'Thank you once again for getting on board!'
-    member = MemberTO(member=user_email, app_id=app_id, alert_flags=0)
-    send_rogerthat_message(member, message)
+              '\nYou can find these 29 words by going to Settings -> Security -> threefold. ' \
+              '\n\nThank you once again for getting on board!'
+    send_message_and_email(app_user, message, subject)

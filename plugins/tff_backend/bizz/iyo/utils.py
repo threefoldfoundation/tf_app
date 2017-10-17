@@ -36,12 +36,14 @@ def get_iyo_organization_id():
 
 
 @returns(unicode)
-@arguments(user=(users.User, UserDetailsTO))
+@arguments(user=(users.User, UserDetailsTO, unicode))
 def get_iyo_username(user):
     if isinstance(user, users.User):
         email = get_human_user_from_app_user(user).email()
-    else:
+    elif isinstance(user, UserDetailsTO):
         email = user.email
+    else:
+        email = user
 
     return email.split('@')[0]
 
