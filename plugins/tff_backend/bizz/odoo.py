@@ -171,17 +171,15 @@ def update_odoo_quotation(order_id, order_data):
     # type: (long, dict) -> None
     cfg = get_config(NAMESPACE)
     erp_client = _get_erp_client(cfg)
-
-    sale_order_model = erp_client.model('sale.order').browse()
-    sale_order = sale_order_model.browse(order_id)
+    sale_order = erp_client.model('sale.order').browse(order_id)
 
     try:
         logging.info('Updating sale.order %s with data %s', order_id, order_data)
         sale_order.write(order_data)
     except xmlrpclib.Fault as e:
-        if not order_data.get('state') == QuotationState.CANCEL:
-            if 'One of the documents you are trying to access has been deleted' not in e.message:
-                raise e
+        # Sale order has been deleted on odoo, ignore in case the state was 'cancel'
+        if 'MissingError' not in e.faultCode or order_data.get('state') != QuotationState.CANCEL:
+            raise e
 
 
 def confirm_odoo_quotation(order_id):
