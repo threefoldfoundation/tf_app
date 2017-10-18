@@ -21,7 +21,6 @@ from google.appengine.ext import ndb
 
 from framework.to import TO
 from mcfw.properties import long_property, unicode_property, typed_property
-from plugins.tff_backend.models.hoster import NodeOrder  # noQA
 from plugins.tff_backend.to import PaginatedResultTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocument
 
@@ -65,16 +64,11 @@ class NodeOrderDetailsTO(NodeOrderTO):
 class NodeOrderListTO(PaginatedResultTO):
     results = typed_property('results', NodeOrderTO, True)
 
-    def __init__(self, cursor=None, more=False, results=None):
-        super(NodeOrderListTO, self).__init__(cursor, more)
-        self.results = results or []
-
     @classmethod
     def from_query(cls, models, cursor, more):
-        # type: (list[NodeOrder], ndb.Cursor, bool) -> object
         assert isinstance(cursor, (ndb.Cursor, NoneType))
-        orders = [NodeOrderTO.from_model(model) for model in models]
-        return cls(cursor and cursor.to_websafe_string().decode('utf-8'), more, orders)
+        results = [NodeOrderTO.from_model(model) for model in models]
+        return cls(cursor and cursor.to_websafe_string().decode('utf-8'), more, results)
 
     @classmethod
     def from_search(cls, models, cursor, more):

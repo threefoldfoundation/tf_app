@@ -1,12 +1,16 @@
 import { MetaGuard } from '@ngx-meta/core';
 import { Route } from '../../framework/client/app.routes';
 import {
+  CreateTransactionPageComponent,
   GlobalStatsDetailPageComponent,
   GlobalStatsListPageComponent,
   InvestmentAgreementDetailPageComponent,
   InvestmentAgreementListPageComponent,
   OrderDetailPageComponent,
-  OrderListPageComponent
+  OrderListPageComponent,
+  UserListPageComponent,
+  UserPageComponent,
+  UserTransactionsListPageComponent
 } from './components/index';
 
 export const TffRoutes: Route[] = [
@@ -64,5 +68,57 @@ export const TffRoutes: Route[] = [
     canActivate: [ MetaGuard ],
     data: { meta: { title: 'tff.global_stats' } },
     component: GlobalStatsDetailPageComponent
+  },
+  {
+    path: 'users',
+    canActivate: [ MetaGuard ],
+    data: {
+      icon: 'people',
+      id: 'tff_users',
+      meta: {
+        title: 'tff.users',
+      }
+    },
+    component: UserListPageComponent,
+  },
+  {
+    path: 'users/:username',
+    canActivate: [ MetaGuard ],
+    canActivateChild: [ MetaGuard ],
+    component: UserPageComponent,
+    data: {
+      sidebarItems: [
+        //   {
+        //   label: 'tff.details',
+        //   icon: 'person',
+        //   route: 'details',
+        // },
+        {
+          label: 'tff.transactions',
+          icon: 'attach_money',
+          route: 'transactions',
+        } ],
+      meta: { title: 'tff.users' }
+    },
+    children: [
+      { path: '', redirectTo: 'transactions', pathMatch: 'full' },
+      // {
+      //   path: 'details',
+      //   canActivate: [ MetaGuard ],
+      //   data: { meta: { title: 'tff.user_details' } },
+      //   component: UserDetailsPageComponent,
+      // },
+      {
+        path: 'transactions',
+        canActivate: [ MetaGuard ],
+        data: { meta: { title: 'tff.transactions' } },
+        component: UserTransactionsListPageComponent,
+      },
+      {
+        path: 'transactions/create',
+        canActivate: [ MetaGuard ],
+        data: { meta: { title: 'tff.create_transaction' } },
+        component: CreateTransactionPageComponent,
+      } ]
   },
 ];

@@ -9,7 +9,6 @@ from plugins.tff_backend.plugin_consts import NAMESPACE
 
 class InvestmentAgreement(NdbModel):
     NAMESPACE = NAMESPACE
-    PER_PAGE = 50
     STATUS_CANCELED = -1
     STATUS_CREATED = 0
     STATUS_SIGNED = 1

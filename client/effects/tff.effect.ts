@@ -2,11 +2,11 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
+import { IAppState } from '../../../framework/client/ngrx/state/app.state';
 import { handleApiError } from '../../../framework/client/rpc/rpc.service';
 import * as actions from '../actions/threefold.action';
 import { TffService } from '../services/tff.service';
 import { getGlobalStatsList } from '../tff.state';
-import { IAppState } from '../../../framework/client/ngrx/state/app.state';
 
 @Injectable()
 export class TffEffects {
@@ -65,6 +65,36 @@ export class TffEffects {
     .switchMap(action => this.tffService.updateGlobalStats(action.payload)
       .map(payload => new actions.UpdateGlobalStatsCompleteAction(payload))
       .catch(err => handleApiError(actions.UpdateGlobalStatsFailedAction, err)));
+
+  @Effect() searchUsers$: Observable<Action> = this.actions$
+    .ofType(actions.TffActionTypes.SEARCH_USERS)
+    .switchMap(action => this.tffService.searchUsers(action.payload)
+      .map(payload => new actions.SearchUsersCompleteAction(payload))
+      .catch(err => handleApiError(actions.SearchUsersFailedAction, err)));
+
+  @Effect() getUser$: Observable<Action> = this.actions$
+    .ofType(actions.TffActionTypes.GET_USER)
+    .switchMap(action => this.tffService.getUser(action.payload)
+      .map(payload => new actions.GetUserCompleteAction(payload))
+      .catch(err => handleApiError(actions.GetUserFailedAction, err)));
+
+  @Effect() getBalance$: Observable<Action> = this.actions$
+    .ofType(actions.TffActionTypes.GET_BALANCE)
+    .switchMap(action => this.tffService.getBalance(action.payload)
+      .map(payload => new actions.GetBalanceCompleteAction(payload))
+      .catch(err => handleApiError(actions.GetBalanceFailedAction, err)));
+
+  @Effect() getUserTransactions$: Observable<Action> = this.actions$
+    .ofType(actions.TffActionTypes.GET_USER_TRANSACTIONS)
+    .switchMap(action => this.tffService.getUserTransactions(action.payload)
+      .map(payload => new actions.GetUserTransactionsCompleteAction(payload))
+      .catch(err => handleApiError(actions.GetUserTransactionsFailedAction, err)));
+
+  @Effect() createTransaction$: Observable<Action> = this.actions$
+    .ofType(actions.TffActionTypes.CREATE_TRANSACTION)
+    .switchMap(action => this.tffService.createTransaction(action.payload)
+      .map(payload => new actions.CreateTransactionCompleteAction(payload))
+      .catch(err => handleApiError(actions.CreateTransactionFailedAction, err)));
 
   constructor(private actions$: Actions,
               private tffService: TffService,

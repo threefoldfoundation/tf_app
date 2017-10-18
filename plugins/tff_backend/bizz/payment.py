@@ -22,6 +22,7 @@ import logging
 import time
 import uuid
 from datetime import datetime
+from types import NoneType
 
 from google.appengine.api import urlfetch, users
 from google.appengine.ext import deferred, ndb
@@ -30,13 +31,16 @@ from dateutil.relativedelta import relativedelta
 from framework.plugin_loader import get_config
 from framework.utils import now, get_epoch_from_datetime, urlencode
 from mcfw.consts import DEBUG
+from mcfw.exceptions import HttpBadRequestException
 from mcfw.rpc import returns, arguments
+from plugins.its_you_online_auth.bizz.profile import get_profile
 from plugins.rogerthat_api.exceptions import BusinessException
-from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_TYPE_A, TOKEN_TYPE_B, TOKEN_TYPE_C, \
-    TOKEN_TYPE_D, TOKEN_TFT_CONTRIBUTOR, TOKEN_TYPE_I, TOKEN_ITFT
+from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_TFT_CONTRIBUTOR, TOKEN_ITFT, TokenType
 from plugins.tff_backend.models.payment import ThreeFoldWallet, ThreeFoldTransaction, \
     ThreeFoldPendingTransaction, ThreeFoldBlockHeight
 from plugins.tff_backend.plugin_consts import NAMESPACE
+from plugins.tff_backend.to.payment import WalletBalanceTO
 from plugins.tff_backend.utils.app import get_app_id_from_app_user
 
 
@@ -74,17 +78,33 @@ def get_asset_ids(app_user):
     return [get_asset_id_from_token(app_user, token) for token in tokens]
 
 
-@returns(tuple)
+@returns(WalletBalanceTO)
 @arguments(app_user=users.User, token=unicode)
 def get_balance(app_user, token):
+    # type: (users.User, unicode) -> WalletBalanceTO
+    transactions = ThreeFoldTransaction.list_with_amount_left_by_token(app_user, token)
+    return _get_balance_from_transactions(transactions, token)
+
+
+def _get_balance_from_transactions(transactions, token):
+    # type: (list[ThreeFoldTransaction], unicode) -> WalletBalanceTO
     available_balance = 0
     total_balance = 0
     total_description_details = []
-    for t in ThreeFoldTransaction.list_with_amount_left(app_user, token):
-        amount_spent = t.amount - t.amount_left
+    # TODO set to minimum precision of all transactions when transactions have the 'precision' property
+    # (and multiply available / total amount depending on precision)
+    precision = 2
+    # for transaction in transactions:
+    #     precision = max(transaction.precision, precision)
+
+    for transaction in transactions:
+        if transaction.token != token:
+            raise BusinessException('Invalid transaction supplied to _get_balance_from_transactions. '
+                                    'All transactions must have %s as token', token)
+        amount_spent = transaction.amount - transaction.amount_left
         unlocked_amount = 0
         now_ = now()
-        for unlock_timestamp, unlock_amount in zip(t.unlock_timestamps, t.unlock_amounts):
+        for unlock_timestamp, unlock_amount in zip(transaction.unlock_timestamps, transaction.unlock_amounts):
             if unlock_timestamp <= now_:
                 unlocked_amount += unlock_amount
             else:
@@ -93,21 +113,33 @@ def get_balance(app_user, token):
         spendable_amount = unlocked_amount - amount_spent
 
         available_balance += spendable_amount
-        total_balance += t.amount_left
-
+        total_balance += transaction.amount_left
     if total_description_details:
-        total_description = u"##  %s Unlock times" % token
+        total_description = u"""##  %(token)s Unlock times'
 
-        total_description += u"\n\n|Date|#%s|" % token
-        total_description += u"\n|---|---:|"
-        for (unlock_timestamp, unlock_amount) in sorted(total_description_details, key=lambda tup: tup[0]):
-            date = time.strftime("%a %d %b %Y %H:%M:%S GMT", time.localtime(unlock_timestamp))
+|Date|#%(token)s|
+|---|---:|
+        """ % {'token': token}
+        for unlock_timestamp, unlock_amount in sorted(total_description_details, key=lambda tup: tup[0]):
+            date = time.strftime('%a %d %b %Y %H:%M:%S GMT', time.localtime(unlock_timestamp))
             amount = u'{:0,.2f}'.format(unlock_amount / 100.0)
-            total_description += u"\n|%s|%s|" % (date, amount)
+            total_description += u'\n|%s|%s|' % (date, amount)
     else:
         total_description = None
+    return WalletBalanceTO(available=available_balance, total=total_balance, description=total_description, token=token,
+                           precision=precision)
 
-    return available_balance, total_balance, total_description
+
+@returns([WalletBalanceTO])
+@arguments(app_user=users.User)
+def get_all_balances(app_user):
+    transactions = ThreeFoldTransaction.list_with_amount_left(app_user)
+    token_types = set(map(lambda transaction: transaction.token, transactions))
+    results = []
+    for token in token_types:
+        transactions_per_token = [trans for trans in transactions if trans.token == token]
+        results.append(_get_balance_from_transactions(transactions_per_token, token))
+    return results
 
 
 def sync_payment_asset(app_user, asset_id):
@@ -135,7 +167,20 @@ def get_transactions(app_user, token):
 @returns(ndb.Query)
 @arguments(app_user=users.User, token=unicode)
 def get_transaction_of_type_pending(app_user, token):
-    return ThreeFoldPendingTransaction.list_by_user(app_user, token)
+    return ThreeFoldPendingTransaction.list_unsynced_by_user(app_user, token)
+
+
+@returns(tuple)
+@arguments(app_user=users.User, token_type=(unicode, NoneType), page_size=(int, long), cursor=unicode)
+def get_pending_transactions(app_user, token_type, page_size, cursor):
+    # type: (users.User, unicode, long, unicode) -> tuple[list[ThreeFoldPendingTransaction], ndb.Cursor, bool]
+    if token_type:
+        validate_token_type(token_type)
+        return ThreeFoldPendingTransaction.list_by_user_and_token_type(app_user, token_type) \
+            .fetch_page(page_size, start_cursor=ndb.Cursor(urlsafe=cursor))
+    else:
+        return ThreeFoldPendingTransaction.list_by_user(app_user) \
+            .fetch_page(page_size, start_cursor=ndb.Cursor(urlsafe=cursor))
 
 
 @returns()
@@ -187,7 +232,7 @@ def _sync_transactions():
 def _migrate_pending_transactions(keys):
     @ndb.non_transactional
     def list_transactions_with_amount_left(app_user, token):
-        return [t.key for t in ThreeFoldTransaction.list_with_amount_left(app_user, token)]
+        return [t.key for t in ThreeFoldTransaction.list_with_amount_left_by_token(app_user, token)]
 
     def trans(keys):
         bh = ThreeFoldBlockHeight.get_block_height()
@@ -289,7 +334,7 @@ def sync_wallet_for_user(app_user):
     now_ = now()
     next_unlock_timestamp = 0
     for token in wallet.tokens:
-        for t in ThreeFoldTransaction.list_with_amount_left(app_user, token):
+        for t in ThreeFoldTransaction.list_with_amount_left_by_token(app_user, token):
             for unlock_timestamp in t.unlock_timestamps:
                 if unlock_timestamp > now_:
                     if not next_unlock_timestamp:
@@ -317,26 +362,36 @@ def get_spendable_amount_of_transaction(transaction):
     return unlocked_amount - amount_spent
 
 
-@returns()
+def validate_token_type(token_type):
+    if token_type not in TokenType.all():
+        raise HttpBadRequestException(u'invalid_token_type', {'possible_token_types': TokenType.all()})
+
+
+@returns(ThreeFoldPendingTransaction)
 @arguments(app_user=users.User, token_type=unicode, amount=(int, long), memo=unicode, epoch=(int, long))
 def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None, epoch=0):
+    validate_token_type(token_type)
+    if amount <= 0:
+        raise HttpBadRequestException('invalid_amount')
+    # Validate that this user has a profile
+    get_profile(get_iyo_username(app_user))
     if epoch > 0:
         date_signed = datetime.utcfromtimestamp(epoch)
     else:
         date_signed = datetime.now()
 
-    if TOKEN_TYPE_A == token_type:
+    if TokenType.A == token_type:
         token = TOKEN_TFT
         unlock_timestamps = [0]
         unlock_amounts = [amount]
 
-    elif TOKEN_TYPE_B == token_type:
+    elif TokenType.B == token_type:
         token = TOKEN_TFT
         d = date_signed + relativedelta(months=6)
         unlock_timestamps = [get_epoch_from_datetime(d)]
         unlock_amounts = [amount]
 
-    elif TOKEN_TYPE_C == token_type:
+    elif TokenType.C == token_type:
         token = TOKEN_TFT
         unlock_timestamps = []
         unlock_amounts = []
@@ -350,12 +405,12 @@ def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None, epoc
         unlock_timestamps = [get_epoch_from_datetime(d)] + unlock_timestamps
         unlock_amounts = [amount - sum(unlock_amounts)] + unlock_amounts
 
-    elif TOKEN_TYPE_D == token_type:
+    elif TokenType.D == token_type:
         token = TOKEN_TFT_CONTRIBUTOR
         unlock_timestamps = [0]
         unlock_amounts = [amount]
 
-    elif TOKEN_TYPE_I == token_type:
+    elif TokenType.I == token_type:
         token = TOKEN_ITFT
         unlock_timestamps = [0]
         unlock_amounts = [amount]
@@ -392,6 +447,7 @@ def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None, epoc
                                      synced=False,
                                      synced_status=ThreeFoldPendingTransaction.STATUS_PENDING)
     pt.put()
+    return pt
 
 
 @returns()

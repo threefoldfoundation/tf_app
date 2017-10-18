@@ -29,11 +29,11 @@ from plugins.tff_backend.utils.search import sanitise_search_query
 
 @rest('/orders', 'get', Scopes.TEAM)
 @returns(NodeOrderListTO)
-@arguments(per_page=(int, long), cursor=unicode, query=unicode, status=(int, long))
-def api_get_node_orders(per_page=20, cursor=None, query=None, status=None):
-    per_page = min(per_page, MAXIMUM_DOCUMENTS_RETURNED_PER_SEARCH)
+@arguments(page_size=(int, long), cursor=unicode, query=unicode, status=(int, long))
+def api_get_node_orders(page_size=20, cursor=None, query=None, status=None):
+    page_size = min(page_size, MAXIMUM_DOCUMENTS_RETURNED_PER_SEARCH)
     filters = {'status': status}
-    return NodeOrderListTO.from_search(*search_node_orders(sanitise_search_query(query, filters), per_page, cursor))
+    return NodeOrderListTO.from_search(*search_node_orders(sanitise_search_query(query, filters), page_size, cursor))
 
 
 @rest('/orders/<order_id:[^/]+>', 'get', Scopes.TEAM)

@@ -24,7 +24,8 @@ from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_jwt
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.to import UserDetailsTO
-from plugins.tff_backend.utils.app import get_human_user_from_app_user
+from plugins.tff_backend.plugin_consts import NAMESPACE
+from plugins.tff_backend.utils.app import get_human_user_from_app_user, create_app_user_by_email
 
 
 @returns(unicode)
@@ -45,6 +46,14 @@ def get_iyo_username(user):
         email = user
 
     return email.split('@')[0]
+
+
+@returns(users.User)
+@arguments(username=unicode)
+def get_app_user_from_iyo_username(username):
+    iyo_domain = get_config(IYO_AUTH_NAMESPACE).api_domain
+    app_id = get_config(NAMESPACE).rogerthat.app_id
+    return create_app_user_by_email('%s@%s' % (username, iyo_domain), app_id)
 
 
 def get_itsyouonline_client_from_username(username):

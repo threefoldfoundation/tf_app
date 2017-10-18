@@ -86,24 +86,24 @@ def audit_log(audit_type, key_args, data, user_id=None):
     return AuditLog(audit_type=audit_type, reference=reference, user_id=user_id, data=data_).put_async()
 
 
-def list_audit_logs(per_page, cursor):
+def list_audit_logs(page_size, cursor):
     # type: (long, unicode) -> tuple[list[AuditLog], ndb.Cursor, bool]
-    return AuditLog.list().fetch_page(per_page, start_cursor=ndb.Cursor(urlsafe=cursor))
+    return AuditLog.list().fetch_page(page_size, start_cursor=ndb.Cursor(urlsafe=cursor))
 
 
-def list_audit_logs_by_type(audit_type, per_page, cursor):
+def list_audit_logs_by_type(audit_type, page_size, cursor):
     # type: (mapping.AuditLogType, long, unicode) -> tuple[list[AuditLog], unicode, bool]
-    return AuditLog.list_by_type(audit_type).fetch_page(per_page, start_cursor=ndb.Cursor(urlsafe=cursor))
+    return AuditLog.list_by_type(audit_type).fetch_page(page_size, start_cursor=ndb.Cursor(urlsafe=cursor))
 
 
-def list_audit_logs_by_user(user_id, per_page, cursor):
+def list_audit_logs_by_user(user_id, page_size, cursor):
     # type: (unicode, long, unicode) -> tuple[list[AuditLog], unicode, bool]
-    return AuditLog.list_by_user(user_id).fetch_page(per_page, start_cursor=ndb.Cursor(urlsafe=cursor))
+    return AuditLog.list_by_user(user_id).fetch_page(page_size, start_cursor=ndb.Cursor(urlsafe=cursor))
 
 
-def list_audit_logs_by_type_and_user(audit_log_type, user_id, per_page, cursor):
+def list_audit_logs_by_type_and_user(audit_log_type, user_id, page_size, cursor):
     # type: (mapping.AuditLogType, unicode, long, unicode) -> tuple[list[AuditLog], unicode, bool]
-    return AuditLog.list_by_type_and_user(audit_log_type, user_id).fetch_page(per_page,
+    return AuditLog.list_by_type_and_user(audit_log_type, user_id).fetch_page(page_size,
                                                                               start_cursor=ndb.Cursor(urlsafe=cursor))
 
 

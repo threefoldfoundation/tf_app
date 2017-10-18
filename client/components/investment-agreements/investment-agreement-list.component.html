@@ -11,15 +11,13 @@
     </md-form-field>
   </form>
   <md-nav-list *ngIf="investmentAgreements">
-    <a *ngFor="let agreement of investmentAgreements.results" [routerLink]="agreement.id">
-      <md-list-item>
-        <h4 mdLine>{{ 'tff.investment_agreement_x' | translate : { id: agreement.id, ref: agreement.reference } }}</h4>
-        <p mdLine *ngIf="agreement.name">{{ agreement.name }}</p>
-        <investment-agreement-amount mdLine [amount]="agreement.amount"
-                                     [currency]="agreement.currency"
-                                     [tokenCount]="agreement.token_count_float"></investment-agreement-amount>
-        <p mdLine>{{ agreement.creation_time | timestamp }}</p>
-      </md-list-item>
+    <a *ngFor="let agreement of investmentAgreements.results" [routerLink]="agreement.id" md-list-item>
+      <h4 mdLine>{{ 'tff.investment_agreement_x' | translate : { id: agreement.id, ref: agreement.reference } }}</h4>
+      <p mdLine *ngIf="agreement.name">{{ agreement.name }}</p>
+      <investment-agreement-amount mdLine [amount]="agreement.amount"
+                                   [currency]="agreement.currency"
+                                   [tokenCount]="agreement.token_count_float"></investment-agreement-amount>
+      <p mdLine>{{ agreement.creation_time | timestamp }}</p>
     </a>
     <button md-button *ngIf="investmentAgreements.more" (click)="loadMore()">
       {{ 'tff.load_more' | translate }}
