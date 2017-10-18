@@ -16,3 +16,10 @@ md-form-field.xs-input {
 .error-message {
   color: mat-color($app-warn);
 }
+
+.fab-bottom-right {
+  display: inline-block;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}

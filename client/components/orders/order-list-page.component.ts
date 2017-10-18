@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
-import { NodeOrderList, NodeOrdersQuery } from '../../interfaces/nodes.interfaces';
-import { getNodeOrdersQuery, getOrders, getOrdersStatus } from '../../tff.state';
-import { GetOrdersAction } from '../../actions/threefold.action';
+import { Subscription } from 'rxjs/Subscription';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { Subscription } from 'rxjs/Subscription';
+import { GetOrdersAction } from '../../actions/threefold.action';
+import { NodeOrderList, NodeOrdersQuery } from '../../interfaces/index';
+import { getNodeOrdersQuery, getOrders, getOrdersStatus } from '../../tff.state';
 
 @Component({
   moduleId: module.id,

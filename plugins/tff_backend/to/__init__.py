@@ -14,8 +14,9 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+
 from framework.to import TO
-from mcfw.properties import unicode_property, bool_property
+from mcfw.properties import unicode_property, bool_property, typed_property
 
 
 def convert_to_unicode(v):
@@ -29,6 +30,7 @@ def convert_to_unicode(v):
 class PaginatedResultTO(TO):
     cursor = unicode_property('cursor')
     more = bool_property('more')
+    results = typed_property('results', dict, True)  # Must be overwritten by superclass
 
-    def __init__(self, cursor=None, more=False):
-        super(PaginatedResultTO, self).__init__(cursor=cursor, more=more)
+    def __init__(self, cursor=None, more=False, results=None):
+        super(PaginatedResultTO, self).__init__(cursor=cursor, more=more, results=results or [])

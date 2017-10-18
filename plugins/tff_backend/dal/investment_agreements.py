@@ -79,9 +79,9 @@ def create_investment_agreement_document(investment):
         ])
 
 
-def search_investment_agreements(query=None, per_page=20, cursor=None):
+def search_investment_agreements(query=None, page_size=20, cursor=None):
     # type: (unicode, int, unicode) -> tuple[list[InvestmentAgreement], search.Cursor, bool]
-    options = search.QueryOptions(limit=per_page,
+    options = search.QueryOptions(limit=page_size,
                                   cursor=search.Cursor(cursor),
                                   ids_only=True,
                                   sort_options=search.SortOptions(

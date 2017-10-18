@@ -1,4 +1,5 @@
 import { SeeDocumentDetails } from './iyo-see.interfaces';
+import { PaginatedResult } from './shared.interfaces';
 
 export enum NodeOrderStatuses {
   CANCELED = -1,
@@ -56,10 +57,7 @@ export interface NodeOrdersQuery {
   query: string | null;
 }
 
-export interface NodeOrderList {
-  cursor: string | null;
-  more: boolean;
-  results: NodeOrder[];
+export interface NodeOrderList extends PaginatedResult<NodeOrder> {
 }
 
 export const ORDER_STATUSES = [

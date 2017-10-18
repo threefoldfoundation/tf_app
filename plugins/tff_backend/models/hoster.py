@@ -55,7 +55,6 @@ def _validate_socket(prop, value):
 
 class NodeOrder(NdbModel):
     NAMESPACE = NAMESPACE
-    NODE_ORDERS_PER_PAGE = 50
 
     app_user = ndb.UserProperty()
     billing_info = ndb.LocalStructuredProperty(ContactInfo)  # type: ContactInfo
