@@ -7,6 +7,9 @@
 <md-nav-list>
   <a *ngFor="let user of userList.results" [routerLink]="[user.username, 'transactions']" md-list-item>
     <h4 mdLine>{{ getUserName(user) }}</h4>
+    <p mdLine *ngIf="getUserName(user) != user.username">
+      {{ user.username }}
+    </p>
     <p mdLine *ngIf="user.info?.validatedemailaddresses.length">
       {{ user.info.validatedemailaddresses[0].emailaddress }}
     </p>
