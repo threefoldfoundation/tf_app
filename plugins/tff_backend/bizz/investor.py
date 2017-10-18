@@ -39,10 +39,11 @@ from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FormAcknowledgedCallbackResultTO, \
     MessageCallbackResultTypeTO, TYPE_MESSAGE, FlowMemberResultCallbackResultTO
-from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
 from plugins.tff_backend.bizz.authentication import Roles
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.bizz.hoster import get_publickey_label, _create_error_message
+from plugins.tff_backend.bizz.intercom_helpers import IntercomTags
 from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
@@ -464,6 +465,10 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         agreement.put_async()
 
         deferred.defer(add_user_to_role, user_detail, Roles.INVESTOR)
+        intercom_tags = get_intercom_tags_for_investment(agreement)
+        if intercom_tags:
+            for i_tag in intercom_tags:
+                deferred.defer(intercom_helpers.tag_intercom_users, i_tag, [iyo_username])
         deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.PAY)
         deferred.defer(_inform_support_of_new_investment, iyo_username, agreement.id, agreement.token_count_float)
         logging.debug('Sending confirmation message')
@@ -638,3 +643,17 @@ def _send_tokens_assigned_message(app_user):
               '\nYou can find these 29 words by going to Settings -> Security -> threefold. ' \
               '\n\nThank you once again for getting on board!'
     send_message_and_email(app_user, message, subject)
+
+
+@arguments(agreement=InvestmentAgreement)
+def get_intercom_tags_for_investment(agreement):
+    if agreement.status not in [InvestmentAgreement.STATUS_PAID, InvestmentAgreement.STATUS_SIGNED]:
+        return []
+    if agreement.token == TOKEN_ITFT:
+        return [IntercomTags.ITFT_PURCHASER, IntercomTags.GREENITGLOBE_CONTRACT]
+    elif agreement.token == TOKEN_TFT:
+        # todo: In the future (PTO), change ITO_INVESTOR to IntercomTags.TFT_PURCHASER
+        return [IntercomTags.BETTERTOKEN_CONTRACT, IntercomTags.ITO_INVESTOR]
+    else:
+        logging.warn('Unknown token %s, not tagging intercom user', agreement.token)
+        return []

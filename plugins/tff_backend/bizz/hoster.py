@@ -37,6 +37,7 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FormAckn
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agreements import create_hosting_agreement_pdf
 from plugins.tff_backend.bizz.authentication import Roles
+from plugins.tff_backend.bizz.intercom_helpers import tag_intercom_users, IntercomTags
 from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
@@ -371,6 +372,9 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.HOSTERS)
         deferred.defer(update_hoster_progress, user_detail.email, user_detail.app_id, HosterSteps.FLOW_SIGN)
+        intercom_tags = get_intercom_tags_for_node_order(order)
+        for intercom_tag in intercom_tags:
+            deferred.defer(tag_intercom_users, intercom_tag, [iyo_username])
 
         logging.debug('Sending confirmation message')
         message = MessageCallbackResultTypeTO()
@@ -533,3 +537,10 @@ def _send_node_order_sent_message(node_order_id):
           u'\nThanks again for accepting hosting duties and helping to grow the ThreeFold Grid close to the users.' % \
           node_order_id
     send_message_and_email(node_order.app_user, msg, subject)
+
+
+def get_intercom_tags_for_node_order(order):
+    # type: (NodeOrder) -> list[IntercomTags]
+    if order.status in [NodeOrderStatus.ARRIVED, NodeOrderStatus.SENT, NodeOrderStatus.SIGNED, NodeOrderStatus.PAID]:
+        return [IntercomTags.HOSTER]
+    return []
