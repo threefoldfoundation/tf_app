@@ -90,5 +90,5 @@ def send_intercom_email(iyo_username, subject, message):
 @returns(Tag)
 @arguments(tag=unicode, iyo_usernames=[unicode])
 def tag_intercom_users(tag, iyo_usernames):
-    users = [{'user_id': username for username in iyo_usernames}]
+    users = [{'user_id': username} for username in iyo_usernames]
     return get_intercom_plugin().tag_users(tag, users)
