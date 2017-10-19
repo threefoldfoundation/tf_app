@@ -1,4 +1,5 @@
 import { SeeDocumentDetails } from './iyo-see.interfaces';
+import { PaginatedResult } from './shared.interfaces';
 
 export enum InvestmentAgreementsStatuses {
   CANCELED = -1,
@@ -7,9 +8,10 @@ export enum InvestmentAgreementsStatuses {
   PAID = 2,
 }
 
-export interface GetInvestmentAgreementsPayload {
+export interface InvestmentAgreementsQuery {
   cursor: string | null;
   status: InvestmentAgreementsStatuses;
+  query: string | null;
 }
 
 export const INVESTMENT_AGREEMENT_STATUSES = {
@@ -56,8 +58,5 @@ export interface InvestmentAgreementDetail extends InvestmentAgreement {
   see_document: SeeDocumentDetails | null;
 }
 
-export interface InvestmentAgreementList {
-  cursor: string | null;
-  more: boolean;
-  results: InvestmentAgreement[];
+export interface InvestmentAgreementList extends PaginatedResult<InvestmentAgreement> {
 }

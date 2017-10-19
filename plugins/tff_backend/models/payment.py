@@ -65,12 +65,11 @@ class ThreeFoldWallet(NdbModel):
             .filter(ThreeFoldWallet.next_unlock_timestamp < now_)
 
 
-class ThreeFoldTransaction(NdbModel):
+class ThreeFoldBaseTransaction(NdbModel):
     NAMESPACE = NAMESPACE
     timestamp = ndb.IntegerProperty()
-    height = ndb.IntegerProperty()
-    unlock_timestamps = ndb.IntegerProperty(repeated=True, indexed=False)
-    unlock_amounts = ndb.IntegerProperty(repeated=True, indexed=False)
+    unlock_timestamps = ndb.IntegerProperty(repeated=True, indexed=False)  # type: list[int]
+    unlock_amounts = ndb.IntegerProperty(repeated=True, indexed=False)  # type: list[int]
     token = ndb.StringProperty()
     token_type = ndb.StringProperty()
     amount = ndb.IntegerProperty()
@@ -82,6 +81,12 @@ class ThreeFoldTransaction(NdbModel):
     from_user = ndb.UserProperty()
     to_user = ndb.UserProperty()
 
+
+class ThreeFoldTransaction(ThreeFoldBaseTransaction):
+    amount_left = ndb.IntegerProperty()
+    fully_spent = ndb.BooleanProperty()
+    height = ndb.IntegerProperty()
+
     @property
     def id(self):
         return self.key.id()
@@ -92,37 +97,31 @@ class ThreeFoldTransaction(NdbModel):
 
     @classmethod
     def list_by_user(cls, app_user, token):
-        return ThreeFoldTransaction.query() \
-            .filter(ThreeFoldTransaction.app_users == app_user) \
-            .filter(ThreeFoldTransaction.token == token) \
-            .order(-ThreeFoldTransaction.timestamp)
+        return cls.query() \
+            .filter(cls.app_users == app_user) \
+            .filter(cls.token == token) \
+            .order(-cls.timestamp)
 
     @classmethod
-    def list_with_amount_left(cls, app_user, token):
-        return ThreeFoldTransaction.query() \
-            .filter(ThreeFoldTransaction.to_user == app_user) \
-            .filter(ThreeFoldTransaction.token == token) \
-            .filter(ThreeFoldTransaction.fully_spent == False) \
-            .order(-ThreeFoldTransaction.timestamp)  # NOQA
+    def list_with_amount_left_by_token(cls, app_user, token):
+        return cls.query() \
+            .filter(cls.to_user == app_user) \
+            .filter(cls.token == token) \
+            .filter(cls.fully_spent == False) \
+            .order(-cls.timestamp)  # noQA
+
+    @classmethod
+    def list_with_amount_left(cls, app_user):
+        return cls.query() \
+            .filter(cls.to_user == app_user) \
+            .filter(cls.fully_spent == False) \
+            .order(-cls.timestamp)  # noQA
 
 
-class ThreeFoldPendingTransaction(NdbModel):
-    NAMESPACE = NAMESPACE
+class ThreeFoldPendingTransaction(ThreeFoldBaseTransaction):
     STATUS_PENDING = u'pending'
-    STATUS_CONFIRMED = u"confirmed"
+    STATUS_CONFIRMED = u'confirmed'
     STATUS_FAILED = u'failed'
-
-    timestamp = ndb.IntegerProperty()
-    unlock_timestamps = ndb.IntegerProperty(repeated=True, indexed=False)
-    unlock_amounts = ndb.IntegerProperty(repeated=True, indexed=False)
-    token = ndb.StringProperty()
-    token_type = ndb.StringProperty()
-    amount = ndb.IntegerProperty()
-    precision = ndb.IntegerProperty(default=2)
-    memo = ndb.StringProperty()
-    app_users = ndb.UserProperty(repeated=True)
-    from_user = ndb.UserProperty()
-    to_user = ndb.UserProperty()
 
     synced = ndb.BooleanProperty()
     synced_status = ndb.StringProperty()
@@ -138,13 +137,22 @@ class ThreeFoldPendingTransaction(NdbModel):
     @classmethod
     def count_pending(cls):
         return cls.query() \
-            .filter(ThreeFoldPendingTransaction.synced == False) \
-            .count(None)  # NOQA
+            .filter(cls.synced == False) \
+            .count(None)  # noQA
 
     @classmethod
-    def list_by_user(cls, app_user, token):
-        return ThreeFoldPendingTransaction.query() \
-            .filter(ThreeFoldPendingTransaction.synced == False) \
-            .filter(ThreeFoldPendingTransaction.app_users == app_user) \
-            .filter(ThreeFoldPendingTransaction.token == token) \
-            .order(-ThreeFoldPendingTransaction.timestamp)  # NOQA
+    def list_by_user(cls, app_user):
+        return cls.query() \
+            .filter(cls.app_users == app_user) \
+            .order(-cls.timestamp)
+
+    @classmethod
+    def list_by_user_and_token_type(cls, app_user, token_type):
+        return cls.list_by_user(app_user) \
+            .filter(cls.token_type == token_type)
+
+    @classmethod
+    def list_unsynced_by_user(cls, app_user, token):
+        return cls.list_by_user(app_user) \
+            .filter(cls.token == token) \
+            .filter(cls.synced == False)  # noQA

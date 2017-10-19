@@ -25,7 +25,6 @@ class HosterSteps(object):
     FLOW_ADDRESS = 'FLOW_ADDRESS'
     FLOW_SIGN = 'FLOW_SIGN'
     NODE_SENT = 'NODE_SENT'
-    NODE_DELIVERY_CONFIRMED = 'NODE_DELIVERY_CONFIRMED'
     NODE_POWERED = 'NODE_POWERED'
 
     DESCRIPTIONS = {
@@ -35,7 +34,6 @@ class HosterSteps(object):
         FLOW_SIGN: 'Sign the hoster agreement',
         FLOW_ADDRESS: 'Share shipping address, telephone number, name with shipping company',
         NODE_SENT: 'Receive confirmation of sending',
-        NODE_DELIVERY_CONFIRMED: 'Confirm delivery of node',
         NODE_POWERED: 'Hook up node to Internet and power',
     }
 
@@ -47,7 +45,6 @@ class HosterSteps(object):
                 cls.FLOW_ADDRESS,
                 cls.FLOW_SIGN,
                 cls.NODE_SENT,
-                cls.NODE_DELIVERY_CONFIRMED,
                 cls.NODE_POWERED]
 
     @classmethod

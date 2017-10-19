@@ -14,23 +14,29 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+from types import NoneType
 
-from mcfw.properties import long_property, unicode_property, typed_property, bool_property
+from google.appengine.ext import ndb
+
+from framework.to import TO
+from mcfw.properties import long_property, unicode_property, typed_property, bool_property, float_property, \
+    long_list_property, unicode_list_property
+from plugins.tff_backend.to import PaginatedResultTO
 
 
-class PaymentAssetRequiredActionTO(object):
+class PaymentAssetRequiredActionTO(TO):
     action = unicode_property('1')
     description = unicode_property('2')
     data = unicode_property('3')
 
 
-class PaymentAssetBalanceTO(object):
+class PaymentAssetBalanceTO(TO):
     amount = long_property('1')
     description = unicode_property('2')
     precision = long_property('3')
 
 
-class PaymentProviderAssetTO(object):
+class PaymentProviderAssetTO(TO):
     provider_id = unicode_property('1')
     id = unicode_property('2')
     type = unicode_property('3')
@@ -54,7 +60,7 @@ class PublicPaymentProviderTransactionTO(object):
     status = unicode_property('6')
 
 
-class PaymentProviderTransactionTO(object):
+class PaymentProviderTransactionTO(TO):
     id = unicode_property('1')
     type = unicode_property('2')
     name = unicode_property('3')
@@ -67,10 +73,62 @@ class PaymentProviderTransactionTO(object):
     precision = long_property('10')
 
 
-class GetPaymentTransactionsResponseTO(object):
+class GetPaymentTransactionsResponseTO(TO):
     cursor = unicode_property('1', default=None)
     transactions = typed_property('2', PaymentProviderTransactionTO, True)
 
 
-class CreateTransactionResponseTO(object):
+class CreateTransactionResponseTO(TO):
     status = unicode_property('1')
+
+
+class NewTransactionTO(TO):
+    token_count = float_property('token_count')
+    memo = unicode_property('memo')
+    date_signed = long_property('date_signed')
+    token_type = unicode_property('token_type')
+
+
+class BaseTransactionTO(TO):
+    timestamp = long_property('timestamp')
+    unlock_timestamps = long_list_property('unlock_timestamps')
+    unlock_amounts = long_list_property('unlock_amounts')
+    token = unicode_property('token')
+    token_type = unicode_property('token_type')
+    amount = long_property('amount')
+    memo = unicode_property('memo')
+    app_users = unicode_list_property('app_users')
+    from_user = unicode_property('from_user')
+    to_user = unicode_property('to_user')
+
+
+class PendingTransactionTO(BaseTransactionTO):
+    id = unicode_property('id')
+    synced = bool_property('synced')
+    synced_status = unicode_property('synced_status')
+
+
+class TransactionTO(BaseTransactionTO):
+    id = long_property('id')
+    amount_left = long_property('amount_left')
+    height = long_property('height')
+    fully_spent = bool_property('fully_spent')
+
+
+class PendingTransactionListTO(PaginatedResultTO):
+    results = typed_property('results', PendingTransactionTO, True)
+
+    @classmethod
+    def from_query(cls, models, cursor, more):
+        # type: (list[PendingTransaction], unicode, boolean) -> PendingTransactionListTO
+        assert isinstance(cursor, (ndb.Cursor, NoneType))
+        results = [PendingTransactionTO.from_model(model) for model in models]
+        return cls(cursor and cursor.to_websafe_string().decode('utf-8'), more, results)
+
+
+class WalletBalanceTO(TO):
+    available = long_property('available')
+    total = long_property('total')
+    description = unicode_property('description')
+    token = unicode_property('token')
+    precision = long_property('precision')

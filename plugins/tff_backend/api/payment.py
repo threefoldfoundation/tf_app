@@ -17,17 +17,17 @@
 
 import logging
 
-from framework.plugin_loader import get_config
-from framework.utils import now
 from google.appengine.api import users
 from google.appengine.ext import ndb
+
+from framework.plugin_loader import get_config
+from framework.utils import now
 from mcfw.consts import MISSING
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.payment import get_asset_ids, get_token_from_asset_id, get_balance, get_transactions, \
     get_asset_id_from_token, get_app_user_from_asset_id, get_transaction_of_type_pending
-from plugins.tff_backend.consts.payment import PROVIDER_ID, TOKEN_TFT_CONTRIBUTOR, TOKEN_TYPE_D, TOKEN_TYPE_A,\
-    TOKEN_ITFT, TOKEN_TYPE_I
+from plugins.tff_backend.consts.payment import PROVIDER_ID, TOKEN_TFT_CONTRIBUTOR, TOKEN_ITFT, TokenType
 from plugins.tff_backend.models.payment import ThreeFoldPendingTransaction
 from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.to.payment import PaymentProviderAssetTO, PaymentAssetBalanceTO, \
@@ -35,9 +35,9 @@ from plugins.tff_backend.to.payment import PaymentProviderAssetTO, PaymentAssetB
     PublicPaymentProviderTransactionTO
 
 
-def custom_auth_method(f, requestHandler):
+def custom_auth_method(f, request_handler):
     cfg = get_config(NAMESPACE)
-    if cfg.rogerthat.payment_secret == requestHandler.request.headers.get("Authorization"):
+    if cfg.rogerthat.payment_secret == request_handler.request.headers.get("Authorization"):
         return True
     logging.error(u"Someone tried to access private apis...")
     return False
@@ -62,16 +62,9 @@ def api_get_asset(asset_id):
     app_user = get_app_user_from_asset_id(asset_id)
     token = get_token_from_asset_id(asset_id)
 
-    available_amount, total_amount, total_description = get_balance(app_user, token)
-
-    available_balance = PaymentAssetBalanceTO()
-    available_balance.amount = available_amount
-    available_balance.description = None
-    available_balance.precision = 2
-    total_balance = PaymentAssetBalanceTO()
-    total_balance.amount = total_amount
-    total_balance.description = total_description
-    total_balance.precision = 2
+    balance = get_balance(app_user, get_token_from_asset_id(asset_id))
+    available_balance = PaymentAssetBalanceTO(amount=balance.available, description=None, precision=2)
+    total_balance = PaymentAssetBalanceTO(amount=balance.total, description=balance.description, precision=2)
 
     to = PaymentProviderAssetTO()
     to.provider_id = PROVIDER_ID
@@ -163,7 +156,7 @@ def api_create_transaction(data):
     if not (data.id or data.amount or data.from_asset_id or data.to_asset_id):
         to.status = ThreeFoldPendingTransaction.STATUS_FAILED
         return to
-    
+
     if data.precision is MISSING:
         data.precision = 2
 
@@ -171,11 +164,11 @@ def api_create_transaction(data):
     to_user = get_app_user_from_asset_id(data.to_asset_id)
     token = get_token_from_asset_id(data.from_asset_id)
     if token == TOKEN_ITFT:
-        token_type = TOKEN_TYPE_I
+        token_type = TokenType.I
     elif token == TOKEN_TFT_CONTRIBUTOR:
-        token_type = TOKEN_TYPE_D
+        token_type = TokenType.D
     else:
-        token_type = TOKEN_TYPE_A
+        token_type = TokenType.A
 
     def trans():
         pt_key = ThreeFoldPendingTransaction.create_key(data.id)

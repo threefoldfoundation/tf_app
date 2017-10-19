@@ -16,6 +16,7 @@
 # @@license_version:1.3@@
 from types import NoneType
 
+from google.appengine.api import search
 from google.appengine.ext import ndb
 
 from framework.to import TO
@@ -53,7 +54,7 @@ class InvestmentAgreementDetailsTO(InvestmentAgreementTO):
     see_document = typed_property('see_document', IYOSeeDocument)
 
     @classmethod
-    def from_model(cls, model, see_document):
+    def from_model(cls, model, see_document=None):
         # type: (InvestmentAgreement, IYOSeeDocument) -> cls
         assert isinstance(model, InvestmentAgreement)
         to = super(InvestmentAgreementDetailsTO, cls).from_model(model)
@@ -64,13 +65,15 @@ class InvestmentAgreementDetailsTO(InvestmentAgreementTO):
 class InvestmentAgreementListTO(PaginatedResultTO):
     results = typed_property('results', InvestmentAgreementTO, True)
 
-    def __init__(self, cursor=None, more=False, results=None):
-        super(InvestmentAgreementListTO, self).__init__(cursor, more)
-        self.results = results or []
-
     @classmethod
     def from_query(cls, models, cursor, more):
-        # type: (list[InvestmentAgreement], ndb.Cursor, bool) -> object
         assert isinstance(cursor, (ndb.Cursor, NoneType))
+        results = [InvestmentAgreementTO.from_model(model) for model in models]
+        return cls(cursor and cursor.to_websafe_string().decode('utf-8'), more, results)
+
+    @classmethod
+    def from_search(cls, models, cursor, more):
+        # type: (list[InvestmentAgreement], search.Cursor, bool) -> object
+        assert isinstance(cursor, (search.Cursor, NoneType))
         orders = [InvestmentAgreementTO.from_model(model) for model in models]
-        return cls(cursor and cursor.to_websafe_string().decode('utf-8'), more, orders)
+        return cls(cursor and cursor.web_safe_string.decode('utf-8'), more, orders)

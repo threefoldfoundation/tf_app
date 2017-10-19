@@ -24,6 +24,7 @@ from framework.plugin_loader import get_config
 from plugins.rogerthat_api.api import friends
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.global_stats import update_currencies
+from plugins.tff_backend.bizz.nodes import check_online_nodes
 from plugins.tff_backend.bizz.payment import sync_transactions, sync_wallets
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.plugin_consts import NAMESPACE
@@ -88,3 +89,8 @@ class RebuildSyncedRolesHandler(webapp2.RequestHandler):
 class UpdateGlobalStatsHandler(webapp2.RequestHandler):
     def get(self):
         deferred.defer(update_currencies)
+
+
+class CheckNodesOnlineHandler(webapp2.RequestHandler):
+    def get(self):
+        deferred.defer(check_online_nodes)

@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
-import { getInvestmentAgreements, getInvestmentAgreementsStatus, getInvestmentAgreementsType } from '../../tff.state';
-import { GetInvestmentAgreementsPayload, InvestmentAgreementList, InvestmentAgreementsStatuses } from '../../interfaces/index';
+import { Subscription } from 'rxjs/Subscription';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import { GetInvestmentAgreementsAction } from '../../actions/threefold.action';
-import { Subscription } from 'rxjs/Subscription';
+import { InvestmentAgreementList, InvestmentAgreementsQuery } from '../../interfaces/index';
+import { getInvestmentAgreements, getInvestmentAgreementsQuery, getInvestmentAgreementsStatus } from '../../tff.state';
 
 @Component({
   moduleId: module.id,
@@ -15,13 +15,13 @@ import { Subscription } from 'rxjs/Subscription';
   template: `
     <tff-investment-agreements [investmentAgreements]="investmentAgreements$ | async"
                                [listStatus]="listStatus$ | async"
-                               [status]="listType$ | async"
-                               (onLoadInvestmentAgreements)="loadAgreements($event)"></tff-investment-agreements>`
+                               [query]="query$ | async"
+                               (onQuery)="onQuery($event)"></tff-investment-agreements>`
 })
 export class InvestmentAgreementListPageComponent implements OnInit, OnDestroy {
   investmentAgreements$: Observable<InvestmentAgreementList>;
   listStatus$: Observable<ApiRequestStatus>;
-  listType$: Observable<InvestmentAgreementsStatuses>;
+  query$: Observable<InvestmentAgreementsQuery>;
 
   private _sub: Subscription;
 
@@ -29,13 +29,14 @@ export class InvestmentAgreementListPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.listType$ = this.store.let(getInvestmentAgreementsType);
+    this.query$ = this.store.let(getInvestmentAgreementsQuery);
     this.listStatus$ = this.store.let(getInvestmentAgreementsStatus);
-    this.investmentAgreements$ = this.store.let(getInvestmentAgreements).withLatestFrom(this.listType$)
-      .map(([ result, status ]) => ({ ...result, results: result.results.filter(o => o.status === status) }));
+    this.investmentAgreements$ = this.store.let(getInvestmentAgreements).withLatestFrom(this.query$)
+      .map(([ result, query ]) => ({ ...result, results: result.results.filter(o => query.status ? o.status === query.status : true) }));
     this._sub = this.investmentAgreements$.first().subscribe(result => {
+      // Load some investments on page load
       if (!result.results.length) {
-        this.store.dispatch(new GetInvestmentAgreementsAction({ cursor: null, status: InvestmentAgreementsStatuses.CREATED }));
+        this.onQuery({ cursor: null, status: null, query: null });
       }
     });
   }
@@ -44,7 +45,7 @@ export class InvestmentAgreementListPageComponent implements OnInit, OnDestroy {
     this._sub.unsubscribe();
   }
 
-  loadAgreements(payload: GetInvestmentAgreementsPayload) {
+  onQuery(payload: InvestmentAgreementsQuery) {
     this.store.dispatch(new GetInvestmentAgreementsAction(payload));
   }
 }

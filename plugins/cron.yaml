@@ -3,7 +3,6 @@ cron:
   url: /admin/cron/tff_backend/rebuild_synced_roles
   schedule: every day 02:00
 
-
 - description: Payment sync transactions
   url: /admin/cron/tff_backend/payment/sync
   schedule: every 30 minutes
@@ -15,3 +14,7 @@ cron:
 - description: Backup datastore
   url: /admin/cron/tff_backend/backup
   schedule: every day 00:01
+
+- description: Check nodes online
+  url: /admin/cron/tff_backend/check_nodes_online
+  schedule: every day 10:00

@@ -1,7 +1,7 @@
-import { TffService } from './tff.service';
-import { TffConfig } from './tff-config.service';
 import {
   ApiRequestStatusComponent,
+  CreateTransactionComponent,
+  CreateTransactionPageComponent,
   GlobalStatsDetailComponent,
   GlobalStatsDetailPageComponent,
   GlobalStatsListPageComponent,
@@ -14,8 +14,17 @@ import {
   OrderDetailComponent,
   OrderDetailPageComponent,
   OrderListComponent,
-  OrderListPageComponent
+  OrderListPageComponent,
+  TransactionListComponent,
+  UserDetailsPageComponent,
+  UserListComponent,
+  UserListPageComponent,
+  UserPageComponent,
+  UserTransactionsListPageComponent,
+  WalletBalanceComponent
 } from '../components/index';
+import { TffConfig } from './tff-config.service';
+import { TffService } from './tff.service';
 
 export const TFF_PROVIDERS: any[] = [
   TffService,
@@ -24,6 +33,8 @@ export const TFF_PROVIDERS: any[] = [
 
 export const TFF_COMPONENTS: any[] = [
   ApiRequestStatusComponent,
+  CreateTransactionComponent,
+  CreateTransactionPageComponent,
   GlobalStatsDetailComponent,
   GlobalStatsDetailPageComponent,
   GlobalStatsListPageComponent,
@@ -36,7 +47,14 @@ export const TFF_COMPONENTS: any[] = [
   OrderDetailComponent,
   OrderDetailPageComponent,
   OrderListComponent,
-  OrderListPageComponent
+  OrderListPageComponent,
+  TransactionListComponent,
+  UserDetailsPageComponent,
+  UserListComponent,
+  UserListPageComponent,
+  UserPageComponent,
+  UserTransactionsListPageComponent,
+  WalletBalanceComponent
 ];
 
 export * from './tff-config.service';

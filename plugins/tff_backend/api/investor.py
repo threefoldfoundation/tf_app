@@ -16,23 +16,30 @@
 # @@license_version:1.3@@
 
 from google.appengine.api import users
+from google.appengine.api.search import MAXIMUM_DOCUMENTS_RETURNED_PER_SEARCH
 
 from framework.bizz.authentication import get_current_session
 from framework.plugin_loader import get_auth_plugin
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
+from plugins.tff_backend.bizz.audit.audit import audit
+from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
-from plugins.tff_backend.bizz.investor import get_investment_agreements, put_investment_agreement, \
-    get_investment_agreement_details
+from plugins.tff_backend.bizz.investor import put_investment_agreement, get_investment_agreement_details
+from plugins.tff_backend.dal.investment_agreements import search_investment_agreements
 from plugins.tff_backend.to.investor import InvestmentAgreementListTO, InvestmentAgreementTO, \
     InvestmentAgreementDetailsTO
+from plugins.tff_backend.utils.search import sanitise_search_query
 
 
 @rest('/investment-agreements', 'get', Scopes.TEAM)
 @returns(InvestmentAgreementListTO)
-@arguments(cursor=unicode, status=(int, long))
-def api_get_investment_agreements(cursor=None, status=None):
-    return InvestmentAgreementListTO.from_query(*get_investment_agreements(cursor, status))
+@arguments(page_size=(int, long), cursor=unicode, query=unicode, status=(int, long))
+def api_get_investment_agreements(page_size=20, cursor=None, query=None, status=None):
+    page_size = min(page_size, MAXIMUM_DOCUMENTS_RETURNED_PER_SEARCH)
+    filters = {'status': status}
+    return InvestmentAgreementListTO.from_search(
+        *search_investment_agreements(sanitise_search_query(query, filters), page_size, cursor))
 
 
 @rest('/investment-agreements/<agreement_id:[^/]+>', 'get', Scopes.TEAM)
@@ -42,6 +49,7 @@ def api_get_investment_agreement(agreement_id):
     return get_investment_agreement_details(agreement_id)
 
 
+@audit(AuditLogType.UPDATE_INVESTMENT_AGREEMENT, 'agreement_id')
 @rest('/investment-agreements/<agreement_id:[^/]+>', 'put', Scopes.ADMINS)
 @returns(InvestmentAgreementTO)
 @arguments(agreement_id=(int, long), data=InvestmentAgreementTO)

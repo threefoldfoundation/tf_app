@@ -23,32 +23,35 @@ from google.appengine.api import users, mail
 from google.appengine.ext import ndb, deferred
 
 from framework.plugin_loader import get_config
-from framework.utils import now, try_or_defer
-from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
+from framework.utils import now
+from mcfw.exceptions import HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.rogerthat_api.api import qr, messaging, system
-from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
-from plugins.rogerthat_api.to.messaging import AttachmentTO, Message, AnswerTO
+from plugins.rogerthat_api.api import messaging, system
+from plugins.rogerthat_api.to import UserDetailsTO
+from plugins.rogerthat_api.to.messaging import AttachmentTO, Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
-from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
-    FormAcknowledgedCallbackResultTO, MessageCallbackResultTypeTO, TYPE_MESSAGE
+from plugins.rogerthat_api.to.messaging.service_callback_results import FormAcknowledgedCallbackResultTO, \
+    MessageCallbackResultTypeTO, TYPE_MESSAGE
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agreements import create_hosting_agreement_pdf
 from plugins.tff_backend.bizz.authentication import Roles
+from plugins.tff_backend.bizz.intercom_helpers import tag_intercom_users, IntercomTags
 from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
-from plugins.tff_backend.bizz.nodes import get_node_status
-from plugins.tff_backend.bizz.odoo import create_odoo_quotation, get_odoo_serial_number, cancel_odoo_quotation
-from plugins.tff_backend.bizz.rogerthat import put_user_data, send_rogerthat_message
+from plugins.tff_backend.bizz.messages import send_message_and_email
+from plugins.tff_backend.bizz.odoo import create_odoo_quotation, update_odoo_quotation, QuotationState, \
+    confirm_odoo_quotation
+from plugins.tff_backend.bizz.rogerthat import put_user_data
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
 from plugins.tff_backend.bizz.todo.hoster import HosterSteps
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.consts.hoster import REQUIRED_TOKEN_COUNT_TO_HOST
+from plugins.tff_backend.dal.node_orders import get_node_order
 from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping, NodeOrderStatus, ContactInfo
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE
@@ -141,13 +144,11 @@ def _order_node(order_key, user_email, app_id, steps):
         can_host = len(active_orders) == 0
         if not can_host:
             logging.info('User already has a node order, sending abort message')
-            member_user, app_id = get_app_user_tuple(app_user)
             msg = u'Dear ThreeFold Member, we sadly cannot grant your request to host an additional ThreeFold Node:' \
                   u' We are currently only allowing one Node to be hosted per ThreeFold Member and location.' \
                   u' This will allow us to build a bigger base and a more diverse Grid.'
-            member = MemberTO(member=member_user.email(), app_id=app_id, alert_flags=0)
-            buttons = [AnswerTO(id=u'ok', caption=u'Ok', action=None, type=u'button', ui_flags=0, color=None)]
-            send_rogerthat_message(member, msg, buttons)
+            subject = u'Your ThreeFold Node request'
+            send_message_and_email(app_user, msg, subject)
             return
 
     def trans():
@@ -191,9 +192,8 @@ def _create_node_order_pdf(node_order_id, retry_count=0):
     if not ipfs_link:
         retry_count += 1
         logging.info('Retrying creating IPFS PDF after %s tries', retry_count)
-        deferred.defer(_create_node_order_pdf, node_order_id, _countdown=retry_count)
+        deferred.defer(_create_node_order_pdf, node_order_id, retry_count, _countdown=retry_count)
         return
-    deferred.defer(_create_order_arrival_qr, node_order_id)
     deferred.defer(_order_node_iyo_see, node_order.app_user, node_order_id, ipfs_link)
     deferred.defer(update_hoster_progress, user_email.email(), app_id, HosterSteps.FLOW_ADDRESS)
 
@@ -252,7 +252,7 @@ def _cancel_quotation(order_id):
     def trans():
         node_order = get_node_order(order_id)
         if node_order.odoo_sale_order_id:
-            cancel_odoo_quotation(node_order.odoo_sale_order_id)
+            update_odoo_quotation(node_order.odoo_sale_order_id, {'state': QuotationState.CANCEL})
 
         node_order.populate(status=NodeOrderStatus.CANCELED, cancel_time=now())
         node_order.put()
@@ -372,6 +372,9 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.HOSTERS)
         deferred.defer(update_hoster_progress, user_detail.email, user_detail.app_id, HosterSteps.FLOW_SIGN)
+        intercom_tags = get_intercom_tags_for_node_order(order)
+        for intercom_tag in intercom_tags:
+            deferred.defer(tag_intercom_users, intercom_tag, [iyo_username])
 
         logging.debug('Sending confirmation message')
         message = MessageCallbackResultTypeTO()
@@ -411,56 +414,6 @@ def get_publickey_label(public_key, user_details):
             return None
 
 
-@returns()
-@arguments(order_id=(int, long))
-def _create_order_arrival_qr(order_id):
-    api_key = get_rogerthat_api_key()
-    qr_details = qr.create(api_key,
-                           description=u'Confirm node arrival',
-                           tag=json.dumps({u'__rt__.tag': u'node_arrival',
-                                           u'order_id': order_id}),
-                           flow=u'node_arrival',
-                           branding=get_main_branding_hash())
-
-    try_or_defer(_store_order_arrival_qr, order_id, qr_details.image_uri)
-
-
-@returns()
-@arguments(order_id=(int, long), qr_image_uri=unicode)
-def _store_order_arrival_qr(order_id, qr_image_uri):
-    logging.info('Setting arrival QR code %s for order %s', qr_image_uri, order_id)
-    order = get_node_order(order_id)
-    order.arrival_qr_code_url = qr_image_uri
-    order.put()
-
-
-@returns(FlowMemberResultCallbackResultTO)
-@arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
-           end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
-           flow_params=unicode)
-def node_arrived(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
-                 flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    try_or_defer(_store_order_arrival, tag, now())
-    return None
-
-
-@returns(tuple)
-@arguments(cursor=unicode, status=(int, long))
-def get_node_orders(cursor=None, status=None):
-    return NodeOrder.fetch_page(cursor, status)
-
-
-@returns(NodeOrder)
-@arguments(order_id=(int, long))
-def get_node_order(order_id):
-    # type: (int) -> NodeOrder
-    order = NodeOrder.get_by_id(order_id)
-    if not order:
-        raise HttpNotFoundException('order_not_found')
-    return order
-
-
 @returns(NodeOrderDetailsTO)
 @arguments(order_id=(int, long))
 def get_node_order_details(order_id):
@@ -474,6 +427,25 @@ def get_node_order_details(order_id):
     return NodeOrderDetailsTO.from_model(node_order, see_document)
 
 
+def _get_allowed_status(current_status):
+    # type: (long, long) -> list[long]
+    next_statuses = {
+        NodeOrderStatus.CANCELED: [],
+        NodeOrderStatus.WAITING_APPROVAL: [NodeOrderStatus.CANCELED, NodeOrderStatus.APPROVED],
+        NodeOrderStatus.APPROVED: [NodeOrderStatus.CANCELED, NodeOrderStatus.SIGNED],
+        NodeOrderStatus.SIGNED: [NodeOrderStatus.CANCELED, NodeOrderStatus.PAID],
+        NodeOrderStatus.PAID: [NodeOrderStatus.SENT],
+        NodeOrderStatus.SENT: [],
+        NodeOrderStatus.ARRIVED: [],
+    }
+    return next_statuses.get(current_status)
+
+
+def _can_change_status(current_status, new_status):
+    # type: (long, long) -> bool
+    return new_status in _get_allowed_status(current_status)
+
+
 @returns(NodeOrder)
 @arguments(order_id=(int, long), order=NodeOrderTO)
 def put_node_order(order_id, order):
@@ -481,45 +453,36 @@ def put_node_order(order_id, order):
     order_model = get_node_order(order_id)
     if order_model.status == NodeOrderStatus.CANCELED:
         raise HttpBadRequestException('order_canceled')
-    if order.status not in (NodeOrderStatus.CANCELED, NodeOrderStatus.SENT, NodeOrderStatus.APPROVED):
+    if order.status not in (NodeOrderStatus.CANCELED, NodeOrderStatus.SENT, NodeOrderStatus.APPROVED,
+                            NodeOrderStatus.PAID):
         raise HttpBadRequestException('invalid_status')
     # Only support updating the status for now
     if order_model.status != order.status:
+        if not _can_change_status(order_model.status, order.status):
+            raise HttpBadRequestException('cannot_change_status',
+                                          {'from': order_model.status, 'to': order.status,
+                                           'allowed_new_statuses': _get_allowed_status(order_model.status)})
         order_model.status = order.status
         human_user, app_id = get_app_user_tuple(order_model.app_user)
         if order_model.status == NodeOrderStatus.CANCELED:
             order_model.cancel_time = now()
             if order_model.odoo_sale_order_id:
-                deferred.defer(cancel_odoo_quotation, order_model.odoo_sale_order_id)
+                deferred.defer(update_odoo_quotation, order_model.odoo_sale_order_id, {'state': QuotationState.CANCEL})
             deferred.defer(update_hoster_progress, human_user.email(), app_id,
                            HosterSteps.NODE_POWERED)  # nuke todo list
         elif order_model.status == NodeOrderStatus.SENT:
             order_model.send_time = now()
             deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_SENT)
-            deferred.defer(_send_node_order_sent_message, human_user.email(), app_id, order_id)
-            deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
+            deferred.defer(_send_node_order_sent_message, order_id)
         elif order_model.status == NodeOrderStatus.APPROVED:
             deferred.defer(_create_node_order_pdf, order_id)
+        elif order_model.status == NodeOrderStatus.PAID:
+            deferred.defer(confirm_odoo_quotation, order_model.odoo_sale_order_id)
     else:
         logging.debug('Status was already %s, not doing anything', order_model.status)
 
     order_model.put()
     return order_model
-
-
-@returns()
-@arguments(tag=unicode, arrival_time=(int, long))
-def _store_order_arrival(tag, arrival_time):
-    tag_dict = json.loads(tag)
-    order_id = tag_dict['order_id']
-    logging.info('Marking order %s as arrived', order_id)
-    order = get_node_order(order_id)  # type: NodeOrder
-    order.arrival_time = arrival_time
-    order.status = NodeOrderStatus.ARRIVED
-    order.put()
-
-    human_user, app_id = get_app_user_tuple(order.app_user)
-    deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_DELIVERY_CONFIRMED)
 
 
 def _create_error_message(callback_result):
@@ -539,47 +502,6 @@ def _create_error_message(callback_result):
     return callback_result
 
 
-def check_if_node_comes_online(order_id):
-    order = get_node_order(order_id)
-    if not order.odoo_sale_order_id:
-        logging.warn("check_if_node_comes_online failed odoo quotation was not found")
-        deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
-        return
-
-    serial_number = get_odoo_serial_number(order.odoo_sale_order_id)
-    if not serial_number:
-        logging.warn("check_if_node_comes_online failed odoo serial_number was not found")
-        deferred.defer(check_if_node_comes_online, order_id, _countdown=12 * 60 * 60)
-        return
-
-    status = get_node_status(serial_number)
-    if status and status == u"running":
-        human_user, app_id = get_app_user_tuple(order.app_user)
-        deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED)
-    else:
-        deferred.defer(check_if_node_comes_online, order_id, _countdown=1 * 60 * 60)
-
-
-@returns()
-@arguments(email=unicode, app_id=unicode, order_id=(int, long))
-def send_payment_instructions(email, app_id, order_id):
-    """Currently unused since node orders are free"""
-    order = get_node_order(order_id)
-
-    message = u"""Please use the following transfer details
-Amount: USD 600 - Bank : Mashreq Bank - IBAN : AE230330000019120028156 - BIC : BOMLAEAD
-
-For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
-Please use the SO%(order_id)s as reference.
-""" % {"order_id": order.odoo_sale_order_id}  # noQA
-
-    member = MemberTO()
-    member.member = email
-    member.app_id = app_id
-    member.alert_flags = Message.ALERT_FLAG_VIBRATE
-    send_rogerthat_message(member, message)
-
-
 def _inform_support_of_new_node_order(node_order_id):
     node_order = get_node_order(node_order_id)
     cfg = get_config(NAMESPACE)
@@ -590,7 +512,7 @@ def _inform_support_of_new_node_order(node_order_id):
 
 We just received a new Node order from %(name)s (IYO username %(iyo_username)s) with id %(node_order_id)s.
 This order needs to be manually approved since this user has not invested more than %(tokens)s tokens yet via the app.
-Check the old investment agreements to verify if this user can sign up as a hoster and if not, contact him.
+Check the old purchase agreements to verify if this user can sign up as a hoster and if not, contact him.
 
 Please visit https://tff-backend.appspot.com/orders/%(node_order_id)s to approve or cancel this order.
 """ % {
@@ -607,9 +529,18 @@ Please visit https://tff-backend.appspot.com/orders/%(node_order_id)s to approve
                        body=body)
 
 
-def _send_node_order_sent_message(user_email, app_id, node_order_id):
-    msg = u'Dear ThreeFold Hoster, your node (order %s) is on its way to you. ' \
-          u'When it arrives, please follow the instructions included in the box to get it up and running. ' \
-          u'Thank you once again for extending the ThreeFold Grid!' % node_order_id
-    member = MemberTO(member=user_email, app_id=app_id, alert_flags=0)
-    send_rogerthat_message(member, msg)
+def _send_node_order_sent_message(node_order_id):
+    node_order = get_node_order(node_order_id)
+    subject = u'ThreeFold node ready to ship out'
+    msg = u'Good news, your ThreeFold node (order id %s) has been prepared for shipment.' \
+          u' It will be handed over to our shipping partner soon.' \
+          u'\nThanks again for accepting hosting duties and helping to grow the ThreeFold Grid close to the users.' % \
+          node_order_id
+    send_message_and_email(node_order.app_user, msg, subject)
+
+
+def get_intercom_tags_for_node_order(order):
+    # type: (NodeOrder) -> list[IntercomTags]
+    if order.status in [NodeOrderStatus.ARRIVED, NodeOrderStatus.SENT, NodeOrderStatus.SIGNED, NodeOrderStatus.PAID]:
+        return [IntercomTags.HOSTER]
+    return []

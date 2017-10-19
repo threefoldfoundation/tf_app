@@ -15,14 +15,21 @@
 #
 # @@license_version:1.3@@
 
+import datetime
 import logging
 import xmlrpclib
 
 from google.appengine.api import urlfetch
 
 import erppeek
+from dateutil import relativedelta
+from enum import Enum
 from framework.plugin_loader import get_config
 from plugins.tff_backend.plugin_consts import NAMESPACE
+
+
+class QuotationState(Enum):
+    CANCEL = 'cancel'
 
 
 # GAEXMLRPCTransport is copied from
@@ -34,7 +41,6 @@ class GAEXMLRPCTransport(object):
         pass
 
     def request(self, host, handler, request_body, verbose=0):
-        result = None
         url = 'http://%s%s' % (host, handler)
         try:
             response = urlfetch.fetch(url,
@@ -101,16 +107,19 @@ def _save_customer(erp_client, customer):
     return partner_contact.id, partner_delivery.id
 
 
-def _save_quotation(cfg, erp_client, billing_id, shipping_id, product_id):
+def _create_quotation(cfg, erp_client, billing_id, shipping_id, product_id):
     sale_order_model = erp_client.model('sale.order')
     sale_order_line_model = erp_client.model('sale.order.line')
+
+    validity_date = (datetime.datetime.now() + relativedelta.relativedelta(months=1)).strftime('%Y-%m-%d')
 
     order_data = {
         'partner_id': billing_id,
         'partner_shipping_id': shipping_id or billing_id,
         'state': 'sent',
         'incoterm': cfg.odoo.incoterm,
-        'payment_term': cfg.odoo.payment_term
+        'payment_term': cfg.odoo.payment_term,
+        'validity_date': validity_date
     }
 
     order = sale_order_model.create(order_data)
@@ -155,25 +164,31 @@ def create_odoo_quotation(billing_info, shipping_info, product_id):
         }
 
     billing_id, shipping_id = _save_customer(erp_client, customer)
-    return _save_quotation(cfg, erp_client, billing_id, shipping_id, product_id)
+    return _create_quotation(cfg, erp_client, billing_id, shipping_id, product_id)
 
 
-def cancel_odoo_quotation(order_id):
+def update_odoo_quotation(order_id, order_data):
+    # type: (long, dict) -> None
     cfg = get_config(NAMESPACE)
     erp_client = _get_erp_client(cfg)
-
-    sale_order_model = erp_client.model('sale.order')
-    sale_order = sale_order_model.browse(order_id)
-
-    order_data = {
-        'state': 'cancel'
-    }
+    sale_order = erp_client.model('sale.order').browse(order_id)
 
     try:
+        logging.info('Updating sale.order %s with data %s', order_id, order_data)
         sale_order.write(order_data)
     except xmlrpclib.Fault as e:
-        if 'One of the documents you are trying to access has been deleted' not in e.message:
+        # Sale order has been deleted on odoo, ignore in case the state was 'cancel'
+        if 'MissingError' not in e.faultCode or order_data.get('state') != QuotationState.CANCEL:
             raise e
+
+
+def confirm_odoo_quotation(order_id):
+    # type: (long, dict) -> bool
+    cfg = get_config(NAMESPACE)
+    erp_client = _get_erp_client(cfg)
+    result = erp_client.execute('sale.order', 'action_button_confirm', [order_id])
+    logging.info('action_button_confirm result: %s', result)
+    return result
 
 
 def get_odoo_serial_number(order_id):

@@ -39,26 +39,27 @@ from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FormAcknowledgedCallbackResultTO, \
     MessageCallbackResultTypeTO, TYPE_MESSAGE, FlowMemberResultCallbackResultTO
-from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
 from plugins.tff_backend.bizz.authentication import Roles
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.bizz.hoster import get_publickey_label, _create_error_message
+from plugins.tff_backend.bizz.intercom_helpers import IntercomTags
 from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
-from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
+from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
-from plugins.tff_backend.bizz.rogerthat import send_rogerthat_message
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.bizz.user import user_code
 from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS, ACCOUNT_NUMBERS
-from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TOKEN_TYPE_I
+from plugins.tff_backend.dal.investment_agreements import get_investment_agreement
+from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TokenType
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
-    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_TAG, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED
+    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step, round_currency_amount
@@ -150,7 +151,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         msg = u'We are ready to process your purchase. Is the following information correct?\n\n' \
               u'You would like to buy %(token)s for a total amount of' \
               u' **%(amount)s %(currency)s**.\n\n' \
-              u'After confirming, you will receive your personalised investment agreement.' % params
+              u'After confirming, you will receive your personalised purchase agreement.' % params
         tag = json.dumps({'__rt__.tag': 'invest_complete', 'investment_id': agreement.id}).decode('utf-8')
         message = MessageCallbackResultTypeTO(alert_flags=Message.ALERT_FLAG_SILENT,
                                               answers=answers,
@@ -286,7 +287,7 @@ def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, ipfs_link)
     organization_id = get_iyo_organization_id()
 
     doc_id = u'Internal Token Offering %s' % agreement_key.id()
-    doc_category = u'Investment Agreement'
+    doc_category = u'Purchase Agreement'
     iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
                                      globalid=organization_id,
                                      uniqueid=doc_id,
@@ -294,8 +295,8 @@ def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, ipfs_link)
                                      category=doc_category,
                                      link=ipfs_link,
                                      content_type=u'application/pdf',
-                                     markdown_short_description=u'Internal Token Offering - Investment Agreement',
-                                     markdown_full_description=u'Internal Token Offering - Investment Agreement')
+                                     markdown_short_description=u'Internal Token Offering - Purchase Agreement',
+                                     markdown_full_description=u'Internal Token Offering - Purchase Agreement')
     logging.debug('Creating IYO SEE document: %s', iyo_see_doc)
     try:
         create_see_document(iyo_username, iyo_see_doc)
@@ -319,7 +320,7 @@ def _send_ito_agreement_sign_message(agreement_key, app_user, ipfs_link, attachm
     logging.debug('Sending SIGN widget to app user')
     widget = SignTO()
     widget.algorithm = KEY_ALGORITHM
-    widget.caption = u'Please enter your PIN code to digitally sign the investment agreement'
+    widget.caption = u'Please enter your PIN code to digitally sign the purchase agreement'
     widget.key_name = KEY_NAME
     widget.payload = base64.b64encode(ipfs_link).decode('utf-8')
 
@@ -340,7 +341,7 @@ def _send_ito_agreement_sign_message(agreement_key, app_user, ipfs_link, attachm
     messaging.send_form(api_key=get_rogerthat_api_key(),
                         parent_message_key=None,
                         member=member_user.email(),
-                        message=u'Please review the investment agreement and press the "Sign" button to accept.',
+                        message=u'Please review the purchase agreement and press the "Sign" button to accept.',
                         form=form,
                         flags=0,
                         alert_flags=Message.ALERT_FLAG_VIBRATE,
@@ -371,7 +372,7 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
     form.widget = widget
 
     member_user, app_id = get_app_user_tuple(admin_app_user)
-    message = u"""Enter your pin code to mark investment %(investment)s (reference %(reference)s as paid.
+    message = u"""Enter your pin code to mark purchase agreement %(investment)s (reference %(reference)s as paid.
 - from: %(user)s\n
 - amount: %(amount)s %(currency)s
 - %(token_count_float)s %(token_type)s tokens
@@ -461,26 +462,34 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         agreement.populate(status=InvestmentAgreement.STATUS_SIGNED,
                            signature=payload_signature,
                            sign_time=now())
-        agreement.put()
+        agreement.put_async()
 
-        # TODO: send mail to TF support
         deferred.defer(add_user_to_role, user_detail, Roles.INVESTOR)
+        intercom_tags = get_intercom_tags_for_investment(agreement)
+        if intercom_tags:
+            for i_tag in intercom_tags:
+                deferred.defer(intercom_helpers.tag_intercom_users, i_tag, [iyo_username])
         deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.PAY)
-        deferred.defer(send_payment_instructions, user_detail.email, user_detail.app_id, agreement.id)
-
-        deferred.defer(_inform_support_of_new_investment, agreement.iyo_username, agreement.id,
-                       agreement.token_count_float)
-
+        deferred.defer(_inform_support_of_new_investment, iyo_username, agreement.id, agreement.token_count_float)
         logging.debug('Sending confirmation message')
+        prefix_message = u'Thank you. We successfully received your digital signature.' \
+                         u' We have stored a copy of this agreement in your ItsYou.Online SEE account.' \
+                         u' We will contact you again when we have received your payment.' \
+                         u' Thanks again for your purchase and your support of the ThreeFold Foundation!' \
+                         u'\n\nWe would like to take this opportunity to remind you once again to keep a back-up of' \
+                         u' your wallet in a safe place, by writing down the 29 words that can be used to restore it' \
+                         u' to a different device.' \
+                         u' As usual, if you have any questions, don\'t hesitate to contact us.\n\n'
+        msg = u'%sReference: %s' % (prefix_message, agreement.reference)
+        deferred.defer(send_payment_instructions, agreement.app_user, agreement.id, prefix_message)
+
         message = MessageCallbackResultTypeTO()
         message.alert_flags = Message.ALERT_FLAG_VIBRATE
         message.answers = []
         message.branding = get_main_branding_hash()
         message.dismiss_button_ui_flags = 0
         message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
-        message.message = u'Thank you. We successfully received your digital signature.' \
-                          u' We have stored a copy of this agreement in your ItsYou.Online SEE account.' \
-                          u'\nReference: %s' % agreement.reference
+        message.message = msg
         message.step_id = u'investment_agreement_accepted'
         message.tag = None
 
@@ -515,29 +524,13 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
         agreement.paid_time = now()
         agreement.put()
         user_email, app_id, = get_app_user_tuple(agreement.app_user)
-        deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TOKEN_TYPE_I,
+        deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TokenType.I,
                        long(agreement.token_count_float * 100), _transactional=True)
         deferred.defer(update_investor_progress, user_email.email(), app_id, InvestorSteps.ASSIGN_TOKENS,
                        _transactional=True)
-        deferred.defer(_send_tokens_assigned_message, user_email.email(), app_id, agreement.id, _transactional=True)
+        deferred.defer(_send_tokens_assigned_message, agreement.app_user, _transactional=True)
 
     ndb.transaction(trans)
-
-
-@returns(tuple)
-@arguments(cursor=unicode, status=(int, long))
-def get_investment_agreements(cursor=None, status=None):
-    return InvestmentAgreement.fetch_page(cursor, status)
-
-
-@returns(InvestmentAgreement)
-@arguments(agreement_id=(int, long))
-def get_investment_agreement(agreement_id):
-    # type: (long) -> InvestmentAgreement
-    agreement = InvestmentAgreement.get_by_id(agreement_id)
-    if not agreement:
-        raise HttpNotFoundException('investment_agreement_not_found')
-    return agreement
 
 
 @returns(InvestmentAgreementDetailsTO)
@@ -581,16 +574,16 @@ def put_investment_agreement(agreement_id, agreement, admin_user):
 def _inform_support_of_new_investment(iyo_username, agreement_id, token_count):
     cfg = get_config(NAMESPACE)
 
-    subject = "New investment agreement signed"
+    subject = "New purchase agreement signed"
     body = """Hello,
 
-We just received a new investment from %(iyo_username)s with id %(agreement_id)s for %(token_count_float)s tokens
+We just received a new purchase agreement (%(agreement_id)s) from %(iyo_username)s for %(token_count_float)s tokens.
 
 Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more details, and collect all the money!
 """ % {"iyo_username": iyo_username,
        "agreement_id": agreement_id,
        'base_url': BASE_URL,
-       "token_count_float": token_count}
+       "token_count_float": token_count}  # noQA
 
     for email in cfg.investor.support_emails:
         mail.send_mail(sender="no-reply@tff-backend.appspotmail.com",
@@ -600,18 +593,19 @@ Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more de
 
 
 @returns()
-@arguments(email=unicode, app_id=unicode, agreement_id=(int, long))
-def send_payment_instructions(email, app_id, agreement_id):
+@arguments(app_user=users.User, agreement_id=(int, long), message_prefix=unicode)
+def send_payment_instructions(app_user, agreement_id, message_prefix):
     agreement = get_investment_agreement(agreement_id)
     params = {
         'currency': agreement.currency,
         'iban': BANK_ACCOUNTS.get(agreement.currency, BANK_ACCOUNTS['USD']),
         'account_number': ACCOUNT_NUMBERS.get(agreement.currency),
-        'reference': agreement.reference
+        'reference': agreement.reference,
+        'message_prefix': message_prefix
     }
     if agreement.currency == "BTC":
         params['amount'] = '{:.8f}'.format(agreement.amount)
-        message = u"""Please use the following transfer details
+        message = u"""%(message_prefix)sPlease use the following transfer details
 Amount: %(currency)s %(amount)s - wallet 3GTf7gWhvWqfsurxXpEj6DU7SVoLM3wC6A
 
 Please inform us by email at payments@threefoldtoken.com when you have made payment.
@@ -620,7 +614,7 @@ Reference: %(reference)s"""
 
     else:
         params['amount'] = '{:.2f}'.format(agreement.amount)
-        message = u"""Please use the following transfer details
+        message = u"""%(message_prefix)sPlease use the following transfer details
 Amount: %(currency)s %(amount)s
 
 Bank: Mashreq Bank
@@ -633,46 +627,33 @@ IBAN: %(iban)s / BIC : BOMLAEAD
 
 For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
 
-**Payment must be made from a bank account registered under your name.** Please use %(reference)s as reference."""  # noQA
+Important: The payment must be made from a bank account registered under your name. Please use %(reference)s as reference."""  # noQA
 
     msg = message % params
     subject = u'ThreeFold payment instructions'
-
-    deferred.defer(_send_payment_instructions_via_app, msg, email, app_id)
-    deferred.defer(_send_payment_instructions_via_email, msg, subject, agreement.app_user)
+    send_message_and_email(app_user, msg, subject)
 
 
-def _send_payment_instructions_via_app(message, email, app_id):
-    member = MemberTO(member=email, app_id=app_id, alert_flags=Message.ALERT_FLAG_VIBRATE)
-    messaging.send(api_key=get_rogerthat_api_key(),
-                   parent_message_key=None,
-                   message=message,
-                   answers=[],
-                   flags=Message.FLAG_ALLOW_DISMISS,
-                   members=[member],
-                   branding=get_main_branding_hash(),
-                   tag=None)
-
-
-def _send_payment_instructions_via_email(message, subject, app_user):
-    user_information = get_user(get_iyo_username(app_user))
-    email = user_information.validatedemailaddresses and user_information.validatedemailaddresses[0].emailaddress
-    if not email:
-        logging.error('Could not find email address to send payment information to for user %s', app_user,
-                      _suppress=False)
-        return
-    mail.send_mail(sender='no-reply@tff-backend.appspotmail.com',
-                   to=email,
-                   subject=subject,
-                   body=message.replace('**', ''))  # remove markdown
-
-
-def _send_tokens_assigned_message(user_email, app_id, investment_agreement_id):
+def _send_tokens_assigned_message(app_user):
+    subject = u'ThreeFold tokens assigned'
     message = 'Dear ThreeFold Member, we have just assigned your tokens to your wallet. ' \
               'It may take up to an hour for them to appear in your wallet. ' \
-              'We would like to take this opportunity to remind you to have a paper backup of your wallet. ' \
+              '\n\nWe would like to take this opportunity to remind you to have a paper backup of your wallet. ' \
               'You can make such a backup by writing down the 29 words you can use to restore the wallet. ' \
-              'You can find these 29 words by going to Settings -> Security -> threefold. ' \
-              'Thank you once again for getting on board!'
-    member = MemberTO(member=user_email, app_id=app_id, alert_flags=0)
-    send_rogerthat_message(member, message)
+              '\nYou can find these 29 words by going to Settings -> Security -> threefold. ' \
+              '\n\nThank you once again for getting on board!'
+    send_message_and_email(app_user, message, subject)
+
+
+@arguments(agreement=InvestmentAgreement)
+def get_intercom_tags_for_investment(agreement):
+    if agreement.status not in [InvestmentAgreement.STATUS_PAID, InvestmentAgreement.STATUS_SIGNED]:
+        return []
+    if agreement.token == TOKEN_ITFT:
+        return [IntercomTags.ITFT_PURCHASER, IntercomTags.GREENITGLOBE_CONTRACT]
+    elif agreement.token == TOKEN_TFT:
+        # todo: In the future (PTO), change ITO_INVESTOR to IntercomTags.TFT_PURCHASER
+        return [IntercomTags.BETTERTOKEN_CONTRACT, IntercomTags.ITO_INVESTOR]
+    else:
+        logging.warn('Unknown token %s, not tagging intercom user', agreement.token)
+        return []

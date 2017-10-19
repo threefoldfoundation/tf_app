@@ -14,12 +14,15 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+
 from google.appengine.api import datastore_errors
 from google.appengine.ext import ndb
 
+from framework.consts import WEEK
 from framework.models.common import NdbModel
 from framework.plugin_loader import get_config
 from framework.utils import chunks, now
+from framework.utils.transactions import on_trans_committed
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -31,6 +34,7 @@ class NodeOrderStatus(object):
     ARRIVED = 3
     # Admins must manually check if user has invested >= REQUIRED_TOKEN_COUNT_TO_HOST tokens
     WAITING_APPROVAL = 4
+    PAID = 5
 
 
 class ContactInfo(NdbModel):
@@ -51,7 +55,6 @@ def _validate_socket(prop, value):
 
 class NodeOrder(NdbModel):
     NAMESPACE = NAMESPACE
-    NODE_ORDERS_PER_PAGE = 50
 
     app_user = ndb.UserProperty()
     billing_info = ndb.LocalStructuredProperty(ContactInfo)  # type: ContactInfo
@@ -66,12 +69,19 @@ class NodeOrder(NdbModel):
     arrival_time = ndb.IntegerProperty()
     cancel_time = ndb.IntegerProperty()
     modification_time = ndb.IntegerProperty()
-    arrival_qr_code_url = ndb.StringProperty(indexed=False)
     odoo_sale_order_id = ndb.IntegerProperty()
     socket = ndb.StringProperty(indexed=False, validator=_validate_socket)
 
     def _pre_put_hook(self):
         self.modification_time = now()
+
+    def _post_put_hook(self, future):
+        from plugins.tff_backend.dal.node_orders import index_node_order
+        if ndb.in_transaction():
+            from google.appengine.ext import deferred
+            deferred.defer(index_node_order, self, _transactional=True)
+        else:
+            index_node_order(self)
 
     @property
     def iyo_username(self):
@@ -109,17 +119,14 @@ class NodeOrder(NdbModel):
             .filter(cls.status == status)
 
     @classmethod
-    def fetch_page(cls, cursor=None, status=None):
-        # type: (unicode) -> tuple[list[NodeOrder], ndb.Cursor, bool]
-        qry = cls.list_by_status(status) if status is not None else cls.list()
-        return qry \
-            .order(-cls.modification_time) \
-            .fetch_page(cls.NODE_ORDERS_PER_PAGE, start_cursor=ndb.Cursor(urlsafe=cursor))
-
-    @classmethod
     def list_by_user(cls, app_user):
         return cls.query() \
             .filter(cls.app_user == app_user)
+
+    @classmethod
+    def list_check_online(cls):
+        two_weeks_ago = now() - (WEEK * 2)
+        return cls.list_by_status(NodeOrderStatus.SENT).filter(cls.send_time < two_weeks_ago)
 
 
 class PublicKeyMapping(NdbModel):

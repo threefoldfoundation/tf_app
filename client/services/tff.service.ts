@@ -1,13 +1,18 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
 import {
-  GetInvestmentAgreementsPayload,
-  GetNodeOrdersPayload,
+  CreateTransactionPayload,
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
+  InvestmentAgreementsQuery,
   NodeOrder,
-  NodeOrderList
+  NodeOrderList,
+  NodeOrdersQuery,
+  Transaction,
+  TransactionList,
+  WalletBalance
 } from '../interfaces/index';
 import { TffConfig } from './tff-config.service';
 
@@ -17,12 +22,8 @@ export class TffService {
   constructor(private http: HttpClient) {
   }
 
-  getNodeOrders(payload: GetNodeOrdersPayload) {
-    let params = new HttpParams();
-    if (payload.cursor) {
-      params = params.set('cursor', payload.cursor);
-    }
-    params = params.set('status', payload.status.toString());
+  getNodeOrders(payload: NodeOrdersQuery) {
+    const params = this._getQueryParams(payload);
     return this.http.get<NodeOrderList>(`${TffConfig.API_URL}/orders`, { params });
   }
 
@@ -34,12 +35,8 @@ export class TffService {
     return this.http.put<NodeOrder>(`${TffConfig.API_URL}/orders/${nodeOrder.id}`, nodeOrder);
   }
 
-  getInvestmentAgreements(payload: GetInvestmentAgreementsPayload) {
-    let params = new HttpParams();
-    if (payload.cursor) {
-      params = params.set('cursor', payload.cursor);
-    }
-    params = params.set('status', payload.status.toString());
+  getInvestmentAgreements(payload: InvestmentAgreementsQuery) {
+    const params = this._getQueryParams(payload);
     return this.http.get<InvestmentAgreementList>(`${TffConfig.API_URL}/investment-agreements`, { params });
   }
 
@@ -61,5 +58,39 @@ export class TffService {
 
   updateGlobalStats(stats: GlobalStats) {
     return this.http.put<GlobalStats>(`${TffConfig.API_URL}/global-stats/${stats.id}`, stats);
+  }
+
+  searchUsers(payload: SearchUsersQuery) {
+    const params = this._getQueryParams(payload);
+    return this.http.get<UserList>(`${TffConfig.API_URL}/users`, { params });
+  }
+
+  getUser(username: string) {
+    return this.http.get<Profile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}`);
+  }
+
+  getBalance(username: string) {
+    return this.http.get<WalletBalance[]>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/balance`);
+  }
+
+  getUserTransactions(username: string) {
+    return this.http.get<TransactionList>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/transactions`);
+  }
+
+  createTransaction(payload: CreateTransactionPayload) {
+    let data: Partial<CreateTransactionPayload> = { ...payload };
+    delete data.username;
+    return this.http.post<Transaction>(`${TffConfig.API_URL}/users/${encodeURIComponent(payload.username)}/transactions`, data);
+  }
+
+  private _getQueryParams<T>(queryObject: T): HttpParams {
+    let params = new HttpParams();
+    const q = <[ keyof T ]>Object.keys(queryObject);
+    for (const key of q) {
+      if (queryObject[ key ] !== null) {
+        params = params.set(key, encodeURIComponent(queryObject[ key ].toString()));
+      }
+    }
+    return params;
   }
 }

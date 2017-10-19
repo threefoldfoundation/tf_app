@@ -1,4 +1,5 @@
 import { SeeDocumentDetails } from './iyo-see.interfaces';
+import { PaginatedResult } from './shared.interfaces';
 
 export enum NodeOrderStatuses {
   CANCELED = -1,
@@ -7,7 +8,18 @@ export enum NodeOrderStatuses {
   SENT = 2,
   ARRIVED = 3,
   WAITING_APPROVAL = 4,
+  PAID = 5,
 }
+
+export const NODE_ORDER_STATUS_MAPPING: { [ key: number ]: NodeOrderStatuses[] } = {
+  [ NodeOrderStatuses.CANCELED ]: [],
+  [ NodeOrderStatuses.WAITING_APPROVAL ]: [ NodeOrderStatuses.CANCELED, NodeOrderStatuses.APPROVED ],
+  [ NodeOrderStatuses.APPROVED ]: [ NodeOrderStatuses.CANCELED, NodeOrderStatuses.SIGNED ],
+  [ NodeOrderStatuses.SIGNED ]: [ NodeOrderStatuses.CANCELED, NodeOrderStatuses.PAID ],
+  [ NodeOrderStatuses.PAID ]: [ NodeOrderStatuses.SENT ],
+  [ NodeOrderStatuses.SENT ]: [],
+  [ NodeOrderStatuses.ARRIVED ]: [],
+};
 
 export interface ContactInfo {
   name: string;
@@ -32,7 +44,6 @@ export interface NodeOrder {
   send_time: number | null;
   arrival_time: number | null;
   cancel_time: number | null;
-  arrival_qr_code_url: string | null;
   socket: string;
 }
 
@@ -40,22 +51,21 @@ export interface NodeOrderDetail extends NodeOrder {
   see_document: SeeDocumentDetails;
 }
 
-export interface NodeOrderList {
+export interface NodeOrdersQuery {
   cursor: string | null;
-  more: boolean;
-  results: NodeOrder[];
+  status: NodeOrderStatuses | null;
+  query: string | null;
 }
 
-export interface GetNodeOrdersPayload {
-  cursor: string | null;
-  status: NodeOrderStatuses;
+export interface NodeOrderList extends PaginatedResult<NodeOrder> {
 }
 
-export const ORDER_STATUSES = {
-  [ NodeOrderStatuses.CANCELED ]: 'tff.canceled',
-  [ NodeOrderStatuses.APPROVED ]: 'tff.approved',
-  [ NodeOrderStatuses.SIGNED ]: 'tff.signed',
-  [ NodeOrderStatuses.SENT ]: 'tff.sent',
-  [ NodeOrderStatuses.ARRIVED ]: 'tff.arrived',
-  [ NodeOrderStatuses.WAITING_APPROVAL ]: 'tff.waiting_approval',
-};
+export const ORDER_STATUSES = [
+  { value: NodeOrderStatuses.WAITING_APPROVAL, label: 'tff.waiting_approval' },
+  { value: NodeOrderStatuses.APPROVED, label: 'tff.approved' },
+  { value: NodeOrderStatuses.SIGNED, label: 'tff.signed' },
+  { value: NodeOrderStatuses.PAID, label: 'tff.paid' },
+  { value: NodeOrderStatuses.SENT, label: 'tff.sent' },
+  { value: NodeOrderStatuses.ARRIVED, label: 'tff.arrived_and_came_online' },
+  { value: NodeOrderStatuses.CANCELED, label: 'tff.canceled' },
+];
