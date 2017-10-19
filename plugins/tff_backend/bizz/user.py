@@ -125,7 +125,7 @@ def popuplate_intercom_user(session_key):
         assert isinstance(intercom_plugin, IntercomSupportPlugin)
         data = get_user(session.user_id, session.jwt)
         upsert_intercom_user(session.user_id, data)
-        tag_intercom_users(IntercomTags.APP_REGISTER, [{'user_id': session.user_id}])
+        tag_intercom_users(IntercomTags.APP_REGISTER, [session.user_id])
 
 
 @returns(unicode)
