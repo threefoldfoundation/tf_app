@@ -33,7 +33,7 @@ def api_iyo_see_list(params, user_detail):
         return get_see_documents(iyo_organization_id, iyo_username)
     except:
         logging.error('iyo.see.list exception occurred', exc_info=True)
-        raise ApiCallException(u'Could not load itsyou.online see documents. Please try again later.')
+        raise ApiCallException(u'Could not load ThreeFold documents. Please try again later.')
 
 
 @returns(IYOSeeDocument)
@@ -45,4 +45,4 @@ def api_iyo_see_detail(params, user_detail):
         return get_see_document(iyo_organization_id, iyo_username, params['uniqueid'], u'all')
     except:
         logging.error('iyo.see.detail exception occurred', exc_info=True)
-        raise ApiCallException(u'Could not load itsyou.online see document details. Please try again later.')
+        raise ApiCallException(u'Could not load ThreeFold document details. Please try again later.')

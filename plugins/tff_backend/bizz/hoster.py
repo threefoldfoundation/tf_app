@@ -384,7 +384,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         message.dismiss_button_ui_flags = 0
         message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
         message.message = u'Thank you. We successfully received your digital signature.' \
-                          u' We have stored a copy of this agreement in your ItsYou.Online SEE account.\n\n' \
+                          u' We have stored a copy of this agreement in your ThreeFold Documents.\n\n' \
                           u'Your order with ID "%s" has been placed successfully.\n' % order.human_readable_id
         message.step_id = u'order_completed'
         message.tag = None

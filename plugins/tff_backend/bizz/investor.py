@@ -473,7 +473,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         deferred.defer(_inform_support_of_new_investment, iyo_username, agreement.id, agreement.token_count_float)
         logging.debug('Sending confirmation message')
         prefix_message = u'Thank you. We successfully received your digital signature.' \
-                         u' We have stored a copy of this agreement in your ItsYou.Online SEE account.' \
+                         u' We have stored a copy of this agreement in your ThreeFold Documents.' \
                          u' We will contact you again when we have received your payment.' \
                          u' Thanks again for your purchase and your support of the ThreeFold Foundation!' \
                          u'\n\nWe would like to take this opportunity to remind you once again to keep a back-up of' \
