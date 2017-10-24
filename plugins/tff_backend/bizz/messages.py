@@ -27,7 +27,7 @@ from plugins.tff_backend.utils.app import get_app_user_tuple
 def send_message_and_email(app_user, message, subject):
     human_user, app_id = get_app_user_tuple(app_user)
     member = MemberTO(member=human_user.email(), app_id=app_id, alert_flags=0)
-    iyo_username = get_iyo_username(human_user)
+    iyo_username = get_iyo_username(app_user)
     deferred.defer(send_rogerthat_message, member, message)
     if not DEBUG:
         deferred.defer(send_intercom_email, iyo_username, subject, message)

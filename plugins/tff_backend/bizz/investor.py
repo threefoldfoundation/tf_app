@@ -54,8 +54,8 @@ from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.bizz.user import user_code
 from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS, ACCOUNT_NUMBERS
-from plugins.tff_backend.dal.investment_agreements import get_investment_agreement
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TokenType
+from plugins.tff_backend.dal.investment_agreements import get_investment_agreement
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
@@ -655,5 +655,5 @@ def get_intercom_tags_for_investment(agreement):
         # todo: In the future (PTO), change ITO_INVESTOR to IntercomTags.TFT_PURCHASER
         return [IntercomTags.BETTERTOKEN_CONTRACT, IntercomTags.ITO_INVESTOR]
     else:
-        logging.warn('Unknown token %s, not tagging intercom user', agreement.token)
+        logging.warn('Unknown token %s, not tagging intercom user %s', agreement.token, agreement.app_user)
         return []
