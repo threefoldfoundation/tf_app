@@ -19,13 +19,13 @@ from google.appengine.api import users
 
 from framework.bizz.authentication import get_current_session
 from framework.models.session import Session
-from framework.plugin_loader import get_config
+from framework.plugin_loader import get_config, get_plugin
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_jwt
+from plugins.its_you_online_auth.its_you_online_auth_plugin import ItsYouOnlineAuthPlugin
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.to import UserDetailsTO
-from plugins.tff_backend.plugin_consts import NAMESPACE
-from plugins.tff_backend.utils.app import get_human_user_from_app_user, create_app_user_by_email
+from plugins.tff_backend.utils.app import create_app_user_by_email
 
 
 @returns(unicode)
@@ -36,32 +36,34 @@ def get_iyo_organization_id():
 
 
 @returns(unicode)
-@arguments(user=(users.User, UserDetailsTO, unicode))
-def get_iyo_username(user):
-    if isinstance(user, users.User):
-        email = get_human_user_from_app_user(user).email()
-    elif isinstance(user, UserDetailsTO):
-        email = user.email
+@arguments(app_user_or_user_details=(users.User, UserDetailsTO))
+def get_iyo_username(app_user_or_user_details):
+    if isinstance(app_user_or_user_details, UserDetailsTO):
+        app_user = create_app_user_by_email(app_user_or_user_details.email, app_user_or_user_details.app_id)
     else:
-        email = user
-
-    return email.split('@')[0]
+        app_user = app_user_or_user_details
+    return get_iyo_plugin().get_username_from_rogerthat_email(app_user.email())
 
 
 @returns(users.User)
 @arguments(username=unicode)
 def get_app_user_from_iyo_username(username):
-    iyo_domain = get_config(IYO_AUTH_NAMESPACE).api_domain
-    app_id = get_config(NAMESPACE).rogerthat.app_id
-    return create_app_user_by_email('%s@%s' % (username, iyo_domain), app_id)
+    email = get_iyo_plugin().get_rogerthat_email_from_username(username)
+    return email and users.User(email)
 
 
 def get_itsyouonline_client_from_username(username):
     session = get_current_session()
-    if not session:
+    if not session or session.user_id != username:
         session = Session.create_key(username).get()
     if not session:
         raise Exception('No session found for %s' % username)
     jwt = session.jwt
     client = get_itsyouonline_client_from_jwt(jwt)
     return client
+
+
+@returns(ItsYouOnlineAuthPlugin)
+def get_iyo_plugin():
+    # type: () -> ItsYouOnlineAuthPlugin
+    return get_plugin(IYO_AUTH_NAMESPACE)
