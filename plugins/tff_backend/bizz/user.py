@@ -25,7 +25,6 @@ from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 from framework.bizz.session import create_session
 from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
-from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments
 from plugins.intercom_support.intercom_support_plugin import IntercomSupportPlugin
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
@@ -238,15 +237,8 @@ def store_public_key(user_detail):
         label = u'%s %d' % (KEY_NAME, suffix)
         suffix += 1
     organization_id = get_iyo_organization_id()
-    key = IYOKeyStoreKey()
-    key.key = rt_key.public_key
-    key.globalid = organization_id
-    key.username = username
-    key.label = label
-    key.keydata = IYOKeyStoreKeyData()
-    key.keydata.timestamp = MISSING
-    key.keydata.comment = u'ThreeFold app'
-    key.keydata.algorithm = rt_key.algorithm
+    key = IYOKeyStoreKey(key=rt_key.public_key, username=username, globalid=organization_id, label=label)
+    key.keydata = IYOKeyStoreKeyData(comment=u'ThreeFold app', algorithm=rt_key.algorithm)
     result = create_keystore_key(username, key)
     # We cache the public key - label mapping here so we don't have to go to itsyou.online every time
     mapping_key = PublicKeyMapping.create_key(result.key, user_detail.email)
