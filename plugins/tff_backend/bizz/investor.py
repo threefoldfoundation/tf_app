@@ -377,7 +377,7 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
 - amount: %(amount)s %(currency)s
 - %(token_count_float)s %(token_type)s tokens
 """ % {'investment': agreement.reference,
-       'user': agreement.iyo_username,
+       'user': get_iyo_username(agreement.app_user),
        'amount': agreement.amount,
        'currency': agreement.currency,
        'token_count_float': agreement.token_count_float,

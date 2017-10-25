@@ -22,7 +22,6 @@ from framework.consts import WEEK
 from framework.models.common import NdbModel
 from framework.plugin_loader import get_config
 from framework.utils import chunks, now
-from framework.utils.transactions import on_trans_committed
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -84,9 +83,9 @@ class NodeOrder(NdbModel):
             index_node_order(self)
 
     @property
-    def iyo_username(self):
-        from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-        return get_iyo_username(self.app_user)
+    def app_email(self):
+        # type: () -> unicode
+        return self.app_user.email()
 
     @property
     def id(self):

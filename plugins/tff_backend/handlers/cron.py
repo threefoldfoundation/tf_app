@@ -52,6 +52,7 @@ class BackupHandler(webapp2.RequestHandler):
 
         # its_tyo_online_auth
         models_to_backup.extend(['Profile',
+                                 'ProfileAppEmailMapping',
                                  'Session'])
 
         # tff_backend
