@@ -15,7 +15,6 @@
 #
 # @@license_version:1.3@@
 
-import logging
 import urllib
 
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -31,7 +30,6 @@ def get_see_document(organization_id, username, uniqueid, version=u"latest"):
         'version': version
     }
     result = client.api.users.GetSeeObject(uniqueid, organization_id, username, query_params=query_params)
-    logging.debug('get_see_document %s %s', result.status_code, result.text)
     return IYOSeeDocument(**result.json())
 
 
@@ -43,7 +41,6 @@ def get_see_documents(organization_id, username):
         'globalid': organization_id
     }
     result = client.api.users.GetSeeObjects(username, query_params=query_params)
-    logging.debug('get_see_documents %s %s', result.status_code, result.text)
     return [IYOSeeDocumentView(**d) for d in result.json()]
 
 
@@ -53,7 +50,6 @@ def create_see_document(username, doc):
     client = get_itsyouonline_client_from_username(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
     result = client.api.users.CreateSeeObject(data, username)
-    logging.debug('create_see_document %s %s', result.status_code, result.text)
     return IYOSeeDocumentView(**result.json())
 
 
@@ -63,7 +59,6 @@ def update_see_document(organization_id, username, doc):
     client = get_itsyouonline_client_from_username(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
     result = client.api.users.UpdateSeeObject(data, doc.uniqueid, organization_id, username)
-    logging.debug('update_see_document %s %s', result.status_code, result.text)
     return IYOSeeDocumentView(**result.json())
 
 
@@ -74,5 +69,4 @@ def sign_see_document(organization_id, username, doc):
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
     result = client.api.users.SignSeeObject(data, str(doc.version), urllib.quote(doc.uniqueid), organization_id,
                                             username)
-    logging.debug('sign_see_document %s %s', result.status_code, result.text)
     return IYOSeeDocumentView(**result.json())

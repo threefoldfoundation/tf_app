@@ -33,7 +33,6 @@ def get_user(username, jwt=None):
     else:
         client = get_itsyouonline_client_from_username(username)
     result = client.api.users.GetUserInformation(username)
-    logging.debug('get_user %s %s', result.status_code, result.text)
     return userview(_convert_to_str(result.json()))
 
 
