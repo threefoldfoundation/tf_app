@@ -108,10 +108,10 @@ def user_registered(user_detail, origin, data):
 
     deferred.defer(invite_user_to_organization, username, Organization.PUBLIC)
     deferred.defer(add_user_to_public_role, user_detail)
-    deferred.defer(popuplate_intercom_user, session.key, user_detail)
+    deferred.defer(populate_intercom_user, session.key, user_detail)
 
 
-def popuplate_intercom_user(session_key, user_detail=None):
+def populate_intercom_user(session_key, user_detail=None):
     """
     Creates or updates an intercom user with information from itsyou.online
     Args:

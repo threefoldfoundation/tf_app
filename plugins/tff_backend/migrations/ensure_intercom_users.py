@@ -18,7 +18,10 @@ import re
 
 from framework.bizz.job import run_job
 from framework.models.session import Session
-from plugins.tff_backend.bizz.user import popuplate_intercom_user
+from plugins.its_you_online_auth.models import Profile
+from plugins.rogerthat_api.to import UserDetailsTO
+from plugins.tff_backend.bizz.user import populate_intercom_user
+from plugins.tff_backend.utils.app import get_app_user_tuple_by_email
 
 
 def _is_guid(val):
@@ -34,5 +37,12 @@ def _get_users():
 
 
 def _ensure_intercom_user(session_key):
-    if not _is_guid(session_key.id()):
-        popuplate_intercom_user(session_key)
+    session_key_value = session_key.id()
+    if not _is_guid(session_key_value):
+        # session_key_value == username
+        profile = Profile.create_key(session_key_value).get()
+        user_details = None
+        if profile:
+            user, app_id = get_app_user_tuple_by_email(profile.app_email)
+            user_details = UserDetailsTO(email=user.email(), app_id=app_id)
+        populate_intercom_user(session_key, user_details)
