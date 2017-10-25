@@ -2,7 +2,6 @@ from google.appengine.ext import ndb
 
 from framework.models.common import NdbModel
 from framework.utils import now
-from framework.utils.transactions import on_trans_committed
 from plugins.tff_backend.consts.payment import TOKEN_TFT
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
@@ -52,9 +51,9 @@ class InvestmentAgreement(NdbModel):
             index_investment_agreement(self)
 
     @property
-    def iyo_username(self):
-        from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-        return get_iyo_username(self.app_user)
+    def app_email(self):
+        # type: () -> unicode
+        return self.app_user.email()
 
     @property
     def id(self):

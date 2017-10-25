@@ -45,6 +45,12 @@ def get_iyo_username(app_user_or_user_details):
     return get_iyo_plugin().get_username_from_rogerthat_email(app_user.email())
 
 
+@returns(dict)
+@arguments(app_emails=[unicode])
+def get_iyo_usernames(app_emails):
+    return get_iyo_plugin().get_usernames_from_rogerthat_emails(app_emails)
+
+
 @returns(users.User)
 @arguments(username=unicode)
 def get_app_user_from_iyo_username(username):

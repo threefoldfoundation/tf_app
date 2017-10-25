@@ -26,7 +26,6 @@ from mcfw.rpc import arguments, returns
 from plugins.intercom_support.intercom_support_plugin import IntercomSupportPlugin
 from plugins.intercom_support.plugin_consts import NAMESPACE as INTERCOM_NAMESPACE
 from plugins.its_you_online_auth.libs.itsyouonline.userview import userview
-
 from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
