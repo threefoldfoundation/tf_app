@@ -28,6 +28,7 @@ from framework.plugin_loader import get_config, get_plugin
 from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments
 from plugins.intercom_support.intercom_support_plugin import IntercomSupportPlugin
+from plugins.intercom_support.rogerthat_callbacks import start_or_get_chat
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
     has_access_to_organization
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
@@ -44,7 +45,7 @@ from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_
 from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.models.user import ProfilePointer, TffProfile
-from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
+from plugins.tff_backend.plugin_consts import NAMESPACE, KEY_NAME, KEY_ALGORITHM
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
 from plugins.tff_backend.utils.app import create_app_user_by_email
 
@@ -107,14 +108,15 @@ def user_registered(user_detail, origin, data):
 
     deferred.defer(invite_user_to_organization, username, Organization.PUBLIC)
     deferred.defer(add_user_to_public_role, user_detail)
-    deferred.defer(popuplate_intercom_user, session.key)
+    deferred.defer(popuplate_intercom_user, session.key, user_detail)
 
 
-def popuplate_intercom_user(session_key):
+def popuplate_intercom_user(session_key, user_detail=None):
     """
     Creates or updates an intercom user with information from itsyou.online
     Args:
         session_key (ndb.Key): key of the Session for this user
+        user_detail (UserDetailsTO): key of the Session for this user
     """
     intercom_plugin = get_plugin('intercom_support')
     if intercom_plugin:
@@ -124,8 +126,31 @@ def popuplate_intercom_user(session_key):
         assert isinstance(session, Session)
         assert isinstance(intercom_plugin, IntercomSupportPlugin)
         data = get_user(session.user_id, session.jwt)
-        upsert_intercom_user(session.user_id, data)
-        tag_intercom_users(IntercomTags.APP_REGISTER, [session.user_id])
+        intercom_user = upsert_intercom_user(data.username, data)
+        tag_intercom_users(IntercomTags.APP_REGISTER, [data.username])
+        if user_detail:
+            message = """Welcome to the ThreeFold Foundation app.
+If you have questions you can get in touch with us through this chat.
+Our team is at your service during these hours:
+
+Sunday: 07:00 - 15:00 GMT +1
+Monday - Friday: 09:00 - 17:00 GMT +1
+
+Of course you can always ask your questions outside these hours, we will then get back to you the next business day."""
+            chat_id = start_or_get_chat(get_config(NAMESPACE).rogerthat.api_key, '+default+', user_detail.email,
+                                        user_detail.app_id, intercom_user, message)
+            deferred.defer(store_chat_id_in_user_data, chat_id, user_detail)
+
+
+@arguments(rogerthat_chat_id=unicode, user_detail=UserDetailsTO)
+def store_chat_id_in_user_data(rogerthat_chat_id, user_detail):
+    user_data = {
+        'support_chat_id': rogerthat_chat_id
+    }
+
+    api_key = get_rogerthat_api_key()
+    system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
+
 
 
 @returns(unicode)
