@@ -42,7 +42,7 @@ def _ensure_intercom_user(session_key):
         # session_key_value == username
         profile = Profile.create_key(session_key_value).get()
         user_details = None
-        if profile:
+        if profile and profile.app_email:
             user, app_id = get_app_user_tuple_by_email(profile.app_email)
             user_details = UserDetailsTO(email=user.email(), app_id=app_id)
         populate_intercom_user(session_key, user_details)
