@@ -25,6 +25,7 @@ from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 from framework.bizz.session import create_session
 from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
+from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments
 from plugins.intercom_support.intercom_support_plugin import IntercomSupportPlugin
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
@@ -191,7 +192,7 @@ def store_iyo_info_in_userdata(username, user_detail):
 
     user_data = dict()
     if not current_user_data.get('name') and iyo_user.firstname and iyo_user.lastname:
-        user_data['name'] = u'%s %s' % (iyo_user.firstname, iyo_user.lastname)
+        user_data['name'] = '%s %s' % (iyo_user.firstname, iyo_user.lastname)
 
     if not current_user_data.get('email') and iyo_user.validatedemailaddresses:
         user_data['email'] = iyo_user.validatedemailaddresses[0].emailaddress
@@ -200,11 +201,11 @@ def store_iyo_info_in_userdata(username, user_detail):
         user_data['phone'] = iyo_user.validatedphonenumbers[0].phonenumber
 
     if not current_user_data.get('address') and iyo_user.addresses:
-        user_data['address'] = u'%s %s' % (iyo_user.addresses[0].street, iyo_user.addresses[0].nr)
-        user_data['address'] += u'\n%s %s' % (iyo_user.addresses[0].postalcode, iyo_user.addresses[0].city)
-        user_data['address'] += u'\n%s' % iyo_user.addresses[0].country
+        user_data['address'] = '%s %s' % (iyo_user.addresses[0].street, iyo_user.addresses[0].nr)
+        user_data['address'] += '\n%s %s' % (iyo_user.addresses[0].postalcode, iyo_user.addresses[0].city)
+        user_data['address'] += '\n%s' % iyo_user.addresses[0].country
         if iyo_user.addresses[0].other:
-            user_data['address'] += u'\n\n%s' % iyo_user.addresses[0].other
+            user_data['address'] += '\n\n%s' % iyo_user.addresses[0].other
 
     if user_data:
         system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
@@ -239,6 +240,7 @@ def store_public_key(user_detail):
     organization_id = get_iyo_organization_id()
     key = IYOKeyStoreKey(key=rt_key.public_key, username=username, globalid=organization_id, label=label)
     key.keydata = IYOKeyStoreKeyData(comment=u'ThreeFold app', algorithm=rt_key.algorithm)
+    key.keydata.timestamp = MISSING  # Must be missing, else we get bad request since it can't be null
     result = create_keystore_key(username, key)
     # We cache the public key - label mapping here so we don't have to go to itsyou.online every time
     mapping_key = PublicKeyMapping.create_key(result.key, user_detail.email)
