@@ -102,7 +102,7 @@ class NodeOrder(NdbModel):
 
     @classmethod
     def filename(cls, agreement_id):
-        return u'node_%s.pdf' % agreement_id
+        return u'node-orders/node_%s.pdf' % agreement_id
 
     @classmethod
     def create_key(cls, order_id=None):

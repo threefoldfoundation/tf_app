@@ -21,12 +21,15 @@ import cloudstorage
 from cloudstorage.common import local_api_url
 from mcfw.consts import DEBUG
 
+_default_bucket = None
+
 
 def _get_default_bucket():
-    bucket = app_identity.get_application_id()
-    if bucket == 'None' and DEBUG:
-        bucket = 'tff-backend'
-    return bucket
+    global _default_bucket
+    if _default_bucket:
+        return _default_bucket
+    _default_bucket = app_identity.get_default_gcs_bucket_name()
+    return _default_bucket
 
 
 def upload_to_gcs(filename, file_data, content_type, bucket=None):
@@ -44,4 +47,4 @@ def get_serving_url(filename, bucket=None):
         bucket = _get_default_bucket()
     if DEBUG:
         return '%s/%s/%s' % (local_api_url(), bucket, filename)
-    return 'https://storage.googleapis.com%s' % filename
+    return 'https://storage.googleapis.com/%s/%s' % (bucket, filename)

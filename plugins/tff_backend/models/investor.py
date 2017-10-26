@@ -66,7 +66,7 @@ class InvestmentAgreement(NdbModel):
 
     @classmethod
     def filename(cls, agreement_id):
-        return u'purchase_%s.pdf' % agreement_id
+        return u'purchase-agreements/purchase_%s.pdf' % agreement_id
 
     @classmethod
     def create_key(cls, subscription_id):
