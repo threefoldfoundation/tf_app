@@ -17,6 +17,7 @@ import {
 import { GlobalStats } from '../../interfaces/global-stats.interfaces';
 import { InvestmentAgreement, InvestmentAgreementsStatuses } from '../../interfaces/investment-agreements.interfaces';
 import { TffPermissions } from '../../interfaces/permissions.interfaces';
+import { ApiErrorService } from '../../services/api-error.service';
 import { getGlobalStats, getInvestmentAgreement, getInvestmentAgreementStatus, updateInvestmentAgreementStatus } from '../../tff.state';
 
 @Component({
@@ -40,11 +41,13 @@ export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy
   canUpdate$: Observable<boolean>;
 
   private _investmentSub: Subscription;
+  private _errorSub: Subscription;
 
   constructor(private store: Store<IAppState>,
               private route: ActivatedRoute,
               private translate: TranslateService,
-              private dialogService: DialogService) {
+              private dialogService: DialogService,
+              private apiErrorService: ApiErrorService) {
   }
 
   ngOnInit() {
@@ -60,10 +63,13 @@ export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy
     this._investmentSub = this.investmentAgreement$.filter(i => i !== null && i.token !== null).subscribe(investment => {
       this.store.dispatch(new GetGlobalStatsAction(investment.token));
     });
+    this._errorSub = this.updateStatus$.filter(status => !status.success && !status.loading && status.error !== null)
+      .subscribe(status => this.apiErrorService.showErrorDialog(status.error));
   }
 
   ngOnDestroy() {
     this._investmentSub.unsubscribe();
+    this._errorSub.unsubscribe();
   }
 
   onUpdate(agreement: InvestmentAgreement) {

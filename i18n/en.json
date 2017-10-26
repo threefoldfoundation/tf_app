@@ -36,6 +36,7 @@
       "invalid_currencies": "Invalid currencies: {{ currencies }}",
       "invalid_status": "Invalid status",
       "no_serial_number_configured_yet": "Cannot mark node as sent, there is no serial number configured yet for node order with SO number {{ sale_order }} in odoo.",
+      "order_canceled": "This order has been canceled.",
       "profile_not_found": "Could not find a profile for username {{ username }}.",
       "unknown_error_occurred": "An unknown error has occurred",
       "you_do_not_have_permission_to_view_this_information": "You do not have permission to view this information"
