@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
+import { ApiErrorService } from '../services/api-error.service';
 
 @Component({
   moduleId: module.id,
@@ -9,9 +10,16 @@ import { ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
     <md-progress-spinner mode="indeterminate" *ngIf="status.loading" style="height: 64px;" fxFlex fxLayoutAlign="center"
                          fxLayout="center"></md-progress-spinner>
     <div *ngIf="status.error && !status.success">
-      <p class="error-message" [innerText]="'tff.errors.' + status.error.error | translate : status.error.data"></p>
+      <p class="error-message" [innerText]="getMessage()"></p>
     </div>`,
 })
 export class ApiRequestStatusComponent {
   @Input() status: ApiRequestStatus;
+
+  constructor(private apiErrorService: ApiErrorService) {
+  }
+
+  getMessage() {
+    return this.apiErrorService.getErrorMessage(this.status.error);
+  }
 }
