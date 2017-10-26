@@ -22,7 +22,7 @@ from framework.consts import WEEK
 from framework.models.common import NdbModel
 from framework.plugin_loader import get_config
 from framework.utils import chunks, now
-from plugins.tff_backend.bizz.gcs import get_serving_url
+from plugins.tff_backend.bizz.gcs import get_serving_url, encrypt_filename
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -101,8 +101,8 @@ class NodeOrder(NdbModel):
         return get_serving_url(self.filename(self.id)) if self.tos_iyo_see_id else None
 
     @classmethod
-    def filename(cls, agreement_id):
-        return u'node-orders/node_%s.pdf' % agreement_id
+    def filename(cls, node_order_id):
+        return u'node-orders/%s.pdf' % encrypt_filename(node_order_id)
 
     @classmethod
     def create_key(cls, order_id=None):

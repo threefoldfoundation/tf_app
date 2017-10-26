@@ -14,12 +14,16 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+import hashlib
+import hmac
 
 from google.appengine.api.app_identity import app_identity
 
 import cloudstorage
 from cloudstorage.common import local_api_url
+from framework.plugin_loader import get_config
 from mcfw.consts import DEBUG
+from plugins.tff_backend.plugin_consts import NAMESPACE
 
 _default_bucket = None
 
@@ -48,3 +52,8 @@ def get_serving_url(filename, bucket=None):
     if DEBUG:
         return '%s/%s/%s' % (local_api_url(), bucket, filename)
     return 'https://storage.googleapis.com/%s/%s' % (bucket, filename)
+
+
+def encrypt_filename(filename):
+    encryption_key = get_config(NAMESPACE).cloudstorage_encryption_key
+    return hmac.new(encryption_key.encode(), unicode(filename), hashlib.sha1).hexdigest()

@@ -2,7 +2,7 @@ from google.appengine.ext import ndb
 
 from framework.models.common import NdbModel
 from framework.utils import now
-from plugins.tff_backend.bizz.gcs import get_serving_url
+from plugins.tff_backend.bizz.gcs import get_serving_url, encrypt_filename
 from plugins.tff_backend.consts.payment import TOKEN_TFT
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
@@ -66,7 +66,7 @@ class InvestmentAgreement(NdbModel):
 
     @classmethod
     def filename(cls, agreement_id):
-        return u'purchase-agreements/purchase_%s.pdf' % agreement_id
+        return u'purchase-agreements/%s.pdf' % encrypt_filename(agreement_id)
 
     @classmethod
     def create_key(cls, subscription_id):
