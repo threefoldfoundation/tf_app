@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { GetOrderAction, ResetNodeOrderAction, UpdateOrderAction } from '../../actions/threefold.action';
-import { getOrder, getOrderStatus, updateOrderStatus } from '../../tff.state';
 import { Observable } from 'rxjs/Observable';
-import { NodeOrder } from '../../interfaces/nodes.interfaces';
+import { Subscription } from 'rxjs/Subscription';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
+import { GetOrderAction, ResetNodeOrderAction, UpdateOrderAction } from '../../actions/threefold.action';
+import { NodeOrder } from '../../interfaces/nodes.interfaces';
+import { ApiErrorService } from '../../services/api-error.service';
+import { getOrder, getOrderStatus, updateOrderStatus } from '../../tff.state';
 
 @Component({
   moduleId: module.id,
@@ -19,13 +21,15 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
                   (onUpdate)="onUpdate($event)"></order-detail>`
 })
 
-export class OrderDetailPageComponent implements OnInit {
+export class OrderDetailPageComponent implements OnInit, OnDestroy {
   order$: Observable<NodeOrder>;
   orderStatus$: Observable<ApiRequestStatus>;
   updateOrderStatus$: Observable<ApiRequestStatus>;
 
+  private _errorSub: Subscription;
   constructor(private store: Store<IAppState>,
-              private route: ActivatedRoute) {
+              private route: ActivatedRoute,
+              private apiErrorService: ApiErrorService) {
   }
 
   ngOnInit() {
@@ -35,6 +39,12 @@ export class OrderDetailPageComponent implements OnInit {
     this.order$ = this.store.let(getOrder);
     this.orderStatus$ = this.store.let(getOrderStatus);
     this.updateOrderStatus$ = this.store.let(updateOrderStatus);
+    this._errorSub = this.updateOrderStatus$.filter(status => !status.success && !status.loading && status.error !== null)
+      .subscribe(status => this.apiErrorService.showErrorDialog(status.error));
+  }
+
+  ngOnDestroy() {
+    this._errorSub.unsubscribe();
   }
 
   onUpdate(nodeOrder: NodeOrder) {

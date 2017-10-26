@@ -29,12 +29,16 @@
     "details": "Details",
     "document_url": "Document url",
     "email": "Email",
+    "error": "Error",
     "errors": {
       "cannot_change_status": "Cannot update the status, the status might have been changed by someone else.",
       "invalid_amount": "Amount of tokens must be higher than 0.",
       "invalid_currencies": "Invalid currencies: {{ currencies }}",
       "invalid_status": "Invalid status",
-      "profile_not_found": "Could not find a profile for username {{ username }}."
+      "no_serial_number_configured_yet": "Cannot mark node as sent, there is no serial number configured yet for node order with SO number {{ sale_order }} in odoo.",
+      "profile_not_found": "Could not find a profile for username {{ username }}.",
+      "unknown_error_occurred": "An unknown error has occurred",
+      "you_do_not_have_permission_to_view_this_information": "You do not have permission to view this information"
     },
     "global_stats": "Global stats",
     "i_am_a_member": "I am a member",

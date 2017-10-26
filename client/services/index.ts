@@ -25,10 +25,12 @@ import {
 } from '../components/index';
 import { TffConfig } from './tff-config.service';
 import { TffService } from './tff.service';
+import { ApiErrorService } from './api-error.service';
 
 export const TFF_PROVIDERS: any[] = [
   TffService,
   TffConfig,
+  ApiErrorService,
 ];
 
 export const TFF_COMPONENTS: any[] = [

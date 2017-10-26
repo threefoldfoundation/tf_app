@@ -65,7 +65,7 @@ def check_if_node_comes_online(order_key):
         raise BusinessException('Cannot check status of node order without odoo_sale_order_id')
     serial_number = get_odoo_serial_number(order.odoo_sale_order_id)
     if not serial_number:
-        raise Exception('Could not find node serial number for order %s on odoo' % order_id)
+        raise BusinessException('Could not find node serial number for order %s on odoo' % order_id)
 
     status = get_node_status(serial_number)
     if status == u'running':
