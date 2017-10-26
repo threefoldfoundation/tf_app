@@ -5,7 +5,6 @@ import { GlobalStats } from '../../interfaces/global-stats.interfaces';
 import {
   INVESTMENT_AGREEMENT_STATUSES,
   InvestmentAgreement,
-  InvestmentAgreementDetail,
   InvestmentAgreementsStatuses
 } from '../../interfaces/investment-agreements.interfaces';
 
@@ -20,7 +19,7 @@ import {
 })
 export class InvestmentAgreementDetailComponent {
   statuses = InvestmentAgreementsStatuses;
-  @Input() investmentAgreement: InvestmentAgreementDetail;
+  @Input() investmentAgreement: InvestmentAgreement;
   @Input() globalStats: GlobalStats;
   @Input() status: ApiRequestStatus;
   @Input() updateStatus: ApiRequestStatus;
@@ -70,10 +69,10 @@ export class InvestmentAgreementDetailComponent {
       status: InvestmentAgreementsStatuses.SIGNED,
       token_count_float: this.getTokenCount()
     };
-    this.onUpdate.emit(<InvestmentAgreement>{ ...this.investmentAgreement, ...updatedProperties });
+    this.onUpdate.emit({ ...this.investmentAgreement, ...updatedProperties });
   }
 
   cancelInvestment() {
-    this.onUpdate.emit(<InvestmentAgreement>{ ...this.investmentAgreement, status: InvestmentAgreementsStatuses.CANCELED });
+    this.onUpdate.emit({ ...this.investmentAgreement, status: InvestmentAgreementsStatuses.CANCELED });
   }
 }

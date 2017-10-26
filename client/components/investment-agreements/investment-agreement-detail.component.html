@@ -15,7 +15,7 @@
     <p *ngIf="investmentAgreement.paid_time">
       {{ 'tff.paid_time' | translate }}: {{ investmentAgreement.paid_time | timestamp }}
     </p>
-    <iyo-see [document]="investmentAgreement.see_document"></iyo-see>
+    <tff-document-url [url]="investmentAgreement.document_url"></tff-document-url>
     <p>{{ 'tff.created' | translate }}: {{ investmentAgreement.creation_time | timestamp }}</p>
     <p>{{ 'tff.modification_time' | translate }}: {{ investmentAgreement.modification_time | timestamp }}</p>
     <p *ngIf="investmentAgreement.status === statuses.CANCELED">

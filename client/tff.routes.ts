@@ -8,9 +8,10 @@ import {
   InvestmentAgreementListPageComponent,
   OrderDetailPageComponent,
   OrderListPageComponent,
+  UserDetailsPageComponent,
   UserListPageComponent,
   UserPageComponent,
-  UserTransactionsListPageComponent
+  UserTransactionsListPageComponent,
 } from './components/index';
 
 export const TffRoutes: Route[] = [
@@ -102,12 +103,12 @@ export const TffRoutes: Route[] = [
     },
     children: [
       { path: '', redirectTo: 'transactions', pathMatch: 'full' },
-      // {
-      //   path: 'details',
-      //   canActivate: [ MetaGuard ],
-      //   data: { meta: { title: 'tff.user_details' } },
-      //   component: UserDetailsPageComponent,
-      // },
+      {
+        path: 'details',
+        canActivate: [ MetaGuard ],
+        data: { meta: { title: 'tff.user_details' } },
+        component: UserDetailsPageComponent,
+      },
       {
         path: 'transactions',
         canActivate: [ MetaGuard ],

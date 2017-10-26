@@ -22,6 +22,7 @@ from framework.consts import WEEK
 from framework.models.common import NdbModel
 from framework.plugin_loader import get_config
 from framework.utils import chunks, now
+from plugins.tff_backend.bizz.gcs import get_serving_url
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -95,6 +96,14 @@ class NodeOrder(NdbModel):
     def human_readable_id(self):
         return NodeOrder.create_human_readable_id(self.id)
 
+    @property
+    def document_url(self):
+        return get_serving_url(self.filename(self.id)) if self.tos_iyo_see_id else None
+
+    @classmethod
+    def filename(cls, agreement_id):
+        return u'node_%s.pdf' % agreement_id
+
     @classmethod
     def create_key(cls, order_id=None):
         if order_id is None:
@@ -126,6 +135,9 @@ class NodeOrder(NdbModel):
     def list_check_online(cls):
         two_weeks_ago = now() - (WEEK * 2)
         return cls.list_by_status(NodeOrderStatus.SENT).filter(cls.send_time < two_weeks_ago)
+
+    def to_dict(self, extra_properties=None):
+        return super(NodeOrder, self).to_dict(['document_url'])
 
 
 class PublicKeyMapping(NdbModel):

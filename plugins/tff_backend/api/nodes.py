@@ -21,9 +21,9 @@ from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.audit.audit import audit
 from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
-from plugins.tff_backend.bizz.hoster import put_node_order, get_node_order_details
-from plugins.tff_backend.dal.node_orders import search_node_orders
-from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO, NodeOrderDetailsTO
+from plugins.tff_backend.bizz.hoster import put_node_order
+from plugins.tff_backend.dal.node_orders import search_node_orders, get_node_order
+from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
@@ -37,10 +37,10 @@ def api_get_node_orders(page_size=20, cursor=None, query=None, status=None):
 
 
 @rest('/orders/<order_id:[^/]+>', 'get', Scopes.TEAM)
-@returns(NodeOrderDetailsTO)
+@returns(NodeOrderTO)
 @arguments(order_id=(int, long))
 def api_get_node_order(order_id):
-    return get_node_order_details(order_id)
+    return NodeOrderTO.from_model(get_node_order(order_id))
 
 
 @audit(AuditLogType.UPDATE_NODE_ORDER, 'order_id')
