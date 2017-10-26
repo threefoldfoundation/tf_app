@@ -26,10 +26,6 @@ class RogerthatConfiguration(TO):
     app_id = unicode_property('app_id')
 
 
-class IPFSConfiguration(TO):
-    secret = unicode_property('1')
-
-
 class LedgerConfiguration(TO):
     url = unicode_property('url')
     secret = unicode_property('secret')
@@ -63,7 +59,6 @@ class AppleConfiguration(TO):
 
 class TffConfiguration(TO):
     rogerthat = typed_property('1', RogerthatConfiguration, False)  # type: RogerthatConfiguration
-    ipfs = typed_property('2', IPFSConfiguration, False)  # type: IPFSConfiguration
     ledger = typed_property('3', LedgerConfiguration, False)  # type: LedgerConfiguration
     odoo = typed_property('4', OdooConfiguration, False)  # type: OdooConfiguration
     orchestator = typed_property('5', OrchestatorConfiguration, False)  # type: OrchestatorConfiguration

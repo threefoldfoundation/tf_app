@@ -25,10 +25,9 @@ from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.audit.audit import audit
 from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
-from plugins.tff_backend.bizz.investor import put_investment_agreement, get_investment_agreement_details
-from plugins.tff_backend.dal.investment_agreements import search_investment_agreements
-from plugins.tff_backend.to.investor import InvestmentAgreementListTO, InvestmentAgreementTO, \
-    InvestmentAgreementDetailsTO
+from plugins.tff_backend.bizz.investor import put_investment_agreement
+from plugins.tff_backend.dal.investment_agreements import search_investment_agreements, get_investment_agreement
+from plugins.tff_backend.to.investor import InvestmentAgreementListTO, InvestmentAgreementTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
@@ -43,10 +42,10 @@ def api_get_investment_agreements(page_size=20, cursor=None, query=None, status=
 
 
 @rest('/investment-agreements/<agreement_id:[^/]+>', 'get', Scopes.TEAM)
-@returns(InvestmentAgreementDetailsTO)
+@returns(InvestmentAgreementTO)
 @arguments(agreement_id=(int, long))
 def api_get_investment_agreement(agreement_id):
-    return get_investment_agreement_details(agreement_id)
+    return InvestmentAgreementTO.from_model(get_investment_agreement(agreement_id))
 
 
 @audit(AuditLogType.UPDATE_INVESTMENT_AGREEMENT, 'agreement_id')

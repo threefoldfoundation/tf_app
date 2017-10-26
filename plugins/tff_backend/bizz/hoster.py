@@ -37,8 +37,8 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FormAckn
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agreements import create_hosting_agreement_pdf
 from plugins.tff_backend.bizz.authentication import Roles
+from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.intercom_helpers import tag_intercom_users, IntercomTags
-from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
@@ -176,29 +176,18 @@ def _order_node(order_key, user_email, app_id, steps):
     ndb.transaction(trans)
 
 
-def _create_node_order_pdf(node_order_id, retry_count=0):
-    """
-    Creates node order PDF on IPFS and sends it to
-    Args:
-        node_order_id (long)
-        retry_count (long)
-    """
+def _create_node_order_pdf(node_order_id):
     node_order = get_node_order(node_order_id)
     user_email, app_id = get_app_user_tuple(node_order.app_user)
     logging.debug('Creating Hosting agreement')
-    pdf_name = 'node_%s.pdf' % node_order_id
+    pdf_name = NodeOrder.filename(node_order_id)
     pdf_contents = create_hosting_agreement_pdf(node_order.billing_info.name, node_order.billing_info.address)
-    ipfs_link = store_pdf(pdf_name, pdf_contents)
-    if not ipfs_link:
-        retry_count += 1
-        logging.info('Retrying creating IPFS PDF after %s tries', retry_count)
-        deferred.defer(_create_node_order_pdf, node_order_id, retry_count, _countdown=retry_count)
-        return
-    deferred.defer(_order_node_iyo_see, node_order.app_user, node_order_id, ipfs_link)
+    pdf_url = upload_to_gcs(pdf_name, 'application/pdf', pdf_contents)
+    deferred.defer(_order_node_iyo_see, node_order.app_user, node_order_id, pdf_url)
     deferred.defer(update_hoster_progress, user_email.email(), app_id, HosterSteps.FLOW_ADDRESS)
 
 
-def _order_node_iyo_see(app_user, node_order_id, ipfs_link):
+def _order_node_iyo_see(app_user, node_order_id, pdf_url):
     iyo_username = get_iyo_username(app_user)
     organization_id = get_iyo_organization_id()
 
@@ -207,7 +196,7 @@ def _order_node_iyo_see(app_user, node_order_id, ipfs_link):
                                      uniqueid=u'Zero-Node order %s' % NodeOrder.create_human_readable_id(node_order_id),
                                      version=1,
                                      category=u'Terms and conditions',
-                                     link=ipfs_link,
+                                     link=pdf_url,
                                      content_type=u'application/pdf',
                                      markdown_short_description=u'Terms and conditions for ordering a Zero-Node',
                                      markdown_full_description=u'Terms and conditions for ordering a Zero-Node')
@@ -220,15 +209,15 @@ def _order_node_iyo_see(app_user, node_order_id, ipfs_link):
         order = get_node_order(node_order_id)
         order.tos_iyo_see_id = iyo_see_doc.uniqueid
         order.put()
-        deferred.defer(_create_quotation, app_user, node_order_id, ipfs_link, attachment_name,
+        deferred.defer(_create_quotation, app_user, node_order_id, pdf_url, attachment_name,
                        _transactional=True)
 
     ndb.transaction(trans)
 
 
 @returns()
-@arguments(app_user=users.User, order_id=(int, long), ipfs_link=unicode, attachment_name=unicode)
-def _create_quotation(app_user, order_id, ipfs_link, attachment_name):
+@arguments(app_user=users.User, order_id=(int, long), pdf_url=unicode, attachment_name=unicode)
+def _create_quotation(app_user, order_id, pdf_url, attachment_name):
     order = get_node_order(order_id)
     config = get_config(NAMESPACE)
     assert isinstance(config, TffConfiguration)
@@ -242,7 +231,7 @@ def _create_quotation(app_user, order_id, ipfs_link, attachment_name):
     order.odoo_sale_order_id = odoo_sale_order_id
     order.put()
 
-    deferred.defer(_send_order_node_sign_message, app_user, order_id, ipfs_link, attachment_name,
+    deferred.defer(_send_order_node_sign_message, app_user, order_id, pdf_url, attachment_name,
                    odoo_sale_order_name)
 
 
@@ -261,14 +250,14 @@ def _cancel_quotation(order_id):
 
 
 @returns()
-@arguments(app_user=users.User, order_id=(int, long), ipfs_link=unicode, attachment_name=unicode, order_name=unicode)
-def _send_order_node_sign_message(app_user, order_id, ipfs_link, attachment_name, order_name):
+@arguments(app_user=users.User, order_id=(int, long), pdf_url=unicode, attachment_name=unicode, order_name=unicode)
+def _send_order_node_sign_message(app_user, order_id, pdf_url, attachment_name, order_name):
     logging.debug('Sending SIGN widget to app user')
     widget = SignTO()
     widget.algorithm = KEY_ALGORITHM
     widget.caption = u'Please enter your PIN code to digitally sign the terms and conditions'
     widget.key_name = KEY_NAME
-    widget.payload = base64.b64encode(ipfs_link).decode('utf-8')
+    widget.payload = base64.b64encode(pdf_url).decode('utf-8')
 
     form = SignFormTO()
     form.negative_button = u'Abort'
@@ -280,7 +269,7 @@ def _send_order_node_sign_message(app_user, order_id, ipfs_link, attachment_name
 
     attachment = AttachmentTO()
     attachment.content_type = u'application/pdf'
-    attachment.download_url = ipfs_link
+    attachment.download_url = pdf_url
     attachment.name = attachment_name
     message = u"""Order %(order_name)s Received
 
@@ -417,6 +406,7 @@ def get_publickey_label(public_key, user_details):
 @returns(NodeOrderDetailsTO)
 @arguments(order_id=(int, long))
 def get_node_order_details(order_id):
+    # type: (long) -> NodeOrderDetailsTO
     node_order = get_node_order(order_id)
     if node_order.tos_iyo_see_id:
         iyo_organization_id = get_iyo_organization_id()

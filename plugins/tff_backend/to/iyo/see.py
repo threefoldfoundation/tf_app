@@ -52,7 +52,7 @@ class IYOSeeDocument(TO):
     username = unicode_property('1')
     globalid = unicode_property('2')
     uniqueid = unicode_property('3')
-    versions = typed_property('4', IYOSeeDocumenVersion, True)
+    versions = typed_property('4', IYOSeeDocumenVersion, True)  # type: list[IYOSeeDocumenVersion]
 
     def __init__(self, username=None, globalid=None, uniqueid=None, versions=None, **kwargs):
         self.username = convert_to_unicode(username)

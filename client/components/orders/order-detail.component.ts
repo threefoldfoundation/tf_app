@@ -1,13 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import {
-  NODE_ORDER_STATUS_MAPPING,
-  NodeOrder,
-  NodeOrderDetail,
-  NodeOrderStatuses,
-  ORDER_STATUSES
-} from '../../interfaces/nodes.interfaces';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
+import { NODE_ORDER_STATUS_MAPPING, NodeOrder, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/nodes.interfaces';
 
 @Component({
   moduleId: module.id,
@@ -22,7 +16,7 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
 export class OrderDetailComponent implements OnChanges {
   statuses = NodeOrderStatuses;
   allowedStatuses: NodeOrderStatuses[] = [];
-  @Input() nodeOrder: NodeOrderDetail;
+  @Input() nodeOrder: NodeOrder;
   @Input() status: ApiRequestStatus;
   @Input() updateStatus: ApiRequestStatus;
   @Output() onUpdate = new EventEmitter<NodeOrder>();
@@ -41,8 +35,6 @@ export class OrderDetailComponent implements OnChanges {
   }
 
   setOrderStatus(status: NodeOrderStatuses) {
-    let order = { ...this.nodeOrder };
-    delete order.see_document;
-    this.onUpdate.emit({ ...<NodeOrder>order, status: status });
+    this.onUpdate.emit({ ...this.nodeOrder, status: status });
   }
 }

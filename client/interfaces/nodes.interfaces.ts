@@ -1,4 +1,3 @@
-import { SeeDocumentDetails } from './iyo-see.interfaces';
 import { PaginatedResult } from './shared.interfaces';
 
 export enum NodeOrderStatuses {
@@ -45,10 +44,7 @@ export interface NodeOrder {
   arrival_time: number | null;
   cancel_time: number | null;
   socket: string;
-}
-
-export interface NodeOrderDetail extends NodeOrder {
-  see_document: SeeDocumentDetails;
+  document_url: string | null;
 }
 
 export interface NodeOrdersQuery {

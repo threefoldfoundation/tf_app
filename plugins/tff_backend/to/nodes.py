@@ -49,10 +49,11 @@ class NodeOrderTO(TO):
     modification_time = long_property('modification_time')
     odoo_sale_order_id = long_property('odoo_sale_order_id')
     socket = unicode_property('socket')
+    document_url = unicode_property('document_url')
 
 
 class NodeOrderDetailsTO(NodeOrderTO):
-    see_document = typed_property('see_document', IYOSeeDocument)
+    see_document = typed_property('see_document', IYOSeeDocument)  # type: IYOSeeDocument
 
     @classmethod
     def from_model(cls, model, see_document):

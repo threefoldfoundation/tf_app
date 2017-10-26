@@ -10,9 +10,13 @@ import { getUser } from '../../tff.state';
   selector: 'user-details-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `{{ user$ | async | json }}`
+  preserveWhitespaces: false,
+  template: `
+    <div class="default-component-padding">
+      <p>Sorry, haven't gotten the chance yet to create a nice page</p>
+      <pre>{{ user$ | async | json }}</pre>
+    </div>`
 })
-
 export class UserDetailsPageComponent implements OnInit {
   user$: Observable<Profile>;
 

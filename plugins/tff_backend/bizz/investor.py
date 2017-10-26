@@ -41,10 +41,10 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FormAckn
     MessageCallbackResultTypeTO, TYPE_MESSAGE, FlowMemberResultCallbackResultTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
 from plugins.tff_backend.bizz.authentication import Roles
+from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.bizz.hoster import get_publickey_label, _create_error_message
 from plugins.tff_backend.bizz.intercom_helpers import IntercomTags
-from plugins.tff_backend.bizz.ipfs import store_pdf
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.messages import send_message_and_email
@@ -266,22 +266,16 @@ def _invest(agreement_key, email, app_id, retry_count):
     _set_token_count(agreement)
     agreement.put()
     currency_full = _get_currency_name(agreement.currency)
-    pdf_name = 'token_%s.pdf' % agreement_key.id()
+    pdf_name = InvestmentAgreement.filename(agreement_key.id())
     pdf_contents = create_token_agreement_pdf(agreement.name, agreement.address, agreement.amount, currency_full,
                                               agreement.currency, agreement.token)
-    ipfs_link = store_pdf(pdf_name, pdf_contents)
-    if not ipfs_link:
-        logging.error('Failed to create IPFS document with name %s and retry_count %s', pdf_name, retry_count)
-        deferred.defer(_invest, agreement_key, email, app_id, retry_count + 1, _countdown=retry_count)
-        return
-
+    pdf_url = upload_to_gcs(pdf_name, pdf_contents, 'application/pdf')
     logging.debug('Storing Investment Agreement in the datastore')
-
-    deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, ipfs_link)
+    deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, pdf_url)
     deferred.defer(update_investor_progress, email, app_id, InvestorSteps.FLOW_AMOUNT)
 
 
-def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, ipfs_link):
+def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url):
     # type: (ndb.Key, users.User, unicode) -> None
     iyo_username = get_iyo_username(app_user)
     organization_id = get_iyo_organization_id()
@@ -293,7 +287,7 @@ def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, ipfs_link)
                                      uniqueid=doc_id,
                                      version=1,
                                      category=doc_category,
-                                     link=ipfs_link,
+                                     link=pdf_url,
                                      content_type=u'application/pdf',
                                      markdown_short_description=u'Internal Token Offering - Purchase Agreement',
                                      markdown_full_description=u'Internal Token Offering - Purchase Agreement')
@@ -310,19 +304,19 @@ def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, ipfs_link)
         agreement = agreement_key.get()
         agreement.iyo_see_id = doc_id
         agreement.put()
-        deferred.defer(_send_ito_agreement_sign_message, agreement.key, app_user, ipfs_link, attachment_name,
+        deferred.defer(_send_ito_agreement_sign_message, agreement.key, app_user, pdf_url, attachment_name,
                        _transactional=True)
 
     ndb.transaction(trans)
 
 
-def _send_ito_agreement_sign_message(agreement_key, app_user, ipfs_link, attachment_name):
+def _send_ito_agreement_sign_message(agreement_key, app_user, pdf_url, attachment_name):
     logging.debug('Sending SIGN widget to app user')
     widget = SignTO()
     widget.algorithm = KEY_ALGORITHM
     widget.caption = u'Please enter your PIN code to digitally sign the purchase agreement'
     widget.key_name = KEY_NAME
-    widget.payload = base64.b64encode(ipfs_link).decode('utf-8')
+    widget.payload = base64.b64encode(pdf_url).decode('utf-8')
 
     form = SignFormTO()
     form.negative_button = u'Abort'
@@ -334,7 +328,7 @@ def _send_ito_agreement_sign_message(agreement_key, app_user, ipfs_link, attachm
 
     attachment = AttachmentTO()
     attachment.content_type = u'application/pdf'
-    attachment.download_url = ipfs_link
+    attachment.download_url = pdf_url
     attachment.name = attachment_name
 
     member_user, app_id = get_app_user_tuple(app_user)
