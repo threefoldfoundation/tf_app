@@ -39,17 +39,20 @@ class InvestmentAgreement(NdbModel):
     cancel_time = ndb.IntegerProperty()
     modification_time = ndb.IntegerProperty()
     version = ndb.StringProperty()
+    crm_deal_id = ndb.StringProperty()
 
     def _pre_put_hook(self):
         self.modification_time = now()
 
     def _post_put_hook(self, future):
         from plugins.tff_backend.dal.investment_agreements import index_investment_agreement
+        from plugins.tff_backend.bizz.crm.api import upsert_investment_deal
+        from google.appengine.ext import deferred
         if ndb.in_transaction():
-            from google.appengine.ext import deferred
             deferred.defer(index_investment_agreement, self, _transactional=True)
         else:
             index_investment_agreement(self)
+        deferred.defer(upsert_investment_deal, self.key, _transactional=ndb.in_transaction())
 
     @property
     def app_email(self):

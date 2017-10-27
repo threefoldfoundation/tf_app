@@ -27,6 +27,7 @@ class TffProfile(NdbModel):
 
     referrer_user = ndb.UserProperty()
     referrer_username = ndb.StringProperty()
+    crm_contact_id = ndb.StringProperty()
 
     @classmethod
     def create_key(cls, username):

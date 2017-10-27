@@ -26,6 +26,7 @@ from plugins.tff_backend import rogerthat_callbacks
 from plugins.tff_backend.api import investor, payment, nodes, global_stats, users, audit
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings, Roles
 from plugins.tff_backend.configuration import TffConfiguration
+from plugins.tff_backend.handlers.crm_test import CrmTestHandler
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler, \
     BackupHandler, CheckNodesOnlineHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
@@ -60,6 +61,7 @@ class TffBackendPlugin(BrandingPlugin):
         yield Handler(url='/refresh/callback', handler=RefreshCallbackHandler)
         yield Handler(url='/qr', handler=JWTQrHandler)
         yield Handler(url='/qr/apple', handler=AppleReviewQrHandler)
+        yield Handler(url='/crm/<type_:.*>/<id_:.*>', handler=CrmTestHandler)
         authenticated_handlers = [nodes, investor, global_stats, users, audit]
         for _module in authenticated_handlers:
             for url, handler in rest_functions(_module, authentication=AUTHENTICATED):

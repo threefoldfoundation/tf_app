@@ -44,14 +44,14 @@ def api_set_referral(params, user_detail):
         if username == pp.username:
             raise ApiCallException(u'You can\'t use your own invitation code')
 
-        my_profile = TffProfile.create_key(username).get()  # type: TffProfile
+        my_key, ref_key = TffProfile.create_key(username), TffProfile.create_key(pp.username)
+        my_profile, referrer_profile = ndb.get_multi([my_key, ref_key])  # type: tuple[TffProfile, TffProfile]
         if not my_profile:
             raise ApiCallException(u'We were unable to find your profile')
 
         if my_profile.referrer_user:
             raise ApiCallException(u'You already set your referrer')
 
-        referrer_profile = TffProfile.create_key(pp.username).get()
         if not referrer_profile:
             raise ApiCallException(u'We were unable to find your referrer\'s profile')
 

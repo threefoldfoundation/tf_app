@@ -30,7 +30,6 @@ class InvestmentAgreementTO(TO):
     id = long_property('id')
     app_user = unicode_property('app_user')
     amount = float_property('amount')
-    referrer = unicode_property('referrer')
     token = unicode_property('token')
     token_count = long_property('token_count')
     token_count_float = float_property('token_count_float')
@@ -49,10 +48,11 @@ class InvestmentAgreementTO(TO):
     modification_time = long_property('modification_time')
     reference = unicode_property('reference')
     document_url = unicode_property('document_url')
+    crm_deal_id = unicode_property('crm_deal_id')
 
 
 class InvestmentAgreementDetailsTO(InvestmentAgreementTO):
-    see_document = typed_property('see_document', IYOSeeDocument)
+    see_document = typed_property('see_document', IYOSeeDocument)  # type: IYOSeeDocument
 
     @classmethod
     def from_model(cls, model, see_document=None):

@@ -71,17 +71,20 @@ class NodeOrder(NdbModel):
     modification_time = ndb.IntegerProperty()
     odoo_sale_order_id = ndb.IntegerProperty()
     socket = ndb.StringProperty(indexed=False, validator=_validate_socket)
+    crm_deal_id = ndb.StringProperty()
 
     def _pre_put_hook(self):
         self.modification_time = now()
 
     def _post_put_hook(self, future):
         from plugins.tff_backend.dal.node_orders import index_node_order
+        from plugins.tff_backend.bizz.crm.api import upsert_node_order_deal
+        from google.appengine.ext import deferred
         if ndb.in_transaction():
-            from google.appengine.ext import deferred
             deferred.defer(index_node_order, self, _transactional=True)
         else:
             index_node_order(self)
+        deferred.defer(upsert_node_order_deal, self.key, _transactional=ndb.in_transaction())
 
     @property
     def app_email(self):
@@ -99,6 +102,10 @@ class NodeOrder(NdbModel):
     @property
     def document_url(self):
         return get_serving_url(self.filename(self.id)) if self.tos_iyo_see_id else None
+
+    @property
+    def is_paid(self):
+        return self.status in [NodeOrderStatus.ARRIVED, NodeOrderStatus.PAID]
 
     @classmethod
     def filename(cls, node_order_id):
