@@ -29,9 +29,9 @@ export class InvestmentAgreementListPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.query$ = this.store.let(getInvestmentAgreementsQuery);
-    this.listStatus$ = this.store.let(getInvestmentAgreementsStatus);
-    this.investmentAgreements$ = this.store.let(getInvestmentAgreements).withLatestFrom(this.query$)
+    this.query$ = this.store.select(getInvestmentAgreementsQuery);
+    this.listStatus$ = this.store.select(getInvestmentAgreementsStatus);
+    this.investmentAgreements$ = this.store.select(getInvestmentAgreements).withLatestFrom(this.query$)
       .map(([ result, query ]) => ({ ...result, results: result.results.filter(o => query.status ? o.status === query.status : true) }));
     this._sub = this.investmentAgreements$.first().subscribe(result => {
       // Load some investments on page load

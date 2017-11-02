@@ -36,9 +36,9 @@ export class OrderDetailPageComponent implements OnInit, OnDestroy {
     const orderId = this.route.snapshot.params.orderId;
     this.store.dispatch(new ResetNodeOrderAction());
     this.store.dispatch(new GetOrderAction(orderId));
-    this.order$ = this.store.let(getOrder);
-    this.orderStatus$ = this.store.let(getOrderStatus);
-    this.updateOrderStatus$ = this.store.let(updateOrderStatus);
+    this.order$ = this.store.select(getOrder);
+    this.orderStatus$ = this.store.select(getOrderStatus);
+    this.updateOrderStatus$ = this.store.select(updateOrderStatus);
     this._errorSub = this.updateOrderStatus$.filter(status => !status.success && !status.loading && status.error !== null)
       .subscribe(status => this.apiErrorService.showErrorDialog(status.error));
   }

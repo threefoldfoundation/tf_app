@@ -42,9 +42,9 @@ export class UserTransactionsListPageComponent implements OnInit {
     const username = this.route.parent.snapshot.params.username;
     this.store.dispatch(new GetUserTransactionsAction(username));
     this.store.dispatch(new GetBalanceAction(username));
-    this.transactionList$ = this.store.let(getUserTransactions);
-    this.balance$ = this.store.let(getBalance);
-    this.balanceStatus$ = this.store.let(getBalanceStatus);
-    this.transactionListStatus$ = this.store.let(getUserTransactionsStatus);
+    this.transactionList$ = this.store.select(getUserTransactions);
+    this.balance$ = this.store.select(getBalance);
+    this.balanceStatus$ = this.store.select(getBalanceStatus);
+    this.transactionListStatus$ = this.store.select(getUserTransactionsStatus);
   }
 }

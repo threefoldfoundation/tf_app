@@ -26,7 +26,7 @@ export class UserPageComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.store.dispatch(new GetUserAction(this.route.snapshot.params.username));
-    this._userSub = this.store.let(getUser).filter(u => u !== null).subscribe(user => {
+    this._userSub = this.store.select(getUser).filter(u => u !== null).subscribe(user => {
       const name = user.info && user.info.firstname ? `${user.info.firstname} ${user.info.lastname}` : user.username;
       this.store.dispatch(new UpdateSecondaryTitleAction(<SidebarTitle>{ label: name, isTranslation: false }));
     });

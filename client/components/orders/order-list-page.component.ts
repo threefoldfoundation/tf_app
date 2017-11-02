@@ -30,9 +30,9 @@ export class OrderListPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.listStatus$ = this.store.let(getOrdersStatus);
-    this.query$ = this.store.let(getNodeOrdersQuery);
-    this.orders$ = this.store.let(getOrders).withLatestFrom(this.query$)
+    this.listStatus$ = this.store.select(getOrdersStatus);
+    this.query$ = this.store.select(getNodeOrdersQuery);
+    this.orders$ = this.store.select(getOrders).withLatestFrom(this.query$)
       .map(([ result, query ]) => ({ ...result, results: result.results.filter(o => query.status ? o.status === query.status : true) }));
     this._sub = this.orders$.first().subscribe(result => {
       // Load some orders on initial page load

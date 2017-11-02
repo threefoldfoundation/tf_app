@@ -54,12 +54,12 @@ export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy
     const agreementId = this.route.snapshot.params.investmentAgreementId;
     this.store.dispatch(new ResetInvestmentAgreementAction());
     this.store.dispatch(new GetInvestmentAgreementAction(agreementId));
-    this.investmentAgreement$ = this.store.let(getInvestmentAgreement);
-    this.status$ = this.store.let(getInvestmentAgreementStatus);
-    this.updateStatus$ = this.store.let(updateInvestmentAgreementStatus);
-    this.canUpdate$ = this.store.let(getIdentity).filter(i => i !== null)
+    this.investmentAgreement$ = this.store.select(getInvestmentAgreement);
+    this.status$ = this.store.select(getInvestmentAgreementStatus);
+    this.updateStatus$ = this.store.select(updateInvestmentAgreementStatus);
+    this.canUpdate$ = this.store.select(getIdentity).filter(i => i !== null)
       .map((identity: Identity) => identity.permissions.includes(TffPermissions.ADMINS));
-    this.globalStats$ = this.store.let(getGlobalStats);
+    this.globalStats$ = this.store.select(getGlobalStats);
     this._investmentSub = this.investmentAgreement$.filter(i => i !== null && i.token !== null).subscribe(investment => {
       this.store.dispatch(new GetGlobalStatsAction(investment.token));
     });

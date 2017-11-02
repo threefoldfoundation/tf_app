@@ -42,7 +42,7 @@ export class CreateTransactionPageComponent implements OnInit, OnDestroy {
       username: this.route.parent.snapshot.params.username,
     };
     this.store.dispatch(new ResetNewTransactionAction());
-    this.createStatus$ = this.store.let(createTransactionStatus);
+    this.createStatus$ = this.store.select(createTransactionStatus);
     this._createSub = this.createStatus$.filter(s => s.success)
       .subscribe(status => this.router.navigate([ '..' ], { relativeTo: this.route }));
   }
