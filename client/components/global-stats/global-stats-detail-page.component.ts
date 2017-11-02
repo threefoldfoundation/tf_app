@@ -31,9 +31,9 @@ export class GlobalStatsDetailPageComponent implements OnInit {
   ngOnInit() {
     const statsId = this.route.snapshot.params.globalStatsId;
     this.store.dispatch(new GetGlobalStatsAction(statsId));
-    this.globalStats$ = this.store.let(getGlobalStats).filter(s => s !== null);
-    this.getStatus$ = this.store.let(getGlobalStatsStatus);
-    this.updateStatus$ = this.store.let(updateGlobalStatsStatus);
+    this.globalStats$ = this.store.select(getGlobalStats).filter(s => s !== null);
+    this.getStatus$ = this.store.select(getGlobalStatsStatus);
+    this.updateStatus$ = this.store.select(updateGlobalStatsStatus);
   }
 
 

@@ -16,7 +16,7 @@ import {
 } from '@angular/material';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
+import { Store, StoreModule } from '@ngrx/store';
 import { MultilingualModule } from '../../framework/client/i18n/multilingual.module';
 import { SetThemeAction } from '../../framework/client/identity/actions/index';
 import { AuthenticationService } from '../../framework/client/identity/services/index';
@@ -27,6 +27,7 @@ import { ToolbarItemTypes } from '../../framework/client/toolbar/interfaces/inde
 import { TffEffects } from './effects/tff.effect';
 import './operators';
 import { TimestampPipe } from './pipes/timestamp.pipe';
+import { tffReducer } from './reducers/tff.reducer';
 import { TFF_COMPONENTS, TFF_PROVIDERS } from './services/index';
 import { TffRoutes } from './tff.routes';
 
@@ -44,7 +45,8 @@ const MATERIAL_IMPORTS = [
     RouterModule,
     MultilingualModule,
     RouterModule.forChild(TffRoutes),
-    EffectsModule.run(TffEffects),
+    StoreModule.forFeature('tff', tffReducer),
+    EffectsModule.forFeature([ TffEffects ]),
     MATERIAL_IMPORTS,
     FlexLayoutModule
   ],

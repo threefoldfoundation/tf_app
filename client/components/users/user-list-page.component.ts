@@ -26,8 +26,8 @@ export class UserListPageComponent implements OnInit {
 
   ngOnInit() {
     this.onQuery({ cursor: null, query: null });
-    this.userList$ = this.store.let(getUserList);
-    this.query$ = this.store.let(getUserQueryList);
+    this.userList$ = this.store.select(getUserList);
+    this.query$ = this.store.select(getUserQueryList);
   }
 
   onQuery(query: SearchUsersQuery) {

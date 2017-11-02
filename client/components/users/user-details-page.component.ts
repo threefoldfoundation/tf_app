@@ -24,6 +24,6 @@ export class UserDetailsPageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.user$ = this.store.let(getUser);
+    this.user$ = this.store.select(getUser);
   }
 }

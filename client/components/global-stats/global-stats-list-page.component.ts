@@ -20,7 +20,7 @@ export class GlobalStatsListPageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.globalStats$ = this.store.let(getGlobalStatsList);
+    this.globalStats$ = this.store.select(getGlobalStatsList);
     this.store.dispatch(new GetGlobalStatsListAction());
   }
 }
