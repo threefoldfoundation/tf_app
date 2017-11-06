@@ -60,6 +60,7 @@ def put_global_stats(stats_id, stats):
 
 
 def update_currencies():
+    return  # temporarily disabled until there's an alternative for YAHOO finance API. #204
     to_put = []
     for stats in GlobalStats.query():
         stats.currencies = _get_currency_conversions(stats.currencies, stats.value)
