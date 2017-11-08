@@ -7,6 +7,7 @@ import {
   MdButtonModule,
   MdCardModule,
   MdChipsModule,
+  MdExpansionModule,
   MdIconModule,
   MdInputModule,
   MdListModule,
@@ -33,7 +34,7 @@ import { TffRoutes } from './tff.routes';
 
 const MATERIAL_IMPORTS = [
   MdButtonModule, MdInputModule, MdListModule, MdIconModule, MdSelectModule, MdChipsModule, MdSlideToggleModule, MdProgressSpinnerModule,
-  MdCardModule
+  MdCardModule, MdExpansionModule
 ];
 
 @NgModule({

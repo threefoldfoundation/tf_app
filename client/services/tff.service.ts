@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
+import { Profile } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
 import {
   CreateTransactionPayload,
   GlobalStats,
@@ -14,6 +14,7 @@ import {
   TransactionList,
   WalletBalance
 } from '../interfaces/index';
+import { SearchUsersQuery, SetKYCStatusPayload, TffProfile, UserList } from '../interfaces/profile.interfaces';
 import { TffConfig } from './tff-config.service';
 
 @Injectable()
@@ -67,6 +68,14 @@ export class TffService {
 
   getUser(username: string) {
     return this.http.get<Profile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}`);
+  }
+
+  getTffProfile(username: string) {
+    return this.http.get<TffProfile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/profile`);
+  }
+
+  setKYCStatus(username: string, payload: SetKYCStatusPayload) {
+    return this.http.put<TffProfile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/profile/kyc`, payload);
   }
 
   getBalance(username: string) {

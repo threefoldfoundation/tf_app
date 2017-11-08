@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
-import { Profile, SearchUsersQuery, UserList } from '../../../../its_you_online_auth/client/interfaces/user.interfaces';
+import { Profile } from '../../../../its_you_online_auth/client/interfaces/user.interfaces';
+import { KYCStatuses, SearchUsersQuery, UserList } from '../../interfaces/profile.interfaces';
 
 @Component({
   moduleId: module.id,
@@ -12,8 +13,11 @@ import { Profile, SearchUsersQuery, UserList } from '../../../../its_you_online_
 })
 
 export class UserListComponent implements OnInit, OnDestroy {
+  statuses = KYCStatuses;
+
   @Input() userList: UserList;
   @Output() onQuery = new EventEmitter<SearchUsersQuery>();
+
   private _debouncedQuery = new Subject<SearchUsersQuery>();
   private _querySub: Subscription;
 

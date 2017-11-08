@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+from plugins.its_you_online_auth.bizz.profile import normalize_search_string
 
 
 def sanitise_search_query(query, filters):
@@ -34,7 +35,7 @@ def sanitise_search_query(query, filters):
             res = s.split(':')
             filters[res[0]] = res[1]
             query = query.replace(s, '')
-    filtered_query = query
+    filtered_query = normalize_search_string(query)
     for key, value in filters.iteritems():
         if value is not None and key:
             filtered_query += ' %s:%s' % (key, value)

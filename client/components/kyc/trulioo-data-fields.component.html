@@ -1,0 +1,10 @@
+<p *ngFor="let field of datasourceFields; trackBy: trackByFieldName">
+  {{ fieldName(field.FieldName) }}: {{ field.Status }}
+</p>
+<p *ngFor="let field of appendedFields; trackBy: trackByFieldName">
+  {{ fieldName(field.FieldName) }}: {{ field.Data }}
+</p>
+<p *ngIf="errors.length">{{ 'tff.errors_during_trulioo_validation' | translate }}</p>
+<p *ngFor="let error of errors; trackBy: trackByMessage">
+  {{ error.Message }} ({{ error.Code }})
+</p>

@@ -18,7 +18,9 @@
 import hashlib
 import json
 import logging
+import os
 
+import jinja2
 from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
@@ -26,15 +28,19 @@ from framework.bizz.session import create_session
 from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
 from mcfw.consts import MISSING
+from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
 from plugins.intercom_support.intercom_support_plugin import IntercomSupportPlugin
 from plugins.intercom_support.rogerthat_callbacks import start_or_get_chat
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
     has_access_to_organization
+from plugins.its_you_online_auth.bizz.profile import get_profile
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
-from plugins.rogerthat_api.api import system
-from plugins.rogerthat_api.to import UserDetailsTO
+from plugins.rogerthat_api.api import system, messaging
+from plugins.rogerthat_api.exceptions import BusinessException
+from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
 from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_QR, REGISTRATION_ORIGIN_OAUTH
+from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Organization, Roles
@@ -42,12 +48,23 @@ from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user, tag_
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
 from plugins.tff_backend.bizz.iyo.user import get_user, invite_user_to_organization
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
-from plugins.tff_backend.bizz.service import add_user_to_role
+from plugins.tff_backend.bizz.kyc.trulioo import get_verified_profile_information, get_required_info_for_country, \
+    verify_info
+from plugins.tff_backend.bizz.rogerthat import create_error_message
+from plugins.tff_backend.bizz.service import add_user_to_role, get_main_branding_hash
+from plugins.tff_backend.consts.kyc import kyc_steps
 from plugins.tff_backend.models.hoster import PublicKeyMapping
-from plugins.tff_backend.models.user import ProfilePointer, TffProfile
-from plugins.tff_backend.plugin_consts import NAMESPACE, KEY_NAME, KEY_ALGORITHM
+from plugins.tff_backend.models.user import ProfilePointer, TffProfile, KYCInformation, KYCStatus, KYCDataFields, \
+    KYCApiCall
+from plugins.tff_backend.plugin_consts import NAMESPACE, KEY_NAME, KEY_ALGORITHM, KYC_FLOW_PART_1, KYC_FLOW_PART_1_TAG
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
-from plugins.tff_backend.utils.app import create_app_user_by_email
+from plugins.tff_backend.to.kyc import SetKYCPayloadTO
+from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+from truliooapiclient import DataFields
+
+FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
+    trim_blocks=True,
+    loader=jinja2.FileSystemLoader([os.path.join(os.path.dirname(__file__), 'flows')]))
 
 
 @returns()
@@ -150,7 +167,6 @@ def store_chat_id_in_user_data(rogerthat_chat_id, user_detail):
 
     api_key = get_rogerthat_api_key()
     system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
-
 
 
 @returns(unicode)
@@ -299,3 +315,190 @@ def add_user_to_public_role(user_detail):
         logging.info('User is already in members role, not adding to public role')
     else:
         add_user_to_role(user_detail, Roles.PUBLIC)
+
+
+def get_tff_profile(username):
+    # type: (unicode) -> TffProfile
+    profile = TffProfile.create_key(username).get()
+    if not profile:
+        raise HttpNotFoundException('tff_profile_not_found', {'username': username})
+    if not profile.kyc:
+        profile.kyc = KYCInformation(status=KYCStatus.UNVERIFIED,
+                                     api_calls=[],
+                                     updates=[],
+                                     pending_information=KYCDataFields(),
+                                     verified_information=KYCDataFields())
+    return profile
+
+
+def can_change_kyc_status(current_status, new_status):
+    statuses = {
+        KYCStatus.DENIED: [],
+        KYCStatus.UNVERIFIED: [KYCStatus.PENDING_SUBMIT],
+        KYCStatus.PENDING_SUBMIT: [KYCStatus.PENDING_SUBMIT],
+        KYCStatus.SUBMITTED: [KYCStatus.INFO_SET],
+        KYCStatus.INFO_SET: [KYCStatus.PENDING_APPROVAL],
+        KYCStatus.PENDING_APPROVAL: [KYCStatus.VERIFIED, KYCStatus.DENIED, KYCStatus.PENDING_SUBMIT],
+        KYCStatus.VERIFIED: [],
+    }
+    return new_status in statuses.get(current_status)
+
+
+@returns(TffProfile)
+@arguments(username=unicode, payload=SetKYCPayloadTO, current_user_id=unicode)
+def set_kyc_status(username, payload, current_user_id):
+    # type: (unicode, SetKYCPayloadTO, unicode) -> TffProfile
+    logging.debug('Updating KYC status to %s', KYCStatus(payload.status))
+    profile = get_tff_profile(username)
+    if not can_change_kyc_status(profile.kyc.status, payload.status):
+        raise HttpBadRequestException('invalid_status')
+    comment = payload.comment if payload.comment is not MISSING else None
+    profile.kyc.set_status(payload.status, current_user_id, comment=comment)
+    if payload.status == KYCStatus.PENDING_SUBMIT:
+        send_kyc_flow(profile.app_user)
+    if payload.status == KYCStatus.INFO_SET:
+        diff = {}
+        for key in profile.kyc.pending_information.data:
+            second_dict = payload.data[key]
+            first_dict = profile.kyc.pending_information.data[key]
+            difference = {k: v for k, v in set(second_dict.items()) - set(first_dict.items())}
+            if difference:
+                diff[key] = difference
+        logging.debug('Updating pending_information properties %s', diff)
+        for key in diff:
+            profile.kyc.pending_information.data.get(key, {}).update(diff[key])
+    elif payload.status == KYCStatus.PENDING_APPROVAL:
+        verify_result = verify_info(profile.kyc.pending_information.country_code,
+                                    DataFields(profile.kyc.pending_information.data))
+        logging.info('Verify result from Trulioo: %s', verify_result.as_dict())
+        profile.kyc.api_calls.append(KYCApiCall(transaction_id=verify_result.TransactionID,
+                                                record_id=verify_result.Record.TransactionRecordID,
+                                                result=verify_result.Record.RecordStatus.value))
+    elif payload.status == KYCStatus.VERIFIED:
+        # Store verified information from last API call
+        if not profile.kyc.api_calls:
+            raise HttpBadRequestException('not_verified_yet', {'status': 'verified'})
+        verified_info = get_verified_profile_information(profile.kyc.api_calls[-1].record_id)
+        profile.kyc.verified_information = KYCDataFields(country_code=profile.kyc.pending_information.country_code,
+                                                         data=verified_info)
+        profile.kyc.pending_information = KYCDataFields()
+    elif payload.status == KYCStatus.DENIED:
+        if not profile.kyc.api_calls:
+            raise HttpBadRequestException('not_verified_yet', {'status': 'denied'})
+    profile.put()
+    return profile
+
+
+def send_kyc_flow(app_user):
+    # Flow with 1 step, only asks for nationality of the user
+    email, app_id = get_app_user_tuple(app_user)
+    member = MemberTO(member=email.email(), app_id=app_id, alert_flags=0)
+    messaging.start_local_flow(get_rogerthat_api_key(), None, [member], tag=KYC_FLOW_PART_1_TAG, flow=KYC_FLOW_PART_1)
+
+
+def generate_kyc_flow(country_code, iyo_username):
+    logging.info('Generating KYC flow for user %s and country %s', iyo_username, country_code)
+    required_info = get_required_info_for_country(country_code)
+    flow_params = {'country_code': country_code}
+    properties = {'PersonInfo', 'Location', 'Communication', 'DriverLicence', 'NationalIds', 'Passport', 'Document',
+                  'CountrySpecific'}
+    fields = {prop: set(getattr(required_info.properties, prop).required) if getattr(required_info.properties,
+                                                                                     prop) is not MISSING else set()
+              for prop in properties}
+    # Always ask firstname, lastname and address regardless of what trulioo asks
+    always_required_fields = {
+        'PersonInfo': {'FirstGivenName', 'FirstSurName'},
+        'Location': {'StreetName', 'BuildingNumber', 'City', 'PostalCode'}
+    }
+    skipped_fields = ['MonthOfBirth', 'YearOfBirth', 'MonthOfExpiry', 'YearOfExpiry']
+    for key in fields:
+        if key in always_required_fields:
+            fields[key] = fields[key] | always_required_fields[key]
+        fields[key] = [f for f in fields[key] if f not in skipped_fields]
+        if key == 'NationalIds' and fields[key]:
+            flow_params['NationalIds_Type'] = required_info.properties.NationalIds.properties['Type']['value']
+    try:
+        known_information = _get_known_information(iyo_username)
+    except HttpNotFoundException:
+        logging.error('No profile found for user %s!', iyo_username)
+        return create_error_message(FlowMemberResultCallbackResultTO())
+
+    steps = []
+    branding_key = get_main_branding_hash()
+    for property_type, sub_properties, in fields.iteritems():
+        for sub_property_type in sub_properties:
+            step_info = _get_step_info(property_type, sub_property_type)
+            if not step_info:
+                raise BusinessException('Unsupported step type: %s %s' % (property_type, sub_property_type))
+            value = known_information.get(property_type, {}).get(sub_property_type)
+            steps.append({
+                'reference': 'message_%s_%s' % (property_type, sub_property_type),
+                'positive_reference': None,
+                'positive_caption': step_info.get('positive_caption', 'Continue'),
+                'negative_reference': 'end_premature_end',
+                'negative_caption': step_info.get('negative_caption', 'Cancel'),
+                'keyboard_type': step_info.get('keyboard_type', 'DEFAULT'),
+                'type': step_info.get('widget', 'TextLineWidget'),
+                'value': value or step_info.get('value') or '',
+                'message': step_info['message'],
+                'branding_key': branding_key,
+                'order': step_info['order']
+            })
+    sorted_steps = sorted(steps, key=lambda k: k['order'])
+    for i, step in enumerate(sorted_steps):
+        if len(sorted_steps) > i + 1:
+            step['positive_reference'] = sorted_steps[i + 1]['reference']
+        else:
+            step['positive_reference'] = 'flush_results'
+    template_params = {
+        'startReference': sorted_steps[0]['reference'],
+        'steps': sorted_steps
+    }
+    return FLOWS_JINJA_ENVIRONMENT.get_template('kyc_part_2.xml').render(template_params), flow_params
+
+
+def _get_step_info(property_type, sub_property_type):
+    results = filter(lambda step: step['type'] == property_type and step['sub_type'] == sub_property_type, kyc_steps)
+    return results[0] if results else None
+
+
+def _get_known_information(username):
+    known_information = {
+        'PersonInfo': {
+            'FirstGivenName': None,
+            'FirstSurName': None
+        },
+        'Location': {
+            'StreetName': None,
+            'BuildingNumber': None,
+            'City': None,
+            'PostalCode': None,
+        },
+        'Communication': {
+            'MobileNumber': None,
+            'Telephone': None,
+            'EmailAddress': None
+        },
+    }
+    profile = get_profile(username)
+    if profile.info:
+        if profile.info.firstname:
+            known_information['PersonInfo']['FirstGivenName'] = profile.info.firstname
+        if profile.info.lastname:
+            known_information['PersonInfo']['FirstSurName'] = profile.info.lastname
+        if profile.info.validatedphonenumbers:
+            known_information['Communication']['Telephone'] = profile.info.validatedphonenumbers[0].phonenumber
+        elif profile.info.phonenumbers:
+            known_information['Communication']['Telephone'] = profile.info.phonenumbers[0].phonenumber
+        if known_information['Communication']['Telephone']:
+            known_information['Communication']['MobileNumber'] = known_information['Communication']['Telephone']
+        if profile.info.validatedemailaddresses:
+            known_information['Communication']['EmailAddress'] = profile.info.validatedemailaddresses[0].emailaddress
+        elif profile.info.emailaddresses:
+            known_information['Communication']['EmailAddress'] = profile.info.emailaddresses[0].emailaddress
+        if profile.info.addresses:
+            known_information['Location']['StreetName'] = profile.info.addresses[0].street
+            known_information['Location']['BuildingNumber'] = profile.info.addresses[0].nr
+            known_information['Location']['City'] = profile.info.addresses[0].city
+            known_information['Location']['PostalCode'] = profile.info.addresses[0].postalcode
+    return known_information

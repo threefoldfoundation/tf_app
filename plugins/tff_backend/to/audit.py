@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
 from framework.to import TO
 from mcfw.properties import unicode_property, typed_property
 from mcfw.rpc import parse_complex_value
@@ -22,12 +21,14 @@ from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.to import PaginatedResultTO
 from plugins.tff_backend.to.global_stats import GlobalStatsTO
 from plugins.tff_backend.to.investor import InvestmentAgreementTO
+from plugins.tff_backend.to.kyc import TffProfileTO
 from plugins.tff_backend.to.nodes import NodeOrderTO
 
 AUDIT_LOG_TYPE_MAPPING = {
-    AuditLogType.UPDATE_NODE_ORDER: NodeOrderTO,
-    AuditLogType.UPDATE_GLOBAL_STATS: GlobalStatsTO,
-    AuditLogType.UPDATE_INVESTMENT_AGREEMENT: InvestmentAgreementTO,
+    AuditLogType.UPDATE_NODE_ORDER.value: NodeOrderTO,
+    AuditLogType.UPDATE_GLOBAL_STATS.value: GlobalStatsTO,
+    AuditLogType.UPDATE_INVESTMENT_AGREEMENT.value: InvestmentAgreementTO,
+    AuditLogType.SET_KYC_STATUS.value: TffProfileTO,
 }
 
 

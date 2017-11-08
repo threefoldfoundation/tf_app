@@ -11,11 +11,15 @@ import {
   InvestmentAgreementListComponent,
   InvestmentAgreementListPageComponent,
   IyoSeeComponent,
+  KycComponent,
+  KycUpdatesComponent,
   OrderDetailComponent,
   OrderDetailPageComponent,
   OrderListComponent,
   OrderListPageComponent,
   TransactionListComponent,
+  TruliooDataFieldsComponent,
+  TruliooInformationComponent,
   UserDetailsPageComponent,
   UserListComponent,
   UserListPageComponent,
@@ -23,14 +27,19 @@ import {
   UserTransactionsListPageComponent,
   WalletBalanceComponent
 } from '../components/index';
+import { KycPageComponent } from '../pages/kyc/index';
+import { ApiErrorService } from './api-error.service';
 import { TffConfig } from './tff-config.service';
 import { TffService } from './tff.service';
-import { ApiErrorService } from './api-error.service';
 
 export const TFF_PROVIDERS: any[] = [
   TffService,
   TffConfig,
   ApiErrorService,
+];
+
+export const TFF_PAGES = [
+  KycPageComponent
 ];
 
 export const TFF_COMPONENTS: any[] = [
@@ -46,17 +55,22 @@ export const TFF_COMPONENTS: any[] = [
   InvestmentAgreementListComponent,
   InvestmentAgreementListPageComponent,
   IyoSeeComponent,
+  KycComponent,
+  KycUpdatesComponent,
   OrderDetailComponent,
   OrderDetailPageComponent,
   OrderListComponent,
   OrderListPageComponent,
   TransactionListComponent,
+  TruliooDataFieldsComponent,
+  TruliooInformationComponent,
   UserDetailsPageComponent,
   UserListComponent,
   UserListPageComponent,
   UserPageComponent,
   UserTransactionsListPageComponent,
-  WalletBalanceComponent
+  WalletBalanceComponent,
+  ...TFF_PAGES
 ];
 
 export * from './tff-config.service';

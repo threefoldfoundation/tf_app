@@ -45,7 +45,7 @@ from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organiz
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.odoo import create_odoo_quotation, update_odoo_quotation, QuotationState, \
     confirm_odoo_quotation, get_odoo_serial_number
-from plugins.tff_backend.bizz.rogerthat import put_user_data
+from plugins.tff_backend.bizz.rogerthat import put_user_data, create_error_message
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
 from plugins.tff_backend.bizz.todo.hoster import HosterSteps
@@ -347,7 +347,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         doc_view.signature = payload_signature
         keystore_label = get_publickey_label(sign_result.public_key.public_key, user_detail)
         if not keystore_label:
-            return _create_error_message(FormAcknowledgedCallbackResultTO())
+            return create_error_message(FormAcknowledgedCallbackResultTO())
         doc_view.keystore_label = keystore_label
         logging.debug('Signing IYO SEE document')
         sign_see_document(iyo_organization_id, iyo_username, doc_view)
@@ -384,7 +384,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         return result
     except:
         logging.exception('An unexpected error occurred')
-        return _create_error_message(FormAcknowledgedCallbackResultTO())
+        return create_error_message(FormAcknowledgedCallbackResultTO())
 
 
 def get_publickey_label(public_key, user_details):
@@ -476,23 +476,6 @@ def put_node_order(order_id, order):
 
     order_model.put()
     return order_model
-
-
-def _create_error_message(callback_result):
-    logging.debug('Sending error message')
-    message = MessageCallbackResultTypeTO()
-    message.alert_flags = Message.ALERT_FLAG_VIBRATE
-    message.answers = []
-    message.branding = get_main_branding_hash()
-    message.dismiss_button_ui_flags = 0
-    message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
-    message.message = u'Oh no! An error occurred.\nHow embarrassing :-(\n\nPlease try again later.'
-    message.step_id = u'error'
-    message.tag = None
-
-    callback_result.type = TYPE_MESSAGE
-    callback_result.value = message
-    return callback_result
 
 
 def _inform_support_of_new_node_order(node_order_id):

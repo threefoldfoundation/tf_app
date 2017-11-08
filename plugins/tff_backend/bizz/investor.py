@@ -43,7 +43,8 @@ from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
 from plugins.tff_backend.bizz.authentication import Roles
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.global_stats import get_global_stats
-from plugins.tff_backend.bizz.hoster import get_publickey_label, _create_error_message
+from plugins.tff_backend.bizz.hoster import get_publickey_label
+from plugins.tff_backend.bizz.rogerthat import create_error_message
 from plugins.tff_backend.bizz.intercom_helpers import IntercomTags
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
@@ -167,7 +168,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         return result
     except Exception as e:
         logging.exception(e)
-        return _create_error_message(FlowMemberResultCallbackResultTO())
+        return create_error_message(FlowMemberResultCallbackResultTO())
 
 
 def get_currency_rate(currency):
@@ -242,7 +243,7 @@ def _set_token_count(agreement, token_count_float=None, precision=2):
         else:
             currency_stats = filter(lambda s: s.currency == agreement.currency, stats.currencies)[0]
             if not currency_stats:
-                raise HttpBadRequestException('Could not find currency conversion for currency %s', agreement.currency)
+                raise HttpBadRequestException('Could not find currency conversion for currency %s' % agreement.currency)
             agreement.token_count = long((agreement.amount / currency_stats.value) * pow(10, precision))
     # token_count can be overwritten when marking the investment as paid for BTC
     elif agreement.status == InvestmentAgreement.STATUS_SIGNED:
@@ -447,7 +448,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         doc_view.signature = payload_signature
         keystore_label = get_publickey_label(sign_result.public_key.public_key, user_detail)
         if not keystore_label:
-            return _create_error_message(FormAcknowledgedCallbackResultTO())
+            return create_error_message(FormAcknowledgedCallbackResultTO())
         doc_view.keystore_label = keystore_label
         logging.debug('Signing IYO SEE document')
         sign_see_document(iyo_organization_id, iyo_username, doc_view)
@@ -493,7 +494,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         return result
     except:
         logging.exception('An unexpected error occurred')
-        return _create_error_message(FormAcknowledgedCallbackResultTO())
+        return create_error_message(FormAcknowledgedCallbackResultTO())
 
 
 @returns(NoneType)
