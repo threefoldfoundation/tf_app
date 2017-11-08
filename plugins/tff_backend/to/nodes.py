@@ -35,8 +35,8 @@ class ContactInfoTO(TO):
 class NodeOrderTO(TO):
     id = long_property('id')
     app_user = unicode_property('app_user')
-    billing_info = typed_property('billing_info', ContactInfoTO)
-    shipping_info = typed_property('shipping_info', ContactInfoTO)
+    billing_info = typed_property('billing_info', ContactInfoTO)  # type: ContactInfoTO
+    shipping_info = typed_property('shipping_info', ContactInfoTO)  # type: ContactInfoTO
     status = long_property('status')
     tos_iyo_see_id = unicode_property('tos_iyo_see_id')
     signature_payload = unicode_property('signature_payload')
@@ -50,6 +50,7 @@ class NodeOrderTO(TO):
     odoo_sale_order_id = long_property('odoo_sale_order_id')
     socket = unicode_property('socket')
     document_url = unicode_property('document_url')
+    crm_deal_id = unicode_property('crm_deal_id')
 
 
 class NodeOrderDetailsTO(NodeOrderTO):

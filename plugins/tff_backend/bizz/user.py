@@ -19,6 +19,7 @@ import hashlib
 import json
 import logging
 
+from google.appengine.api import users
 from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
@@ -152,7 +153,6 @@ def store_chat_id_in_user_data(rogerthat_chat_id, user_detail):
     system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
 
 
-
 @returns(unicode)
 @arguments(username=unicode)
 def user_code(username):
@@ -172,25 +172,20 @@ def store_info_in_userdata(username, user_detail):
 @returns()
 @arguments(username=unicode, user_detail=UserDetailsTO)
 def store_invitation_code_in_userdata(username, user_detail):
+    # type: (unicode, UserDetailsTO) -> None
     def trans():
-        profile_key = TffProfile.create_key(username)
-        profile = profile_key.get()
-        if not profile:
-            profile = TffProfile(key=profile_key,
-                                 app_user=create_app_user_by_email(user_detail.email, user_detail.app_id))
-
-            pp_key = ProfilePointer.create_key(username)
-            pp = pp_key.get()
-            if pp:
-                logging.error("Failed to save invitation code of user '%s', we have a duplicate", user_detail.email)
+        profile, is_new = get_or_create_profile(username,
+                                                create_app_user_by_email(user_detail.email, user_detail.app_id))
+        if is_new:
+            profile_pointer_key = ProfilePointer.create_key(username)
+            profile_pointer = profile_pointer_key.get()
+            if profile_pointer:
+                logging.error('Failed to save invitation code of user \'%s\', we have a duplicate', user_detail.email)
                 deferred.defer(store_invitation_code_in_userdata, username,
                                user_detail, _countdown=10 * 60, _transactional=True)
                 return False
-
-            profile.put()
-
-            pp = ProfilePointer(key=pp_key, username=username)
-            pp.put()
+            profile_pointer = ProfilePointer(key=profile_pointer_key, username=username)
+            profile_pointer.put()
 
         return True
 
@@ -299,3 +294,15 @@ def add_user_to_public_role(user_detail):
         logging.info('User is already in members role, not adding to public role')
     else:
         add_user_to_role(user_detail, Roles.PUBLIC)
+
+
+@returns(tuple)
+@arguments(username=unicode, app_user=users.User)
+def get_or_create_profile(username, app_user):
+    profile_key = TffProfile.create_key(username)
+    profile = profile_key.get()
+    if not profile:
+        profile = TffProfile(key=profile_key, app_user=app_user)
+        profile.put()
+        return profile, True
+    return profile, False
