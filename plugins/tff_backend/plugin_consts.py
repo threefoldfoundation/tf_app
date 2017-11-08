@@ -29,6 +29,7 @@ SUPPORTED_CURRENCIES = list_currencies() | SUPPORTED_CRYPTO_CURRENCIES
 
 BUY_TOKENS_FLOW_V3 = u'buy_tokens_ITO_v3'
 BUY_TOKENS_FLOW_V3_PAUSED = u'buy_tokens_ITO_v3_paused'
+BUY_TOKENS_FLOW_V3_KYC_MENTION = u'buy_tokens_ITO_v3_KYCmention'
 BUY_TOKENS_FLOW_V4 = u'buy_tokens_ITO_v4'
 KYC_FLOW_PART_1 = u'kyc_part_1'
 KYC_FLOW_PART_1_TAG = u'kyc_part_1'

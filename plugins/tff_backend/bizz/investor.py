@@ -21,13 +21,14 @@ import json
 import logging
 from types import NoneType
 
-from google.appengine.api import users, mail
-from google.appengine.ext import deferred, ndb, db
+from requests.exceptions import HTTPError
 
 from babel.numbers import get_currency_name
 from framework.consts import BASE_URL
 from framework.plugin_loader import get_config
-from framework.utils import now
+from framework.utils import now, azzert
+from google.appengine.api import users, mail
+from google.appengine.ext import deferred, ndb, db
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -60,12 +61,12 @@ from plugins.tff_backend.dal.investment_agreements import get_investment_agreeme
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
-    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG
+    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
+    BUY_TOKENS_FLOW_V3_KYC_MENTION
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step, round_currency_amount
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-from requests.exceptions import HTTPError
 
 
 @returns(FlowMemberResultCallbackResultTO)
@@ -140,35 +141,61 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         if version == BUY_TOKENS_FLOW_V3_PAUSED:
             return None
 
-        answer_yes = AnswerTO(type=u'button', action=None, id=u'confirm', caption=u'Confirm', ui_flags=0, color=None)
-        answer_no = AnswerTO(type=u'button', action=None, id=u'cancel', caption=u'Cancel', ui_flags=0, color=None)
-        answers = [answer_yes, answer_no]
-
-        params = {
-            'token': token,
-            'amount': amount,
-            'currency': currency
-        }
-        msg = u'We are ready to process your purchase. Is the following information correct?\n\n' \
-              u'You would like to buy %(token)s for a total amount of' \
-              u' **%(amount)s %(currency)s**.\n\n' \
-              u'After confirming, you will receive your personalised purchase agreement.' % params
-        tag = json.dumps({'__rt__.tag': 'invest_complete', 'investment_id': agreement.id}).decode('utf-8')
-        message = MessageCallbackResultTypeTO(alert_flags=Message.ALERT_FLAG_SILENT,
-                                              answers=answers,
-                                              branding=get_main_branding_hash(),
-                                              dismiss_button_ui_flags=0,
-                                              flags=Message.FLAG_AUTO_LOCK,
-                                              step_id=u'confirm_investment',
-                                              message=msg,
-                                              tag=tag)
-
         result = FlowMemberResultCallbackResultTO(type=TYPE_MESSAGE)
-        result.value = message
+        result.value = create_agreement_confirmation_message(agreement)
         return result
     except Exception as e:
         logging.exception(e)
         return create_error_message(FlowMemberResultCallbackResultTO())
+
+
+@returns(MessageCallbackResultTypeTO)
+@arguments(agreement=InvestmentAgreement)
+def create_agreement_confirmation_message(agreement):
+    answer_yes = AnswerTO(type=u'button', action=None, id=u'confirm', caption=u'Confirm', ui_flags=0, color=None)
+    answer_no = AnswerTO(type=u'button', action=None, id=u'cancel', caption=u'Cancel', ui_flags=0, color=None)
+    answers = [answer_yes, answer_no]
+
+    params = {
+        'token': agreement.token,
+        'amount': agreement.amount,
+        'currency': agreement.currency
+    }
+    msg = u'We are ready to process your purchase. Is the following information correct?\n\n' \
+          u'You would like to buy %(token)s for a total amount of' \
+          u' **%(amount)s %(currency)s**.\n\n' \
+          u'After confirming, you will receive your personalised purchase agreement.' % params
+    tag = json.dumps({'__rt__.tag': 'invest_complete', 'investment_id': agreement.id}).decode('utf-8')
+    message = MessageCallbackResultTypeTO(alert_flags=Message.ALERT_FLAG_SILENT,
+                                          answers=answers,
+                                          branding=get_main_branding_hash(),
+                                          dismiss_button_ui_flags=0,
+                                          flags=Message.FLAG_AUTO_LOCK,
+                                          step_id=u'confirm_investment',
+                                          message=msg,
+                                          tag=tag)
+    return message
+
+
+def resume_paused_agreement(agreement):
+    azzert(agreement.status == InvestmentAgreement.STATUS_CREATED)
+    message = create_agreement_confirmation_message(agreement)
+    params = {
+        'token': agreement.token,
+        'amount': agreement.amount,
+        'currency': agreement.currency
+    }
+    msg = u'''We are ready to process your purchase. Is the following information correct?
+
+You would like to buy %(token)s for a total amount of **%(amount)s %(currency)s**.
+
+If you have not done so already, please go through the KYC procedure, which you can find in the service menu.
+After confirming and going through the KYC procedure, you will receive your personalised purchase agreement.''' % params
+    parent_message_key = None
+    member_user, app_id = get_app_user_tuple(agreement.app_user)
+    member = MemberTO(app_id=app_id, member=member_user.email(), alert_flags=Message.ALERT_FLAG_VIBRATE)
+    messaging.send(get_rogerthat_api_key(), parent_message_key, msg, message.answers, message.flags,
+                   [member], message.branding, message.tag, step_id=message.step_id)
 
 
 def get_currency_rate(currency):
@@ -196,11 +223,12 @@ def get_token_count(currency, amount):
            user_details=UserDetailsTO)
 def start_invest(email, tag, result_key, context, service_identity, user_details):
     # type: (unicode, unicode, unicode, unicode, unicode, UserDetailsTO) -> None
-    logging.info('Starting invest flow for user %s', user_details.email)
+    flow = BUY_TOKENS_FLOW_V3_KYC_MENTION
+    logging.info('Starting invest flow %s for user %s', flow, user_details.email)
     members = [MemberTO(member=user_details.email, app_id=user_details.app_id, alert_flags=0)]
     flow_params = json.dumps({'currencies': _get_conversion_rates()})
     messaging.start_local_flow(get_rogerthat_api_key(), None, members, service_identity, tag=BUY_TOKENS_TAG,
-                               context=context, flow=BUY_TOKENS_FLOW_V3_PAUSED, flow_params=flow_params)
+                               context=context, flow=flow, flow_params=flow_params)
 
 
 def _get_conversion_rates():
