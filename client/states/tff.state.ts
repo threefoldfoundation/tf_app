@@ -1,5 +1,5 @@
 import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
-import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/interfaces/index';
+import { Profile } from '../../../its_you_online_auth/client/interfaces/index';
 import {
   GlobalStats,
   InvestmentAgreement,
@@ -12,6 +12,7 @@ import {
   TransactionList,
   WalletBalance
 } from '../interfaces/index';
+import { SearchUsersQuery, TffProfile, UserList } from '../interfaces/profile.interfaces';
 
 export interface ITffState {
   orders: NodeOrderList;
@@ -41,6 +42,9 @@ export interface ITffState {
   createTransactionStatus: ApiRequestStatus;
   balance: WalletBalance[];
   balanceStatus: ApiRequestStatus;
+  tffProfile: TffProfile | null;
+  tffProfileStatus: ApiRequestStatus;
+  setKYCStatus: ApiRequestStatus;
 }
 
 export const emptyPaginatedResult: PaginatedResult<any> = {
@@ -77,6 +81,7 @@ export const initialTffState: ITffState = {
   updateGlobalStatsStatus: apiRequestInitial,
   userListQuery: {
     query: null,
+    kyc_status: null,
     cursor: null,
   },
   userList: emptyPaginatedResult,
@@ -88,4 +93,7 @@ export const initialTffState: ITffState = {
   createTransactionStatus: apiRequestInitial,
   balance: [],
   balanceStatus: apiRequestInitial,
+  tffProfile: null,
+  tffProfileStatus: apiRequestInitial,
+  setKYCStatus: apiRequestInitial,
 };

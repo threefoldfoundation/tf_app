@@ -1,8 +1,16 @@
-<form (submit)="submit()">
-  <md-form-field>
+<form (submit)="submit()" fxLayout="row" fxLayout.sm="column">
+  <md-form-field fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%">
     <input type="search" name="search_users" [(ngModel)]="query.query" mdInput
            [placeholder]="'tff.search' | translate" (ngModelChange)="submit()">
   </md-form-field>
+  <md-select name="kyc_status" [(ngModel)]="query.kyc_status" (ngModelChange)="submit()"
+             [placeholder]="'tff.kyc_status' | translate" fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%"
+             fxFlexOffset="5%" fxFlexOffset.sm="0">
+    <md-option [value]="null">{{ 'tff.all' | translate }}</md-option>
+    <md-option *ngFor="let status of statuses" [value]="status.value">
+      {{ status.label | translate }}
+    </md-option>
+  </md-select>
 </form>
 <md-nav-list>
   <a *ngFor="let user of userList.results" [routerLink]="[user.username, 'transactions']" md-list-item>

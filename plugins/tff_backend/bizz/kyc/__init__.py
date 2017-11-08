@@ -14,23 +14,3 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-from babel.numbers import list_currencies
-
-NAMESPACE = u'tff_backend'
-
-KEY_ALGORITHM = u'ed25519'
-KEY_NAME = u'threefold'
-
-SUPPORTED_CRYPTO_CURRENCIES = {'BTC'}
-CRYPTO_CURRENCY_NAMES = {
-    'BTC': 'Bitcoin'
-}
-SUPPORTED_CURRENCIES = list_currencies() | SUPPORTED_CRYPTO_CURRENCIES
-
-BUY_TOKENS_FLOW_V3 = u'buy_tokens_ITO_v3'
-BUY_TOKENS_FLOW_V3_PAUSED = u'buy_tokens_ITO_v3_paused'
-BUY_TOKENS_FLOW_V4 = u'buy_tokens_ITO_v4'
-KYC_FLOW_PART_1 = u'kyc_part_1'
-KYC_FLOW_PART_1_TAG = u'kyc_part_1'
-KYC_FLOW_PART_2_TAG = u'kyc_part_2'
-BUY_TOKENS_TAG = u'invest_itft'

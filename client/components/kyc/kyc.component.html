@@ -1,0 +1,86 @@
+<h2>{{ 'tff.kyc' | translate }}</h2>
+<tff-api-request-status [status]="status"></tff-api-request-status>
+<div *ngIf="profile" fxLayout="column">
+  <p>{{ getStatus(profile.kyc.status) }}</p>
+  <tff-api-request-status [status]="updateStatus"></tff-api-request-status>
+  <form *ngIf="allowedStatuses.includes(kyc.INFO_SET)" fxLayout="column" #form="ngForm">
+    <!-- todo: add every possible field (possibly dynamically) -->
+    <div *ngIf="profile.kyc.pending_information.data?.Passport" fxLayout="row">
+      <div class="picture-container">
+        <p>{{ 'tff.front_picture' | translate }}</p>
+        <a [href]="profile.kyc.pending_information.data.Passport.Mrz1Picture" target="_blank">
+          <img [src]="profile.kyc.pending_information.data.Passport.Mrz1Picture">
+        </a>
+      </div>
+      <div class="picture-container">
+        <p>{{ 'tff.back_picture' | translate }}</p>
+        <a [href]="profile.kyc.pending_information.data.Passport.Mrz2Picture" target="_blank">
+          <img [src]="profile.kyc.pending_information.data.Passport.Mrz2Picture">
+        </a>
+      </div>
+      <md-form-field>
+      <textarea mdInput name="mrz1" [(ngModel)]="data.Passport.Mrz1" [placeholder]="'tff.mrz1' | translate"
+                rows="3" required></textarea>
+      </md-form-field>
+      <md-form-field>
+      <textarea mdInput name="mrz2" [(ngModel)]="data.Passport.Mrz2" [placeholder]="'tff.mrz2' | translate"
+                rows="3" required></textarea>
+      </md-form-field>
+    </div>
+  </form>
+  <div>
+    <button md-raised-button *ngIf="allowedStatuses.includes(kyc.PENDING_SUBMIT)" (click)="submit(kyc.PENDING_SUBMIT)"
+            [disabled]="updateStatus.loading">
+      <md-icon>replay</md-icon>
+      {{ 'tff.resend_flow' | translate }}
+    </button>
+    <button md-raised-button *ngIf="allowedStatuses.includes(kyc.INFO_SET)" (click)="submit(kyc.INFO_SET)"
+            [disabled]="updateStatus.loading">
+      <md-icon>save</md-icon>
+      {{ 'tff.set_information' | translate }}
+    </button>
+    <button md-raised-button *ngIf="allowedStatuses.includes(kyc.PENDING_APPROVAL)"
+            (click)="submit(kyc.PENDING_APPROVAL)" [disabled]="updateStatus.loading">
+      {{ 'tff.verify_via_trulioo' | translate }}
+    </button>
+    <button md-raised-button *ngIf="allowedStatuses.includes(kyc.VERIFIED)" (click)="submit(kyc.VERIFIED)"
+            [disabled]="updateStatus.loading">
+      <md-icon>check</md-icon>
+      {{ 'tff.mark_as_verified' | translate }}
+    </button>
+    <button md-raised-button color="warn" *ngIf="allowedStatuses.includes(kyc.DENIED)" (click)="submit(kyc.DENIED)"
+            [disabled]="updateStatus.loading">
+      <md-icon>close</md-icon>
+      {{ 'tff.deny_kyc' | translate }}
+    </button>
+  </div>
+  <h3>{{ 'tff.verified_information' | translate }}</h3>
+  <p *ngIf="profile.kyc.api_calls.length === 0">
+    <i>{{ 'tff.no_verified_information_yet' | translate }}</i>
+  </p>
+  <md-nav-list>
+    <a md-list-item *ngFor="let apiCall of profile.kyc.api_calls" [href]="getUrl(apiCall)" target="_blank">
+      <h4 mdLine>{{ apiCall.timestamp | date : 'short' }}</h4>
+      <p mdLine>{{ 'tff.' + apiCall.result | translate }}</p>
+    </a>
+  </md-nav-list>
+  <tff-kyc-updates [updates]="profile.kyc.updates"></tff-kyc-updates>
+  <!-- Might be useful in the future-->
+  <!--
+  <md-accordion fxLayout="column" fxLayoutAlign="space-between center" fxFlex="40" fxFlex.md="50" fxFlex.sm="100">
+    <md-expansion-panel *ngFor="let apiCall of profile.kyc.api_calls" class="full-width">
+      <md-expansion-panel-header>
+        <md-panel-title>
+          {{ apiCall.timestamp | date : 'short' }} - {{ 'tff.' + apiCall.information.Record.RecordStatus | translate
+          }}
+        </md-panel-title>
+        <md-panel-description>
+          {{ apiCall.information.CountryCode }}
+        </md-panel-description>
+      </md-expansion-panel-header>
+
+      <tff-trulioo-information [record]="apiCall.information.Record"></tff-trulioo-information>
+    </md-expansion-panel>
+  </md-accordion>
+  -->
+</div>

@@ -1,7 +1,7 @@
 import { Action } from '@ngrx/store';
 import { type } from '../../../framework/client/core/utils/type';
 import { ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
-import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/index';
+import { Profile } from '../../../its_you_online_auth/client/index';
 import {
   CreateTransactionPayload,
   GlobalStats,
@@ -15,6 +15,7 @@ import {
   TransactionList,
   WalletBalance
 } from '../interfaces/index';
+import { SearchUsersQuery, SetKYCStatusPayload, TffProfile, UserList } from '../interfaces/profile.interfaces';
 
 // duplicated code needed else the type of the action type is only 'string'
 
@@ -64,6 +65,12 @@ export interface ITffActionTypes {
   CREATE_TRANSACTION: '[TFF] Create transaction';
   CREATE_TRANSACTION_COMPLETE: '[TFF] Create transaction success';
   CREATE_TRANSACTION_FAILED: '[TFF] Create transaction failed';
+  GET_TFF_PROFILE: '[TFF] Get tff profile';
+  GET_TFF_PROFILE_COMPLETE: '[TFF] Get tff profile complete';
+  GET_TFF_PROFILE_FAILED: '[TFF] Get tff profile failed';
+  SET_KYC_STATUS: '[TFF] Set KYC status';
+  SET_KYC_STATUS_COMPLETE: '[TFF] Set KYC status complete';
+  SET_KYC_STATUS_FAILED: '[TFF] Set KYC status failed';
 }
 
 export const TffActionTypes: ITffActionTypes = {
@@ -112,6 +119,12 @@ export const TffActionTypes: ITffActionTypes = {
   CREATE_TRANSACTION: type('[TFF] Create transaction'),
   CREATE_TRANSACTION_COMPLETE: type('[TFF] Create transaction success'),
   CREATE_TRANSACTION_FAILED: type('[TFF] Create transaction failed'),
+  GET_TFF_PROFILE: type('[TFF] Get tff profile'),
+  GET_TFF_PROFILE_COMPLETE: type('[TFF] Get tff profile complete'),
+  GET_TFF_PROFILE_FAILED: type('[TFF] Get tff profile failed'),
+  SET_KYC_STATUS: type('[TFF] Set KYC status'),
+  SET_KYC_STATUS_COMPLETE: type('[TFF] Set KYC status complete'),
+  SET_KYC_STATUS_FAILED: type('[TFF] Set KYC status failed'),
 };
 
 export class GetOrdersAction implements Action {
@@ -419,6 +432,53 @@ export class CreateTransactionFailedAction implements Action {
   }
 }
 
+export class GetTffProfileAction implements Action {
+  type = TffActionTypes.GET_TFF_PROFILE;
+
+  constructor(public payload: string) {
+  }
+}
+
+export class GetTffProfileCompleteAction implements Action {
+  type = TffActionTypes.GET_TFF_PROFILE_COMPLETE;
+
+  constructor(public payload: TffProfile) {
+  }
+}
+
+export class GetTffProfileFailedAction implements Action {
+  type = TffActionTypes.GET_TFF_PROFILE_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+
+export class SetKYCStatusAction implements Action {
+  type = TffActionTypes.SET_KYC_STATUS;
+
+  constructor(public username: string, public payload: SetKYCStatusPayload) {
+
+  }
+}
+
+
+export class SetKYCStatusCompleteAction implements Action {
+  type = TffActionTypes.SET_KYC_STATUS_COMPLETE;
+
+  constructor(public payload: TffProfile) {
+
+  }
+}
+
+export class SetKYCStatusFailedAction implements Action {
+  type = TffActionTypes.SET_KYC_STATUS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+
+  }
+}
+
 export type TffActions
   = GetOrdersAction
   | GetOrdersCompleteAction
@@ -464,4 +524,10 @@ export type TffActions
   | ResetNewTransactionAction
   | CreateTransactionAction
   | CreateTransactionCompleteAction
-  | CreateTransactionFailedAction;
+  | CreateTransactionFailedAction
+  | GetTffProfileAction
+  | GetTffProfileCompleteAction
+  | GetTffProfileFailedAction
+  | SetKYCStatusAction
+  | SetKYCStatusCompleteAction
+  | SetKYCStatusFailedAction;

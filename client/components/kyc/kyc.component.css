@@ -1,0 +1,12 @@
+tff-kyc img {
+  width: 150px;
+  max-height: 100px;
+}
+
+tff-kyc .mat-form-field {
+  width: 250px !important;
+}
+
+tff-kyc .picture-container {
+  padding-right: 16px;
+}
