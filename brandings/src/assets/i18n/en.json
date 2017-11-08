@@ -11,7 +11,7 @@
   "global_stats": "Global stats",
   "hide_full_description": "Hide full description",
   "invitation_code": "Invitation code",
-  "invitation_text": "Hi,\n\nI'd like to invite you to join the ThreeFold community. You can download the Android or iOS app at https://rogerth.at/install?a={{ appId }}\n\nTo become a registered user in the app, you can use my invitation code {{ code }}.\n\nWelcome on board!\n{{ userName }}",
+  "invitation_text": "Hi,\n\nI'd like to invite you to join the ThreeFold community. You can download the Android or iOS app at https://rogerth.at/install/{{ appId }}\n\nTo become a registered user in the app, you can use my invitation code {{ code }}.\n\nWelcome on board!\n{{ userName }}",
   "invitation_to_threefold": "Invitation to Threefold community",
   "invite_friends": "Invite friends",
   "invite_via_email": "Invite via E-mail",
