@@ -10,3 +10,7 @@ tff-kyc .mat-form-field {
 tff-kyc .picture-container {
   padding-right: 16px;
 }
+
+tff-kyc .kyc-buttons .mat-raised-button {
+  margin: 8px;
+}

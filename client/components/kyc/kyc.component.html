@@ -18,6 +18,7 @@
           <img [src]="profile.kyc.pending_information.data.Passport.Mrz2Picture">
         </a>
       </div>
+    </div>
       <md-form-field>
       <textarea mdInput name="mrz1" [(ngModel)]="data.Passport.Mrz1" [placeholder]="'tff.mrz1' | translate"
                 rows="3" required></textarea>
@@ -26,9 +27,8 @@
       <textarea mdInput name="mrz2" [(ngModel)]="data.Passport.Mrz2" [placeholder]="'tff.mrz2' | translate"
                 rows="3" required></textarea>
       </md-form-field>
-    </div>
   </form>
-  <div>
+  <div class="kyc-buttons">
     <button md-raised-button *ngIf="allowedStatuses.includes(kyc.PENDING_SUBMIT)" (click)="submit(kyc.PENDING_SUBMIT)"
             [disabled]="updateStatus.loading">
       <md-icon>replay</md-icon>
