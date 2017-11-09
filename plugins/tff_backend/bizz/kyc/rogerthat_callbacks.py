@@ -56,7 +56,7 @@ def kyc_part_1(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
     result = _validate_kyc_status(iyo_username)
     if isinstance(result, FlowMemberResultCallbackResultTO):
         return result
-    step = get_step(steps, 'message_nationality')
+    step = get_step(steps, 'message_nationality') or get_step(steps, 'message_nationality_with_vibration')
     assert isinstance(step, FormFlowStepTO)
     assert isinstance(step.form_result, FormResultTO)
     assert isinstance(step.form_result.result, UnicodeWidgetResultTO)

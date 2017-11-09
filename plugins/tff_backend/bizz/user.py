@@ -356,7 +356,7 @@ def set_kyc_status(username, payload, current_user_id):
     comment = payload.comment if payload.comment is not MISSING else None
     profile.kyc.set_status(payload.status, current_user_id, comment=comment)
     if payload.status == KYCStatus.PENDING_SUBMIT:
-        send_kyc_flow(profile.app_user)
+        deferred.defer(send_kyc_flow, profile.app_user)
     if payload.status == KYCStatus.INFO_SET:
         diff = {}
         for key in profile.kyc.pending_information.data:
@@ -395,7 +395,9 @@ def send_kyc_flow(app_user):
     # Flow with 1 step, only asks for nationality of the user
     email, app_id = get_app_user_tuple(app_user)
     member = MemberTO(member=email.email(), app_id=app_id, alert_flags=0)
-    messaging.start_local_flow(get_rogerthat_api_key(), None, [member], tag=KYC_FLOW_PART_1_TAG, flow=KYC_FLOW_PART_1)
+    push_message = u'KYC procedure has been initiated'  # for iOS only
+    messaging.start_local_flow(get_rogerthat_api_key(), None, [member], tag=KYC_FLOW_PART_1_TAG, flow=KYC_FLOW_PART_1,
+                               push_message=push_message, flow_params=json.dumps({'vibrate': True}))
 
 
 def generate_kyc_flow(country_code, iyo_username):
