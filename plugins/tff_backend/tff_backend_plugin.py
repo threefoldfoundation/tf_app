@@ -96,5 +96,5 @@ class TffBackendPlugin(BrandingPlugin):
         if not tff_profile:
             logging.error('No TffProfile found for profile %s', profile)
             return []
-        kyc_status = (tff_profile.kyc and tff_profile.kyc.status) or KYCStatus.UNVERIFIED
+        kyc_status = (tff_profile.kyc and tff_profile.kyc.status) or KYCStatus.UNVERIFIED.value
         return [search.NumberField('kyc_status', kyc_status)]

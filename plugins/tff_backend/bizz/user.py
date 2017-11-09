@@ -323,7 +323,7 @@ def get_tff_profile(username):
     if not profile:
         raise HttpNotFoundException('tff_profile_not_found', {'username': username})
     if not profile.kyc:
-        profile.kyc = KYCInformation(status=KYCStatus.UNVERIFIED,
+        profile.kyc = KYCInformation(status=KYCStatus.UNVERIFIED.value,
                                      api_calls=[],
                                      updates=[],
                                      pending_information=KYCDataFields(),
