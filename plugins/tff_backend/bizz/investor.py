@@ -21,14 +21,13 @@ import json
 import logging
 from types import NoneType
 
-from requests.exceptions import HTTPError
+from google.appengine.api import users, mail
+from google.appengine.ext import deferred, ndb, db
 
 from babel.numbers import get_currency_name
 from framework.consts import BASE_URL
 from framework.plugin_loader import get_config
 from framework.utils import now, azzert
-from google.appengine.api import users, mail
-from google.appengine.ext import deferred, ndb, db
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -45,12 +44,12 @@ from plugins.tff_backend.bizz.authentication import Roles
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.bizz.hoster import get_publickey_label
-from plugins.tff_backend.bizz.rogerthat import create_error_message
 from plugins.tff_backend.bizz.intercom_helpers import IntercomTags
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
+from plugins.tff_backend.bizz.rogerthat import create_error_message
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
@@ -67,6 +66,7 @@ from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgr
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step, round_currency_amount
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+from requests.exceptions import HTTPError
 
 
 @returns(FlowMemberResultCallbackResultTO)
@@ -223,6 +223,8 @@ def get_token_count(currency, amount):
            user_details=UserDetailsTO)
 def start_invest(email, tag, result_key, context, service_identity, user_details):
     # type: (unicode, unicode, unicode, unicode, unicode, UserDetailsTO) -> None
+    logging.info('Ignoring start_invest poke tag because this flow is not used atm')
+    return
     flow = BUY_TOKENS_FLOW_V3_KYC_MENTION
     logging.info('Starting invest flow %s for user %s', flow, user_details.email)
     members = [MemberTO(member=user_details.email, app_id=user_details.app_id, alert_flags=0)]

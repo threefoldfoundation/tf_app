@@ -21,6 +21,7 @@ import logging
 import os
 
 import jinja2
+from google.appengine.api import users
 from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
@@ -385,6 +386,7 @@ def set_kyc_status(username, payload, current_user_id):
     elif payload.status == KYCStatus.DENIED:
         if not profile.kyc.api_calls:
             raise HttpBadRequestException('not_verified_yet', {'status': 'denied'})
+    deferred.defer(store_kyc_in_user_data, profile.app_user)
     profile.put()
     return profile
 
@@ -502,3 +504,19 @@ def _get_known_information(username):
             known_information['Location']['City'] = profile.info.addresses[0].city
             known_information['Location']['PostalCode'] = profile.info.addresses[0].postalcode
     return known_information
+
+
+@arguments(app_user=users.User)
+def store_kyc_in_user_data(app_user):
+    username = get_iyo_username(app_user)
+    profile = get_tff_profile(username)
+    user_data = {
+        'kyc': {
+            'status': profile.kyc.status,
+            'verified': profile.kyc.status == KYCStatus.VERIFIED,
+            'verified_information': profile.kyc.verified_information
+        }
+    }
+    email, app_id = get_app_user_tuple(app_user)
+    api_key = get_rogerthat_api_key()
+    return system.put_user_data(api_key, email.email(), app_id, user_data)
