@@ -514,7 +514,7 @@ def store_kyc_in_user_data(app_user):
         'kyc': {
             'status': profile.kyc.status,
             'verified': profile.kyc.status == KYCStatus.VERIFIED,
-            'verified_information': profile.kyc.verified_information
+            'verified_information': profile.kyc.verified_information and profile.kyc.verified_information.to_dict()
         }
     }
     email, app_id = get_app_user_tuple(app_user)
