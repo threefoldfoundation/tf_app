@@ -132,14 +132,15 @@ def _validate_kyc_status(username):
     if profile.kyc:
         status = profile.kyc.status
         if status not in (KYCStatus.UNVERIFIED, KYCStatus.PENDING_SUBMIT):
-            # todo proper error messages
             message = None
             if status == KYCStatus.DENIED:
-                message = 'Denied'
+                message = 'Sorry, we are regrettably not able to accept you as a customer.'
             elif status == KYCStatus.PENDING_APPROVAL or status == KYCStatus.SUBMITTED:
-                message = 'Already pending approval'
+                message = 'We already have the information we currently need to pass on to our KYC provider.' \
+                          ' We will contact you if we need more info.' \
+                          ' Please contact us if you want to update your information.'
             elif status == KYCStatus.VERIFIED:
-                message = 'Already verified'
+                message = 'You have already been verified, so you do not need to enter this process again. Thank you!'
             if not DEBUG:
                 return create_error_message(FlowMemberResultCallbackResultTO(), message)
     return profile
