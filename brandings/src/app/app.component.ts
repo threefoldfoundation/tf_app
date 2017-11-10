@@ -62,8 +62,7 @@ export class AppComponent implements OnInit {
           { tag: 'set_referrer', page: SetReferrerPageComponent },
           { tag: 'agenda', page: AgendaPageComponent },
         ];
-        // const page = pages.find(page => sha256(page.tag) === rogerthat.menuItem.hashedTag);
-        const page = pages[ 5 ];
+        const page = pages.find(page => sha256(page.tag) === rogerthat.menuItem.hashedTag);
         if (page) {
           this.rootPage = page.page;
         } else {
