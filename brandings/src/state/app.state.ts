@@ -4,9 +4,11 @@ import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { apiRequestInitial, ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
 import { TodoList } from '../interfaces/todo-list.interfaces';
+import { ApiCallResult } from '../services/rogerthat.service';
 
 
 export interface IBrandingState {
+  apiCallResult: ApiCallResult | null;
   globalStats: GlobalStats[];
   globalStatsStatus: ApiRequestStatus;
   todoLists: TodoList[];
@@ -23,6 +25,7 @@ export interface IBrandingState {
 export const getAppState = createFeatureSelector<IBrandingState>('app');
 
 export const initialState: IBrandingState = {
+  apiCallResult: null,
   globalStats: [],
   globalStatsStatus: apiRequestInitial,
   todoLists: [],
@@ -35,6 +38,8 @@ export const initialState: IBrandingState = {
   eventPresenceStatus: apiRequestInitial,
   updateEventPresenceStatus: apiRequestInitial,
 };
+
+export const getApicallResult = createSelector(getAppState, s => s.apiCallResult);
 
 export const getGlobalStats = createSelector(getAppState, s => s.globalStats);
 export const getGlobalStatsStatus = createSelector(getAppState, s => s.globalStatsStatus);

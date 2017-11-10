@@ -1,5 +1,5 @@
 <ion-card>
-  <ion-item>
+  <ion-item text-wrap>
     <h1>{{ agendaEvent.title }}</h1>
     <p>{{ 'starts_at_x' | translate : { timestamp: agendaEvent.start_date } }}</p>
     <p *ngIf="agendaEvent.end_timestamp">{{ 'ends_at_x' | translate : { timestamp: agendaEvent.end_date } }}</p>
@@ -14,7 +14,7 @@
       <ion-icon name="checkmark" color="secondary"></ion-icon>
       {{ (agendaEvent.is_in_past ? 'you_went_to_this_event' : 'you_are_going_to_this') | translate }}
     </p>
-    <p *ngIf="!isPresent() && !status.loading">
+    <p *ngIf="isAbsent() && !status.loading">
       <ion-icon name="close" color="danger"></ion-icon>
       {{ (agendaEvent.is_in_past ? 'you_did_not_go_to_this_event' : 'you_arent_going_to_event') | translate }}
     </p>
@@ -29,7 +29,7 @@
     </ion-col>
     <ion-col>
       <button ion-button icon-left clear (click)="update(statuses.ABSENT)"
-              [disabled]="!isPresent() && !status.loading">
+              [disabled]="isAbsent() && !status.loading">
         <ion-icon name="close"></ion-icon>
         <div>{{ 'not_going' | translate }}</div>
       </button>

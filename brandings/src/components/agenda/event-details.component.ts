@@ -45,8 +45,12 @@ export class EventDetailsComponent {
     }
   }
 
-  isPresent(): boolean | null {
+  isPresent(): boolean {
     return this.eventPresence && this.eventPresence.status === EventPresenceStatus.PRESENT;
+  }
+
+  isAbsent(): boolean {
+    return this.eventPresence && this.eventPresence.status === EventPresenceStatus.ABSENT;
   }
 
   private submit(wants_recording: boolean, status: EventPresenceStatus) {

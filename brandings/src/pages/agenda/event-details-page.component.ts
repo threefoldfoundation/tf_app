@@ -41,7 +41,9 @@ export class EventDetailsPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this._updateSub.unsubscribe();
-    this._loading && this._loading.dismissAll();
+    if (this._loading) {
+      this._loading.dismissAll();
+    }
   }
 
   onUpdatePresence(data: UpdatePresenceData) {

@@ -4,8 +4,11 @@ import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { SetReferralResult } from '../interfaces/referrals.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
+import { ApiCallResult } from '../services/rogerthat.service';
 
 interface IBrandingActionTypes {
+  API_CALL: 'Api call';
+  API_CALL_COMPLETE: 'Api call complete';
   GET_GLOBAL_STATS: 'Get global stats';
   GET_GLOBAL_STATS_COMPLETE: 'Get global stats complete';
   GET_GLOBAL_STATS_FAILED: 'Get global stats failed';
@@ -27,6 +30,8 @@ interface IBrandingActionTypes {
 }
 
 export const BrandingActionTypes: IBrandingActionTypes = {
+  API_CALL: 'Api call',
+  API_CALL_COMPLETE: 'Api call complete',
   GET_GLOBAL_STATS: 'Get global stats',
   GET_GLOBAL_STATS_COMPLETE: 'Get global stats complete',
   GET_GLOBAL_STATS_FAILED: 'Get global stats failed',
@@ -46,6 +51,20 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   UPDATE_EVENT_PRESENCE_COMPLETE: 'Update event presence complete',
   UPDATE_EVENT_PRESENCE_FAILED: 'Update event presence failed',
 };
+
+export class ApiCallAction implements Action {
+  type = BrandingActionTypes.API_CALL;
+
+  constructor(public method: string, public data?: any, public tag?: string | null) {
+  }
+}
+
+export class ApiCallCompleteAction implements Action {
+  type = BrandingActionTypes.API_CALL_COMPLETE;
+
+  constructor(public payload: ApiCallResult) {
+  }
+}
 
 export class GetGlobalStatsAction implements Action {
   type = BrandingActionTypes.GET_GLOBAL_STATS;
@@ -167,7 +186,9 @@ export class UpdateEventPresenceFailedAction implements Action {
 }
 
 export type BrandingActions
-  = GetGlobalStatsAction
+  = ApiCallAction
+  | ApiCallCompleteAction
+  | GetGlobalStatsAction
   | GetGlobalStatsCompleteAction
   | GetGlobalStatsFailedAction
   | GetSeeDocumentsAction

@@ -6,6 +6,11 @@ import { IBrandingState, initialState } from '../state/app.state';
 
 export function appReducer(state: IBrandingState = initialState, action: BrandingActions): IBrandingState {
   switch (action.type) {
+    case BrandingActionTypes.API_CALL_COMPLETE:
+      return {
+        ...state,
+        apiCallResult: { ...action.payload }
+      };
     case BrandingActionTypes.GET_GLOBAL_STATS:
       return {
         ...state,

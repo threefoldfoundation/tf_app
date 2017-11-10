@@ -22,6 +22,7 @@ export interface AgendaEventDetail extends AgendaEvent {
 
 export enum EventPresenceStatus {
   ABSENT = -1,
+  UNKNOWN = 0,
   PRESENT = 1,
 }
 
