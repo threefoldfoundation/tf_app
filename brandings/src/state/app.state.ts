@@ -1,9 +1,9 @@
+import { createFeatureSelector, createSelector } from '@ngrx/store';
+import { AgendaEvent,  EventPresence } from '../interfaces/agenda.interfaces';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
+import { apiRequestInitial, ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
 import { TodoList } from '../interfaces/todo-list.interfaces';
-import { IAppState } from '../app/app.state';
-import { compose, Store } from '@ngrx/store';
-import { apiRequestInitial, ApiRequestStatus } from '../interfaces/rpc.interfaces';
 
 
 export interface IBrandingState {
@@ -14,11 +14,13 @@ export interface IBrandingState {
   seeDocumentsStatus: ApiRequestStatus;
   setReferrerResult: string | null;
   setReferrerStatus: ApiRequestStatus;
+  events: AgendaEvent[];
+  eventPresence: EventPresence | null;
+  eventPresenceStatus: ApiRequestStatus;
+  updateEventPresenceStatus: ApiRequestStatus;
 }
 
-export function getAppState(state$: Store<IAppState>): Store<IBrandingState> {
-  return state$.select(state => state.app);
-}
+export const getAppState = createFeatureSelector<IBrandingState>('app');
 
 export const initialState: IBrandingState = {
   globalStats: [],
@@ -28,15 +30,24 @@ export const initialState: IBrandingState = {
   seeDocumentsStatus: apiRequestInitial,
   setReferrerResult: null,
   setReferrerStatus: apiRequestInitial,
+  events: [],
+  eventPresence: null,
+  eventPresenceStatus: apiRequestInitial,
+  updateEventPresenceStatus: apiRequestInitial,
 };
 
-export const getGlobalStats = compose(s$ => s$.select(s => s.globalStats), getAppState);
-export const getGlobalStatsStatus = compose(s$ => s$.select(s => s.globalStatsStatus), getAppState);
+export const getGlobalStats = createSelector(getAppState, s => s.globalStats);
+export const getGlobalStatsStatus = createSelector(getAppState, s => s.globalStatsStatus);
 
-export const getTodoLists = compose(s$ => s$.select(s => s.todoLists), getAppState);
+export const getTodoLists = createSelector(getAppState, s => s.todoLists);
 
-export const getSeeDocuments = compose(s$ => s$.select(s => s.seeDocuments), getAppState);
-export const getSeeDocumentsStatus = compose(s$ => s$.select(s => s.seeDocumentsStatus), getAppState);
+export const getSeeDocuments = createSelector(getAppState, s => s.seeDocuments);
+export const getSeeDocumentsStatus = createSelector(getAppState, s => s.seeDocumentsStatus);
 
-export const getSetReferrerResult = compose(s$ => s$.select(s => s.setReferrerResult), getAppState);
-export const getSetReferrerStatus = compose(s$ => s$.select(s => s.setReferrerStatus), getAppState);
+export const getSetReferrerResult = createSelector(getAppState, s => s.setReferrerResult);
+export const getSetReferrerStatus = createSelector(getAppState, s => s.setReferrerStatus);
+
+export const getEvents = createSelector(getAppState, s => s.events);
+export const getEventPresence = createSelector(getAppState, s => s.eventPresence);
+export const getEventPresenceStatus = createSelector(getAppState, s => s.eventPresenceStatus);
+export const updateEventPresenceStatus = createSelector(getAppState, s => s.updateEventPresenceStatus);

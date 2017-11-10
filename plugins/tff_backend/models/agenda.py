@@ -15,9 +15,10 @@
 #
 # @@license_version:1.3@@
 
+from google.appengine.ext import ndb
+
 from framework.models.common import NdbModel
 from plugins.tff_backend.plugin_consts import NAMESPACE
-from google.appengine.ext import ndb
 
 
 class Event(NdbModel):

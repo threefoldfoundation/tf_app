@@ -1,7 +1,10 @@
 import { Injectable, NgZone } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
+import { GetEventsAction } from '../actions/branding.actions';
 import { RogerthatError } from '../manual_typings/rogerthat-errors';
+import { IBrandingState } from '../state/app.state';
 import { I18nService } from './i18n.service';
 
 export interface ApiCallResult {
@@ -17,7 +20,9 @@ export class RogerthatService {
   private resultReceived$: Observable<ApiCallResult>;
   private subject: Subject<ApiCallResult>;
 
-  constructor(private i18nService: I18nService, private ngZone: NgZone) {
+  constructor(private i18nService: I18nService,
+              private ngZone: NgZone,
+              private store: Store<IBrandingState>) {
     this.resultReceived$ = Observable.create((emitter: Subject<ApiCallResult>) => {
       this.subject = emitter;
     });
@@ -34,6 +39,9 @@ export class RogerthatService {
           this.subject.next({ method, result, error, tag });
         }
       });
+    });
+    rogerthat.callbacks.serviceDataUpdated(() => {
+      this.store.dispatch(new GetEventsAction());
     });
   }
 
@@ -63,6 +71,6 @@ export class RogerthatService {
     rogerthat.api.call(method, data, tag);
     return this.resultReceived$.filter(result => result.method === method && result.tag === tag)
       .do(result => console.log(`${method} result`, result.result))
-      .map(result => <T>JSON.parse(result.result));
+      .map(result => <T>JSON.parse(result.result || 'null'));
   }
 }

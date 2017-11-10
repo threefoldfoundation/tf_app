@@ -1,11 +1,32 @@
 import { Action } from '@ngrx/store';
+import { AgendaEvent, EventPresence, UpdatePresenceData } from '../interfaces/agenda.interfaces';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { SetReferralResult } from '../interfaces/referrals.interfaces';
+import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
-import { ApiCallResult } from '../services/rogerthat.service';
 
+interface IBrandingActionTypes {
+  GET_GLOBAL_STATS: 'Get global stats';
+  GET_GLOBAL_STATS_COMPLETE: 'Get global stats complete';
+  GET_GLOBAL_STATS_FAILED: 'Get global stats failed';
+  GET_SEE_DOCUMENTS: 'Get see documents ';
+  GET_SEE_DOCUMENTS_COMPLETE: 'Get see documents complete';
+  GET_SEE_DOCUMENTS_FAILED: 'Get see documents failed';
+  SET_REFERRER: 'Set referrer';
+  SET_REFERRER_COMPLETE: 'Set referrer complete';
+  SET_REFERRER_FAILED: 'Set referrer failed';
+  GET_EVENTS: 'Get events';
+  GET_EVENTS_COMPLETE: 'Get events complete';
+  GET_EVENTS_FAILED: 'Get events failed';
+  GET_EVENT_PRESENCE: 'Get event presence';
+  GET_EVENT_PRESENCE_COMPLETE: 'Get events presence complete';
+  GET_EVENT_PRESENCE_FAILED: 'Get events presence failed';
+  UPDATE_EVENT_PRESENCE: 'Update event presence';
+  UPDATE_EVENT_PRESENCE_COMPLETE: 'Update event presence complete';
+  UPDATE_EVENT_PRESENCE_FAILED: 'Update event presence failed';
+}
 
-export const BrandingActionTypes = {
+export const BrandingActionTypes: IBrandingActionTypes = {
   GET_GLOBAL_STATS: 'Get global stats',
   GET_GLOBAL_STATS_COMPLETE: 'Get global stats complete',
   GET_GLOBAL_STATS_FAILED: 'Get global stats failed',
@@ -15,6 +36,15 @@ export const BrandingActionTypes = {
   SET_REFERRER: 'Set referrer',
   SET_REFERRER_COMPLETE: 'Set referrer complete',
   SET_REFERRER_FAILED: 'Set referrer failed',
+  GET_EVENTS: 'Get events',
+  GET_EVENTS_COMPLETE: 'Get events complete',
+  GET_EVENTS_FAILED: 'Get events failed',
+  GET_EVENT_PRESENCE: 'Get event presence',
+  GET_EVENT_PRESENCE_COMPLETE: 'Get events presence complete',
+  GET_EVENT_PRESENCE_FAILED: 'Get events presence failed',
+  UPDATE_EVENT_PRESENCE: 'Update event presence',
+  UPDATE_EVENT_PRESENCE_COMPLETE: 'Update event presence complete',
+  UPDATE_EVENT_PRESENCE_FAILED: 'Update event presence failed',
 };
 
 export class GetGlobalStatsAction implements Action {
@@ -32,7 +62,7 @@ export class GetGlobalStatsCompleteAction implements Action {
 export class GetGlobalStatsFailedAction implements Action {
   type = BrandingActionTypes.GET_GLOBAL_STATS_FAILED;
 
-  constructor(public payload: ApiCallResult) {
+  constructor(public payload: ApiRequestStatus) {
   }
 }
 
@@ -51,7 +81,7 @@ export class GetSeeDocumentsCompleteAction implements Action {
 export class GetSeeDocumentsFailedAction implements Action {
   type = BrandingActionTypes.GET_SEE_DOCUMENTS_FAILED;
 
-  constructor(public payload: ApiCallResult) {
+  constructor(public payload: ApiRequestStatus) {
   }
 }
 
@@ -72,7 +102,67 @@ export class SetReferrerCompleteAction implements Action {
 export class SetReferrerFailedAction implements Action {
   type = BrandingActionTypes.SET_REFERRER_FAILED;
 
-  constructor(public payload: ApiCallResult) {
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetEventsAction implements Action {
+  type = BrandingActionTypes.GET_EVENTS;
+}
+
+export class GetEventsCompleteAction implements Action {
+  type = BrandingActionTypes.GET_EVENTS_COMPLETE;
+
+  constructor(public payload: AgendaEvent[]) {
+  }
+}
+
+export class GetEventsFailedAction implements Action {
+  type = BrandingActionTypes.GET_EVENTS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetEventPresenceAction implements Action {
+  type = BrandingActionTypes.GET_EVENT_PRESENCE;
+
+  constructor(public payload: number) {
+  }
+}
+
+export class GetEventPresenceCompleteAction implements Action {
+  type = BrandingActionTypes.GET_EVENT_PRESENCE_COMPLETE;
+
+  constructor(public payload: EventPresence) {
+  }
+}
+
+export class GetEventPresenceFailedAction implements Action {
+  type = BrandingActionTypes.GET_EVENT_PRESENCE_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class UpdateEventPresenceAction implements Action {
+  type = BrandingActionTypes.UPDATE_EVENT_PRESENCE;
+
+  constructor(public payload: UpdatePresenceData) {
+  }
+}
+
+export class UpdateEventPresenceCompleteAction implements Action {
+  type = BrandingActionTypes.UPDATE_EVENT_PRESENCE_COMPLETE;
+
+  constructor(public payload: UpdatePresenceData) {
+  }
+}
+
+export class UpdateEventPresenceFailedAction implements Action {
+  type = BrandingActionTypes.UPDATE_EVENT_PRESENCE_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
   }
 }
 
@@ -85,4 +175,13 @@ export type BrandingActions
   | GetSeeDocumentsFailedAction
   | SetReferrerAction
   | SetReferrerCompleteAction
-  | SetReferrerFailedAction;
+  | SetReferrerFailedAction
+  | GetEventsAction
+  | GetEventsCompleteAction
+  | GetEventsFailedAction
+  | GetEventPresenceAction
+  | GetEventPresenceCompleteAction
+  | GetEventPresenceFailedAction
+  | UpdateEventPresenceAction
+  | UpdateEventPresenceCompleteAction
+  | UpdateEventPresenceFailedAction;

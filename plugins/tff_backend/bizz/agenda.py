@@ -15,13 +15,12 @@
 #
 # @@license_version:1.3@@
 
-from collections import defaultdict
 import datetime
-import logging
-
-import dateutil
+from collections import defaultdict
 
 from google.appengine.ext import ndb, deferred
+
+import dateutil
 from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments, parse_complex_value
 from plugins.its_you_online_auth.models import Profile
@@ -30,7 +29,7 @@ from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.models.agenda import Event, EventParticipant
-from plugins.tff_backend.to.agenda import EventTO, EventPresenceTO, BasePresenceTO, EventParticipantListTO,\
+from plugins.tff_backend.to.agenda import EventTO, EventPresenceTO, BasePresenceTO, EventParticipantListTO, \
     EventParticipantTO
 
 
@@ -41,21 +40,23 @@ def get_presence(params, user_detail):
     status = EventParticipant.STATUS_ABSENT
     wants_recording = False
     counts = defaultdict(lambda: 0)
+    event_id = params['event_id']
 
-    for participant in EventParticipant.list_by_event(params['event_id']):
+    for participant in EventParticipant.list_by_event(event_id):
         if participant.username == iyo_username:
             status = participant.status
             wants_recording = participant.wants_recording
         counts[participant.status] += 1
 
-    return EventPresenceTO(status=status,
+    return EventPresenceTO(event_id=event_id,
+                           status=status,
                            wants_recording=wants_recording,
                            username=iyo_username,
                            present_count=counts[EventParticipant.STATUS_PRESENT],
                            absent_count=counts[EventParticipant.STATUS_ABSENT])
 
 
-@returns()
+@returns(dict)
 @arguments(params=dict, user_detail=UserDetailsTO)
 def update_presence(params, user_detail):
     presence = parse_complex_value(BasePresenceTO, params, False)
@@ -64,6 +65,7 @@ def update_presence(params, user_detail):
     participant.status = presence.status
     participant.wants_recording = presence.wants_recording
     participant.put()
+    return participant.to_dict()
 
 
 @returns(EventParticipantListTO)
@@ -82,39 +84,25 @@ def list_participants(event_id, cursor=None, page_size=50):
     return list_result
 
 
+@ndb.transactional()
 @returns(Event)
 @arguments(event=EventTO)
 def put_event(event):
-    start_timestamp = dateutil.parser.parse(event.start_timestamp)
-    end_timestamp = None if event.end_timestamp in (None, MISSING) else dateutil.parser.parse(event.end_timestamp)
-
-    def trans():
-        model = Event() if event.id is MISSING else Event.get_by_id(id)
-        model.title = event.title
-        model.description = event.description
-        model.start_timestamp = start_timestamp
-        model.end_timestamp = end_timestamp
-        model.location = event.location
-        model.put()
-        deferred.defer(put_agenda_app_data, _transactional=True, _countdown=2)
-        return model
-
-    return ndb.transaction(trans)
+    # type: (EventTO) -> Event
+    model = Event() if event.id is MISSING else Event.get_by_id(event.id)
+    args = event.to_dict()
+    args.update(
+        start_timestamp=dateutil.parser.parse(event.start_timestamp),
+        end_timestamp=None if event.end_timestamp in (None, MISSING) else dateutil.parser.parse(event.end_timestamp)
+    )
+    model.populate(**args)
+    model.put()
+    deferred.defer(put_agenda_app_data, _transactional=True, _countdown=2)
+    return model
 
 
-@returns()
-@arguments(event_id=long)
-def delete_event(event_id):
-    def trans():
-        Event.create_key(event_id).delete()
-        deferred.defer(put_agenda_app_data, _transactional=True, _countdown=2)
-    ndb.transaction(trans)
-
-
-@returns()
-@arguments()
 def put_agenda_app_data():
-    data = {'agenda_events': [event.to_dict(['id']) for event in Event.list()]}
+    data = {'agenda_events': [event.to_dict() for event in Event.list()]}
     system.put_service_data(get_rogerthat_api_key(), data)
     system.publish_changes(get_rogerthat_api_key())
 
@@ -134,8 +122,4 @@ def delete_past_events():
         ndb.delete_multi(keys)
         deferred.defer(put_agenda_app_data, _transactional=True, _countdown=2)
 
-    if keys:
-        logging.info('Deleting %s event(s) that were in the past: %s', len(keys), keys)
-        ndb.transaction(trans)
-    else:
-        logging.debug('There were no events in the past.')
+    ndb.transaction(trans)

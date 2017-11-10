@@ -1,21 +1,21 @@
+import { CurrencyPipe, DatePipe, DecimalPipe, I18nPluralPipe } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
-import { AppComponent } from './app.component';
-import { StatusBar } from '@ionic-native/status-bar';
-import { SplashScreen } from '@ionic-native/splash-screen';
 import { InAppBrowser } from '@ionic-native/in-app-browser';
-import { PAGES } from '../pages/index';
+import { SplashScreen } from '@ionic-native/splash-screen';
+import { StatusBar } from '@ionic-native/status-bar';
+import { EffectsModule } from '@ngrx/effects';
+import { StoreModule } from '@ngrx/store';
 import { MissingTranslationHandler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
+import { COMPONENTS } from '../components/index';
+import { PAGES } from '../pages/index';
+import { MarkdownPipe } from '../pipes/markdown.pipe';
 import { SERVICES } from '../services/index';
 import { MissingTranslationWarnHandler } from '../util/missing-translation-handler';
-import { COMPONENTS } from '../components/index';
-import { CurrencyPipe, DecimalPipe, I18nPluralPipe } from '@angular/common';
-import { MarkdownPipe } from '../pipes/markdown.pipe';
-import { StoreModule } from '@ngrx/store';
-import { EffectsModule } from '@ngrx/effects';
+import { AppComponent } from './app.component';
 import { REDUCER_INJECTION_TOKEN, reducerProvider } from './app.state';
 import { BrandingEffects } from './branding.effects';
 import './operators';
@@ -54,6 +54,7 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
   ],
   providers: [
     DecimalPipe,
+    DatePipe,
     CurrencyPipe,
     I18nPluralPipe,
     SERVICES,
