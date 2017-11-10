@@ -56,11 +56,13 @@ class EventParticipant(NdbModel):
     NAMESPACE = NAMESPACE
 
     STATUS_PRESENT = 1
+    STATUS_UNKNOWN = 0
     STATUS_ABSENT = -1
 
     event_id = ndb.IntegerProperty(indexed=True)
     username = ndb.StringProperty(indexed=True)
-    status = ndb.IntegerProperty(indexed=True, choices=[STATUS_ABSENT, STATUS_PRESENT], default=STATUS_ABSENT)
+    status = ndb.IntegerProperty(
+        indexed=True, choices=[STATUS_ABSENT, STATUS_UNKNOWN, STATUS_PRESENT], default=STATUS_UNKNOWN)
     wants_recording = ndb.BooleanProperty(indexed=True, default=False)
     modification_timestamp = ndb.DateTimeProperty(indexed=False, auto_now=True, auto_now_add=True)
 

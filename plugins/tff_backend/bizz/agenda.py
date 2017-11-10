@@ -37,7 +37,7 @@ from plugins.tff_backend.to.agenda import EventTO, EventPresenceTO, BasePresence
 @arguments(params=dict, user_detail=UserDetailsTO)
 def get_presence(params, user_detail):
     iyo_username = get_iyo_username(user_detail)
-    status = EventParticipant.STATUS_ABSENT
+    status = EventParticipant.STATUS_UNKNOWN
     wants_recording = False
     counts = defaultdict(lambda: 0)
     event_id = params['event_id']
