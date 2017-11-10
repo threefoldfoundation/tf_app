@@ -22,6 +22,7 @@ from plugins.tff_backend.to import PaginatedResultTO
 
 class EventTO(TO):
     id = long_property('id')
+    type = long_property('type')
     title = unicode_property('title')
     description = unicode_property('description')
     location = unicode_property('location')

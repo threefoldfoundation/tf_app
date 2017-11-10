@@ -16,6 +16,8 @@
 # @@license_version:1.3@@
 
 from collections import defaultdict
+import datetime
+import logging
 
 import dateutil
 
@@ -100,14 +102,40 @@ def put_event(event):
     return ndb.transaction(trans)
 
 
+@returns()
+@arguments(event_id=long)
+def delete_event(event_id):
+    def trans():
+        Event.create_key(event_id).delete()
+        deferred.defer(put_agenda_app_data, _transactional=True, _countdown=2)
+    ndb.transaction(trans)
+
+
+@returns()
+@arguments()
 def put_agenda_app_data():
-    data = {'agenda_events': [event.to_dict() for event in Event.list()]}
+    data = {'agenda_events': [event.to_dict(['id']) for event in Event.list()]}
     system.put_service_data(get_rogerthat_api_key(), data)
     system.publish_changes(get_rogerthat_api_key())
 
 
-def remove_past_events():
+@returns()
+@arguments()
+def delete_past_events():
+    keys = []
+    qry = Event.list_past(datetime.datetime.now())
+    cursor = None
+    more = True
+    while more:
+        results, cursor, more = qry.fetch_page(100, cursor=cursor, keys_only=True)
+        keys += results
+
     def trans():
-        # TODO: list and remove all past events
+        ndb.delete_multi(keys)
         deferred.defer(put_agenda_app_data, _transactional=True, _countdown=2)
-    ndb.transaction(trans)
+
+    if keys:
+        logging.info('Deleting %s event(s) that were in the past: %s', len(keys), keys)
+        ndb.transaction(trans)
+    else:
+        logging.debug('There were no events in the past.')

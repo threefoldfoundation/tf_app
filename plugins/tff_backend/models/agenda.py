@@ -22,6 +22,11 @@ from google.appengine.ext import ndb
 
 class Event(NdbModel):
     NAMESPACE = NAMESPACE
+
+    TYPE_EVENT = 1
+    TYPE_VIDEO_SESSION = 2
+
+    type = ndb.IntegerProperty(indexed=False, choices=[TYPE_EVENT, TYPE_VIDEO_SESSION])
     title = ndb.StringProperty(indexed=False)
     description = ndb.TextProperty(indexed=False)
     start_timestamp = ndb.DateTimeProperty(indexed=True)
@@ -29,9 +34,21 @@ class Event(NdbModel):
     location = ndb.TextProperty(indexed=False)
     creation_timestamp = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
 
+    @property
+    def id(self):
+        return self.key.id()
+
+    @classmethod
+    def create_key(cls, event_id):
+        return ndb.Key(cls, event_id)
+
     @classmethod
     def list(cls):
         return cls.query().order(Event.start_timestamp)
+
+    @classmethod
+    def list_past(cls, timestamp):
+        return cls.query().filter(Event.start_timestamp < timestamp)
 
 
 class EventParticipant(NdbModel):
