@@ -4,8 +4,6 @@
     <p>{{ agendaEvent.start_timestamp | date : 'mediumDate' }} {{ agendaEvent.start_timestamp | date : 'shortTime' }}</p>
   </ion-item>
   <ion-card-content>
-    <h3>{{ 'location' | translate }}</h3>
-    <div [innerHTML]="agendaEvent.location | markdown"></div>
     <p class="limited-description" [innerHTML]="agendaEvent.description | markdown"></p>
   </ion-card-content>
   <ion-row>

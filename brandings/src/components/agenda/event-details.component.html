@@ -5,10 +5,10 @@
     <p *ngIf="agendaEvent.end_timestamp">{{ 'ends_at_x' | translate : { timestamp: agendaEvent.end_date } }}</p>
   </ion-item>
   <ion-card-content>
-    <h2>{{ 'location' | translate }} </h2>
-    <div [innerHTML]="agendaEvent.location | markdown"></div>
     <h2>{{ 'description' | translate }} </h2>
     <div [innerHTML]="agendaEvent.description | markdown"></div>
+    <h2>{{ 'location' | translate }} </h2>
+    <div [innerHTML]="agendaEvent.location | markdown"></div>
     <api-request-status [status]="status" size="16px"></api-request-status>
     <p *ngIf="isPresent() && !status.loading">
       <ion-icon name="checkmark" color="secondary"></ion-icon>
