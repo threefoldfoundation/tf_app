@@ -24,18 +24,36 @@ class Event(NdbModel):
     NAMESPACE = NAMESPACE
     title = ndb.StringProperty(indexed=False)
     description = ndb.TextProperty(indexed=False)
-    timestamp = ndb.DateTimeProperty(indexed=True)
-    location = ndb.StringProperty(indexed=False)
+    start_timestamp = ndb.DateTimeProperty(indexed=True)
+    end_timestamp = ndb.DateTimeProperty(indexed=False)
+    location = ndb.TextProperty(indexed=False)
+    creation_timestamp = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
+
+    @classmethod
+    def list(cls):
+        return cls.query().order(Event.start_timestamp)
 
 
 class EventParticipant(NdbModel):
     NAMESPACE = NAMESPACE
+
     STATUS_PRESENT = 1
-    STATUS_PRESENT = 1
+    STATUS_ABSENT = -1
+
     event_id = ndb.IntegerProperty(indexed=True)
-    iyo_username = ndb.StringProperty(indexed=False)
-    timestamp = ndb.DateTimeProperty(indexed=False, auto_now=True, auto_now_add=True)
+    username = ndb.StringProperty(indexed=True)
+    status = ndb.IntegerProperty(indexed=True, choices=[STATUS_ABSENT, STATUS_PRESENT], default=STATUS_ABSENT)
+    wants_recording = ndb.BooleanProperty(indexed=True, default=False)
+    modification_timestamp = ndb.DateTimeProperty(indexed=False, auto_now=True, auto_now_add=True)
 
     @classmethod
     def list_by_event(cls, event_id):
         return cls.query().filter(cls.event_id == event_id)
+
+    @classmethod
+    def get_participant(cls, event_id, username):
+        return cls.list_by_event(event_id).filter(cls.username == username).get()
+
+    @classmethod
+    def get_or_create_participant(cls, event_id, username):
+        return cls.get_participant(event_id, username) or cls(event_id=event_id, username=username)
