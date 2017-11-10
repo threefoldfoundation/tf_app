@@ -1,7 +1,7 @@
 <ion-card *ngFor="let agendaEvent of events" (click)="showDetails(agendaEvent)">
   <ion-item>
     <h2 text-wrap>{{ agendaEvent.title }}</h2>
-    <p>{{ agendaEvent.start_timestamp | date : 'mediumDate' }} {{ agendaEvent.start_timestamp | date : 'shortTime' }}</p>
+    <!--<p>{{ agendaEvent.start_timestamp | date : 'mediumDate' }} {{ agendaEvent.start_timestamp | date : 'shortTime' }}</p>-->
   </ion-item>
   <ion-card-content>
     <p class="limited-description" [innerHTML]="agendaEvent.description | markdown"></p>
