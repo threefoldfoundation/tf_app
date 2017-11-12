@@ -12,10 +12,10 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <global-stats-detail [globalStats]="globalStats$ | async"
-                         [status]="getStatus$ | async"
-                         [updateStatus]="updateStatus$ | async"
-                         (onSave)="save($event)"></global-stats-detail>`
+    <tff-global-stats-detail [globalStats]="globalStats$ | async"
+                             [status]="getStatus$ | async"
+                             [updateStatus]="updateStatus$ | async"
+                             (onSave)="save($event)"></tff-global-stats-detail>`
 })
 
 export class GlobalStatsDetailPageComponent implements OnInit {

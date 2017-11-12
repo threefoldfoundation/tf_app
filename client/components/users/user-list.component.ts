@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { Profile, SearchUsersQuery, UserList } from '../../../../its_you_online_auth/client/interfaces/user.interfaces';
 
 @Component({
-  selector: 'user-list',
+  selector: 'tff-user-list',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'user-list.component.html'

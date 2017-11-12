@@ -78,7 +78,7 @@ export class TffService {
   }
 
   createTransaction(payload: CreateTransactionPayload) {
-    let data: Partial<CreateTransactionPayload> = { ...payload };
+    const data: Partial<CreateTransactionPayload> = { ...payload };
     delete data.username;
     return this.http.post<Transaction>(`${TffConfig.API_URL}/users/${encodeURIComponent(payload.username)}/transactions`, data);
   }

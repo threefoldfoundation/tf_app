@@ -6,8 +6,8 @@ import { ApiErrorService } from '../services/api-error.service';
   selector: 'tff-api-request-status',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <md-progress-spinner mode="indeterminate" *ngIf="status.loading" style="height: 64px;" fxFlex fxLayoutAlign="center"
-                         fxLayout="center"></md-progress-spinner>
+    <mat-progress-spinner mode="indeterminate" *ngIf="status.loading" style="height: 64px;" fxFlex fxLayoutAlign="center"
+                         fxLayout="center"></mat-progress-spinner>
     <div *ngIf="status.error && !status.success">
       <p class="error-message" [innerText]="getMessage()"></p>
     </div>`,

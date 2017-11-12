@@ -24,12 +24,12 @@ import { getGlobalStats, getInvestmentAgreement, getInvestmentAgreementStatus, u
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   template: `
-    <investment-agreement [investmentAgreement]="investmentAgreement$ | async"
-                          [status]="status$ | async"
-                          [globalStats]="globalStats$ | async"
-                          [updateStatus]="updateStatus$ | async"
-                          [canUpdate]="canUpdate$ | async"
-                          (onUpdate)="onUpdate($event)"></investment-agreement>`
+    <tff-investment-agreement [investmentAgreement]="investmentAgreement$ | async"
+                              [status]="status$ | async"
+                              [globalStats]="globalStats$ | async"
+                              [updateStatus]="updateStatus$ | async"
+                              [canUpdate]="canUpdate$ | async"
+                              (onUpdate)="onUpdate($event)"></tff-investment-agreement>`
 })
 
 export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy {

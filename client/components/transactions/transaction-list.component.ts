@@ -3,7 +3,7 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
 import { Transaction, TransactionList } from '../../interfaces/transactions.interfaces';
 
 @Component({
-  selector: 'transaction-list',
+  selector: 'tff-transaction-list',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'transaction-list.component.html'

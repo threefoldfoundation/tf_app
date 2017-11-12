@@ -46,8 +46,8 @@ export class RogerthatService {
         emitter.complete();
       }
 
-      function error(error: RogerthatError) {
-        emitter.error(error);
+      function error(err: RogerthatError) {
+        emitter.error(err);
       }
     });
   }

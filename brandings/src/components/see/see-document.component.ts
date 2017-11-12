@@ -12,7 +12,7 @@ export class SeeDocumentComponent {
   @Input() document: SeeDocument;
 
   dateFormat = 'd MMM y H:mm';
-  showFull: boolean = false;
+  showFull = false;
 
   constructor(private cdRef: ChangeDetectorRef) {
   }

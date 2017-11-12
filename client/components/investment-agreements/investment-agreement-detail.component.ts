@@ -9,7 +9,7 @@ import {
 } from '../../interfaces/investment-agreements.interfaces';
 
 @Component({
-  selector: 'investment-agreement',
+  selector: 'tff-investment-agreement',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'investment-agreement-detail.component.html',
   styles: [ `.investment-agreement-content {
@@ -22,7 +22,7 @@ export class InvestmentAgreementDetailComponent {
   @Input() globalStats: GlobalStats;
   @Input() status: ApiRequestStatus;
   @Input() updateStatus: ApiRequestStatus;
-  @Input() canUpdate: boolean = false;
+  @Input() canUpdate = false;
   @Output() onUpdate = new EventEmitter<InvestmentAgreement>();
 
   private _btcPrice: number;
@@ -64,7 +64,7 @@ export class InvestmentAgreementDetailComponent {
   markAsPaid() {
     // Mark as signed, a message will be sent to the current user his account in the threefold app.
     // When the admin user has signed that message, only then it will be marked as paid
-    let updatedProperties = {
+    const updatedProperties = {
       status: InvestmentAgreementsStatuses.SIGNED,
       token_count_float: this.getTokenCount()
     };

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@a
 import { CurrencyPipe } from '@angular/common';
 
 @Component({
-  selector: 'investment-agreement-amount',
+  selector: 'tff-investment-agreement-amount',
   preserveWhitespaces: false,
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,

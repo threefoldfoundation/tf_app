@@ -3,37 +3,35 @@ import { HttpClientModule } from '@angular/common/http';
 import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import {
-  MdButtonModule,
-  MdCardModule,
-  MdChipsModule,
-  MdIconModule,
-  MdInputModule,
-  MdListModule,
-  MdProgressSpinnerModule,
-  MdSelectModule,
-  MdSlideToggleModule,
-} from '@angular/material';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatListModule } from '@angular/material/list';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
 import { Store, StoreModule } from '@ngrx/store';
 import { MultilingualModule } from '../../framework/client/i18n/multilingual.module';
-import { SetThemeAction } from '../../framework/client/identity/actions/index';
-import { AuthenticationService } from '../../framework/client/identity/services/index';
-import { IAppState } from '../../framework/client/ngrx/state/app.state';
+import { SetThemeAction } from '../../framework/client/identity/actions';
+import { AuthenticationService } from '../../framework/client/identity/services';
+import { IAppState } from '../../framework/client/ngrx';
 import { AddRoutesAction } from '../../framework/client/sidebar/index';
-import { AddToolbarItemAction } from '../../framework/client/toolbar/actions/index';
-import { ToolbarItemTypes } from '../../framework/client/toolbar/interfaces/index';
-import { TffEffects } from './effects/tff.effect';
+import { AddToolbarItemAction } from '../../framework/client/toolbar/actions';
+import { ToolbarItemTypes } from '../../framework/client/toolbar/interfaces';
+import { TffEffects } from './effects';
 import './operators';
 import { TimestampPipe } from './pipes/timestamp.pipe';
-import { tffReducer } from './reducers/tff.reducer';
-import { TFF_COMPONENTS, TFF_PROVIDERS } from './services/index';
+import { tffReducer } from './reducers';
+import { TFF_COMPONENTS, TFF_PROVIDERS } from './services';
 import { TffRoutes } from './tff.routes';
 
 const MATERIAL_IMPORTS = [
-  MdButtonModule, MdInputModule, MdListModule, MdIconModule, MdSelectModule, MdChipsModule, MdSlideToggleModule, MdProgressSpinnerModule,
-  MdCardModule,
+  MatButtonModule, MatInputModule, MatListModule, MatIconModule, MatSelectModule, MatChipsModule, MatSlideToggleModule,
+  MatProgressSpinnerModule, MatCardModule,
 ];
 
 @NgModule({

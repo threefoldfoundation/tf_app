@@ -12,7 +12,7 @@ export class TodoItemListComponent implements OnChanges {
 
   @Input() todoList: TodoList;
 
-  itemsLeft: number = 0;
+  itemsLeft = 0;
   itemLeftMap = {
     '=0': 'items_left.none',
     '=1': 'items_left.singular',
