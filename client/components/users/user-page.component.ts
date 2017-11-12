@@ -9,7 +9,6 @@ import { GetUserAction } from '../../actions/threefold.action';
 import { getUser } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   selector: 'user-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,

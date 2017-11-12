@@ -11,7 +11,6 @@ import { ApiErrorService } from '../../services/api-error.service';
 import { getOrder, getOrderStatus, updateOrderStatus } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   selector: 'order-detail-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

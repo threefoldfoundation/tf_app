@@ -9,7 +9,6 @@ import { TransactionList, WalletBalance } from '../../../interfaces/transactions
 import { getBalance, getBalanceStatus, getUserTransactions, getUserTransactionsStatus } from '../../../tff.state';
 
 @Component({
-  moduleId: module.id,
   selector: 'user-transactions-list-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,

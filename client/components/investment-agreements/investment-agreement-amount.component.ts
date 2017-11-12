@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@a
 import { CurrencyPipe } from '@angular/common';
 
 @Component({
-  moduleId: module.id,
   selector: 'investment-agreement-amount',
   preserveWhitespaces: false,
   encapsulation: ViewEncapsulation.None,

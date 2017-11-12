@@ -10,7 +10,6 @@ import { CreateTransactionPayload, TokenTypes } from '../../../interfaces/transa
 import { createTransactionStatus } from '../../../tff.state';
 
 @Component({
-  moduleId: module.id,
   selector: 'create-transaction-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -21,7 +21,6 @@ import { ApiErrorService } from '../../services/api-error.service';
 import { getGlobalStats, getInvestmentAgreement, getInvestmentAgreementStatus, updateInvestmentAgreementStatus } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   template: `

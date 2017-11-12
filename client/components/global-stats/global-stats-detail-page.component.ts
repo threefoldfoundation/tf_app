@@ -9,7 +9,6 @@ import { GetGlobalStatsAction, UpdateGlobalStatsAction } from '../../actions/thr
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 
 @Component({
-  moduleId: module.id,
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

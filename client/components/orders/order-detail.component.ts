@@ -4,7 +4,6 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
 import { NODE_ORDER_STATUS_MAPPING, NodeOrder, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/nodes.interfaces';
 
 @Component({
-  moduleId: module.id,
   selector: 'order-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'order-detail.component.html',

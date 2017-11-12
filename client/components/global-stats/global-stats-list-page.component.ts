@@ -7,7 +7,6 @@ import { getGlobalStatsList } from '../../tff.state';
 import { GetGlobalStatsListAction } from '../../actions/threefold.action';
 
 @Component({
-  moduleId: module.id,
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'global-stats-list-page.component.html'

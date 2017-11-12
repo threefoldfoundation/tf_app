@@ -6,7 +6,6 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
 import * as _ from 'lodash';
 
 @Component({
-  moduleId: module.id,
   selector: 'global-stats-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'global-stats-detail.component.html'

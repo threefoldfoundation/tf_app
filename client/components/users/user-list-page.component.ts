@@ -7,7 +7,6 @@ import { SearchUsersAction } from '../../actions/index';
 import { getUserList, getUserQueryList } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   selector: 'user-list-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,

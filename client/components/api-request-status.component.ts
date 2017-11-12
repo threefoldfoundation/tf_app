@@ -3,7 +3,6 @@ import { ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
 import { ApiErrorService } from '../services/api-error.service';
 
 @Component({
-  moduleId: module.id,
   selector: 'tff-api-request-status',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

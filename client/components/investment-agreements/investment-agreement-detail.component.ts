@@ -9,7 +9,6 @@ import {
 } from '../../interfaces/investment-agreements.interfaces';
 
 @Component({
-  moduleId: module.id,
   selector: 'investment-agreement',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'investment-agreement-detail.component.html',

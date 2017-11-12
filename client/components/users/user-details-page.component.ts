@@ -6,7 +6,6 @@ import { Profile } from '../../../../its_you_online_auth/client/interfaces/user.
 import { getUser } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   selector: 'user-details-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
