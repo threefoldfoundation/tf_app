@@ -12,7 +12,7 @@ import {
   MdListModule,
   MdProgressSpinnerModule,
   MdSelectModule,
-  MdSlideToggleModule
+  MdSlideToggleModule,
 } from '@angular/material';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
@@ -33,7 +33,7 @@ import { TffRoutes } from './tff.routes';
 
 const MATERIAL_IMPORTS = [
   MdButtonModule, MdInputModule, MdListModule, MdIconModule, MdSelectModule, MdChipsModule, MdSlideToggleModule, MdProgressSpinnerModule,
-  MdCardModule
+  MdCardModule,
 ];
 
 @NgModule({
@@ -48,7 +48,7 @@ const MATERIAL_IMPORTS = [
     StoreModule.forFeature('tff', tffReducer),
     EffectsModule.forFeature([ TffEffects ]),
     MATERIAL_IMPORTS,
-    FlexLayoutModule
+    FlexLayoutModule,
   ],
   declarations: [
     TFF_COMPONENTS,
@@ -77,7 +77,7 @@ export class TffBackendModule {
       icon: 'format_color_fill',
       persistent: true,
       onclick: () => {
-        let newTheme = this.authService.getLocalTheme() ? null : { cssClass: 'dark-theme', dark: true };
+        const newTheme = this.authService.getLocalTheme() ? null : { cssClass: 'dark-theme', dark: true };
         this.store.dispatch(new SetThemeAction(newTheme));
       },
     };

@@ -24,15 +24,15 @@ export const TffRoutes: Route[] = [
       id: 'tff_orders',
       meta: {
         title: 'tff.orders',
-      }
+      },
     },
-    component: OrderListPageComponent
+    component: OrderListPageComponent,
   },
   {
     path: 'orders/:orderId',
     canActivate: [ MetaGuard ],
     data: { meta: { title: 'tff.order_detail' } },
-    component: OrderDetailPageComponent
+    component: OrderDetailPageComponent,
   },
   {
     path: 'investment-agreements',
@@ -42,15 +42,15 @@ export const TffRoutes: Route[] = [
       id: 'tff_investment_agreements',
       meta: {
         title: 'tff.investment_agreements',
-      }
+      },
     },
-    component: InvestmentAgreementListPageComponent
+    component: InvestmentAgreementListPageComponent,
   },
   {
     path: 'investment-agreements/:investmentAgreementId',
     canActivate: [ MetaGuard ],
     data: { meta: { title: 'tff.investment_agreement_detail' } },
-    component: InvestmentAgreementDetailPageComponent
+    component: InvestmentAgreementDetailPageComponent,
   },
   {
     path: 'global-stats',
@@ -60,15 +60,15 @@ export const TffRoutes: Route[] = [
       id: 'tff_global_stats',
       meta: {
         title: 'tff.global_stats',
-      }
+      },
     },
-    component: GlobalStatsListPageComponent
+    component: GlobalStatsListPageComponent,
   },
   {
     path: 'global-stats/:globalStatsId',
     canActivate: [ MetaGuard ],
     data: { meta: { title: 'tff.global_stats' } },
-    component: GlobalStatsDetailPageComponent
+    component: GlobalStatsDetailPageComponent,
   },
   {
     path: 'users',
@@ -78,7 +78,7 @@ export const TffRoutes: Route[] = [
       id: 'tff_users',
       meta: {
         title: 'tff.users',
-      }
+      },
     },
     component: UserListPageComponent,
   },
@@ -99,7 +99,7 @@ export const TffRoutes: Route[] = [
           icon: 'attach_money',
           route: 'transactions',
         } ],
-      meta: { title: 'tff.users' }
+      meta: { title: 'tff.users' },
     },
     children: [
       { path: '', redirectTo: 'transactions', pathMatch: 'full' },
@@ -120,6 +120,6 @@ export const TffRoutes: Route[] = [
         canActivate: [ MetaGuard ],
         data: { meta: { title: 'tff.create_transaction' } },
         component: CreateTransactionPageComponent,
-      } ]
+      } ],
   },
 ];
