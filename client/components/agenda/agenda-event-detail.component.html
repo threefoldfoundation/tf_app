@@ -1,0 +1,76 @@
+<div fxLayout="column" fxFlex="40" fxFlex.md="60" fxFlex.xs="100">
+  <tff-api-request-status [status]="status"></tff-api-request-status>
+  <form *ngIf="status.success" fxLayout="column" (ngSubmit)="onSubmit()"
+        #form="ngForm">
+    <md-form-field>
+      <input mdInput name="title" [(ngModel)]="event.title" [placeholder]="'tff.title' | translate" required>
+    </md-form-field>
+    <md-form-field>
+      <input mdInput name="location" [(ngModel)]="event.location" [placeholder]="'tff.location' | translate" required>
+    </md-form-field>
+    <div>
+      <h3>{{ 'tff.preview' | translate }}</h3>
+      <div [innerHTML]="event.location| markdown"></div>
+    </div>
+    <md-select [(ngModel)]="event.type" name="type" [placeholder]="'tff.event_type' | translate" required>
+      <md-option *ngFor="let eventType of eventTypes" [value]="eventType.value">{{ eventType.label | translate }}
+      </md-option>
+    </md-select>
+    <div fxLayout="row">
+      <md-form-field>
+        <input mdInput name="start_timestamp"
+               [mdDatepicker]="picker"
+               [placeholder]="'tff.start_date' |  translate"
+               [value]="getDate(event.start_timestamp)"
+               (dateChange)="onDateChange('start_timestamp', $event)" required>
+        <md-datepicker-toggle mdSuffix [for]="picker"></md-datepicker-toggle>
+        <md-datepicker #picker></md-datepicker>
+      </md-form-field>
+      <md-form-field class="time-input" *ngIf="event.start_timestamp">
+        <input mdInput type="number" name="start_hour" [ngModel]="getHours(event.start_timestamp)"
+               (ngModelChange)="setHours('start_timestamp', $event)" min="0" max="23"
+               [placeholder]="'tff.hour' | translate">
+      </md-form-field>
+      <md-form-field class="time-input" *ngIf="event.start_timestamp">
+        <input mdInput type="number" name="start_time" [ngModel]="getMinutes(event.start_timestamp)"
+               (ngModelChange)="setMinutes('start_timestamp', $event)" min="0" max="59"
+               [placeholder]="'tff.minute' | translate">
+      </md-form-field>
+    </div>
+    <div fxLayout="row">
+      <md-form-field>
+        <input mdInput name="end_timestamp"
+               [mdDatepicker]="picker2"
+               [placeholder]="'tff.end_date' |  translate"
+               [value]="getDate(event.end_timestamp)"
+               [min]="getDate(event.start_timestamp)"
+               (dateChange)="onDateChange('end_timestamp', $event)">
+        <md-datepicker-toggle mdSuffix [for]="picker2"></md-datepicker-toggle>
+        <md-datepicker #picker2></md-datepicker>
+      </md-form-field>
+      <md-form-field class="time-input" *ngIf="event.end_timestamp">
+        <input mdInput type="number" name="end_hour" [ngModel]="getHours(event.end_timestamp)"
+               (ngModelChange)="setHours('end_timestamp', $event)" min="0" max="23"
+               [placeholder]="'tff.hour' | translate">
+      </md-form-field>
+      <md-form-field class="time-input" *ngIf="event.end_timestamp">
+        <input mdInput type="number" name="end_time" [ngModel]="getMinutes(event.end_timestamp)"
+               (ngModelChange)="setMinutes('end_timestamp', $event)" min="0" max="59"
+               [placeholder]="'tff.minute' | translate">
+      </md-form-field>
+    </div>
+
+    <md-form-field>
+      <textarea mdInput name="description" [(ngModel)]="event.description" rows="4" required
+                [placeholder]="'tff.description' | translate"></textarea>
+    </md-form-field>
+    <div>
+      <h3>{{ 'tff.preview' | translate }}</h3>
+      <div [innerHTML]="event.description | markdown"></div>
+    </div>
+    <div>
+      <button md-raised-button [disabled]="!form.form.valid || updateStatus.loading">{{ 'tff.save' | translate }}
+      </button>
+    </div>
+  </form>
+</div>

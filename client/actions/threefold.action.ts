@@ -2,6 +2,7 @@ import { Action } from '@ngrx/store';
 import { type } from '../../../framework/client/core/utils/type';
 import { ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
 import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/index';
+import { AgendaEvent, EventParticipant, GetEventParticipantsPayload } from '../interfaces/agenda-events.interfaces';
 import {
   CreateTransactionPayload,
   GlobalStats,
@@ -15,6 +16,7 @@ import {
   TransactionList,
   WalletBalance
 } from '../interfaces/index';
+import { PaginatedResult } from '../interfaces/shared.interfaces';
 
 // duplicated code needed else the type of the action type is only 'string'
 
@@ -64,6 +66,22 @@ export interface ITffActionTypes {
   CREATE_TRANSACTION: '[TFF] Create transaction';
   CREATE_TRANSACTION_COMPLETE: '[TFF] Create transaction success';
   CREATE_TRANSACTION_FAILED: '[TFF] Create transaction failed';
+  GET_AGENDA_EVENTS: '[TFF] Get agenda events ';
+  GET_AGENDA_EVENTS_COMPLETE: '[TFF] Get agenda events success';
+  GET_AGENDA_EVENTS_FAILED: '[TFF] Get agenda events failed';
+  GET_AGENDA_EVENT: '[TFF] Get agenda event ';
+  GET_AGENDA_EVENT_COMPLETE: '[TFF] Get agenda event success';
+  GET_AGENDA_EVENT_FAILED: '[TFF] Get agenda event failed';
+  RESET_AGENDA_EVENT: '[TFF] Reset agenda event ';
+  CREATE_AGENDA_EVENT: '[TFF] Create agenda event ';
+  CREATE_AGENDA_EVENT_COMPLETE: '[TFF] Create agenda event success';
+  CREATE_AGENDA_EVENT_FAILED: '[TFF] Create agenda event failed';
+  UPDATE_AGENDA_EVENT: '[TFF] Update agenda event ';
+  UPDATE_AGENDA_EVENT_COMPLETE: '[TFF] Update agenda event success';
+  UPDATE_AGENDA_EVENT_FAILED: '[TFF] Update agenda event failed';
+  GET_EVENT_PARTICIPANTS: '[TFF] Get event participants';
+  GET_EVENT_PARTICIPANTS_COMPLETE: '[TFF] Get event participants success';
+  GET_EVENT_PARTICIPANTS_FAILED: '[TFF] Get event participants failed';
 }
 
 export const TffActionTypes: ITffActionTypes = {
@@ -112,6 +130,22 @@ export const TffActionTypes: ITffActionTypes = {
   CREATE_TRANSACTION: type('[TFF] Create transaction'),
   CREATE_TRANSACTION_COMPLETE: type('[TFF] Create transaction success'),
   CREATE_TRANSACTION_FAILED: type('[TFF] Create transaction failed'),
+  GET_AGENDA_EVENTS: type('[TFF] Get agenda events '),
+  GET_AGENDA_EVENTS_COMPLETE: type('[TFF] Get agenda events success'),
+  GET_AGENDA_EVENTS_FAILED: type('[TFF] Get agenda events failed'),
+  GET_AGENDA_EVENT: type('[TFF] Get agenda event '),
+  GET_AGENDA_EVENT_COMPLETE: type('[TFF] Get agenda event success'),
+  GET_AGENDA_EVENT_FAILED: type('[TFF] Get agenda event failed'),
+  RESET_AGENDA_EVENT: type('[TFF] Reset agenda event '),
+  CREATE_AGENDA_EVENT: type('[TFF] Create agenda event '),
+  CREATE_AGENDA_EVENT_COMPLETE: type('[TFF] Create agenda event success'),
+  CREATE_AGENDA_EVENT_FAILED: type('[TFF] Create agenda event failed'),
+  UPDATE_AGENDA_EVENT: type('[TFF] Update agenda event '),
+  UPDATE_AGENDA_EVENT_COMPLETE: type('[TFF] Update agenda event success'),
+  UPDATE_AGENDA_EVENT_FAILED: type('[TFF] Update agenda event failed'),
+  GET_EVENT_PARTICIPANTS: type('[TFF] Get event participants'),
+  GET_EVENT_PARTICIPANTS_COMPLETE: type('[TFF] Get event participants success'),
+  GET_EVENT_PARTICIPANTS_FAILED: type('[TFF] Get event participants failed'),
 };
 
 export class GetOrdersAction implements Action {
@@ -419,6 +453,113 @@ export class CreateTransactionFailedAction implements Action {
   }
 }
 
+export class GetAgendaEventsAction implements Action {
+  type = TffActionTypes.GET_AGENDA_EVENTS;
+}
+
+export class GetAgendaEventsCompleteAction implements Action {
+  type = TffActionTypes.GET_AGENDA_EVENTS_COMPLETE;
+
+  constructor(public payload: AgendaEvent[]) {
+  }
+}
+
+export class GetAgendaEventsFailedAction implements Action {
+  type = TffActionTypes.GET_AGENDA_EVENTS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetAgendaEventAction implements Action {
+  type = TffActionTypes.GET_AGENDA_EVENT;
+
+  constructor(public payload: number) {
+  }
+}
+
+export class GetAgendaEventCompleteAction implements Action {
+  type = TffActionTypes.GET_AGENDA_EVENT_COMPLETE;
+
+  constructor(public payload: AgendaEvent) {
+  }
+}
+
+export class GetAgendaEventFailedAction implements Action {
+  type = TffActionTypes.GET_AGENDA_EVENT_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class ResetAgendaEventAction implements Action {
+  type = TffActionTypes.RESET_AGENDA_EVENT;
+}
+
+
+export class CreateAgendaEventAction implements Action {
+  type = TffActionTypes.CREATE_AGENDA_EVENT;
+
+  constructor(public payload: AgendaEvent) {
+  }
+}
+
+export class CreateAgendaEventCompleteAction implements Action {
+  type = TffActionTypes.CREATE_AGENDA_EVENT_COMPLETE;
+
+  constructor(public payload: AgendaEvent) {
+  }
+}
+
+export class CreateAgendaEventFailedAction implements Action {
+  type = TffActionTypes.CREATE_AGENDA_EVENT_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class UpdateAgendaEventAction implements Action {
+  type = TffActionTypes.UPDATE_AGENDA_EVENT;
+
+  constructor(public payload: AgendaEvent) {
+  }
+}
+
+export class UpdateAgendaEventCompleteAction implements Action {
+  type = TffActionTypes.UPDATE_AGENDA_EVENT_COMPLETE;
+
+  constructor(public payload: AgendaEvent) {
+  }
+}
+
+export class UpdateAgendaEventFailedAction implements Action {
+  type = TffActionTypes.UPDATE_AGENDA_EVENT_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetEventParticipantsAction implements Action {
+  type = TffActionTypes.GET_EVENT_PARTICIPANTS;
+
+  constructor(public payload: GetEventParticipantsPayload) {
+  }
+}
+
+export class GetEventParticipantsCompleteAction implements Action {
+  type = TffActionTypes.GET_EVENT_PARTICIPANTS_COMPLETE;
+
+  constructor(public payload: PaginatedResult<EventParticipant>) {
+  }
+}
+
+export class GetEventParticipantsFailedAction implements Action {
+  type = TffActionTypes.GET_EVENT_PARTICIPANTS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type TffActions
   = GetOrdersAction
   | GetOrdersCompleteAction
@@ -464,4 +605,20 @@ export type TffActions
   | ResetNewTransactionAction
   | CreateTransactionAction
   | CreateTransactionCompleteAction
-  | CreateTransactionFailedAction;
+  | CreateTransactionFailedAction
+  | GetAgendaEventsAction
+  | GetAgendaEventsCompleteAction
+  | GetAgendaEventsFailedAction
+  | GetAgendaEventAction
+  | GetAgendaEventCompleteAction
+  | GetAgendaEventFailedAction
+  | ResetAgendaEventAction
+  | CreateAgendaEventAction
+  | CreateAgendaEventCompleteAction
+  | CreateAgendaEventFailedAction
+  | UpdateAgendaEventAction
+  | UpdateAgendaEventCompleteAction
+  | UpdateAgendaEventFailedAction
+  | GetEventParticipantsAction
+  | GetEventParticipantsCompleteAction
+  | GetEventParticipantsFailedAction;

@@ -1,7 +1,14 @@
 import {
+  AgendaEventDetailComponent,
+  AgendaEventDetailPageComponent,
+  AgendaEventsListComponent,
+  AgendaEventsListPageComponent,
   ApiRequestStatusComponent,
+  CreateAgendaEventPageComponent,
   CreateTransactionComponent,
   CreateTransactionPageComponent,
+  EventParticipantsComponent,
+  EventParticipantsPageComponent,
   GlobalStatsDetailComponent,
   GlobalStatsDetailPageComponent,
   GlobalStatsListPageComponent,
@@ -23,9 +30,9 @@ import {
   UserTransactionsListPageComponent,
   WalletBalanceComponent
 } from '../components/index';
+import { ApiErrorService } from './api-error.service';
 import { TffConfig } from './tff-config.service';
 import { TffService } from './tff.service';
-import { ApiErrorService } from './api-error.service';
 
 export const TFF_PROVIDERS: any[] = [
   TffService,
@@ -34,9 +41,16 @@ export const TFF_PROVIDERS: any[] = [
 ];
 
 export const TFF_COMPONENTS: any[] = [
+  AgendaEventDetailComponent,
+  AgendaEventDetailPageComponent,
+  AgendaEventsListComponent,
+  AgendaEventsListPageComponent,
   ApiRequestStatusComponent,
+  CreateAgendaEventPageComponent,
   CreateTransactionComponent,
   CreateTransactionPageComponent,
+  EventParticipantsComponent,
+  EventParticipantsPageComponent,
   GlobalStatsDetailComponent,
   GlobalStatsDetailPageComponent,
   GlobalStatsListPageComponent,

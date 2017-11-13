@@ -34,7 +34,7 @@ from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.api.rogerthat.global_stats import api_list_global_stats
 from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, api_iyo_see_detail
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
-from plugins.tff_backend.bizz.agenda import update_presence, get_presence
+from plugins.tff_backend.api.rogerthat.agenda import get_presence, update_presence
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed
 from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \

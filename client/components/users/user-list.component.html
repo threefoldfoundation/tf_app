@@ -1,4 +1,4 @@
-<form (submit)="submit()">
+<form (ngSubmit)="submit()">
   <md-form-field>
     <input type="search" name="search_users" [(ngModel)]="query.query" mdInput
            [placeholder]="'tff.search' | translate" (ngModelChange)="submit()">

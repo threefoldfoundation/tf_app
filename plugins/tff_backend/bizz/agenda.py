@@ -16,56 +16,32 @@
 # @@license_version:1.3@@
 
 import datetime
-from collections import defaultdict
 
 from google.appengine.ext import ndb, deferred
 
 import dateutil
 from mcfw.consts import MISSING
-from mcfw.rpc import returns, arguments, parse_complex_value
+from mcfw.exceptions import HttpNotFoundException
+from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.models import Profile
 from plugins.rogerthat_api.api import system
-from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.models.agenda import Event, EventParticipant
-from plugins.tff_backend.to.agenda import EventTO, EventPresenceTO, BasePresenceTO, EventParticipantListTO, \
+from plugins.tff_backend.to.agenda import EventTO, EventParticipantListTO, \
     EventParticipantTO
 
 
-@returns(EventPresenceTO)
-@arguments(params=dict, user_detail=UserDetailsTO)
-def get_presence(params, user_detail):
-    iyo_username = get_iyo_username(user_detail)
-    status = EventParticipant.STATUS_UNKNOWN
-    wants_recording = False
-    counts = defaultdict(lambda: 0)
-    event_id = params['event_id']
-
-    for participant in EventParticipant.list_by_event(event_id):
-        if participant.username == iyo_username:
-            status = participant.status
-            wants_recording = participant.wants_recording
-        counts[participant.status] += 1
-
-    return EventPresenceTO(event_id=event_id,
-                           status=status,
-                           wants_recording=wants_recording,
-                           username=iyo_username,
-                           present_count=counts[EventParticipant.STATUS_PRESENT],
-                           absent_count=counts[EventParticipant.STATUS_ABSENT])
+def list_events():
+    return Event.list()
 
 
-@returns(dict)
-@arguments(params=dict, user_detail=UserDetailsTO)
-def update_presence(params, user_detail):
-    presence = parse_complex_value(BasePresenceTO, params, False)
-    iyo_username = get_iyo_username(user_detail)
-    participant = EventParticipant.get_or_create_participant(presence.event_id, iyo_username)
-    participant.status = presence.status
-    participant.wants_recording = presence.wants_recording
-    participant.put()
-    return participant.to_dict()
+@returns(Event)
+@arguments(event_id=(int, long))
+def get_event(event_id):
+    event = Event.create_key(event_id).get()
+    if not event:
+        raise HttpNotFoundException('event_not_found', {'event_id': event_id})
+    return event
 
 
 @returns(EventParticipantListTO)
@@ -74,7 +50,7 @@ def list_participants(event_id, cursor=None, page_size=50):
     qry = EventParticipant.list_by_event(event_id)
     results, cursor, more = qry.fetch_page(page_size, cursor=cursor)
     profiles = {p.username: p for p in ndb.get_multi([Profile.create_key(r.username) for r in results if r.username])}
-    list_result = EventParticipantListTO(cursor=cursor.to_websafe_string(),
+    list_result = EventParticipantListTO(cursor=cursor and cursor.to_websafe_string(),
                                          more=more,
                                          results=map(EventParticipantTO.from_model, results))
     for result in list_result.results:
@@ -90,10 +66,11 @@ def list_participants(event_id, cursor=None, page_size=50):
 def put_event(event):
     # type: (EventTO) -> Event
     model = Event() if event.id is MISSING else Event.get_by_id(event.id)
-    args = event.to_dict()
+    args = event.to_dict(exclude=['id'])
     args.update(
-        start_timestamp=dateutil.parser.parse(event.start_timestamp),
-        end_timestamp=None if event.end_timestamp in (None, MISSING) else dateutil.parser.parse(event.end_timestamp)
+        start_timestamp=dateutil.parser.parse(event.start_timestamp.replace('Z', '')),
+        end_timestamp=None if event.end_timestamp in (None, MISSING) else dateutil.parser.parse(
+            event.end_timestamp.replace('Z', ''))
     )
     model.populate(**args)
     model.put()

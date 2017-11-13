@@ -27,7 +27,7 @@ class Event(NdbModel):
     TYPE_EVENT = 1
     TYPE_VIDEO_SESSION = 2
 
-    type = ndb.IntegerProperty(indexed=False, choices=[TYPE_EVENT, TYPE_VIDEO_SESSION])
+    type = ndb.IntegerProperty(indexed=False, choices=[TYPE_EVENT, TYPE_VIDEO_SESSION], default=TYPE_EVENT)
     title = ndb.StringProperty(indexed=False)
     description = ndb.TextProperty(indexed=False)
     start_timestamp = ndb.DateTimeProperty(indexed=True)
@@ -41,11 +41,11 @@ class Event(NdbModel):
 
     @classmethod
     def create_key(cls, event_id):
-        return ndb.Key(cls, event_id)
+        return ndb.Key(cls, event_id, namespace=NAMESPACE)
 
     @classmethod
     def list(cls):
-        return cls.query().order(Event.start_timestamp)
+        return cls.query().order(-Event.start_timestamp)
 
     @classmethod
     def list_past(cls, timestamp):

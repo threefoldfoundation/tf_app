@@ -26,7 +26,7 @@ from plugins.tff_backend.to.payment import NewTransactionTO, PendingTransactionT
     WalletBalanceTO
 
 
-@rest('/users', 'get', Scopes.TEAM)
+@rest('/users', 'get', Scopes.TEAM, silent_result=True)
 @returns(dict)  # CBA to create proper type
 @arguments(page_size=(int, long), cursor=unicode, query=unicode)
 def api_search_users(page_size=50, cursor=None, query=''):
