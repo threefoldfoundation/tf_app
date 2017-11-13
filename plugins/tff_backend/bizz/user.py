@@ -127,7 +127,7 @@ def populate_intercom_user(session_key, user_detail=None):
         assert isinstance(intercom_plugin, IntercomSupportPlugin)
         data = get_user(session.user_id, session.jwt)
         intercom_user = upsert_intercom_user(data.username, data)
-        tag_intercom_users(IntercomTags.APP_REGISTER.value, [data.username])
+        tag_intercom_users(IntercomTags.APP_REGISTER, [data.username])
         if user_detail:
             message = """Welcome to the ThreeFold Foundation app.
 If you have questions you can get in touch with us through this chat.
@@ -150,7 +150,6 @@ def store_chat_id_in_user_data(rogerthat_chat_id, user_detail):
 
     api_key = get_rogerthat_api_key()
     system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
-
 
 
 @returns(unicode)
