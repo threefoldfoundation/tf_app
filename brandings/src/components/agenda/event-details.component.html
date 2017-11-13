@@ -1,8 +1,8 @@
 <ion-card>
   <ion-item text-wrap>
     <h1>{{ agendaEvent.title }}</h1>
-    <!--<p>{{ 'starts_at_x' | translate : { timestamp: agendaEvent.start_date } }}</p>-->
-    <!--<p *ngIf="agendaEvent.end_timestamp">{{ 'ends_at_x' | translate : { timestamp: agendaEvent.end_date } }}</p>-->
+    <p>{{ 'starts_at_x' | translate : { timestamp: agendaEvent.start_date } }}</p>
+    <p *ngIf="agendaEvent.end_timestamp">{{ 'ends_at_x' | translate : { timestamp: agendaEvent.end_date } }}</p>
   </ion-item>
   <ion-card-content>
     <h2>{{ 'description' | translate }} </h2>
