@@ -1,7 +1,7 @@
-import { ActionReducer, ActionReducerMap, combineReducers } from '@ngrx/store';
 import { InjectionToken } from '@angular/core';
-import { appReducer } from './app.reducer';
+import { ActionReducerMap } from '@ngrx/store';
 import { IBrandingState } from '../state/app.state';
+import { appReducer } from './app.reducer';
 
 export interface IAppState {
   app: IBrandingState;
@@ -10,8 +10,6 @@ export interface IAppState {
 export const reducers = {
   app: appReducer,
 };
-
-export const combinedReducers: ActionReducer<IAppState> = combineReducers(reducers);
 
 export const REDUCER_INJECTION_TOKEN = new InjectionToken<ActionReducerMap<IAppState>>('Reducers');
 

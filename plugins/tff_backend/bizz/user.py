@@ -152,7 +152,6 @@ def store_chat_id_in_user_data(rogerthat_chat_id, user_detail):
     system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
 
 
-
 @returns(unicode)
 @arguments(username=unicode)
 def user_code(username):

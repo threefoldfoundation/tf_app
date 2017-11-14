@@ -1,5 +1,6 @@
 import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
 import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/interfaces/index';
+import { AgendaEvent, EventParticipant } from '../interfaces/agenda-events.interfaces';
 import {
   GlobalStats,
   InvestmentAgreement,
@@ -41,6 +42,14 @@ export interface ITffState {
   createTransactionStatus: ApiRequestStatus;
   balance: WalletBalance[];
   balanceStatus: ApiRequestStatus;
+  agendaEvents: AgendaEvent[];
+  agendaEventsStatus: ApiRequestStatus;
+  agendaEvent: AgendaEvent | null;
+  agendaEventStatus: ApiRequestStatus;
+  createAgendaEventStatus: ApiRequestStatus;
+  updateAgendaEventStatus: ApiRequestStatus;
+  eventParticipants: PaginatedResult<EventParticipant>;
+  eventParticipantsStatus: ApiRequestStatus;
 }
 
 export const emptyPaginatedResult: PaginatedResult<any> = {
@@ -88,4 +97,12 @@ export const initialTffState: ITffState = {
   createTransactionStatus: apiRequestInitial,
   balance: [],
   balanceStatus: apiRequestInitial,
+  agendaEvents: [],
+  agendaEventsStatus: apiRequestInitial,
+  agendaEvent: null,
+  agendaEventStatus: apiRequestInitial,
+  createAgendaEventStatus: apiRequestInitial,
+  updateAgendaEventStatus: apiRequestInitial,
+  eventParticipants: emptyPaginatedResult,
+  eventParticipantsStatus: apiRequestInitial,
 };

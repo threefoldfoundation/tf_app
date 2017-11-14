@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
-import { Actions } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
+import { Actions } from '@ngrx/effects';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
+import { AgendaPageComponent } from '../pages/agenda/agenda-page.component';
 import { ErrorService } from '../pages/error.service';
 import { GlobalStatsPageComponent } from '../pages/global-stats/global-stats-page.component';
 import { InvitePageComponent } from '../pages/referrals/invite-page.component';
@@ -58,6 +59,7 @@ export class AppComponent implements OnInit {
           { tag: 'iyo_see', page: SeePageComponent },
           { tag: 'referrals_invite', page: InvitePageComponent },
           { tag: 'set_referrer', page: SetReferrerPageComponent },
+          { tag: 'agenda', page: AgendaPageComponent },
         ];
         const page = pages.find(p => sha256(p.tag) === rogerthat.menuItem.hashedTag);
         if (page) {

@@ -1,58 +1,109 @@
-import { IBrandingState, initialState } from '../state/app.state';
 import { BrandingActions, BrandingActionTypes } from '../actions/branding.actions';
-import { apiRequestLoading, apiRequestSuccess } from '../interfaces/rpc.interfaces';
+import { EventPresence } from '../interfaces/agenda.interfaces';
 import { SetReferralResult } from '../interfaces/referrals.interfaces';
+import { apiRequestLoading, apiRequestSuccess } from '../interfaces/rpc.interfaces';
+import { IBrandingState, initialState } from '../state/app.state';
 
 export function appReducer(state: IBrandingState = initialState, action: BrandingActions): IBrandingState {
   switch (action.type) {
+    case BrandingActionTypes.API_CALL_COMPLETE:
+      return {
+        ...state,
+        apiCallResult: { ...action.payload }
+      };
     case BrandingActionTypes.GET_GLOBAL_STATS:
-      state = Object.assign({}, state, {
+      return {
+        ...state,
         globalStatsStatus: apiRequestLoading
-      });
-      break;
+      };
     case BrandingActionTypes.GET_GLOBAL_STATS_COMPLETE:
-      state = Object.assign({}, state, {
+      return {
+        ...state,
         globalStats: action.payload,
         globalStatsStatus: apiRequestSuccess,
-      });
-      break;
+      };
     case BrandingActionTypes.GET_GLOBAL_STATS_FAILED:
-      state = Object.assign({}, state, {
+      return {
+        ...state,
         globalStatsStatus: action.payload
-      });
-      break;
+      };
     case BrandingActionTypes.GET_SEE_DOCUMENTS:
-      state = Object.assign({}, state, {
+      return {
+        ...state,
         seeDocumentsStatus: apiRequestLoading
-      });
-      break;
+      };
     case BrandingActionTypes.GET_SEE_DOCUMENTS_COMPLETE:
-      state = Object.assign({}, state, {
+      return {
+        ...state,
         seeDocuments: action.payload,
         seeDocumentsStatus: apiRequestSuccess,
-      });
-      break;
+      };
     case BrandingActionTypes.GET_SEE_DOCUMENTS_FAILED:
-      state = Object.assign({}, state, {
+      return {
+        ...state,
         seeDocumentsStatus: action.payload
-      });
-      break;
+      };
     case BrandingActionTypes.SET_REFERRER:
-      state = Object.assign({}, state, {
+      return {
+        ...state,
         setReferrerStatus: apiRequestLoading
-      });
-      break;
+      };
     case BrandingActionTypes.SET_REFERRER_COMPLETE:
-      state = Object.assign({}, state, {
+      return {
+        ...state,
         setReferrerResult: (<SetReferralResult>action.payload).result,
         setReferrerStatus: apiRequestSuccess,
-      });
-      break;
+      };
     case BrandingActionTypes.SET_REFERRER_FAILED:
-      state = Object.assign({}, state, {
+      return {
+        ...state,
         setReferrerStatus: action.payload
-      });
-      break;
+      };
+    case BrandingActionTypes.GET_EVENTS:
+      return {
+        ...state,
+        events: initialState.events
+      };
+    case BrandingActionTypes.GET_EVENTS_COMPLETE:
+      return {
+        ...state,
+        events: action.payload
+      };
+    case BrandingActionTypes.GET_EVENT_PRESENCE:
+      return {
+        ...state,
+        eventPresenceStatus: apiRequestLoading
+      };
+    case BrandingActionTypes.GET_EVENT_PRESENCE_COMPLETE:
+      return {
+        ...state,
+        eventPresence: action.payload,
+        eventPresenceStatus: apiRequestSuccess
+      };
+    case BrandingActionTypes.GET_EVENT_PRESENCE_FAILED:
+      return {
+        ...state,
+        eventPresenceStatus: action.payload
+      };
+    case BrandingActionTypes.UPDATE_EVENT_PRESENCE:
+      return {
+        ...state,
+        updateEventPresenceStatus: apiRequestLoading,
+      };
+    case BrandingActionTypes.UPDATE_EVENT_PRESENCE_COMPLETE:
+      return {
+        ...state,
+        eventPresence: {
+          ...<EventPresence>state.eventPresence,
+          ...action.payload
+        },
+        updateEventPresenceStatus: apiRequestSuccess
+      };
+    case BrandingActionTypes.UPDATE_EVENT_PRESENCE_FAILED:
+      return {
+        ...state,
+        updateEventPresenceStatus: action.payload
+      };
   }
   return state;
 }

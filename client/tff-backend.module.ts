@@ -11,7 +11,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule, MatNativeDateModule } from '@angular/material/datepicker';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTabsModule } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
 import { Store, StoreModule } from '@ngrx/store';
@@ -24,6 +26,7 @@ import { AddToolbarItemAction } from '../../framework/client/toolbar/actions';
 import { ToolbarItemTypes } from '../../framework/client/toolbar/interfaces';
 import { TffEffects } from './effects';
 import './operators';
+import { MarkdownPipe } from './pipes/markdown.pipe';
 import { TimestampPipe } from './pipes/timestamp.pipe';
 import { tffReducer } from './reducers';
 import { TFF_COMPONENTS, TFF_PROVIDERS } from './services';
@@ -31,7 +34,7 @@ import { TffRoutes } from './tff.routes';
 
 const MATERIAL_IMPORTS = [
   MatButtonModule, MatInputModule, MatListModule, MatIconModule, MatSelectModule, MatChipsModule, MatSlideToggleModule,
-  MatProgressSpinnerModule, MatCardModule,
+  MatProgressSpinnerModule, MatCardModule, MatDatepickerModule, MatNativeDateModule, MatTabsModule
 ];
 
 @NgModule({
@@ -51,6 +54,7 @@ const MATERIAL_IMPORTS = [
   declarations: [
     TFF_COMPONENTS,
     TimestampPipe,
+    MarkdownPipe,
   ],
   providers: [
     DatePipe,

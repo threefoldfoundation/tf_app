@@ -14,9 +14,9 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-from framework.to import TO
+
+from framework.to import TO, convert_to_unicode
 from mcfw.properties import unicode_property, typed_property, long_property
-from plugins.tff_backend.to import convert_to_unicode
 
 
 class IYOSeeDocumenVersion(TO):

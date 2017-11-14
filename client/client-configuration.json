@@ -1,0 +1,12 @@
+{
+  "systemConfig": [
+    {
+      "name": "marked",
+      "path": "node_modules/marked",
+      "packageMeta": {
+        "main": "marked.min.js",
+        "defaultExtension": "js"
+      }
+    }
+  ]
+}
