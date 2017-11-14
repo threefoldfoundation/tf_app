@@ -24,12 +24,10 @@ export class RogerthatService {
   initialize() {
     this.i18nService.use(rogerthat.user.language);
     rogerthat.api.callbacks.resultReceived((method: string, result: any, error: string | null, tag: string) => {
-      this.ngZone.run(() => {
-        this.store.dispatch(new ApiCallCompleteAction({ method, result, error, tag }));
-      });
+      this.ngZone.run(() => this.store.dispatch(new ApiCallCompleteAction({ method, result, error, tag })));
     });
     rogerthat.callbacks.serviceDataUpdated(() => {
-      this.store.dispatch(new GetEventsAction());
+      this.ngZone.run(() => this.store.dispatch(new GetEventsAction()));
     });
   }
 
