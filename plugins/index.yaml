@@ -82,3 +82,11 @@ indexes:
   - name: user_id
   - name: timestamp
     direction: desc
+   
+
+# ======================================================= Agenda =======================================================
+
+- kind: EventParticipant
+  properties:
+  - name: event_id
+  - name: username

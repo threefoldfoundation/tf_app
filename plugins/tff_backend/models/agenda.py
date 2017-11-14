@@ -68,7 +68,7 @@ class EventParticipant(NdbModel):
 
     @classmethod
     def list_by_event(cls, event_id):
-        return cls.query().filter(cls.event_id == event_id)
+        return cls.query().filter(cls.event_id == event_id).order(cls.username)
 
     @classmethod
     def get_participant(cls, event_id, username):
