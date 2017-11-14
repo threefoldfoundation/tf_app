@@ -1,12 +1,11 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { MdDatepickerInputEvent } from '@angular/material';
+import { MatDatepickerInputEvent } from '@angular/material';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import { AGENDA_EVENT_TYPES, AgendaEvent } from '../../interfaces/agenda-events.interfaces';
 
 @Component({
-  moduleId: module.id,
   selector: 'tff-agenda-event-detail',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,7 +41,7 @@ export class AgendaEventDetailComponent {
   constructor(private datePipe: DatePipe) {
   }
 
-  onDateChange(property: 'start_timestamp' | 'end_timestamp', event: MdDatepickerInputEvent<Date>) {
+  onDateChange(property: 'start_timestamp' | 'end_timestamp', event: MatDatepickerInputEvent<Date>) {
     this.event[ property ] = event.value.toISOString();
     if (property === 'start_timestamp' && this.event.end_timestamp && event.value > new Date(this.event.end_timestamp)) {
       this.event.end_timestamp = this.event.start_timestamp;

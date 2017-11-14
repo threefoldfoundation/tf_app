@@ -3,7 +3,6 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
 import { AgendaEvent } from '../../interfaces/agenda-events.interfaces';
 
 @Component({
-  moduleId: module.id,
   selector: 'tff-agenda-events-list',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,

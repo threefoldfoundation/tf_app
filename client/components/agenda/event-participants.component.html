@@ -1,17 +1,17 @@
-<md-tab-group>
-  <md-tab [label]="tab.label | translate : { amount: presence[tab.value].length }" *ngFor="let tab of tabs">
-    <md-nav-list *ngIf="status.success">
+<mat-tab-group>
+  <mat-tab [label]="tab.label | translate : { amount: presence[tab.value].length }" *ngFor="let tab of tabs">
+    <mat-nav-list *ngIf="status.success">
       <a *ngFor="let userPresence of presence[tab.value]; trackBy: trackByUsername"
-         [routerLink]="'/users/' + userPresence.username" md-list-item target="_blank">
-        <h4 mdLine>{{ getUserName(userPresence.user) }}</h4>
-        <p mdLine *ngIf="getUserName(userPresence.user) != userPresence.username">
+         [routerLink]="'/users/' + userPresence.username" mat-list-item target="_blank">
+        <h4 matLine>{{ getUserName(userPresence.user) }}</h4>
+        <p matLine *ngIf="getUserName(userPresence.user) != userPresence.username">
           {{ userPresence.username }}
         </p>
-        <p mdLine *ngIf="userPresence.user.info?.validatedemailaddresses.length">
+        <p matLine *ngIf="userPresence.user.info?.validatedemailaddresses.length">
           {{ userPresence.user.info.validatedemailaddresses[0].emailaddress }}
         </p>
       </a>
-    </md-nav-list>
+    </mat-nav-list>
     <tff-api-request-status [status]="status"></tff-api-request-status>
-  </md-tab>
-</md-tab-group>
+  </mat-tab>
+</mat-tab-group>

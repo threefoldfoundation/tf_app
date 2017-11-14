@@ -8,15 +8,14 @@ import { ITffState } from '../../states/tff.state';
 import { getAgendaEvents, getAgendaEventsStatus } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   selector: 'tff-agenda-events-list-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <tff-agenda-events-list [events]="events$ | async" [status]="status$ | async"></tff-agenda-events-list>
     <div class="fab-bottom-right">
-      <a md-fab [routerLink]="['create']">
-        <md-icon>add</md-icon>
+      <a mat-fab [routerLink]="['create']">
+        <mat-icon>add</mat-icon>
       </a>
     </div>`
 })
