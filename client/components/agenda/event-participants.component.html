@@ -1,17 +1,17 @@
-<md-nav-list *ngIf="status.success">
-  <div *ngFor="let status of statuses; last as isLast">
-    <h3 md-subheader>{{ status.label | translate }}</h3>
-    <a *ngFor="let userPresence of presence[status.value]; trackBy: trackByUsername"
-       [routerLink]="'/users/' + userPresence.username" md-list-item target="_blank">
-      <h4 mdLine>{{ getUserName(userPresence.user) }}</h4>
-      <p mdLine *ngIf="getUserName(userPresence.user) != userPresence.username">
-        {{ userPresence.username }}
-      </p>
-      <p mdLine *ngIf="userPresence.user.info?.validatedemailaddresses.length">
-        {{ userPresence.user.info.validatedemailaddresses[0].emailaddress }}
-      </p>
-    </a>
-    <md-divider *ngIf="!isLast"></md-divider>
-  </div>
-</md-nav-list>
-<tff-api-request-status [status]="status"></tff-api-request-status>
+<md-tab-group>
+  <md-tab [label]="tab.label | translate" *ngFor="let tab of tabs">
+    <md-nav-list *ngIf="status.success">
+      <a *ngFor="let userPresence of presence[tab.value]; trackBy: trackByUsername"
+         [routerLink]="'/users/' + userPresence.username" md-list-item target="_blank">
+        <h4 mdLine>{{ getUserName(userPresence.user) }}</h4>
+        <p mdLine *ngIf="getUserName(userPresence.user) != userPresence.username">
+          {{ userPresence.username }}
+        </p>
+        <p mdLine *ngIf="userPresence.user.info?.validatedemailaddresses.length">
+          {{ userPresence.user.info.validatedemailaddresses[0].emailaddress }}
+        </p>
+      </a>
+    </md-nav-list>
+    <tff-api-request-status [status]="status"></tff-api-request-status>
+  </md-tab>
+</md-tab-group>
