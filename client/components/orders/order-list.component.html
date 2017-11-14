@@ -1,12 +1,14 @@
 <div class="orders-content">
   <form fxLayout="row" fxLayout.sm="column">
-    <mat-select name="node_status" [(ngModel)]="query.status" (ngModelChange)="submit(false)" fxFlex="30%"
-               fxFlex.lg="20%" fxFlex.sm="100%" [placeholder]="'tff.status' | translate">
-      <mat-option [value]="null">{{ 'tff.all' | translate }}</mat-option>
-      <mat-option *ngFor="let status of statuses" [value]="status.value">
-        {{ status.label | translate }}
-      </mat-option>
-    </mat-select>
+    <mat-form-field fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%">
+      <mat-select name="node_status" [(ngModel)]="query.status" (ngModelChange)="submit(false)"
+                  [placeholder]="'tff.status' | translate">
+        <mat-option [value]="null">{{ 'tff.all' | translate }}</mat-option>
+        <mat-option *ngFor="let status of statuses" [value]="status.value">
+          {{ status.label | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
     <mat-form-field fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%" fxFlexOffset="5%" fxFlexOffset.sm="0">
       <input type="search" name="node_search" matInput [(ngModel)]="query.query"
              [placeholder]="'tff.search' | translate" (ngModelChange)="submit()">

@@ -3,12 +3,14 @@
     <input type="number" name="token_count" min="0" [(ngModel)]="transaction.token_count" matInput
            [placeholder]="'tff.amount_of_tokens' | translate" required>
   </mat-form-field>
-  <mat-select name="token_type" [(ngModel)]="transaction.token_type" required style="max-width: 200px;"
-             [placeholder]="'tff.token_type' | translate">
-    <mat-option *ngFor="let tokenType of tokenTypes" [value]="tokenType">
-      {{ tokenType}}
-    </mat-option>
-  </mat-select>
+  <mat-form-field>
+    <mat-select name="token_type" [(ngModel)]="transaction.token_type" required
+                [placeholder]="'tff.token_type' | translate">
+      <mat-option *ngFor="let tokenType of tokenTypes" [value]="tokenType">
+        {{ tokenType}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
   <mat-form-field>
     <textarea name="memo" rows="2" matInput [(ngModel)]="transaction.memo"
               [placeholder]="'tff.memo' | translate"></textarea>
