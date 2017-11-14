@@ -9,7 +9,6 @@ import { InvestmentAgreementList, InvestmentAgreementsQuery } from '../../interf
 import { getInvestmentAgreements, getInvestmentAgreementsQuery, getInvestmentAgreementsStatus } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   template: `

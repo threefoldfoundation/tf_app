@@ -1,7 +1,7 @@
-<md-nav-list>
-  <a *ngFor="let agendaEvent of events" [routerLink]="[agendaEvent.id]" md-list-item>
-    <h4 mdLine>{{ agendaEvent.title }}</h4>
-    <p mdLine>{{ agendaEvent.start_timestamp | date : 'medium' }}</p>
+<mat-nav-list>
+  <a *ngFor="let agendaEvent of events" [routerLink]="[agendaEvent.id]" mat-list-item>
+    <h4 matLine>{{ agendaEvent.title }}</h4>
+    <p matLine>{{ agendaEvent.start_timestamp | date : 'medium' }}</p>
   </a>
-</md-nav-list>
+</mat-nav-list>
 <tff-api-request-status [status]="status"></tff-api-request-status>

@@ -11,14 +11,13 @@ import { ApiErrorService } from '../../services/api-error.service';
 import { getOrder, getOrderStatus, updateOrderStatus } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
-  selector: 'order-detail-page',
+  selector: 'tff-order-detail-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <order-detail [nodeOrder]="order$ | async"
-                  [status]="orderStatus$ | async"
-                  [updateStatus]="updateOrderStatus$ | async"
-                  (onUpdate)="onUpdate($event)"></order-detail>`
+    <tff-order-detail [nodeOrder]="order$ | async"
+                      [status]="orderStatus$ | async"
+                      [updateStatus]="updateOrderStatus$ | async"
+                      (onUpdate)="onUpdate($event)"></tff-order-detail>`
 })
 
 export class OrderDetailPageComponent implements OnInit, OnDestroy {

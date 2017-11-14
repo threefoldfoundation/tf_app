@@ -3,87 +3,90 @@
     <tff-api-request-status [status]="status"></tff-api-request-status>
     <form *ngIf="status.success" fxLayout="column" (ngSubmit)="onSubmit()"
           #form="ngForm">
-      <md-form-field>
-        <input mdInput name="title" [(ngModel)]="event.title" [placeholder]="'tff.title' | translate" required>
-      </md-form-field>
-      <md-form-field>
-        <input mdInput name="location" [(ngModel)]="event.location" [placeholder]="'tff.location' | translate" required>
-      </md-form-field>
-      <md-select [(ngModel)]="event.type" name="type" [placeholder]="'tff.event_type' | translate" required>
-        <md-option *ngFor="let eventType of eventTypes" [value]="eventType.value">{{ eventType.label | translate }}
-        </md-option>
-      </md-select>
+      <mat-form-field>
+        <input matInput name="title" [(ngModel)]="event.title" [placeholder]="'tff.title' | translate" required>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput name="location" [(ngModel)]="event.location" [placeholder]="'tff.location' | translate"
+               required>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-select [(ngModel)]="event.type" name="type" [placeholder]="'tff.event_type' | translate" required>
+          <mat-option *ngFor="let eventType of eventTypes" [value]="eventType.value">{{ eventType.label | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
       <div fxLayout="row">
-        <md-form-field>
-          <input mdInput name="start_timestamp"
-                 [mdDatepicker]="picker"
+        <mat-form-field>
+          <input matInput name="start_timestamp"
+                 [matDatepicker]="picker"
                  [placeholder]="'tff.start_date' |  translate"
                  [value]="getDate(event.start_timestamp)"
                  (dateChange)="onDateChange('start_timestamp', $event)" required>
-          <md-datepicker-toggle mdSuffix [for]="picker"></md-datepicker-toggle>
-          <md-datepicker #picker></md-datepicker>
-        </md-form-field>
-        <md-form-field class="time-input" *ngIf="event.start_timestamp">
-          <input mdInput type="number" name="start_hour" [ngModel]="getHours(event.start_timestamp)"
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field class="time-input" *ngIf="event.start_timestamp">
+          <input matInput type="number" name="start_hour" [ngModel]="getHours(event.start_timestamp)"
                  (ngModelChange)="setHours('start_timestamp', $event)" min="0" max="23"
                  [placeholder]="'tff.hour' | translate">
-        </md-form-field>
-        <md-form-field class="time-input" *ngIf="event.start_timestamp">
-          <input mdInput type="number" name="start_time" [ngModel]="getMinutes(event.start_timestamp)"
+        </mat-form-field>
+        <mat-form-field class="time-input" *ngIf="event.start_timestamp">
+          <input matInput type="number" name="start_time" [ngModel]="getMinutes(event.start_timestamp)"
                  (ngModelChange)="setMinutes('start_timestamp', $event)" min="0" max="59"
                  [placeholder]="'tff.minute' | translate">
-        </md-form-field>
+        </mat-form-field>
       </div>
       <div fxLayout="row">
-        <md-form-field>
-          <input mdInput name="end_timestamp"
-                 [mdDatepicker]="picker2"
+        <mat-form-field>
+          <input matInput name="end_timestamp"
+                 [matDatepicker]="picker2"
                  [placeholder]="'tff.end_date' |  translate"
                  [value]="getDate(event.end_timestamp)"
                  [min]="getDate(event.start_timestamp)"
                  (dateChange)="onDateChange('end_timestamp', $event)">
-          <md-datepicker-toggle mdSuffix [for]="picker2"></md-datepicker-toggle>
-          <md-datepicker #picker2></md-datepicker>
-        </md-form-field>
-        <md-form-field class="time-input" *ngIf="event.end_timestamp">
-          <input mdInput type="number" name="end_hour" [ngModel]="getHours(event.end_timestamp)"
+          <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+          <mat-datepicker #picker2></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field class="time-input" *ngIf="event.end_timestamp">
+          <input matInput type="number" name="end_hour" [ngModel]="getHours(event.end_timestamp)"
                  (ngModelChange)="setHours('end_timestamp', $event)" min="0" max="23"
                  [placeholder]="'tff.hour' | translate">
-        </md-form-field>
-        <md-form-field class="time-input" *ngIf="event.end_timestamp">
-          <input mdInput type="number" name="end_time" [ngModel]="getMinutes(event.end_timestamp)"
+        </mat-form-field>
+        <mat-form-field class="time-input" *ngIf="event.end_timestamp">
+          <input matInput type="number" name="end_time" [ngModel]="getMinutes(event.end_timestamp)"
                  (ngModelChange)="setMinutes('end_timestamp', $event)" min="0" max="59"
                  [placeholder]="'tff.minute' | translate">
-        </md-form-field>
+        </mat-form-field>
       </div>
 
-      <md-form-field>
-        <textarea mdInput name="description" [(ngModel)]="event.description" rows="4" required
+      <mat-form-field>
+        <textarea matInput name="description" [(ngModel)]="event.description" rows="4" required
                   [placeholder]="'tff.description' | translate"></textarea>
-      </md-form-field>
+      </mat-form-field>
       <div>
-        <button md-raised-button [disabled]="!form.form.valid || updateStatus.loading">{{ 'tff.save' | translate }}
+        <button mat-raised-button [disabled]="!form.form.valid || updateStatus.loading">{{ 'tff.save' | translate }}
         </button>
       </div>
     </form>
   </div>
   <div fxLayout="column" fxFlex="45" fxFlex.lt-md="100">
-    <md-card>
-      <md-card-header>
-        <md-card-title><h3>{{ event.title }}</h3></md-card-title>
-        <md-card-subtitle>
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title><h3>{{ event.title }}</h3></mat-card-title>
+        <mat-card-subtitle>
           <p>{{ 'tff.starts_at_x' | translate : { timestamp: getFormattedDate(event.start_timestamp) } }}</p>
           <p *ngIf="event.end_timestamp">
             {{ 'tff.ends_at_x' | translate : { timestamp: getFormattedDate(event.end_timestamp) } }}
           </p>
-        </md-card-subtitle>
-      </md-card-header>
-      <md-card-content>
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
         <h4>{{ 'tff.description' | translate }} </h4>
         <div [innerHTML]="event.description | markdown"></div>
         <h4>{{ 'tff.location' | translate }} </h4>
         <div [innerHTML]="event.location | markdown"></div>
-      </md-card-content>
-    </md-card>
+      </mat-card-content>
+    </mat-card>
   </div>
 </div>

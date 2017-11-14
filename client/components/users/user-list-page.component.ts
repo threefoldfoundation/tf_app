@@ -7,13 +7,12 @@ import { SearchUsersAction } from '../../actions/index';
 import { getUserList, getUserQueryList } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
-  selector: 'user-list-page',
+  selector: 'tff-user-list-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="default-component-padding">
-      <user-list [userList]="userList$ | async" [query]="query$ | async" (onQuery)="onQuery($event)"></user-list>
+      <tff-user-list [userList]="userList$ | async" [query]="query$ | async" (onQuery)="onQuery($event)"></tff-user-list>
     </div>`
 })
 

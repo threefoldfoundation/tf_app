@@ -1,6 +1,6 @@
 <div class="order-content">
-  <button md-button [routerLink]="['..']">
-    <md-icon>arrow_back</md-icon>
+  <button mat-button [routerLink]="['..']">
+    <mat-icon>arrow_back</mat-icon>
     {{ 'tff.back' | translate }}
   </button>
   <div *ngIf="nodeOrder">
@@ -15,7 +15,7 @@
     <p>{{ 'tff.billing_address' | translate}}: {{ nodeOrder.billing_info.address }}</p>
     <p>{{ 'tff.status' | translate}}: {{ getOrderStatus() }}</p>
     <tff-document-url [url]="nodeOrder.document_url"></tff-document-url>
-    <md-divider></md-divider>
+    <mat-divider></mat-divider>
     <h3>{{ 'tff.shipping_information' | translate }}</h3>
     <div *ngIf="nodeOrder.shipping_info">
       <p>{{ 'tff.name' | translate}}: {{ nodeOrder.shipping_info.name }}</p>
@@ -23,7 +23,7 @@
       <p>{{ 'tff.phone' | translate}}: {{ nodeOrder.shipping_info.phone }}</p>
       <p>{{ 'tff.shipping_address' | translate}}: {{ nodeOrder.shipping_info.address}}</p>
     </div>
-    <md-divider></md-divider>
+    <mat-divider></mat-divider>
     <p>{{ 'tff.modification_time' | translate }}: {{ nodeOrder.modification_time | timestamp }}</p>
     <p>{{ 'tff.order_time' | translate }}: {{ nodeOrder.order_time | timestamp }}</p>
     <p *ngIf="nodeOrder.send_time">
@@ -34,16 +34,16 @@
     </p>
     <p *ngIf="nodeOrder.cancel_time">
       {{ 'tff.cancel_time' | translate }}: {{ nodeOrder.cancel_time | timestamp }}</p>
-    <button *ngIf="allowedStatuses.includes(statuses.CANCELED)" md-button (click)="setOrderStatus(statuses.CANCELED)" color="warn">
+    <button *ngIf="allowedStatuses.includes(statuses.CANCELED)" mat-button (click)="setOrderStatus(statuses.CANCELED)" color="warn">
       {{ 'tff.cancel_order' | translate }}
     </button>
-    <button *ngIf="allowedStatuses.includes(statuses.SENT)" md-button (click)="setOrderStatus(statuses.SENT)">
+    <button *ngIf="allowedStatuses.includes(statuses.SENT)" mat-button (click)="setOrderStatus(statuses.SENT)">
       {{ 'tff.mark_as_sent' | translate }}
     </button>
-    <button *ngIf="allowedStatuses.includes(statuses.PAID)" md-button (click)="setOrderStatus(statuses.PAID)">
+    <button *ngIf="allowedStatuses.includes(statuses.PAID)" mat-button (click)="setOrderStatus(statuses.PAID)">
       {{ 'tff.mark_as_paid' | translate }}
     </button>
-    <button *ngIf="allowedStatuses.includes(statuses.APPROVED)" md-button (click)="setOrderStatus(statuses.APPROVED)">
+    <button *ngIf="allowedStatuses.includes(statuses.APPROVED)" mat-button (click)="setOrderStatus(statuses.APPROVED)">
       {{ 'tff.approve_order' | translate }}
     </button>
   </div>

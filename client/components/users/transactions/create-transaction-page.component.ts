@@ -10,16 +10,15 @@ import { CreateTransactionPayload, TokenTypes } from '../../../interfaces/transa
 import { createTransactionStatus } from '../../../tff.state';
 
 @Component({
-  moduleId: module.id,
-  selector: 'create-transaction-page',
+  selector: 'tff-create-transaction-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="default-component-padding">
       <h2>{{ 'tff.create_transaction' | translate }}</h2>
-      <create-transaction [transaction]="transaction"
-                          [createStatus]="createStatus$ | async"
-                          (onCreateTransaction)="createTransaction($event)"></create-transaction>
+      <tff-create-transaction [transaction]="transaction"
+                              [createStatus]="createStatus$ | async"
+                              (onCreateTransaction)="createTransaction($event)"></tff-create-transaction>
     </div>`
 })
 

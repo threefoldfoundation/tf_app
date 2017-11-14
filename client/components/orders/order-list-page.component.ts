@@ -9,7 +9,6 @@ import { NodeOrderList, NodeOrdersQuery } from '../../interfaces/index';
 import { getNodeOrdersQuery, getOrders, getOrdersStatus } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   selector: 'tff-order-list-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,

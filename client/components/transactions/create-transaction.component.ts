@@ -4,8 +4,7 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
 import { CreateTransactionPayload, TokenTypes } from '../../interfaces/transactions.interfaces';
 
 @Component({
-  moduleId: module.id,
-  selector: 'create-transaction',
+  selector: 'tff-create-transaction',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'create-transaction.component.html'

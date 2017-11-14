@@ -9,7 +9,6 @@ import { ITffState } from '../../states/tff.state';
 import { getAgendaEvent, getAgendaEventStatus, updateAgendaEventStatus } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   selector: 'tff-agenda-event-detail-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,

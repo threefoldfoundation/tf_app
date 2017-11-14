@@ -21,16 +21,15 @@ import { ApiErrorService } from '../../services/api-error.service';
 import { getGlobalStats, getInvestmentAgreement, getInvestmentAgreementStatus, updateInvestmentAgreementStatus } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   template: `
-    <investment-agreement [investmentAgreement]="investmentAgreement$ | async"
-                          [status]="status$ | async"
-                          [globalStats]="globalStats$ | async"
-                          [updateStatus]="updateStatus$ | async"
-                          [canUpdate]="canUpdate$ | async"
-                          (onUpdate)="onUpdate($event)"></investment-agreement>`
+    <tff-investment-agreement [investmentAgreement]="investmentAgreement$ | async"
+                              [status]="status$ | async"
+                              [globalStats]="globalStats$ | async"
+                              [updateStatus]="updateStatus$ | async"
+                              [canUpdate]="canUpdate$ | async"
+                              (onUpdate)="onUpdate($event)"></tff-investment-agreement>`
 })
 
 export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy {

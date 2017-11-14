@@ -27,8 +27,8 @@ export class ApiErrorService {
       // Assuming that this is a mistake, an empty message is returned.
       return '';
     }
-    let key: string = `tff.errors.${err.error}`;
-    let translationParameters: TranslationParams = { ...err.data };
+    let key = `tff.errors.${err.error}`;
+    const translationParameters: TranslationParams = { ...err.data };
     switch (err.error) {
       // Set error-specific translation parameters here
     }

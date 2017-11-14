@@ -5,7 +5,6 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interface
 import { NodeOrderList, NodeOrdersQuery, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/index';
 
 @Component({
-  moduleId: module.id,
   selector: 'tff-order-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,

@@ -1,20 +1,20 @@
 <form #form="ngForm" (ngSubmit)="submit()" fxLayout="column" fxFlex="40" fxFlex.md="60" fxFlex.xs="100">
-  <md-form-field>
-    <input type="number" name="token_count" min="0" [(ngModel)]="transaction.token_count" mdInput
+  <mat-form-field>
+    <input type="number" name="token_count" min="0" [(ngModel)]="transaction.token_count" matInput
            [placeholder]="'tff.amount_of_tokens' | translate" required>
-  </md-form-field>
-  <md-select name="token_type" [(ngModel)]="transaction.token_type" required style="max-width: 200px;"
+  </mat-form-field>
+  <mat-select name="token_type" [(ngModel)]="transaction.token_type" required style="max-width: 200px;"
              [placeholder]="'tff.token_type' | translate">
-    <md-option *ngFor="let tokenType of tokenTypes" [value]="tokenType">
+    <mat-option *ngFor="let tokenType of tokenTypes" [value]="tokenType">
       {{ tokenType}}
-    </md-option>
-  </md-select>
-  <md-form-field>
-    <textarea name="memo" rows="2" mdInput [(ngModel)]="transaction.memo"
+    </mat-option>
+  </mat-select>
+  <mat-form-field>
+    <textarea name="memo" rows="2" matInput [(ngModel)]="transaction.memo"
               [placeholder]="'tff.memo' | translate"></textarea>
-  </md-form-field>
+  </mat-form-field>
   <div>
-    <button md-raised-button [disabled]="!form.form.valid" color="primary">
+    <button mat-raised-button [disabled]="!form.form.valid" color="primary">
       {{ 'tff.create_transaction' | translate }}
     </button>
   </div>
