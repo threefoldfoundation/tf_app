@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-from framework.models.common import NdbModel
 from framework.to import TO
 from mcfw.properties import unicode_property, typed_property
 from mcfw.rpc import parse_complex_value
