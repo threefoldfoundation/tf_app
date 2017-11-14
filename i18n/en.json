@@ -117,6 +117,7 @@
     "video_call": "Video call",
     "waiting_approval": "Waiting for approval",
     "wallet": "Wallet",
+    "wants_recording": "Wants recording",
     "x_tokens": "{{ count }} tokens",
     "x_tokens_will_be_assigned": "{{ tokens }} tokens will be assigned to this user."
   }

@@ -14,14 +14,17 @@ export class EventParticipantsComponent implements OnChanges {
   @Input() participants: EventParticipant[];
   @Input() status: ApiRequestStatus;
 
+  wantsRecording = 42;
   presence: { [key: number]: EventParticipant[] } = {
     [ EventPresenceStatus.PRESENT ]: [],
     [ EventPresenceStatus.ABSENT ]: [],
+    [ this.wantsRecording ]: [],
   };
 
-  statuses = [
+  tabs = [
     { label: 'tff.going', value: EventPresenceStatus.PRESENT },
     { label: 'tff.not_going', value: EventPresenceStatus.ABSENT },
+    { label: 'tff.wants_recording', value: this.wantsRecording },
   ];
 
   public ngOnChanges(changes: SimpleChanges): void {
@@ -29,6 +32,7 @@ export class EventParticipantsComponent implements OnChanges {
       const presence: EventParticipant[] = changes.participants.currentValue;
       this.presence[ EventPresenceStatus.PRESENT ] = presence.filter(p => p.status === EventPresenceStatus.PRESENT);
       this.presence[ EventPresenceStatus.ABSENT ] = presence.filter(p => p.status === EventPresenceStatus.ABSENT);
+      this.presence[this.wantsRecording] = presence.filter(p => p.wants_recording);
     }
   }
 

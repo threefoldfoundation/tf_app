@@ -14,7 +14,8 @@ import {
   MdNativeDateModule,
   MdProgressSpinnerModule,
   MdSelectModule,
-  MdSlideToggleModule
+  MdSlideToggleModule,
+  MdTabsModule
 } from '@angular/material';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
@@ -36,7 +37,7 @@ import { TffRoutes } from './tff.routes';
 
 const MATERIAL_IMPORTS = [
   MdButtonModule, MdInputModule, MdListModule, MdIconModule, MdSelectModule, MdChipsModule, MdSlideToggleModule, MdProgressSpinnerModule,
-  MdCardModule, MdDatepickerModule, MdNativeDateModule
+  MdCardModule, MdDatepickerModule, MdNativeDateModule, MdTabsModule
 ];
 
 @NgModule({
