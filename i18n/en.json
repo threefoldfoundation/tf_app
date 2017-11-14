@@ -35,6 +35,7 @@
     "email": "Email",
     "end_date": "End date",
     "end_time": "End time",
+    "ends_at_x": "Ends at: {{ timestamp }}",
     "error": "Error",
     "errors": {
       "cannot_change_status": "Cannot update the status, the status might have been changed by someone else.",
@@ -92,6 +93,7 @@
     "socket": "Socket: {{ socket }}",
     "start_date": "Start date",
     "start_hour": "Start time",
+    "starts_at_x": "Starts at: {{ timestamp }}",
     "status": "Status",
     "symbol": "Symbol",
     "thats_an_error": "That's an error",

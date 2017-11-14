@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { MdDatepickerInputEvent } from '@angular/material';
@@ -38,11 +39,18 @@ export class AgendaEventDetailComponent {
 
   private _event: AgendaEvent;
 
+  constructor(private datePipe: DatePipe) {
+  }
+
   onDateChange(property: 'start_timestamp' | 'end_timestamp', event: MdDatepickerInputEvent<Date>) {
     this.event[ property ] = event.value.toISOString();
     if (property === 'start_timestamp' && this.event.end_timestamp && event.value > new Date(this.event.end_timestamp)) {
       this.event.end_timestamp = this.event.start_timestamp;
     }
+  }
+
+  getFormattedDate(date: string) {
+    return `${this.datePipe.transform(date, 'mediumDate')} ${this.datePipe.transform(date, 'shortTime')}`;
   }
 
   getDate(date: string) {
