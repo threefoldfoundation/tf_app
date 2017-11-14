@@ -4,37 +4,40 @@ import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
-  MdButtonModule,
-  MdCardModule,
-  MdChipsModule,
-  MdExpansionModule,
-  MdIconModule,
-  MdInputModule,
-  MdListModule,
-  MdProgressSpinnerModule,
-  MdSelectModule,
-  MdSlideToggleModule
+  MatButtonModule,
+  MatCardModule,
+  MatChipsModule,
+  MatDatepickerModule,
+  MatIconModule,
+  MatInputModule,
+  MatListModule,
+  MatNativeDateModule,
+  MatProgressSpinnerModule,
+  MatSelectModule,
+  MatSlideToggleModule,
+  MatTabsModule
 } from '@angular/material';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
 import { Store, StoreModule } from '@ngrx/store';
 import { MultilingualModule } from '../../framework/client/i18n/multilingual.module';
-import { SetThemeAction } from '../../framework/client/identity/actions/index';
-import { AuthenticationService } from '../../framework/client/identity/services/index';
-import { IAppState } from '../../framework/client/ngrx/state/app.state';
+import { SetThemeAction } from '../../framework/client/identity/actions';
+import { AuthenticationService } from '../../framework/client/identity/services';
+import { IAppState } from '../../framework/client/ngrx';
 import { AddRoutesAction } from '../../framework/client/sidebar/index';
-import { AddToolbarItemAction } from '../../framework/client/toolbar/actions/index';
-import { ToolbarItemTypes } from '../../framework/client/toolbar/interfaces/index';
-import { TffEffects } from './effects/tff.effect';
+import { AddToolbarItemAction } from '../../framework/client/toolbar/actions';
+import { ToolbarItemTypes } from '../../framework/client/toolbar/interfaces';
+import { TffEffects } from './effects';
 import './operators';
+import { MarkdownPipe } from './pipes/markdown.pipe';
 import { TimestampPipe } from './pipes/timestamp.pipe';
-import { tffReducer } from './reducers/tff.reducer';
-import { TFF_COMPONENTS, TFF_PROVIDERS } from './services/index';
+import { tffReducer } from './reducers';
+import { TFF_COMPONENTS, TFF_PROVIDERS } from './services';
 import { TffRoutes } from './tff.routes';
 
 const MATERIAL_IMPORTS = [
-  MdButtonModule, MdInputModule, MdListModule, MdIconModule, MdSelectModule, MdChipsModule, MdSlideToggleModule, MdProgressSpinnerModule,
-  MdCardModule, MdExpansionModule
+  MatButtonModule, MatInputModule, MatListModule, MatIconModule, MatSelectModule, MatChipsModule, MatSlideToggleModule,
+  MatProgressSpinnerModule, MatCardModule, MatDatepickerModule, MatNativeDateModule, MatTabsModule, MatIconModule
 ];
 
 @NgModule({
@@ -49,11 +52,12 @@ const MATERIAL_IMPORTS = [
     StoreModule.forFeature('tff', tffReducer),
     EffectsModule.forFeature([ TffEffects ]),
     MATERIAL_IMPORTS,
-    FlexLayoutModule
+    FlexLayoutModule,
   ],
   declarations: [
     TFF_COMPONENTS,
     TimestampPipe,
+    MarkdownPipe,
   ],
   providers: [
     DatePipe,
@@ -78,7 +82,7 @@ export class TffBackendModule {
       icon: 'format_color_fill',
       persistent: true,
       onclick: () => {
-        let newTheme = this.authService.getLocalTheme() ? null : { cssClass: 'dark-theme', dark: true };
+        const newTheme = this.authService.getLocalTheme() ? null : { cssClass: 'dark-theme', dark: true };
         this.store.dispatch(new SetThemeAction(newTheme));
       },
     };

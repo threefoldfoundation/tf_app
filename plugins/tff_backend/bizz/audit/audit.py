@@ -14,14 +14,15 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-import logging
 from functools import wraps
+import logging
 
-from google.appengine.ext import ndb
+from enum import Enum
 from six import string_types
 
 from framework.bizz.authentication import get_current_session
 from framework.to import TO
+from google.appengine.ext import ndb
 from plugins.tff_backend.bizz.audit import mapping
 from plugins.tff_backend.models.audit import AuditLog
 from plugins.tff_backend.to.audit import AuditLogDetailsTO, AuditLogDetailsListTO
@@ -82,6 +83,8 @@ def audit_log(audit_type, key_args, data, user_id=None):
     else:
         assert isinstance(key_args, ndb.Key)
         reference = key_args
+    if isinstance(audit_type, Enum):
+        audit_type = audit_type.value
     data_ = {k: data[k].to_dict() if isinstance(data[k], TO) else data[k] for k in data}
     return AuditLog(audit_type=audit_type.value, reference=reference, user_id=user_id, data=data_).put_async()
 

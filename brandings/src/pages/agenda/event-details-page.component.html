@@ -1,0 +1,12 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>{{ agendaEvent.title }}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding>
+  <event-details [agendaEvent]="agendaEvent"
+                 [eventPresence]="eventPresence$ | async"
+                 [status]="status$ | async"
+                 [updateStatus]="updateStatus$ | async"
+                 (updatePresence)="onUpdatePresence($event)"></event-details>
+</ion-content>

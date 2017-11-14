@@ -3,8 +3,8 @@ import { Observable } from 'rxjs/Observable';
 import { ApiError, ApiRequestStatus } from '../interfaces/rpc.interfaces';
 
 export function transformErrorResponse(response: ApiCallResult): ApiRequestStatus {
-  let apiError: ApiError = {
-    error: response.error!,
+  const apiError: ApiError = {
+    error: response.error,
     data: response.result ? JSON.parse(response.result) : null,
   };
   return {

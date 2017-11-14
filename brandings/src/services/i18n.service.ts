@@ -21,7 +21,7 @@ export class I18nService {
     } else {
       lang = language;
     }
-    console.debug(`Set language to ${lang}`);
+    console.log(`Set language to ${lang}`);
     return this.translate.use(lang);
   }
 }

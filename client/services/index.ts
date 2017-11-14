@@ -1,7 +1,14 @@
 import {
+  AgendaEventDetailComponent,
+  AgendaEventDetailPageComponent,
+  AgendaEventsListComponent,
+  AgendaEventsListPageComponent,
   ApiRequestStatusComponent,
+  CreateAgendaEventPageComponent,
   CreateTransactionComponent,
   CreateTransactionPageComponent,
+  EventParticipantsComponent,
+  EventParticipantsPageComponent,
   GlobalStatsDetailComponent,
   GlobalStatsDetailPageComponent,
   GlobalStatsListPageComponent,
@@ -43,9 +50,16 @@ export const TFF_PAGES = [
 ];
 
 export const TFF_COMPONENTS: any[] = [
+  AgendaEventDetailComponent,
+  AgendaEventDetailPageComponent,
+  AgendaEventsListComponent,
+  AgendaEventsListPageComponent,
   ApiRequestStatusComponent,
+  CreateAgendaEventPageComponent,
   CreateTransactionComponent,
   CreateTransactionPageComponent,
+  EventParticipantsComponent,
+  EventParticipantsPageComponent,
   GlobalStatsDetailComponent,
   GlobalStatsDetailPageComponent,
   GlobalStatsListPageComponent,

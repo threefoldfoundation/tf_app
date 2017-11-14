@@ -33,7 +33,7 @@ from plugins.tff_backend.to.payment import NewTransactionTO, PendingTransactionT
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
-@rest('/users', 'get', Scopes.TEAM)
+@rest('/users', 'get', Scopes.TEAM, silent_result=True)
 @returns(dict)
 @arguments(page_size=(int, long), cursor=unicode, query=unicode, kyc_status=(int, long, NoneType))
 def api_search_users(page_size=50, cursor=None, query='', kyc_status=None):

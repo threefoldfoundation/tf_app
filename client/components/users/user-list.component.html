@@ -1,8 +1,8 @@
-<form (submit)="submit()" fxLayout="row" fxLayout.sm="column">
-  <md-form-field fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%">
-    <input type="search" name="search_users" [(ngModel)]="query.query" mdInput
+<form (ngSubmit)="submit()" fxLayout="row" fxLayout.sm="column">
+  <mat-form-field fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%">
+    <input type="search" name="search_users" [(ngModel)]="query.query" matInput
            [placeholder]="'tff.search' | translate" (ngModelChange)="submit()">
-  </md-form-field>
+  </mat-form-field>
   <md-select name="kyc_status" [(ngModel)]="query.kyc_status" (ngModelChange)="submit()"
              [placeholder]="'tff.kyc_status' | translate" fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%"
              fxFlexOffset="5%" fxFlexOffset.sm="0">
@@ -12,17 +12,17 @@
     </md-option>
   </md-select>
 </form>
-<md-nav-list>
-  <a *ngFor="let user of userList.results" [routerLink]="[user.username]" md-list-item>
-    <h4 mdLine>{{ getUserName(user) }}</h4>
-    <p mdLine *ngIf="getUserName(user) != user.username">
+<mat-nav-list>
+  <a *ngFor="let user of userList.results" [routerLink]="[user.username]" mat-list-item>
+    <h4 matLine>{{ getUserName(user) }}</h4>
+    <p matLine *ngIf="getUserName(user) != user.username">
       {{ user.username }}
     </p>
-    <p mdLine *ngIf="user.info?.validatedemailaddresses.length">
+    <p matLine *ngIf="user.info?.validatedemailaddresses.length">
       {{ user.info.validatedemailaddresses[0].emailaddress }}
     </p>
   </a>
-  <button md-button *ngIf="userList.more" (click)="loadMore()">
+  <button mat-button *ngIf="userList.more" (click)="loadMore()">
     {{ 'tff.load_more' | translate }}
   </button>
-</md-nav-list>
+</mat-nav-list>

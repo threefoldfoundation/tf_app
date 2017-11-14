@@ -9,8 +9,7 @@ import { GetTffProfileAction, GetUserAction } from '../../actions/threefold.acti
 import { getUser } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
-  selector: 'user-page',
+  selector: 'tff-user-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

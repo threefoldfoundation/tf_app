@@ -9,14 +9,13 @@ import { GetGlobalStatsAction, UpdateGlobalStatsAction } from '../../actions/thr
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 
 @Component({
-  moduleId: module.id,
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <global-stats-detail [globalStats]="globalStats$ | async"
-                         [status]="getStatus$ | async"
-                         [updateStatus]="updateStatus$ | async"
-                         (onSave)="save($event)"></global-stats-detail>`
+    <tff-global-stats-detail [globalStats]="globalStats$ | async"
+                             [status]="getStatus$ | async"
+                             [updateStatus]="updateStatus$ | async"
+                             (onSave)="save($event)"></tff-global-stats-detail>`
 })
 
 export class GlobalStatsDetailPageComponent implements OnInit {

@@ -5,8 +5,7 @@ import { Profile } from '../../../../its_you_online_auth/client/interfaces/user.
 import { KYCStatuses, SearchUsersQuery, UserList } from '../../interfaces/profile.interfaces';
 
 @Component({
-  moduleId: module.id,
-  selector: 'user-list',
+  selector: 'tff-user-list',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'user-list.component.html'

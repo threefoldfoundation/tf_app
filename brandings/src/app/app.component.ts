@@ -1,20 +1,20 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Platform } from 'ionic-angular';
-import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
-
+import { StatusBar } from '@ionic-native/status-bar';
+import { Store } from '@ngrx/store';
+import { Actions } from '@ngrx/effects';
 import { TranslateService } from '@ngx-translate/core';
-import { RogerthatService } from '../services/rogerthat.service';
-import { TodoListService } from '../services/todo-list.service';
-import { TodoListPageComponent } from '../pages/todo-list/todo-list-page.component';
+import { Platform } from 'ionic-angular';
+import { AgendaPageComponent } from '../pages/agenda/agenda-page.component';
 import { ErrorService } from '../pages/error.service';
-import { TodoListOverviewPageComponent } from '../pages/todo-list/todo-list-overview-page.component';
 import { GlobalStatsPageComponent } from '../pages/global-stats/global-stats-page.component';
-import { SeePageComponent } from '../pages/see/see-page.component';
 import { InvitePageComponent } from '../pages/referrals/invite-page.component';
 import { SetReferrerPageComponent } from '../pages/referrals/set-referrer-page.component';
-import { Actions } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
+import { SeePageComponent } from '../pages/see/see-page.component';
+import { TodoListOverviewPageComponent } from '../pages/todo-list/todo-list-overview-page.component';
+import { TodoListPageComponent } from '../pages/todo-list/todo-list-page.component';
+import { RogerthatService } from '../services/rogerthat.service';
+import { TodoListService } from '../services/todo-list.service';
 import { IAppState } from './app.state';
 
 @Component({
@@ -59,8 +59,9 @@ export class AppComponent implements OnInit {
           { tag: 'iyo_see', page: SeePageComponent },
           { tag: 'referrals_invite', page: InvitePageComponent },
           { tag: 'set_referrer', page: SetReferrerPageComponent },
+          { tag: 'agenda', page: AgendaPageComponent },
         ];
-        const page = pages.find(page => sha256(page.tag) === rogerthat.menuItem.hashedTag);
+        const page = pages.find(p => sha256(p.tag) === rogerthat.menuItem.hashedTag);
         if (page) {
           this.rootPage = page.page;
         } else {

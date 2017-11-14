@@ -1,4 +1,4 @@
-import { updateItem } from '../../../framework/client/ngrx/redux-utils';
+import { insertItem, updateItem } from '../../../framework/client/ngrx/redux-utils';
 import { apiRequestLoading, apiRequestSuccess } from '../../../framework/client/rpc/rpc.interfaces';
 import * as actions from '../actions/threefold.action';
 import { TffActions } from '../actions/threefold.action';
@@ -322,6 +322,93 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       };
     case actions.TffActionTypes.SET_KYC_STATUS_FAILED:
       return { ...state, setKYCStatus: action.payload };
+    case actions.TffActionTypes.GET_AGENDA_EVENTS:
+      return {
+        ...state,
+        agendaEventsStatus: apiRequestLoading
+      };
+    case actions.TffActionTypes.GET_AGENDA_EVENTS_COMPLETE:
+      return {
+        ...state,
+        agendaEvents: action.payload,
+        agendaEventsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_AGENDA_EVENTS_FAILED:
+      return {
+        ...state,
+        agendaEventsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_AGENDA_EVENT:
+      return {
+        ...state,
+        agendaEventStatus: apiRequestLoading
+      };
+    case actions.TffActionTypes.GET_AGENDA_EVENT_COMPLETE:
+      return {
+        ...state,
+        agendaEvent: action.payload,
+        agendaEventStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_AGENDA_EVENT_FAILED:
+      return {
+        ...state,
+        agendaEventStatus: action.payload,
+      };
+    case actions.TffActionTypes.RESET_AGENDA_EVENT:
+      return {
+        ...state,
+        createAgendaEventStatus: initialTffState.createAgendaEventStatus
+      };
+    case actions.TffActionTypes.CREATE_AGENDA_EVENT:
+      return {
+        ...state,
+        createAgendaEventStatus: apiRequestLoading
+      };
+    case actions.TffActionTypes.CREATE_AGENDA_EVENT_COMPLETE:
+      return {
+        ...state,
+        agendaEvent: action.payload,
+        agendaEvents: insertItem(state.agendaEvents, action.payload),
+        createAgendaEventStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.CREATE_AGENDA_EVENT_FAILED:
+      return {
+        ...state,
+        createAgendaEventStatus: action.payload,
+      };
+    case actions.TffActionTypes.UPDATE_AGENDA_EVENT:
+      return {
+        ...state,
+        updateAgendaEventStatus: apiRequestLoading
+      };
+    case actions.TffActionTypes.UPDATE_AGENDA_EVENT_COMPLETE:
+      return {
+        ...state,
+        agendaEvent: action.payload,
+        updateAgendaEventStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.UPDATE_AGENDA_EVENT_FAILED:
+      return {
+        ...state,
+        updateAgendaEventStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_EVENT_PARTICIPANTS:
+      return {
+        ...state,
+        eventParticipants: initialTffState.eventParticipants,
+        eventParticipantsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_EVENT_PARTICIPANTS_COMPLETE:
+      return {
+        ...state,
+        eventParticipants: action.payload,
+        eventParticipantsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_EVENT_PARTICIPANTS_FAILED:
+      return {
+        ...state,
+        eventParticipantsStatus: action.payload,
+      };
     default:
       return state;
   }

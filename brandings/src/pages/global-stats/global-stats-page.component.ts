@@ -22,8 +22,8 @@ export class GlobalStatsPageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.globalStats$ = this.store.let(getGlobalStats);
-    this.status$ = this.store.let(getGlobalStatsStatus);
+    this.globalStats$ = this.store.select(getGlobalStats);
+    this.status$ = this.store.select(getGlobalStatsStatus);
     this.store.dispatch(new GetGlobalStatsAction());
   }
 

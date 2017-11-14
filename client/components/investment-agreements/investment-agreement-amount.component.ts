@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 
 @Component({
-  moduleId: module.id,
-  selector: 'investment-agreement-amount',
+  selector: 'tff-investment-agreement-amount',
   preserveWhitespaces: false,
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,6 +19,6 @@ export class InvestmentAgreementAmountComponent {
   }
 
   getAmount() {
-    return this.currencyPipe.transform(this.amount, this.currency, false, this.currency === 'BTC' ? '1.8-8' : '1.2-2');
+    return this.currencyPipe.transform(this.amount, this.currency, 'code', this.currency === 'BTC' ? '1.8-8' : '1.2-2');
   }
 }

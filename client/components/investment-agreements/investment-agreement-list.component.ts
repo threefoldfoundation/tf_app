@@ -10,7 +10,6 @@ import {
 } from '../../interfaces/index';
 
 @Component({
-  moduleId: module.id,
   selector: 'tff-investment-agreements',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,

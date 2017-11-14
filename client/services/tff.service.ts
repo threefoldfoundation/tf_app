@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Profile } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
+import { AgendaEvent, EventParticipant, GetEventParticipantsPayload } from '../interfaces/agenda-events.interfaces';
 import {
   CreateTransactionPayload,
   GlobalStats,
@@ -14,6 +15,7 @@ import {
   TransactionList,
   WalletBalance
 } from '../interfaces/index';
+import { PaginatedResult } from '../interfaces/shared.interfaces';
 import { SearchUsersQuery, SetKYCStatusPayload, TffProfile, UserList } from '../interfaces/profile.interfaces';
 import { TffConfig } from './tff-config.service';
 
@@ -87,9 +89,32 @@ export class TffService {
   }
 
   createTransaction(payload: CreateTransactionPayload) {
-    let data: Partial<CreateTransactionPayload> = { ...payload };
+    const data: Partial<CreateTransactionPayload> = { ...payload };
     delete data.username;
     return this.http.post<Transaction>(`${TffConfig.API_URL}/users/${encodeURIComponent(payload.username)}/transactions`, data);
+  }
+
+  getAgendaEvents() {
+    return this.http.get<AgendaEvent[]>(`${TffConfig.API_URL}/agenda-events`);
+  }
+
+  getAgendaEvent(id: number) {
+    return this.http.get<AgendaEvent>(`${TffConfig.API_URL}/agenda-events/${id}`);
+  }
+
+  createAgendaEvent(event: AgendaEvent) {
+    return this.http.post<AgendaEvent>(`${TffConfig.API_URL}/agenda-events`, event);
+  }
+
+  updateAgendaEvent(event: AgendaEvent) {
+    return this.http.put<AgendaEvent>(`${TffConfig.API_URL}/agenda-events/${event.id}`, event);
+  }
+
+  getEventParticipants(payload: GetEventParticipantsPayload) {
+    let params = new HttpParams();
+    params = params.set('page_size', String(payload.page_size));
+    return this.http.get<PaginatedResult<EventParticipant>>(`${TffConfig.API_URL}/agenda-events/${payload.event_id}/participants`,
+      { params });
   }
 
   private _getQueryParams<T>(queryObject: T): HttpParams {

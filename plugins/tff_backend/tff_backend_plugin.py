@@ -26,7 +26,7 @@ from mcfw.restapi import rest_functions
 from mcfw.rpc import parse_complex_value
 from plugins.rogerthat_api.rogerthat_api_plugin import RogerthatApiPlugin
 from plugins.tff_backend import rogerthat_callbacks
-from plugins.tff_backend.api import investor, payment, nodes, global_stats, users, audit
+from plugins.tff_backend.api import investor, payment, nodes, global_stats, users, audit, agenda
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings, Roles
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler, \
@@ -64,7 +64,7 @@ class TffBackendPlugin(BrandingPlugin):
         yield Handler(url='/refresh/callback', handler=RefreshCallbackHandler)
         yield Handler(url='/qr', handler=JWTQrHandler)
         yield Handler(url='/qr/apple', handler=AppleReviewQrHandler)
-        authenticated_handlers = [nodes, investor, global_stats, users, audit]
+        authenticated_handlers = [nodes, investor, global_stats, users, audit, agenda]
         for _module in authenticated_handlers:
             for url, handler in rest_functions(_module, authentication=AUTHENTICATED):
                 yield Handler(url=url, handler=handler)
@@ -78,7 +78,8 @@ class TffBackendPlugin(BrandingPlugin):
             yield Handler(url='/admin/cron/tff_backend/check_nodes_online', handler=CheckNodesOnlineHandler)
 
     def get_client_routes(self):
-        return ['/orders<route:.*>', '/investment-agreements<route:.*>', '/global-stats<route:.*>', '/users<route:.*>']
+        return ['/orders<route:.*>', '/investment-agreements<route:.*>', '/global-stats<route:.*>', '/users<route:.*>',
+                '/agenda<route:.*>']
 
     def get_modules(self):
         perms = get_permissions_from_scopes(get_current_session().scopes)
@@ -87,6 +88,7 @@ class TffBackendPlugin(BrandingPlugin):
             yield Module(u'tff_investment_agreements', [], 2)
             yield Module(u'tff_global_stats', [], 3)
             yield Module(u'tff_users', [], 4)
+            yield Module(u'tff_agenda', [], 5)
 
     def get_permissions(self):
         return get_permission_strings(get_current_session().scopes)

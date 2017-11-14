@@ -12,7 +12,7 @@ import { TodoListService } from '../../services/todo-list.service';
 
 export class TodoListPageComponent implements OnInit {
   todoList: TodoList;
-  isRoot: boolean = false;
+  isRoot = false;
 
   constructor(private navParams: NavParams, private platform: Platform, private todoListService: TodoListService) {
   }
