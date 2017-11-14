@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
 import { Actions } from '@ngrx/effects';
@@ -76,7 +76,6 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.actions$.withLatestFrom(this.store).subscribe(([ action, store ]) => {
-      NgZone.assertInAngularZone();
       // Useful for debugging
       console.log('Dispatching action', action, store);
     });
