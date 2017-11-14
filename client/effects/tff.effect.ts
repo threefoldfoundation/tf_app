@@ -49,7 +49,7 @@ export class TffEffects {
   @Effect() getGlobalStatsList$ = this.actions$
     .ofType<actions.GetGlobalStatsListAction>(actions.TffActionTypes.GET_GLOBAL_STATS_LIST)
     .withLatestFrom(this.store.select(getGlobalStatsList))
-    .switchMap(action => this.tffService.getGlobalStatsList()
+    .switchMap(() => this.tffService.getGlobalStatsList()
       .map(payload => new actions.GetGlobalStatsListCompleteAction(payload))
       .catch(err => handleApiError(actions.GetGlobalStatsListFailedAction, err)));
 
@@ -94,6 +94,36 @@ export class TffEffects {
     .switchMap(action => this.tffService.createTransaction(action.payload)
       .map(payload => new actions.CreateTransactionCompleteAction(payload))
       .catch(err => handleApiError(actions.CreateTransactionFailedAction, err)));
+
+  @Effect() getAgendaEvents$ = this.actions$
+    .ofType<actions.GetAgendaEventsAction>(actions.TffActionTypes.GET_AGENDA_EVENTS)
+    .switchMap(() => this.tffService.getAgendaEvents()
+      .map(payload => new actions.GetAgendaEventsCompleteAction(payload))
+      .catch(err => handleApiError(actions.GetAgendaEventsFailedAction, err)));
+
+  @Effect() getAgendaEvent$ = this.actions$
+    .ofType<actions.GetAgendaEventAction>(actions.TffActionTypes.GET_AGENDA_EVENT)
+    .switchMap(action => this.tffService.getAgendaEvent(action.payload)
+      .map(payload => new actions.GetAgendaEventCompleteAction(payload))
+      .catch(err => handleApiError(actions.GetAgendaEventFailedAction, err)));
+
+  @Effect() updateAgendaEvent$ = this.actions$
+    .ofType<actions.UpdateAgendaEventAction>(actions.TffActionTypes.UPDATE_AGENDA_EVENT)
+    .switchMap(action => this.tffService.updateAgendaEvent(action.payload)
+      .map(result => new actions.UpdateAgendaEventCompleteAction(result))
+      .catch(err => handleApiError(actions.UpdateAgendaEventFailedAction, err)));
+
+  @Effect() createAgendaEvent$ = this.actions$
+    .ofType<actions.CreateAgendaEventAction>(actions.TffActionTypes.CREATE_AGENDA_EVENT)
+    .switchMap(action => this.tffService.createAgendaEvent(action.payload)
+      .map(result => new actions.CreateAgendaEventCompleteAction(result))
+      .catch(err => handleApiError(actions.CreateAgendaEventFailedAction, err)));
+
+  @Effect() getEventPresence$ = this.actions$
+    .ofType<actions.GetEventParticipantsAction>(actions.TffActionTypes.GET_EVENT_PARTICIPANTS)
+    .switchMap(action => this.tffService.getEventParticipants(action.payload)
+      .map(result => new actions.GetEventParticipantsCompleteAction(result))
+      .catch(err => handleApiError(actions.GetEventParticipantsFailedAction, err)));
 
   constructor(private actions$: Actions<actions.TffActions>,
               private tffService: TffService,

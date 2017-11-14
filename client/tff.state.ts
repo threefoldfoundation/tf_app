@@ -32,3 +32,12 @@ export const getBalanceStatus = createSelector(getTffState, s => s.balanceStatus
 export const getUserTransactions = createSelector(getTffState, s => s.userTransactions);
 export const getUserTransactionsStatus = createSelector(getTffState, s => s.userTransactionsStatus);
 export const createTransactionStatus = createSelector(getTffState, s => s.createTransactionStatus);
+
+export const getAgendaEvents = createSelector(getTffState, s => s.agendaEvents);
+export const getAgendaEventsStatus = createSelector(getTffState, s => s.agendaEventsStatus);
+export const getAgendaEvent = createSelector(getTffState, s => s.agendaEvent);
+export const getAgendaEventStatus = createSelector(getTffState, s => s.agendaEventStatus);
+export const createAgendaEventStatus = createSelector(getTffState, s => s.createAgendaEventStatus);
+export const updateAgendaEventStatus = createSelector(getTffState, s => s.updateAgendaEventStatus);
+export const getEventParticipants = createSelector(getTffState, s => s.eventParticipants);
+export const getEventParticipantsStatus = createSelector(getTffState, s => s.eventParticipantsStatus);

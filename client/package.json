@@ -1,0 +1,7 @@
+{
+  "name": "tff_backend",
+  "dependencies": {
+    "marked": "^0.3.6",
+    "@types/marked": "^0.3.0"
+  }
+}
