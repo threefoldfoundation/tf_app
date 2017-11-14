@@ -22,9 +22,9 @@ export class EventParticipantsComponent implements OnChanges {
   };
 
   tabs = [
-    { label: 'tff.going', value: EventPresenceStatus.PRESENT },
-    { label: 'tff.not_going', value: EventPresenceStatus.ABSENT },
-    { label: 'tff.wants_recording', value: this.wantsRecording },
+    { label: 'tff.going_x', value: EventPresenceStatus.PRESENT },
+    { label: 'tff.not_going_x', value: EventPresenceStatus.ABSENT },
+    { label: 'tff.wants_recording_x', value: this.wantsRecording },
   ];
 
   public ngOnChanges(changes: SimpleChanges): void {

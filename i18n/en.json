@@ -54,6 +54,7 @@
     "event_type": "Event type",
     "global_stats": "Global stats",
     "going": "Going",
+    "going_x": "Going ({{ amount }})",
     "hour": "Hour",
     "i_am_a_member": "I am a member",
     "i_am_new": "I am new here",
@@ -73,6 +74,7 @@
     "no_transactions_yet": "No transactions yet.",
     "node_order_x": "Node order {{ orderId }}",
     "not_going": "Not going",
+    "not_going_x": "Not going ({{ amount }})",
     "order_detail": "Order detail",
     "order_time": "Order time",
     "orders": "Orders",
@@ -118,7 +120,7 @@
     "video_call": "Video call",
     "waiting_approval": "Waiting for approval",
     "wallet": "Wallet",
-    "wants_recording": "Wants recording",
+    "wants_recording_x": "Wants recording ({{ amount }})",
     "x_tokens": "{{ count }} tokens",
     "x_tokens_will_be_assigned": "{{ tokens }} tokens will be assigned to this user."
   }

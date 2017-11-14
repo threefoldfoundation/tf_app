@@ -1,5 +1,5 @@
 <md-tab-group>
-  <md-tab [label]="tab.label | translate" *ngFor="let tab of tabs">
+  <md-tab [label]="tab.label | translate : { amount: presence[tab.value].length }" *ngFor="let tab of tabs">
     <md-nav-list *ngIf="status.success">
       <a *ngFor="let userPresence of presence[tab.value]; trackBy: trackByUsername"
          [routerLink]="'/users/' + userPresence.username" md-list-item target="_blank">
