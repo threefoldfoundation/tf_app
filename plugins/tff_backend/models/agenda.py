@@ -45,7 +45,7 @@ class Event(NdbModel):
 
     @classmethod
     def list(cls):
-        return cls.query().order(-Event.start_timestamp)
+        return cls.query().order(Event.start_timestamp)
 
     @classmethod
     def list_past(cls, timestamp):
