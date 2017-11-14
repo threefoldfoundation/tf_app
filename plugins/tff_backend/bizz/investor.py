@@ -104,7 +104,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         logging.info('User %s wants to invest', email)
         version = db.Key(steps[0].message_flow_id).name()
         currency = get_step_value(steps, 'message_get_currency').replace('_cur', '')
-        if version in (BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED):
+        if version.startswith(BUY_TOKENS_FLOW_V3):
             amount = float(get_step_value(steps, 'message_get_order_size_ITO').replace(',', '.'))
             token_count_float = get_token_count(currency, amount)
         else:

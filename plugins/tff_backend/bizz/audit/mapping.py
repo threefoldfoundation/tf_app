@@ -15,6 +15,7 @@
 #
 # @@license_version:1.3@@
 from enum import Enum
+from plugins.tff_backend.models.agenda import Event
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.models.investor import InvestmentAgreement
@@ -24,12 +25,14 @@ class AuditLogType(Enum):
     UPDATE_GLOBAL_STATS = 'update_global_stats'
     UPDATE_INVESTMENT_AGREEMENT = 'update_investment_agreement'
     UPDATE_NODE_ORDER = 'update_node_order'
+    UPDATE_AGENDA_EVENT = 'update_agenda_event'
 
 
 AuditLogMapping = {
     AuditLogType.UPDATE_GLOBAL_STATS: GlobalStats,
     AuditLogType.UPDATE_INVESTMENT_AGREEMENT: InvestmentAgreement,
     AuditLogType.UPDATE_NODE_ORDER: NodeOrder,
+    AuditLogType.UPDATE_AGENDA_EVENT: Event,
 }
 
 AuditLogMappingTypes = tuple(type(v) for v in AuditLogMapping.values())

@@ -23,7 +23,7 @@ from plugins.tff_backend.bizz.global_stats import list_global_stats, get_global_
 from plugins.tff_backend.to.global_stats import GlobalStatsTO
 
 
-@rest('/global-stats', 'get', Scopes.TEAM)
+@rest('/global-stats', 'get', Scopes.TEAM, silent_result=True)
 @returns([GlobalStatsTO])
 @arguments()
 def api_list_global_stats():

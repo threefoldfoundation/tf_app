@@ -7,12 +7,15 @@ import {
   MdButtonModule,
   MdCardModule,
   MdChipsModule,
+  MdDatepickerModule,
   MdIconModule,
   MdInputModule,
   MdListModule,
+  MdNativeDateModule,
   MdProgressSpinnerModule,
   MdSelectModule,
-  MdSlideToggleModule
+  MdSlideToggleModule,
+  MdTabsModule
 } from '@angular/material';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
@@ -26,6 +29,7 @@ import { AddToolbarItemAction } from '../../framework/client/toolbar/actions/ind
 import { ToolbarItemTypes } from '../../framework/client/toolbar/interfaces/index';
 import { TffEffects } from './effects/tff.effect';
 import './operators';
+import { MarkdownPipe } from './pipes/markdown.pipe';
 import { TimestampPipe } from './pipes/timestamp.pipe';
 import { tffReducer } from './reducers/tff.reducer';
 import { TFF_COMPONENTS, TFF_PROVIDERS } from './services/index';
@@ -33,7 +37,7 @@ import { TffRoutes } from './tff.routes';
 
 const MATERIAL_IMPORTS = [
   MdButtonModule, MdInputModule, MdListModule, MdIconModule, MdSelectModule, MdChipsModule, MdSlideToggleModule, MdProgressSpinnerModule,
-  MdCardModule
+  MdCardModule, MdDatepickerModule, MdNativeDateModule, MdTabsModule
 ];
 
 @NgModule({
@@ -53,6 +57,7 @@ const MATERIAL_IMPORTS = [
   declarations: [
     TFF_COMPONENTS,
     TimestampPipe,
+    MarkdownPipe,
   ],
   providers: [
     DatePipe,

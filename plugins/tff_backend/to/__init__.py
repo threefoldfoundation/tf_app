@@ -19,14 +19,6 @@ from framework.to import TO
 from mcfw.properties import unicode_property, bool_property, typed_property
 
 
-def convert_to_unicode(v):
-    if v is None:
-        return None
-    if isinstance(v, unicode):
-        return v
-    return unicode(v)
-
-
 class PaginatedResultTO(TO):
     cursor = unicode_property('cursor')
     more = bool_property('more')

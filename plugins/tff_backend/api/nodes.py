@@ -27,7 +27,7 @@ from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
-@rest('/orders', 'get', Scopes.TEAM)
+@rest('/orders', 'get', Scopes.TEAM, silent_result=True)
 @returns(NodeOrderListTO)
 @arguments(page_size=(int, long), cursor=unicode, query=unicode, status=(int, long))
 def api_get_node_orders(page_size=20, cursor=None, query=None, status=None):

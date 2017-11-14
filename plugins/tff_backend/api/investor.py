@@ -31,7 +31,7 @@ from plugins.tff_backend.to.investor import InvestmentAgreementListTO, Investmen
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
-@rest('/investment-agreements', 'get', Scopes.TEAM)
+@rest('/investment-agreements', 'get', Scopes.TEAM, silent_result=True)
 @returns(InvestmentAgreementListTO)
 @arguments(page_size=(int, long), cursor=unicode, query=unicode, status=(int, long))
 def api_get_investment_agreements(page_size=20, cursor=None, query=None, status=None):

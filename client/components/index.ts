@@ -5,3 +5,4 @@ export * from './api-request-status.component';
 export * from './iyo-see.component';
 export * from './users/index';
 export * from './transactions/index';
+export * from './agenda/index';
