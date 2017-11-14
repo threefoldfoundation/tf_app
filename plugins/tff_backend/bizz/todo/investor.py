@@ -21,23 +21,19 @@ import logging
 class InvestorSteps(object):
     DOWNLOAD = 'DOWNLOAD'
     ITO_INVITES = 'ITO_INVITES'
-    ITO_INVITES_ACCEPTED = 'ITO_INVITES_ACCEPTED'
     FLOW_INIT = 'FLOW_INIT'
     FLOW_AMOUNT = 'FLOW_AMOUNT'
     FLOW_SIGN = 'FLOW_SIGN'
-    ITO_INVESTORS = 'ITO_INVESTORS'
     PAY = 'PAY'
     PAY_PROCESS = 'PAY_PROCESS'
     ASSIGN_TOKENS = 'ASSIGN_TOKENS'
 
     DESCRIPTIONS = {
         DOWNLOAD: 'Download the ThreeFold app',
-        ITO_INVITES: 'Get invited to join the \'threefold - invited\' group on itsyou.online',
-        ITO_INVITES_ACCEPTED: 'Accept invitation in IYO',
-        FLOW_INIT: 'Initiate “join ITO” in the TF app',
+        ITO_INVITES: 'Register using an invitation code',
+        FLOW_INIT: 'Initiate “purchase iTokens” in the TF app',
         FLOW_AMOUNT: 'Select currency and how much you want to invest',
-        FLOW_SIGN: 'Sign the ITO agreement',
-        ITO_INVESTORS: 'Get added to the \'investors\' group on itsyou.online',
+        FLOW_SIGN: 'Sign the purchase agreement',
         PAY: 'We send you payment information',
         PAY_PROCESS: 'We process the payment',
         ASSIGN_TOKENS: 'Tokens are assigned',
@@ -47,11 +43,9 @@ class InvestorSteps(object):
     def all(cls):
         return [cls.DOWNLOAD,
                 cls.ITO_INVITES,
-                cls.ITO_INVITES_ACCEPTED,
                 cls.FLOW_INIT,
                 cls.FLOW_AMOUNT,
                 cls.FLOW_SIGN,
-                cls.ITO_INVESTORS,
                 cls.PAY,
                 cls.PAY_PROCESS,
                 cls.ASSIGN_TOKENS]
