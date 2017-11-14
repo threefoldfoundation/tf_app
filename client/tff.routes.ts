@@ -160,7 +160,7 @@ export const TffRoutes: Route[] = [
       {
         path: 'details',
         canActivate: [ MetaGuard ],
-        data: { meta: { title: 'tff.user_details' } },
+        data: { meta: { title: 'tff.event_details' } },
         component: AgendaEventDetailPageComponent,
       },
       {
