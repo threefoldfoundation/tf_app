@@ -19,38 +19,38 @@
         </a>
       </div>
     </div>
-      <md-form-field>
-      <textarea mdInput name="mrz1" [(ngModel)]="data.Passport.Mrz1" [placeholder]="'tff.mrz1' | translate"
+      <mat-form-field>
+      <textarea matInput name="mrz1" [(ngModel)]="data.Passport.Mrz1" [placeholder]="'tff.mrz1' | translate"
                 rows="3" required></textarea>
-      </md-form-field>
-      <md-form-field>
-      <textarea mdInput name="mrz2" [(ngModel)]="data.Passport.Mrz2" [placeholder]="'tff.mrz2' | translate"
+      </mat-form-field>
+      <mat-form-field>
+      <textarea matInput name="mrz2" [(ngModel)]="data.Passport.Mrz2" [placeholder]="'tff.mrz2' | translate"
                 rows="3" required></textarea>
-      </md-form-field>
+      </mat-form-field>
   </form>
   <div class="kyc-buttons">
-    <button md-raised-button *ngIf="allowedStatuses.includes(kyc.PENDING_SUBMIT)" (click)="submit(kyc.PENDING_SUBMIT)"
+    <button mat-raised-button *ngIf="allowedStatuses.includes(kyc.PENDING_SUBMIT)" (click)="submit(kyc.PENDING_SUBMIT)"
             [disabled]="updateStatus.loading">
-      <md-icon>replay</md-icon>
+      <mat-icon>replay</mat-icon>
       {{ 'tff.resend_flow' | translate }}
     </button>
-    <button md-raised-button *ngIf="allowedStatuses.includes(kyc.INFO_SET)" (click)="submit(kyc.INFO_SET)"
+    <button mat-raised-button *ngIf="allowedStatuses.includes(kyc.INFO_SET)" (click)="submit(kyc.INFO_SET)"
             [disabled]="updateStatus.loading">
-      <md-icon>save</md-icon>
+      <mat-icon>save</mat-icon>
       {{ 'tff.set_information' | translate }}
     </button>
-    <button md-raised-button *ngIf="allowedStatuses.includes(kyc.PENDING_APPROVAL)"
+    <button mat-raised-button *ngIf="allowedStatuses.includes(kyc.PENDING_APPROVAL)"
             (click)="submit(kyc.PENDING_APPROVAL)" [disabled]="updateStatus.loading">
       {{ 'tff.verify_via_trulioo' | translate }}
     </button>
-    <button md-raised-button *ngIf="allowedStatuses.includes(kyc.VERIFIED)" (click)="submit(kyc.VERIFIED)"
+    <button mat-raised-button *ngIf="allowedStatuses.includes(kyc.VERIFIED)" (click)="submit(kyc.VERIFIED)"
             [disabled]="updateStatus.loading">
-      <md-icon>check</md-icon>
+      <mat-icon>check</mat-icon>
       {{ 'tff.mark_as_verified' | translate }}
     </button>
-    <button md-raised-button color="warn" *ngIf="allowedStatuses.includes(kyc.DENIED)" (click)="submit(kyc.DENIED)"
+    <button mat-raised-button color="warn" *ngIf="allowedStatuses.includes(kyc.DENIED)" (click)="submit(kyc.DENIED)"
             [disabled]="updateStatus.loading">
-      <md-icon>close</md-icon>
+      <mat-icon>close</mat-icon>
       {{ 'tff.deny_kyc' | translate }}
     </button>
   </div>
@@ -58,29 +58,29 @@
   <p *ngIf="profile.kyc.api_calls.length === 0">
     <i>{{ 'tff.no_verified_information_yet' | translate }}</i>
   </p>
-  <md-nav-list>
-    <a md-list-item *ngFor="let apiCall of profile.kyc.api_calls" [href]="getUrl(apiCall)" target="_blank">
-      <h4 mdLine>{{ apiCall.timestamp | date : 'short' }}</h4>
-      <p mdLine>{{ 'tff.' + apiCall.result | translate }}</p>
+  <mat-nav-list>
+    <a mat-list-item *ngFor="let apiCall of profile.kyc.api_calls" [href]="getUrl(apiCall)" target="_blank">
+      <h4 matLine>{{ apiCall.timestamp | date : 'short' }}</h4>
+      <p matLine>{{ 'tff.' + apiCall.result | translate }}</p>
     </a>
-  </md-nav-list>
+  </mat-nav-list>
   <tff-kyc-updates [updates]="profile.kyc.updates"></tff-kyc-updates>
   <!-- Might be useful in the future-->
   <!--
-  <md-accordion fxLayout="column" fxLayoutAlign="space-between center" fxFlex="40" fxFlex.md="50" fxFlex.sm="100">
-    <md-expansion-panel *ngFor="let apiCall of profile.kyc.api_calls" class="full-width">
-      <md-expansion-panel-header>
-        <md-panel-title>
+  <mat-accordion fxLayout="column" fxLayoutAlign="space-between center" fxFlex="40" fxFlex.mat="50" fxFlex.sm="100">
+    <mat-expansion-panel *ngFor="let apiCall of profile.kyc.api_calls" class="full-width">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
           {{ apiCall.timestamp | date : 'short' }} - {{ 'tff.' + apiCall.information.Record.RecordStatus | translate
           }}
-        </md-panel-title>
-        <md-panel-description>
+        </mat-panel-title>
+        <mat-panel-description>
           {{ apiCall.information.CountryCode }}
-        </md-panel-description>
-      </md-expansion-panel-header>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
 
       <tff-trulioo-information [record]="apiCall.information.Record"></tff-trulioo-information>
-    </md-expansion-panel>
-  </md-accordion>
+    </mat-expansion-panel>
+  </mat-accordion>
   -->
 </div>
