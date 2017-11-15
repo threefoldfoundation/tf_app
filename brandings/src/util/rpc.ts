@@ -1,10 +1,10 @@
-import { ApiCallResult } from '../services/rogerthat.service';
 import { Observable } from 'rxjs/Observable';
 import { ApiError, ApiRequestStatus } from '../interfaces/rpc.interfaces';
+import { ApiCallResult } from '../services/rogerthat.service';
 
 export function transformErrorResponse(response: ApiCallResult): ApiRequestStatus {
   const apiError: ApiError = {
-    error: response.error,
+    error: <string>response.error,
     data: response.result ? JSON.parse(response.result) : null,
   };
   return {
