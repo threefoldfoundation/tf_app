@@ -86,7 +86,7 @@ def audit_log(audit_type, key_args, data, user_id=None):
     if isinstance(audit_type, Enum):
         audit_type = audit_type.value
     data_ = {k: data[k].to_dict() if isinstance(data[k], TO) else data[k] for k in data}
-    return AuditLog(audit_type=audit_type.value, reference=reference, user_id=user_id, data=data_).put_async()
+    return AuditLog(audit_type=audit_type, reference=reference, user_id=user_id, data=data_).put_async()
 
 
 def list_audit_logs(page_size, cursor):

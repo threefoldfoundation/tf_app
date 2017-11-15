@@ -67,10 +67,7 @@ def detect_text(base64_image):
         raise BusinessException('Error while detecting text: %s\n%s', response.status_code, response.content)
     logging.debug('Response from Google vision: %s', response.content)
     response_content = json.loads(response.content)
-    if 'responses' in response_content and response_content['responses']:
-        text_annotations = response_content.get('responses')[0].get('textAnnotations', [])
-    else:
-        text_annotations = []
+    text_annotations = response_content.get('responses')[0].get('textAnnotations', [])
     return [TextAnnotations.from_dict(text_annotation) for text_annotation in text_annotations]
 
 
@@ -92,9 +89,10 @@ def process_kyc_result(profile_key):
     for prop in picture_properties:
         if prop in profile.kyc.pending_information.data.get('Passport', {}):
             text_annotations = detect_text_by_url(profile.kyc.pending_information.data['Passport'][prop])
-            mrz = _get_mrz_from_text(text_annotations[0].description)
-            if mrz:
-                break
+            if text_annotations:
+                mrz = _get_mrz_from_text(text_annotations[0].description)
+                if mrz:
+                    break
     if mrz:
         deferred.defer(_store_mrz, profile.key, mrz[0], mrz[1])
     else:
