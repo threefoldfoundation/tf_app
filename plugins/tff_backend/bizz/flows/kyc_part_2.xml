@@ -22,7 +22,7 @@
                 mode="date" unit="&lt;value/&gt;"/>
         {% elif step.type == 'PhotoUploadWidget' %}
         <widget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="PhotoUploadWidget"
-                quality="best" gallery="false" camera="true"/>
+                quality="2000000" gallery="false" camera="true"/>
         {% elif step.type == 'SelectSingleWidget' %}
         <widget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="SelectSingleWidget">
           {% for choice in step.choices %}

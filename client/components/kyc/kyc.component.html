@@ -6,13 +6,13 @@
   <form *ngIf="allowedStatuses.includes(kyc.INFO_SET)" fxLayout="column" #form="ngForm">
     <!-- todo: add every possible field (possibly dynamically) -->
     <div *ngIf="profile.kyc.pending_information.data?.Passport" fxLayout="row">
-      <div class="picture-container">
+      <div class="picture-container" *ngIf="profile.kyc.pending_information.data.Passport.Mrz1Picture">
         <p>{{ 'tff.front_picture' | translate }}</p>
         <a [href]="profile.kyc.pending_information.data.Passport.Mrz1Picture" target="_blank">
           <img [src]="profile.kyc.pending_information.data.Passport.Mrz1Picture">
         </a>
       </div>
-      <div class="picture-container">
+      <div class="picture-container" *ngIf="profile.kyc.pending_information.data.Passport.Mrz2Picture">
         <p>{{ 'tff.back_picture' | translate }}</p>
         <a [href]="profile.kyc.pending_information.data.Passport.Mrz2Picture" target="_blank">
           <img [src]="profile.kyc.pending_information.data.Passport.Mrz2Picture">
@@ -20,12 +20,10 @@
       </div>
     </div>
       <mat-form-field>
-      <textarea matInput name="mrz1" [(ngModel)]="data.Passport.Mrz1" [placeholder]="'tff.mrz1' | translate"
-                rows="3" required></textarea>
+        <input matInput name="mrz1" [(ngModel)]="data.Passport.Mrz1" [placeholder]="'tff.mrz1' | translate" required>
       </mat-form-field>
       <mat-form-field>
-      <textarea matInput name="mrz2" [(ngModel)]="data.Passport.Mrz2" [placeholder]="'tff.mrz2' | translate"
-                rows="3" required></textarea>
+        <input matInput name="mrz2" [(ngModel)]="data.Passport.Mrz2" [placeholder]="'tff.mrz2' | translate" required>
       </mat-form-field>
   </form>
   <div class="kyc-buttons">

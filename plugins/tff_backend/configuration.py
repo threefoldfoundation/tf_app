@@ -86,3 +86,4 @@ class TffConfiguration(TO):
     intercom_admin_id = long_property('intercom_admin_id')
     cloudstorage_encryption_key = unicode_property('cloudstorage_encryption_key')
     trulioo = typed_property('trulioo', TruliooConfiguration)
+    cloud_vision_api_key = unicode_property('cloud_vision_api_key')

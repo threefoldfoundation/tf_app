@@ -19,6 +19,8 @@ import json
 import logging
 from collections import defaultdict
 
+from google.appengine.ext import deferred
+
 from mcfw.consts import DEBUG
 from mcfw.properties import object_factory
 from mcfw.rpc import arguments, returns
@@ -28,6 +30,7 @@ from plugins.rogerthat_api.to.messaging.forms import FormResultTO, UnicodeWidget
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     TYPE_FLOW, FlowCallbackResultTypeTO
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.bizz.kyc.ocr import process_kyc_result
 from plugins.tff_backend.bizz.rogerthat import create_error_message
 from plugins.tff_backend.bizz.user import get_tff_profile, generate_kyc_flow
 from plugins.tff_backend.models.user import KYCStatus, KYCDataFields
@@ -76,6 +79,7 @@ def kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
                result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     # Get all information
     datafields = defaultdict(dict)
+    should_process_with_ocr = False
     for step in steps:
         step_id_split = step.step_id.split('_')
         if step_id_split[0] == 'message':
@@ -92,6 +96,7 @@ def kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
                     # Mrz1 and Mrz2 need to be manually set by admins by copying the MRZ from the pics on the dashboard.
                     if prop in ('Mrz1', 'Mrz2'):
                         prop += 'Picture'
+                        should_process_with_ocr = True
                     datafields[category][prop] = step.form_result.result.value.strip()
                 elif isinstance(step.form_result.result, LongWidgetResultTO):
                     # date step
@@ -125,6 +130,8 @@ def kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
     profile.kyc.set_status(KYCStatus.SUBMITTED.value, username)
     profile.kyc.verified_information = KYCDataFields()
     profile.put()
+    if should_process_with_ocr:
+        deferred.defer(process_kyc_result, profile.key)
 
 
 def _validate_kyc_status(username):

@@ -89,6 +89,7 @@ def flow_member_result(rt_settings, request_id, message_flow_run_id, member, ste
 
     f = FMR_TAG_MAPPING.get(parse_to_human_readable_tag(tag))
     if not f:
+        logging.info('[tff] Ignoring flow_member_result with tag %s', tag)
         return None
 
     result = f(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
