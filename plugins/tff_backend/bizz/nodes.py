@@ -42,9 +42,17 @@ def get_node_status(node_id):
     result = urlfetch.fetch(url=u"https://orc.threefoldtoken.com/nodes/%s" % node_id, headers=headers, deadline=10)
     status = result.status_code  # type: int
     content = result.content  # type: unicode
+
+    if status == 404:
+        return u'not_found'
+
     if status != 200:
+        if 400 <= status < 500:
+            exception_class = deferred.PermanentTaskFailure
+        else:
+            exception_class = Exception
         msg = 'get_node_status returned status code %s for node_id %s\nContent: %s' % (status, node_id, content)
-        raise Exception(msg)
+        raise exception_class(msg)
 
     return json.loads(content)['status']
 
