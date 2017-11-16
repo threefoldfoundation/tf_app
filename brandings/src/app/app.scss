@@ -37,3 +37,15 @@
     background-color: map-get($colors, primary);
   }
 }
+
+.agenda-toolbar h2, .agenda-toolbar p {
+  color: #fff;
+}
+
+.agenda-toolbar {
+  padding: 24px 24px 12px;
+}
+
+.agenda-icon {
+  font-size: 26px;
+}

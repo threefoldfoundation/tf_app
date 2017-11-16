@@ -15,5 +15,5 @@ import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 })
 export class ApiRequestStatusComponent {
   @Input() status: ApiRequestStatus;
-  @Input() size: string = '36px';
+  @Input() size = '36px';
 }

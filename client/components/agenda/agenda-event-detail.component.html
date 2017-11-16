@@ -75,9 +75,9 @@
       <mat-card-header>
         <mat-card-title><h3>{{ event.title }}</h3></mat-card-title>
         <mat-card-subtitle>
-          <p>{{ 'tff.starts_at_x' | translate : { timestamp: getFormattedDate(event.start_timestamp) } }}</p>
+          <p>{{ 'tff.from_x' | translate : { timestamp: getFormattedDate(event.start_timestamp) } }}</p>
           <p *ngIf="event.end_timestamp">
-            {{ 'tff.ends_at_x' | translate : { timestamp: getFormattedDate(event.end_timestamp) } }}
+            {{ 'tff.till_x' | translate : { timestamp: getFormattedDate(event.end_timestamp) } }}
           </p>
         </mat-card-subtitle>
       </mat-card-header>
