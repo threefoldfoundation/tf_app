@@ -28,6 +28,7 @@ from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_usernam
 from plugins.tff_backend.consts.investor import INVESTMENT_AGREEMENT_SEARCH_INDEX
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import NAMESPACE
+from plugins.tff_backend.utils.search import remove_all_from_index
 
 INVESTMENT_INDEX = search.Index(INVESTMENT_AGREEMENT_SEARCH_INDEX, namespace=NAMESPACE)
 
@@ -43,6 +44,7 @@ def get_investment_agreement(agreement_id):
 
 
 def index_all_investment_agreements():
+    remove_all_from_index(INVESTMENT_INDEX)
     run_job(_get_all_investment_agreements, [], multi_index_investment_agreement, [], mode=MODE_BATCH, batch_size=200)
 
 
