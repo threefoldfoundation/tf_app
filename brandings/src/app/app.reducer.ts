@@ -1,5 +1,5 @@
 import { BrandingActions, BrandingActionTypes } from '../actions/branding.actions';
-import { EventPresence } from '../interfaces/agenda.interfaces';
+import { EventPresence, EventPresenceStatus } from '../interfaces/agenda.interfaces';
 import { SetReferralResult } from '../interfaces/referrals.interfaces';
 import { apiRequestLoading, apiRequestSuccess } from '../interfaces/rpc.interfaces';
 import { IBrandingState, initialState } from '../state/app.state';
@@ -86,9 +86,19 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
         eventPresenceStatus: action.payload
       };
     case BrandingActionTypes.UPDATE_EVENT_PRESENCE:
+      let newPresentCount = state.eventPresence!.present_count;
+      if (action.payload.status === EventPresenceStatus.PRESENT && state.eventPresence!.status !== EventPresenceStatus.PRESENT) {
+        newPresentCount += 1;
+      } else if (action.payload.status === EventPresenceStatus.ABSENT && state.eventPresence!.status === EventPresenceStatus.PRESENT) {
+        newPresentCount -= 1;
+      }
       return {
         ...state,
         updateEventPresenceStatus: apiRequestLoading,
+        eventPresence: {
+          ...state.eventPresence!,
+          present_count: newPresentCount,
+        }
       };
     case BrandingActionTypes.UPDATE_EVENT_PRESENCE_COMPLETE:
       return {
