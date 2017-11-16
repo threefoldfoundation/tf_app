@@ -134,22 +134,21 @@ def _order_node(order_key, user_email, app_id, steps):
                                         address=shipping_address)
     socket_step = get_step(steps, 'message_socket')
     socket = socket_step and socket_step.answer_id.replace('button_', '')
+
+    # Only one node is allowed per user, and one per location
+    if NodeOrder.has_order_for_user_or_location(app_user, billing_info.address):
+        logging.info('User already has a node order, sending abort message')
+        msg = u'Dear ThreeFold Member, we sadly cannot grant your request to host an additional ThreeFold Node:' \
+              u' We are currently only allowing one Node to be hosted per ThreeFold Member and location.' \
+              u' This will allow us to build a bigger base and a more diverse Grid.'
+        subject = u'Your ThreeFold Node request'
+        send_message_and_email(app_user, msg, subject)
+        return
+
     # Check if user has invested >= 120 tokens
     paid_orders = InvestmentAgreement.list_by_status_and_user(app_user, InvestmentAgreement.STATUS_PAID)
     total_tokens = sum([o.token_count_float for o in paid_orders])
     can_host = total_tokens >= REQUIRED_TOKEN_COUNT_TO_HOST
-    if can_host:
-        # Check if user has no previous node order. If so, send message stating that.
-        active_orders = [o for o in NodeOrder.list_by_user(app_user) if o.status != NodeOrderStatus.CANCELED]
-        can_host = len(active_orders) == 0
-        if not can_host:
-            logging.info('User already has a node order, sending abort message')
-            msg = u'Dear ThreeFold Member, we sadly cannot grant your request to host an additional ThreeFold Node:' \
-                  u' We are currently only allowing one Node to be hosted per ThreeFold Member and location.' \
-                  u' This will allow us to build a bigger base and a more diverse Grid.'
-            subject = u'Your ThreeFold Node request'
-            send_message_and_email(app_user, msg, subject)
-            return
 
     def trans():
         logging.debug('Storing order in the database')
@@ -170,6 +169,7 @@ def _order_node(order_key, user_email, app_id, steps):
             logging.info('User has not invested more than %s tokens, an admin needs to approve this order manually.',
                          REQUIRED_TOKEN_COUNT_TO_HOST)
             deferred.defer(_inform_support_of_new_node_order, order_key.id(), _transactional=True)
+        deferred.defer(set_hoster_status_in_user_data, order.app_user, False, _transactional=True)
         if updated_user_data:
             deferred.defer(put_user_data, app_user, updated_user_data, _transactional=True)
 
@@ -460,6 +460,7 @@ def put_node_order(order_id, order):
                 deferred.defer(update_odoo_quotation, order_model.odoo_sale_order_id, {'state': QuotationState.CANCEL})
             deferred.defer(update_hoster_progress, human_user.email(), app_id,
                            HosterSteps.NODE_POWERED)  # nuke todo list
+            deferred.defer(set_hoster_status_in_user_data, order_model.app_user)
         elif order_model.status == NodeOrderStatus.SENT:
             if not order_model.odoo_sale_order_id or not get_odoo_serial_number(order_model.odoo_sale_order_id):
                 raise HttpBadRequestException('no_serial_number_configured_yet',
@@ -473,7 +474,6 @@ def put_node_order(order_id, order):
             deferred.defer(confirm_odoo_quotation, order_model.odoo_sale_order_id)
     else:
         logging.debug('Status was already %s, not doing anything', order_model.status)
-
     order_model.put()
     return order_model
 
@@ -537,3 +537,19 @@ def get_intercom_tags_for_node_order(order):
     if order.status in [NodeOrderStatus.ARRIVED, NodeOrderStatus.SENT, NodeOrderStatus.SIGNED, NodeOrderStatus.PAID]:
         return [IntercomTags.HOSTER]
     return []
+
+
+def set_hoster_status_in_user_data(app_user, can_order=None):
+    # type: (users.User, bool) -> None
+    if not isinstance(can_order, bool):
+        can_order = all(o.status == NodeOrderStatus.CANCELED for o in NodeOrder.list_by_user(app_user))
+    user_data = {
+        'hoster': {
+            'can_order': can_order
+        }
+    }
+    api_key = get_rogerthat_api_key()
+    email, app_id = get_app_user_tuple(app_user)
+    current_user_data = system.get_user_data(api_key, email.email(), app_id, ['hoster'])
+    if current_user_data != user_data:
+        system.put_user_data(api_key, email.email(), app_id, user_data)
