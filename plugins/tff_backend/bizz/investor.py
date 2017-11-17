@@ -21,14 +21,13 @@ import json
 import logging
 from types import NoneType
 
-from requests.exceptions import HTTPError
-
-from babel.numbers import get_currency_name
-from framework.consts import BASE_URL
-from framework.plugin_loader import get_config
-from framework.utils import now, azzert
 from google.appengine.api import users, mail
 from google.appengine.ext import deferred, ndb, db
+
+from babel.numbers import get_currency_name
+from framework.consts import get_base_url
+from framework.plugin_loader import get_config
+from framework.utils import now, azzert
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -66,6 +65,7 @@ from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgr
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, get_step, round_currency_amount
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+from requests.exceptions import HTTPError
 
 
 @returns(FlowMemberResultCallbackResultTO)
@@ -604,7 +604,7 @@ We just received a new purchase agreement (%(agreement_id)s) from %(iyo_username
 Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more details, and collect all the money!
 """ % {"iyo_username": iyo_username,
        "agreement_id": agreement_id,
-       'base_url': BASE_URL,
+       'base_url': get_base_url(),
        "token_count_float": token_count}  # noQA
 
     for email in cfg.investor.support_emails:
