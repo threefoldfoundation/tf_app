@@ -68,6 +68,14 @@ FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader([os.path.join(os.path.dirname(__file__), 'flows')]))
 
 
+def convert_to_str(v):
+    if v is None:
+        return None
+    if isinstance(v, unicode):
+        return v.encode('utf-8')
+    return v
+
+
 @returns()
 @arguments(user_detail=UserDetailsTO, origin=unicode, data=unicode)
 def user_registered(user_detail, origin, data):
@@ -174,7 +182,7 @@ def store_chat_id_in_user_data(rogerthat_chat_id, user_detail):
 @arguments(username=unicode)
 def user_code(username):
     digester = hashlib.sha256()
-    digester.update(str(username))
+    digester.update(convert_to_str(username))
     key = digester.hexdigest()
     return unicode(key[:5])
 

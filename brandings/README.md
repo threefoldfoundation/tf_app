@@ -21,9 +21,19 @@ To test it, either upload it as a branding on your rogerthat server or add this 
 <script>
   if (typeof rogerthat === 'undefined') {
     rogerthat = {
+      api: {
+        call: () => {
+        },
+        callbacks: {
+          resultReceived: () => {
+          }
+        }
+      },
       callbacks: {
         ready: function (callback) {
           this._ready = callback;
+        },
+        serviceDataUpdated: () => {
         }
       },
       user: {
@@ -57,9 +67,37 @@ To test it, either upload it as a branding on your rogerthat server or add this 
             }]
           }
         }
+      },
+      system: {
+        appId: 'em-be-threefold-token'
+      },
+      service: {
+        data: {
+          agenda_events: [{
+            creation_timestamp: new Date('2017-11-17T12:15:56Z').toISOString(),
+            description: 'We want outline in more detail our technical roadmap around PTO related technology as well as the technology we will use to create the new neutral internet.',
+            end_timestamp: new Date('2017-11-18T11:00:00Z').toISOString(),
+            type: 2,
+            id: 1,
+            title: 'TF technical roadmap/ Future of Blockchain',
+            start_timestamp: new Date('2017-11-18T09:00:00Z').toISOString(),
+            location: 'zoom'
+          }]
+        }
+      },
+      menuItem: {
+        hashedTag: 'agenda',
+        label: 'Agenda'
+      },
+      util: {
+        uuid: () => {
+          return '4';
+        }
       }
     };
   }
+  sha256 = () => {
+  };
   setTimeout(() => rogerthat.callbacks._ready(), 250);
 </script>
 ```

@@ -182,7 +182,7 @@ def _create_node_order_pdf(node_order_id):
     logging.debug('Creating Hosting agreement')
     pdf_name = NodeOrder.filename(node_order_id)
     pdf_contents = create_hosting_agreement_pdf(node_order.billing_info.name, node_order.billing_info.address)
-    pdf_url = upload_to_gcs(pdf_name, 'application/pdf', pdf_contents)
+    pdf_url = upload_to_gcs(pdf_name, pdf_contents, 'application/pdf')
     deferred.defer(_order_node_iyo_see, node_order.app_user, node_order_id, pdf_url)
     deferred.defer(update_hoster_progress, user_email.email(), app_id, HosterSteps.FLOW_ADDRESS)
 

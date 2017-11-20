@@ -25,7 +25,7 @@ from google.appengine.api import users, mail
 from google.appengine.ext import deferred, ndb, db
 
 from babel.numbers import get_currency_name
-from framework.consts import BASE_URL
+from framework.consts import get_base_url
 from framework.plugin_loader import get_config
 from framework.utils import now, azzert
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
@@ -607,7 +607,7 @@ We just received a new purchase agreement (%(agreement_id)s) from %(iyo_username
 Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more details, and collect all the money!
 """ % {"iyo_username": iyo_username,
        "agreement_id": agreement_id,
-       'base_url': BASE_URL,
+       'base_url': get_base_url(),
        "token_count_float": token_count}  # noQA
 
     for email in cfg.investor.support_emails:
