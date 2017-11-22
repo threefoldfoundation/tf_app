@@ -16,6 +16,7 @@ import {
   TransactionList,
   WalletBalance
 } from '../interfaces/index';
+import { Check } from '../interfaces/onfido.interfaces';
 import { SearchUsersQuery, SetKYCStatusPayload, TffProfile, UserList } from '../interfaces/profile.interfaces';
 import { PaginatedResult } from '../interfaces/shared.interfaces';
 
@@ -89,6 +90,9 @@ export interface ITffActionTypes {
   GET_EVENT_PARTICIPANTS: '[TFF] Get event participants';
   GET_EVENT_PARTICIPANTS_COMPLETE: '[TFF] Get event participants success';
   GET_EVENT_PARTICIPANTS_FAILED: '[TFF] Get event participants failed';
+  GET_KYC_CHECKS: '[TFF] Get KYC checks';
+  GET_KYC_CHECKS_COMPLETE: '[TFF] Get KYC checks complete';
+  GET_KYC_CHECKS_FAILED: '[TFF] Get KYC checks failed';
 }
 
 export const TffActionTypes: ITffActionTypes = {
@@ -159,6 +163,9 @@ export const TffActionTypes: ITffActionTypes = {
   GET_EVENT_PARTICIPANTS: type('[TFF] Get event participants'),
   GET_EVENT_PARTICIPANTS_COMPLETE: type('[TFF] Get event participants success'),
   GET_EVENT_PARTICIPANTS_FAILED: type('[TFF] Get event participants failed'),
+  GET_KYC_CHECKS: type('[TFF] Get KYC checks'),
+  GET_KYC_CHECKS_COMPLETE: type('[TFF] Get KYC checks complete'),
+  GET_KYC_CHECKS_FAILED: type('[TFF] Get KYC checks failed'),
 };
 
 export class GetOrdersAction implements Action {
@@ -620,6 +627,27 @@ export class GetEventParticipantsFailedAction implements Action {
   }
 }
 
+export class GetKYCChecksAction implements Action {
+  type = TffActionTypes.GET_KYC_CHECKS;
+
+  constructor(public payload: string) {
+  }
+}
+
+export class GetKYCChecksCompleteAction implements Action {
+  type = TffActionTypes.GET_KYC_CHECKS_COMPLETE;
+
+  constructor(public payload: Check[]) {
+  }
+}
+
+export class GetKYCChecksFailedAction implements Action {
+  type = TffActionTypes.GET_KYC_CHECKS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type TffActions
   = GetOrdersAction
   | GetOrdersCompleteAction
@@ -688,4 +716,7 @@ export type TffActions
   | UpdateAgendaEventFailedAction
   | GetEventParticipantsAction
   | GetEventParticipantsCompleteAction
-  | GetEventParticipantsFailedAction;
+  | GetEventParticipantsFailedAction
+  | GetKYCChecksAction
+  | GetKYCChecksCompleteAction
+  | GetKYCChecksFailedAction;

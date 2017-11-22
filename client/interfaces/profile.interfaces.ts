@@ -1,11 +1,12 @@
 import { Profile } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
-import { DataFields } from './trulioo.interfaces';
+import { Applicant } from './onfido.interfaces';
 
 export interface TffProfile {
   app_user: string;
+  kyc: KYCInformation;
   referrer_user: string;
   referrer_username: string;
-  kyc: KYCInformation;
+  username: string;
 }
 
 export enum KYCStatus {
@@ -23,12 +24,12 @@ export enum KYCStatus {
    */
   SUBMITTED = 20,
   /**
-   * Admin verified the info sent in by the user, completed any missing data (e.g. MRZ1 from uploaded photo)
-   * Info is now ready to be sent to Trulioo
+   * Admin verified the info sent in by the user, completed any missing data
+   * Info is now ready to be sent to Onfido
    */
   INFO_SET = 30,
   /**
-   * API call to Trulioo done, admin has to mark user as approved/denied now
+   * API call to Onfido done, admin has to mark user as approved/denied now
    */
   PENDING_APPROVAL = 40,
   /**
@@ -51,31 +52,17 @@ export const KYC_STATUS_MAPPING: { [ key: number ]: KYCStatus[] } = {
   [ KYCStatus.DENIED ]: [],
   [ KYCStatus.UNVERIFIED ]: [ KYCStatus.PENDING_SUBMIT ],
   [ KYCStatus.PENDING_SUBMIT ]: [ KYCStatus.PENDING_SUBMIT ],
-  [ KYCStatus.SUBMITTED ]: [ KYCStatus.INFO_SET ],
-  [ KYCStatus.INFO_SET ]: [ KYCStatus.PENDING_APPROVAL ],
+  [ KYCStatus.SUBMITTED ]: [ KYCStatus.PENDING_APPROVAL ],
+  // [ KYCStatus.SUBMITTED ]: [ KYCStatus.INFO_SET ],
+  // [ KYCStatus.INFO_SET ]: [ KYCStatus.PENDING_APPROVAL ],
   [ KYCStatus.PENDING_APPROVAL ]: [ KYCStatus.VERIFIED, KYCStatus.DENIED, KYCStatus.PENDING_SUBMIT ],
   [ KYCStatus.VERIFIED ]: [],
 };
 
 export interface KYCInformation {
   status: KYCStatus;
-  api_calls: KYCApiCall[];
   updates: KYCStatusUpdate[];
-  pending_information: KYCDataFields;
-  verified_information: KYCDataFields;
-}
-
-export interface KYCDataFields {
-  country_code: string;
-  data: Partial<DataFields>;
-}
-
-export interface KYCApiCall {
-  // result: KYCVerifyResult;
-  transaction_id: string;
-  record_id: string;
-  result: string;
-  timestamp: string;
+  applicant_id: string;
 }
 
 export interface KYCStatusUpdate {
@@ -101,5 +88,5 @@ export interface UserList {
 export interface SetKYCStatusPayload {
   status: KYCStatus;
   comment?: string;
-  data: Partial<DataFields>;
+  data: Partial<Applicant>;
 }

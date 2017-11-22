@@ -22,7 +22,7 @@ from plugins.tff_backend.to import PaginatedResultTO
 from plugins.tff_backend.to.agenda import EventTO
 from plugins.tff_backend.to.global_stats import GlobalStatsTO
 from plugins.tff_backend.to.investor import InvestmentAgreementTO
-from plugins.tff_backend.to.kyc import TffProfileTO
+from plugins.tff_backend.to.user import TffProfileTO
 from plugins.tff_backend.to.nodes import NodeOrderTO
 
 AUDIT_LOG_TYPE_MAPPING = {

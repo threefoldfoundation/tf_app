@@ -7,22 +7,14 @@ import {
   Output,
   SimpleChanges,
   ViewChild,
-  ViewEncapsulation
+  ViewEncapsulation,
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
-import { PromptDialogResult } from '../../../../framework/client/dialog/interfaces/dialog.interfaces';
-import { DialogService } from '../../../../framework/client/dialog/services/dialog.service';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import {
-  KYC_STATUS_MAPPING,
-  KYCApiCall,
-  KYCStatus,
-  KYCStatuses,
-  SetKYCStatusPayload,
-  TffProfile
-} from '../../interfaces/profile.interfaces';
-import { DataFields } from '../../interfaces/trulioo.interfaces';
+import { filter } from 'rxjs/operators/filter';
+import { DialogService, PromptDialogResult } from '../../../../framework/client/dialog';
+import { ApiRequestStatus } from '../../../../framework/client/rpc';
+import { Applicant, Check, KYC_STATUS_MAPPING, KYCStatus, KYCStatuses, SetKYCStatusPayload, TffProfile } from '../../interfaces';
 
 @Component({
   moduleId: module.id,
@@ -35,13 +27,13 @@ import { DataFields } from '../../interfaces/trulioo.interfaces';
 export class KycComponent implements OnChanges {
   kyc = KYCStatus;
   allowedStatuses: KYCStatus[] = [];
-  data: Partial<DataFields> = {
-    Passport: { Mrz1: null, Mrz2: null }
-  };
+  data: Partial<Applicant> = {};
 
   @Input() profile: TffProfile;
   @Input() status: ApiRequestStatus;
   @Input() updateStatus: ApiRequestStatus;
+  @Input() checks: Check[];
+  @Input() checksStatus: ApiRequestStatus;
   @Output() setStatus = new EventEmitter<SetKYCStatusPayload>();
   @ViewChild('form') form: NgForm;
 
@@ -49,29 +41,19 @@ export class KycComponent implements OnChanges {
               private dialogService: DialogService) {
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  public ngOnChanges(changes: SimpleChanges): void {
     if (changes.profile && changes.profile.currentValue) {
       const profile = (<TffProfile>changes.profile.currentValue);
       this.allowedStatuses = KYC_STATUS_MAPPING[ profile.kyc.status ];
-      if (profile.kyc.pending_information && profile.kyc.pending_information.data) {
-        const keys = Object.keys(profile.kyc.pending_information.data);
-        for (const key of keys) {
-          (<any>this.data)[ key ] = { ...(<any>this.data)[ key ], ...(<any>profile.kyc.pending_information.data)[ key ] };
-        }
-      }
     }
   }
 
-  getStatus(status: KYCStatus) {
+  public getStatus(status: KYCStatus) {
     const statusString = this.translate.instant(KYCStatuses.find(s => s.value === status).label);
     return this.translate.instant('tff.current_status', { status: statusString });
   }
 
-  getUrl(apiCall: KYCApiCall) {
-    return `https://portal.trulioo.com/verification?transactionRecordId=${apiCall.record_id}&transactionId=${apiCall.transaction_id}`;
-  }
-
-  submit(status: KYCStatus) {
+  public submit(status: KYCStatus) {
     if (status === KYCStatus.INFO_SET && !this.form.form.valid) {
       return;
     }
@@ -81,7 +63,7 @@ export class KycComponent implements OnChanges {
       message: this.translate.instant('tff.enter_optional_comment'),
       cancel: this.translate.instant('tff.cancel'),
       required: false,
-    }).afterClosed().filter((data?: PromptDialogResult) => data && data.submitted)
+    }).afterClosed().pipe(filter((data?: PromptDialogResult) => data && data.submitted))
       .subscribe((data: PromptDialogResult) => this.setStatus.emit({
         status,
         comment: data.value,

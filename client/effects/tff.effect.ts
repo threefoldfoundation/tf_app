@@ -137,6 +137,12 @@ export class TffEffects {
       .map(result => new actions.GetEventParticipantsCompleteAction(result))
       .catch(err => handleApiError(actions.GetEventParticipantsFailedAction, err)));
 
+  @Effect() getKYCChecks$ = this.actions$
+    .ofType<actions.GetKYCChecksAction>(actions.TffActionTypes.GET_KYC_CHECKS)
+    .switchMap(action => this.tffService.getKYCChecks(action.payload)
+      .map(result => new actions.GetKYCChecksCompleteAction(result))
+      .catch(err => handleApiError(actions.GetKYCChecksFailedAction, err)));
+
   constructor(private actions$: Actions<actions.TffActions>,
               private tffService: TffService,
               private store: Store<IAppState>) {

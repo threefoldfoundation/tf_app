@@ -26,10 +26,10 @@ from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.bizz.iyo.utils import get_app_user_from_iyo_username
 from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user, get_pending_transactions, get_all_balances
-from plugins.tff_backend.bizz.user import get_tff_profile, set_kyc_status
-from plugins.tff_backend.to.kyc import SetKYCPayloadTO, TffProfileTO
+from plugins.tff_backend.bizz.user import get_tff_profile, set_kyc_status, list_kyc_checks
 from plugins.tff_backend.to.payment import NewTransactionTO, PendingTransactionTO, PendingTransactionListTO, \
     WalletBalanceTO
+from plugins.tff_backend.to.user import SetKYCPayloadTO, TffProfileTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
@@ -46,7 +46,7 @@ def api_search_users(page_size=50, cursor=None, query='', kyc_status=None):
     }
 
 
-@rest('/users/<username:[^/]+>', 'get', Scopes.TEAM)
+@rest('/users/<username:[^/]+>', 'get', Scopes.TEAM, silent_result=True)
 @returns(TffProfileTO)
 @arguments(username=str)
 def api_get_user(username):
@@ -54,7 +54,7 @@ def api_get_user(username):
     return TffProfileTO.from_model(get_profile(username))
 
 
-@rest('/users/<username:[^/]+>/profile', 'get', Scopes.TEAM)
+@rest('/users/<username:[^/]+>/profile', 'get', Scopes.TEAM, silent_result=True)
 @returns(TffProfileTO)
 @arguments(username=str)
 def api_get_tff_user(username):
@@ -100,3 +100,11 @@ def api_create_transaction(username, data):
     transaction = transfer_genesis_coins_to_user(app_user, data.token_type, long(data.token_count * 100), data.memo,
                                                  date_signed)
     return PendingTransactionTO.from_model(transaction)
+
+
+@rest('/users/<username:[^/]+>/kyc/checks', 'get', Scopes.ADMINS, silent_result=True)
+@returns([dict])
+@arguments(username=str)
+def api_kyc_list_checks(username):
+    username = username.decode('utf-8')  # username must be unicode
+    return list_kyc_checks(username)

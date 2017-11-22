@@ -13,6 +13,7 @@ import {
   TransactionList,
   WalletBalance
 } from '../interfaces/index';
+import { Check } from '../interfaces/onfido.interfaces';
 import { SearchUsersQuery, TffProfile, UserList } from '../interfaces/profile.interfaces';
 
 export interface ITffState {
@@ -54,6 +55,8 @@ export interface ITffState {
   updateAgendaEventStatus: ApiRequestStatus;
   eventParticipants: PaginatedResult<EventParticipant>;
   eventParticipantsStatus: ApiRequestStatus;
+  kycChecks: Check[];
+  kycChecksStatus: ApiRequestStatus;
 }
 
 export const emptyPaginatedResult: PaginatedResult<any> = {
@@ -113,4 +116,6 @@ export const initialTffState: ITffState = {
   updateAgendaEventStatus: apiRequestInitial,
   eventParticipants: emptyPaginatedResult,
   eventParticipantsStatus: apiRequestInitial,
+  kycChecks: [],
+  kycChecksStatus: apiRequestInitial,
 };

@@ -27,22 +27,14 @@ class KYCStatus(IntEnum):
     UNVERIFIED = 0  # Not verified, and not applied to be verified yet
     PENDING_SUBMIT = 10  # KYC flow has been sent to the user
     SUBMITTED = 20  # KYC flow has been set by user
-    # Admin verified the info sent in by the user, completed any missing data (e.g. MRZ1 from uploaded photo)
-    # Info is now ready to be sent to Trulioo
+    # Admin verified the info sent in by the user, completed any missing data
+    # Info is now ready to be checked to Onfido
     INFO_SET = 30
-    PENDING_APPROVAL = 40  # API call to Trulioo done, admin has to mark user as approved/denied now
+    PENDING_APPROVAL = 40  # API call to Onfido done, admin has to mark user as approved/denied now
     VERIFIED = 50  # Approved by admin
 
 
 KYC_STATUSES = map(int, KYCStatus)
-
-
-class KYCApiCall(NdbModel):
-    NAMESPACE = NAMESPACE
-    transaction_id = ndb.StringProperty()
-    record_id = ndb.StringProperty()
-    result = ndb.StringProperty()
-    timestamp = ndb.DateTimeProperty(auto_now_add=True)
 
 
 class KYCStatusUpdate(NdbModel):
@@ -53,27 +45,16 @@ class KYCStatusUpdate(NdbModel):
     to_status = ndb.IntegerProperty(choices=KYC_STATUSES)
 
 
-class KYCDataFields(NdbModel):
-    NAMESPACE = NAMESPACE
-    country_code = ndb.StringProperty()
-    # key / value of information. Example: {'Profile': {'FirstGivenName': 'test'}}
-    data = ndb.JsonProperty()
-
-
 class KYCInformation(NdbModel):
     """
     Args:
-        api_calls(list[KYCApiCall])
         updates(list[KYCStatusUpdate])
-        pending_information(KYCDataFields)
-        verified_information(KYCDataFields)
+        applicant_id(unicode)
     """
     NAMESPACE = NAMESPACE
     status = ndb.IntegerProperty(choices=KYC_STATUSES)
-    api_calls = ndb.LocalStructuredProperty(KYCApiCall, repeated=True, compressed=True)
     updates = ndb.LocalStructuredProperty(KYCStatusUpdate, repeated=True, compressed=True)
-    pending_information = ndb.LocalStructuredProperty(KYCDataFields)
-    verified_information = ndb.LocalStructuredProperty(KYCDataFields)
+    applicant_id = ndb.StringProperty()
 
     def set_status(self, new_status, author, comment=None):
         self.updates.append(KYCStatusUpdate(from_status=self.status,
@@ -94,6 +75,13 @@ class TffProfile(NdbModel):
     @classmethod
     def create_key(cls, username):
         return ndb.Key(cls, username, namespace=NAMESPACE)
+
+    @property
+    def username(self):
+        return self.key.id().decode('utf8')
+
+    def to_dict(self, extra_properties=None):
+        return super(TffProfile, self).to_dict(['username'])
 
 
 class ProfilePointer(NdbModel):

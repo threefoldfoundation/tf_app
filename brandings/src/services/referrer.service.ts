@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { RogerthatService } from './rogerthat.service';
 import { SetReferralResult } from '../interfaces/referrals.interfaces';
+import { RogerthatService } from './rogerthat.service';
 
 @Injectable()
 export class ReferrerService {

@@ -36,6 +36,7 @@ from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
 from plugins.tff_backend.handlers.unauthenticated import RefreshCallbackHandler, RefreshHandler, AppleReviewQrHandler, \
     JWTQrHandler
 from plugins.tff_backend.models.user import TffProfile, KYCStatus
+from plugins.tff_backend.patch_onfido_lib import patch_onfido_lib
 
 
 class TffBackendPlugin(BrandingPlugin):
@@ -56,6 +57,7 @@ class TffBackendPlugin(BrandingPlugin):
         rogerthat_api_plugin.subscribe('friend.invite_result', rogerthat_callbacks.friend_invite_result,
                                        trigger_only=True)
         rogerthat_api_plugin.subscribe('system.api_call', rogerthat_callbacks.system_api_call)
+        patch_onfido_lib()
 
     def get_handlers(self, auth):
         yield Handler(url='/', handler=IndexPageHandler)
