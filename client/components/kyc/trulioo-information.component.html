@@ -1,7 +1,0 @@
-<!-- Basically the same information that can be found by logging in on Trulioo but less fancy-->
-<div *ngFor="let result of record.DatasourceResults">
-  <h2>{{ result.DatasourceName }}</h2>
-  <tff-trulioo-data-fields [appendedFields]="result.AppendedFields"
-                           [datasourceFields]="result.DatasourceFields"
-                           [errors]="result.Errors"></tff-trulioo-data-fields>
-</div>

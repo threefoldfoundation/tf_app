@@ -13,10 +13,11 @@ import {
   NodeOrdersQuery,
   Transaction,
   TransactionList,
-  WalletBalance
+  WalletBalance,
 } from '../interfaces/index';
-import { PaginatedResult } from '../interfaces/shared.interfaces';
+import { Check } from '../interfaces/onfido.interfaces';
 import { SearchUsersQuery, SetKYCStatusPayload, TffProfile, UserList } from '../interfaces/profile.interfaces';
+import { PaginatedResult } from '../interfaces/shared.interfaces';
 import { TffConfig } from './tff-config.service';
 
 @Injectable()
@@ -117,6 +118,10 @@ export class TffService {
       { params });
   }
 
+  getKYCChecks(username: string) {
+    return this.http.get<Check[]>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/kyc/checks`);
+  }
+
   private _getQueryParams<T>(queryObject: T): HttpParams {
     let params = new HttpParams();
     const q = <[ keyof T ]>Object.keys(queryObject);
@@ -127,4 +132,5 @@ export class TffService {
     }
     return params;
   }
+
 }

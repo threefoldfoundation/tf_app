@@ -44,3 +44,6 @@ export const createAgendaEventStatus = createSelector(getTffState, s => s.create
 export const updateAgendaEventStatus = createSelector(getTffState, s => s.updateAgendaEventStatus);
 export const getEventParticipants = createSelector(getTffState, s => s.eventParticipants);
 export const getEventParticipantsStatus = createSelector(getTffState, s => s.eventParticipantsStatus);
+
+export const getKYCChecks = createSelector(getTffState, s => s.kycChecks);
+export const getKYCChecksStatus = createSelector(getTffState, s => s.kycChecksStatus);

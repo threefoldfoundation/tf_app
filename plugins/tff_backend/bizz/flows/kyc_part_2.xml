@@ -5,7 +5,7 @@
   <definition
     name="kyc_part_2"
     language="en"
-    startReference="{{ startReference }}">
+    startReference="{{ start_reference }}">
     {% for step in steps %}
     <formMessage id="{{ step.reference }}" alertIntervalType="NONE" alertType="SILENT"
                  brandingKey="{{ step.branding_key }}" positiveReference="{{ step.positive_reference }}" vibrate="false"
@@ -19,7 +19,8 @@
                 keyboardType="{{ step.keyboard_type }}"/>
         {% elif step.type == 'SelectDateWidget' %}
         <widget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="SelectDateWidget" minuteInterval="15"
-                mode="date" unit="&lt;value/&gt;"/>
+                mode="date" unit="&lt;value/&gt;"
+        {% if step.value %}date="{{ step.value }}"{% endif %}/>
         {% elif step.type == 'PhotoUploadWidget' %}
         <widget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="PhotoUploadWidget"
                 quality="2000000" gallery="false" camera="true"/>

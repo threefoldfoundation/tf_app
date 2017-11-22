@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
 
+import { NavController, Platform } from 'ionic-angular';
 import { TodoList } from '../../interfaces/todo-list.interfaces';
 import { TodoListService } from '../../services/todo-list.service';
-import { NavController, Platform } from 'ionic-angular';
 import { TodoListPageComponent } from './todo-list-page.component';
 
 @Component({

@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { GlobalStats } from '../../interfaces/global-stats.interfaces';
-import { Observable } from 'rxjs/Observable';
-import { Platform } from 'ionic-angular';
-import { getGlobalStats, getGlobalStatsStatus } from '../../state/app.state';
 import { Store } from '@ngrx/store';
-import { IAppState } from '../../app/app.state';
-import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
+import { Platform } from 'ionic-angular';
+import { Observable } from 'rxjs/Observable';
 import { GetGlobalStatsAction } from '../../actions/branding.actions';
+import { IAppState } from '../../app/app.state';
+import { GlobalStats } from '../../interfaces/global-stats.interfaces';
+import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
+import { getGlobalStats, getGlobalStatsStatus } from '../../state/app.state';
 
 @Component({
   encapsulation: ViewEncapsulation.None,

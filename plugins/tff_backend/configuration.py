@@ -57,9 +57,8 @@ class AppleConfiguration(TO):
     iyo_username = unicode_property('iyo_username')
 
 
-class TruliooConfiguration(TO):
-    username = unicode_property('username')
-    password = unicode_property('password')
+class OnfidoConfiguration(TO):
+    api_key = unicode_property('api_key')
 
 
 class TffConfiguration(TO):
@@ -74,7 +73,7 @@ class TffConfiguration(TO):
         backup_disabled(bool)
         intercom_admin_id(unicode)
         cloudstorage_encryption_key(unicode)
-        trulioo(TruliooConfiguration)
+        onfido(OnfidoConfiguration)
     """
     rogerthat = typed_property('1', RogerthatConfiguration, False)
     ledger = typed_property('3', LedgerConfiguration, False)
@@ -85,5 +84,4 @@ class TffConfiguration(TO):
     backup_disabled = bool_property('backup_disabled')
     intercom_admin_id = long_property('intercom_admin_id')
     cloudstorage_encryption_key = unicode_property('cloudstorage_encryption_key')
-    trulioo = typed_property('trulioo', TruliooConfiguration)
-    cloud_vision_api_key = unicode_property('cloud_vision_api_key')
+    onfido = typed_property('onfido', OnfidoConfiguration)

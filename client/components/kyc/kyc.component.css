@@ -14,3 +14,7 @@ tff-kyc .picture-container {
 tff-kyc .kyc-buttons .mat-raised-button {
   margin: 8px;
 }
+
+tff-kyc .kyc-check-list {
+  width: 350px;
+}

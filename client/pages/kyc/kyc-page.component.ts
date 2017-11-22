@@ -1,46 +1,67 @@
-import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
+import { filter } from 'rxjs/operators/filter';
+import { map } from 'rxjs/operators/map';
+import { take } from 'rxjs/operators/take';
+import { Subscription } from 'rxjs/Subscription';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { SetKYCStatusAction } from '../../actions/threefold.action';
+import { GetKYCChecksAction, SetKYCStatusAction } from '../../actions/threefold.action';
+import { Check } from '../../interfaces/onfido.interfaces';
 import { SetKYCStatusPayload, TffProfile } from '../../interfaces/profile.interfaces';
-import { getTffProfile, getTffProfileStatus, getUser, setKYCStatus } from '../../tff.state';
+import { getKYCChecks, getKYCChecksStatus, getTffProfile, getTffProfileStatus, setKYCStatus } from '../../tff.state';
 
 @Component({
   moduleId: module.id,
-  selector: 'kyc-page',
+  selector: 'tff-kyc-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="default-component-padding">
-      <tff-kyc [profile]="tffProfile$ | async" [status]="status$ | async" [updateStatus]="updateStatus$ | async"
+      <tff-kyc [profile]="tffProfile$ | async"
+               [status]="status$ | async"
+               [updateStatus]="updateStatus$ | async"
+               [checks]="checks$ | async"
+               [checksStatus]="checksStatus$ | async"
                (setStatus)="onSetStatus($event)"></tff-kyc>
     </div>`
 })
 
-export class KycPageComponent implements OnInit {
+export class KycPageComponent implements OnInit, OnDestroy {
   tffProfile$: Observable<TffProfile>;
   status$: Observable<ApiRequestStatus>;
   updateStatus$: Observable<ApiRequestStatus>;
+  checks$: Observable<Check[]>;
+  checksStatus$: Observable<ApiRequestStatus>;
 
+  private _sub: Subscription;
   constructor(private store: Store<IAppState>) {
   }
 
   ngOnInit() {
-    this.tffProfile$ = this.store.select(getTffProfile).filter(s => s !== null)
-      .map(profile => ({
+    this.tffProfile$ = this.store.select(getTffProfile).pipe(
+      filter(p => p !== null),
+      map(profile => ({
         ...profile, kyc: {
           ...profile.kyc,
-          api_calls: profile.kyc.api_calls.concat().reverse(),
           updates: profile.kyc.updates.concat().reverse()
         }
-      }));
+      })));
     this.status$ = this.store.select(getTffProfileStatus);
     this.updateStatus$ = this.store.select(setKYCStatus);
+    this.checks$ = this.store.select(getKYCChecks);
+    this.checksStatus$ = this.store.select(getKYCChecksStatus);
+    this._sub = this.tffProfile$.subscribe(user => {
+      this.store.dispatch(new GetKYCChecksAction(user.username));
+    });
+  }
+
+  ngOnDestroy() {
+    this._sub.unsubscribe();
   }
 
   onSetStatus(setStatusPayload: SetKYCStatusPayload) {
-    this.store.select(getUser).first().subscribe(user => this.store.dispatch(new SetKYCStatusAction(user.username, setStatusPayload)));
+    this.tffProfile$.pipe(take(1)).subscribe(profile => this.store.dispatch(new SetKYCStatusAction(profile.username, setStatusPayload)));
   }
 }

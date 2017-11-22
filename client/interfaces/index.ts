@@ -5,3 +5,5 @@ export * from './nodes.interfaces';
 export * from './permissions.interfaces';
 export * from './shared.interfaces';
 export * from './transactions.interfaces';
+export * from './onfido.interfaces';
+export * from './profile.interfaces';

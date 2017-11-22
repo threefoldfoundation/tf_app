@@ -17,25 +17,30 @@
 import datetime
 import json
 import logging
-from collections import defaultdict
 
-from google.appengine.ext import deferred
+from google.appengine.ext.deferred import deferred
 
 from mcfw.consts import DEBUG
 from mcfw.properties import object_factory
 from mcfw.rpc import arguments, returns
+from onfido import Applicant, Address
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING, FormFlowStepTO
 from plugins.rogerthat_api.to.messaging.forms import FormResultTO, UnicodeWidgetResultTO, LongWidgetResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     TYPE_FLOW, FlowCallbackResultTypeTO
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-from plugins.tff_backend.bizz.kyc.ocr import process_kyc_result
+from plugins.tff_backend.bizz.kyc.onfido_bizz import update_applicant, create_applicant, upload_document
 from plugins.tff_backend.bizz.rogerthat import create_error_message
 from plugins.tff_backend.bizz.user import get_tff_profile, generate_kyc_flow
-from plugins.tff_backend.models.user import KYCStatus, KYCDataFields
+from plugins.tff_backend.models.user import KYCStatus
 from plugins.tff_backend.plugin_consts import KYC_FLOW_PART_2_TAG
 from plugins.tff_backend.utils import get_step
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 
 class InvalidKYCStatusException(Exception):
@@ -77,46 +82,54 @@ def kyc_part_1(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
            flow_params=unicode)
 def kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    # Get all information
-    datafields = defaultdict(dict)
-    should_process_with_ocr = False
-    for step in steps:
-        step_id_split = step.step_id.split('_')
-        if step_id_split[0] == 'message':
-            if len(step_id_split) == 3:
-                category = step_id_split[1]  # e.g. 'PersonalInfo'
-                prop = step_id_split[2]  # e.g. 'FirstSurName'
-                # NationalIds should be a list
-                if category == 'NationalIds':
-                    if not datafields[category]:
-                        datafields[category] = [{}]
-                    datafields[category][0][prop] = step.form_result.result
-                if isinstance(step.form_result.result, UnicodeWidgetResultTO):
-                    # Since this isn't actually the Mrz1 value, but an url to a picture, add 'Picture' to the property.
-                    # Mrz1 and Mrz2 need to be manually set by admins by copying the MRZ from the pics on the dashboard.
-                    if prop in ('Mrz1', 'Mrz2'):
-                        prop += 'Picture'
-                        should_process_with_ocr = True
-                    datafields[category][prop] = step.form_result.result.value.strip()
-                elif isinstance(step.form_result.result, LongWidgetResultTO):
-                    # date step
-                    date = datetime.datetime.utcfromtimestamp(step.form_result.value)
-                    if prop == 'DayOfBirth':
-                        datafields[category]['DayOfBirth'] = date.day
-                        datafields[category]['MonthOfBirth'] = date.month
-                        datafields[category]['YearOfBirth'] = date.year
-                    elif category == 'DayOfExpiry':
-                        datafields[category]['DayOfExpiry'] = date.day
-                        datafields[category]['MonthOfExpiry'] = date.month
-                        datafields[category]['YearOfExpiry'] = date.year
-                    else:
-                        logging.warn('Ignoring LongWidgetResultTO step %s', step)
-                else:
-                    logging.warn('Ignoring step %s', step)
+    deferred.defer(_kyc_part_2, message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key,
+                   tag, result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params)
+
+
+@returns(FlowMemberResultCallbackResultTO)
+@arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory('step_type', FLOW_STEP_MAPPING)],
+           end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flow_params=unicode)
+def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
+                result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     parsed_flow_params = json.loads(flow_params)
-    national_id = parsed_flow_params.get('NationalIds_Type')
-    if national_id and datafields['NationalIds']:
-        datafields['NationalIds'][0]['Type'] = national_id
+    applicant = Applicant(country=parsed_flow_params['nationality'], addresses=[Address()])
+    documents = []
+
+    def _set_attr(prop, value):
+        if hasattr(applicant, prop):
+            setattr(applicant, prop, value)
+        elif prop.startswith('address_'):
+            prop = prop.replace('address_', '')
+            setattr(applicant.addresses[0], prop, value)
+        else:
+            logging.warn('Ignoring unknown property %s with value %s', prop, value)
+
+    for step in steps:
+        assert isinstance(step, FormFlowStepTO)
+        step_id_split = step.step_id.split('_', 1)
+        if step_id_split[0] == 'message':
+            prop = step_id_split[1]  # 'type' from one of plugins.tff_backend.consts.kyc.kyc_steps
+            step_value = step.form_result.result.get_value()
+            if prop.startswith('national_identity_card'):
+                side = None
+                if prop.endswith('front'):
+                    side = 'front'
+                elif prop.endswith('back'):
+                    side = 'back'
+                documents.append(
+                    {'type': 'national_identity_card', 'side': side, 'value': step_value})
+            elif prop.startswith('passport'):
+                documents.append({'type': 'passport', 'value': step_value})
+            elif isinstance(step.form_result.result, UnicodeWidgetResultTO):
+                _set_attr(prop, step.form_result.result.value.strip())
+            elif isinstance(step.form_result.result, LongWidgetResultTO):
+                # date step
+                date = datetime.datetime.utcfromtimestamp(step_value).strftime('%Y-%m-%d')
+                _set_attr(prop, date)
+            else:
+                logging.info('Ignoring step %s', step)
     username = get_iyo_username(user_details[0])
     if not username:
         logging.error('Could not find username for user %s!' % user_details[0])
@@ -125,13 +138,15 @@ def kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
     if isinstance(result, FlowMemberResultCallbackResultTO):
         return result
     profile = get_tff_profile(username)
-    profile.kyc.pending_information = KYCDataFields(country_code=parsed_flow_params['country_code'],
-                                                    data=datafields)
+    if profile.kyc.applicant_id:
+        applicant = update_applicant(profile.kyc.applicant_id, applicant)
+    else:
+        applicant = create_applicant(applicant)
+        profile.kyc.applicant_id = applicant.id
+    for document in documents:
+        deferred.defer(upload_document, applicant.id, document['type'], document['value'], document.get('side'))
     profile.kyc.set_status(KYCStatus.SUBMITTED.value, username)
-    profile.kyc.verified_information = KYCDataFields()
     profile.put()
-    if should_process_with_ocr:
-        deferred.defer(process_kyc_result, profile.key)
 
 
 def _validate_kyc_status(username):
