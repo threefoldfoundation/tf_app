@@ -32,6 +32,7 @@ class Event(NdbModel):
     description = ndb.TextProperty(indexed=False)
     start_timestamp = ndb.DateTimeProperty(indexed=True)
     end_timestamp = ndb.DateTimeProperty(indexed=False)
+    past = ndb.BooleanProperty(indexed=True)
     location = ndb.TextProperty(indexed=False)
     creation_timestamp = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
 
@@ -44,12 +45,15 @@ class Event(NdbModel):
         return ndb.Key(cls, event_id, namespace=NAMESPACE)
 
     @classmethod
-    def list(cls):
-        return cls.query().order(Event.start_timestamp)
+    def list(cls, skip_past=True):
+        qry = cls.query()
+        if skip_past:
+            qry.filter(Event.past == False)
+        return qry.order(Event.start_timestamp)
 
     @classmethod
-    def list_past(cls, timestamp):
-        return cls.query().filter(Event.start_timestamp < timestamp)
+    def list_expired(cls, timestamp):
+        return cls.query().filter(Event.start_timestamp < timestamp).filter(Event.past == False)
 
 
 class EventParticipant(NdbModel):

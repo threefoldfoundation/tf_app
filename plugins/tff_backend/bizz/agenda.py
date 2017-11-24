@@ -17,9 +17,11 @@
 
 import datetime
 
-from google.appengine.ext import ndb, deferred
-
 import dateutil
+from dateutil.relativedelta import relativedelta
+
+from framework.consts import DAY
+from google.appengine.ext import ndb, deferred
 from mcfw.consts import MISSING
 from mcfw.exceptions import HttpNotFoundException
 from mcfw.rpc import returns, arguments
@@ -31,8 +33,8 @@ from plugins.tff_backend.to.agenda import EventTO, EventParticipantListTO, \
     EventParticipantTO
 
 
-def list_events():
-    return Event.list()
+def list_events(skip_past=False):
+    return Event.list(skip_past)
 
 
 @returns(Event)
@@ -84,19 +86,17 @@ def put_agenda_app_data():
     system.publish_changes(get_rogerthat_api_key())
 
 
-@returns()
+@returns([Event])
 @arguments()
-def delete_past_events():
-    keys = []
-    qry = Event.list_past(datetime.datetime.now())
-    cursor = None
-    more = True
-    while more:
-        results, cursor, more = qry.fetch_page(100, cursor=cursor, keys_only=True)
-        keys += results
-
-    def trans():
-        ndb.delete_multi(keys)
-        deferred.defer(put_agenda_app_data, _transactional=True, _countdown=2)
-
-    ndb.transaction(trans)
+def update_expired_events():
+    now = datetime.datetime.now()
+    updated = []
+    for e in Event.list_expired(now):
+        end_timestamp = e.end_timestamp or e.start_timestamp + relativedelta(seconds=DAY / 2)
+        if end_timestamp < now:
+            e.past = True
+            updated.append(e)
+    if updated:
+        ndb.put_multi(updated)
+        deferred.defer(put_agenda_app_data, _countdown=2)
+    return updated

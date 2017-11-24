@@ -28,6 +28,7 @@ class EventTO(TO):
     location = unicode_property('location')
     start_timestamp = unicode_property('start_timestamp')
     end_timestamp = unicode_property('end_timestamp')
+    past = bool_property('past')
 
 
 class BasePresenceTO(TO):
