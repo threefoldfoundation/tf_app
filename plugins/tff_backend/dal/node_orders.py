@@ -28,6 +28,7 @@ from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_usernam
 from plugins.tff_backend.consts.hoster import NODE_ORDER_SEARCH_INDEX
 from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.plugin_consts import NAMESPACE
+from plugins.tff_backend.utils.search import remove_all_from_index
 
 NODE_ORDER_INDEX = search.Index(NODE_ORDER_SEARCH_INDEX, namespace=NAMESPACE)
 
@@ -43,6 +44,7 @@ def get_node_order(order_id):
 
 
 def index_all_node_orders():
+    remove_all_from_index(NODE_ORDER_INDEX)
     run_job(_get_all_node_orders, [], multi_index_node_order, [], mode=MODE_BATCH, batch_size=200)
 
 

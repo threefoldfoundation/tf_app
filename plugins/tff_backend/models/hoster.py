@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+import re
 
 from google.appengine.api import datastore_errors
 from google.appengine.ext import ndb
@@ -53,8 +54,19 @@ def _validate_socket(prop, value):
         raise datastore_errors.BadValueError('Value %r for property %s is not an allowed choice' % (value, prop._name))
 
 
+def normalize_address(address):
+    if not address:
+        return None
+    without_duplicate_spaces = re.sub('\s\s+', '', address).strip()
+    # Remove everything that isn't alphanumerical
+    return re.sub('[^0-9a-zA-Z]+', '', without_duplicate_spaces)
+
+
 class NodeOrder(NdbModel):
     NAMESPACE = NAMESPACE
+
+    def _normalize_address(self):
+        return normalize_address(self.billing_info and self.billing_info.address)
 
     app_user = ndb.UserProperty()
     billing_info = ndb.LocalStructuredProperty(ContactInfo)  # type: ContactInfo
@@ -71,6 +83,7 @@ class NodeOrder(NdbModel):
     modification_time = ndb.IntegerProperty()
     odoo_sale_order_id = ndb.IntegerProperty()
     socket = ndb.StringProperty(indexed=False, validator=_validate_socket)
+    address_hash = ndb.ComputedProperty(_normalize_address)
 
     def _pre_put_hook(self):
         self.modification_time = now()
@@ -130,6 +143,12 @@ class NodeOrder(NdbModel):
     def list_by_user(cls, app_user):
         return cls.query() \
             .filter(cls.app_user == app_user)
+
+    @classmethod
+    def has_order_for_user_or_location(cls, app_user, address):
+        user_qry = cls.list_by_user(app_user).fetch_async()
+        address_qry = cls.query().filter(cls.address_hash == normalize_address(address)).fetch_async()
+        return any(user_qry.get_result()) or any(address_qry.get_result())
 
     @classmethod
     def list_check_online(cls):
