@@ -16,27 +16,29 @@
 # @@license_version:1.3@@
 import logging
 
-import webapp2
+from framework.plugin_loader import get_config
 from google.appengine.api import taskqueue
 from google.appengine.ext import deferred
-
-from framework.plugin_loader import get_config
 from plugins.rogerthat_api.api import friends
 from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz.agenda import update_expired_events
 from plugins.tff_backend.bizz.global_stats import update_currencies
 from plugins.tff_backend.bizz.nodes import check_online_nodes
 from plugins.tff_backend.bizz.payment import sync_transactions, sync_wallets
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.plugin_consts import NAMESPACE
+import webapp2
 
 
 class PaymentSyncHandler(webapp2.RequestHandler):
+
     def get(self):
         deferred.defer(sync_transactions)
         deferred.defer(sync_wallets)
 
 
 class BackupHandler(webapp2.RequestHandler):
+
     def get(self):
         config = get_config(NAMESPACE)
         assert isinstance(config, TffConfiguration)
@@ -82,16 +84,25 @@ class BackupHandler(webapp2.RequestHandler):
 
 
 class RebuildSyncedRolesHandler(webapp2.RequestHandler):
+
     def get(self):
         api_key = get_rogerthat_api_key()
         friends.rebuild_synced_roles(api_key, members=[], service_identities=[])
 
 
 class UpdateGlobalStatsHandler(webapp2.RequestHandler):
+
     def get(self):
         deferred.defer(update_currencies)
 
 
 class CheckNodesOnlineHandler(webapp2.RequestHandler):
+
     def get(self):
         deferred.defer(check_online_nodes)
+
+
+class ExpiredEventsHandler(webapp2.RequestHandler):
+
+    def get(self):
+        deferred.defer(update_expired_events)

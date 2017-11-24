@@ -27,7 +27,7 @@ from plugins.tff_backend.api import investor, payment, nodes, global_stats, user
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings, Roles
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler, \
-    BackupHandler, CheckNodesOnlineHandler
+    BackupHandler, CheckNodesOnlineHandler, ExpiredEventsHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
 from plugins.tff_backend.handlers.unauthenticated import RefreshCallbackHandler, RefreshHandler, AppleReviewQrHandler, \
@@ -35,6 +35,7 @@ from plugins.tff_backend.handlers.unauthenticated import RefreshCallbackHandler,
 
 
 class TffBackendPlugin(BrandingPlugin):
+
     def __init__(self, configuration):
         super(TffBackendPlugin, self).__init__(configuration)
         self.configuration = parse_complex_value(TffConfiguration, configuration, False)
@@ -72,6 +73,7 @@ class TffBackendPlugin(BrandingPlugin):
             yield Handler(url='/admin/cron/tff_backend/rebuild_synced_roles', handler=RebuildSyncedRolesHandler)
             yield Handler(url='/admin/cron/tff_backend/global_stats', handler=UpdateGlobalStatsHandler)
             yield Handler(url='/admin/cron/tff_backend/check_nodes_online', handler=CheckNodesOnlineHandler)
+            yield Handler(url='/admin/cron/tff_backend/events/expired', handler=ExpiredEventsHandler)
 
     def get_client_routes(self):
         return ['/orders<route:.*>', '/investment-agreements<route:.*>', '/global-stats<route:.*>', '/users<route:.*>',

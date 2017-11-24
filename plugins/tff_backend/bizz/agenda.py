@@ -16,6 +16,7 @@
 # @@license_version:1.3@@
 
 import datetime
+import logging
 
 import dateutil
 from dateutil.relativedelta import relativedelta
@@ -76,6 +77,7 @@ def put_event(event):
     )
     model.populate(**args)
     model.put()
+    logging.info('Event created/updated: %s', model)
     deferred.defer(put_agenda_app_data, _transactional=True, _countdown=2)
     return model
 
@@ -97,6 +99,7 @@ def update_expired_events():
             e.past = True
             updated.append(e)
     if updated:
+        logging.info('Updating %s event(s): %s', len(updated), [e.id for e in updated])
         ndb.put_multi(updated)
         deferred.defer(put_agenda_app_data, _countdown=2)
     return updated
