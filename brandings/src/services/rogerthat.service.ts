@@ -1,6 +1,9 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
+import { filter } from 'rxjs/operators/filter';
+import { map } from 'rxjs/operators/map';
+import { tap } from 'rxjs/operators/tap';
 import { Subject } from 'rxjs/Subject';
 import { ApiCallAction, ApiCallCompleteAction, GetEventsAction } from '../actions/branding.actions';
 import { RogerthatError } from '../manual_typings/rogerthat-errors';
@@ -12,6 +15,12 @@ export interface ApiCallResult {
   result: string;
   error: string | null;
   tag: string;
+}
+
+export class ApiCallError extends Error {
+  constructor(public message: string, public apiCallResult: ApiCallResult) {
+    super(message);
+  }
 }
 
 @Injectable()
@@ -55,9 +64,14 @@ export class RogerthatService {
     }
     this.store.dispatch(new ApiCallAction(method, data, tag));
     rogerthat.api.call(method, data, tag);
-    return this.store.select(getApicallResult)
-      .filter(result => result !== null && result.method === method && result.tag === tag)
-      .do(s => s && s.error ? Observable.throw(s) : void(0))
-      .map(result => <T>JSON.parse(result!.result || 'null'));
+    return this.store.select(getApicallResult).pipe(
+      filter(result => result !== null && result.method === method && result.tag === tag),
+      tap(s => {
+        if (s && s.error) {
+          throw new ApiCallError(s.error, s);
+        }
+      }),
+      map(result => <T>JSON.parse(result!.result || 'null')),
+    );
   }
 }

@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@
 import { Store } from '@ngrx/store';
 import { NavController, Platform } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
+import { map } from 'rxjs/operators/map';
 import { GetEventsAction } from '../../actions/branding.actions';
 import { IAppState } from '../../app/app.state';
 import { AgendaEvent, AgendaEventDetail } from '../../interfaces/agenda.interfaces';
@@ -28,12 +29,12 @@ export class AgendaPageComponent implements OnInit {
 
   ngOnInit() {
     this.store.dispatch(new GetEventsAction());
-    this.events$ = this.store.select(getEvents).map(events => events.map(event => ({
+    this.events$ = this.store.select(getEvents).pipe(map(events => events.map(event => ({
       ...event,
       is_in_past: new Date() > new Date(event.end_timestamp),
       start_date: this.getDate(event.start_timestamp),
       end_date: this.getDate(event.end_timestamp),
-    })));
+    }))));
   }
 
 

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
+import { of } from 'rxjs/observable/of';
 import { AgendaEvent, EventPresence, UpdatePresenceData } from '../interfaces/agenda.interfaces';
 import { RogerthatService } from './rogerthat.service';
 
@@ -10,7 +11,7 @@ export class AgendaService {
   }
 
   getEvents(): Observable<AgendaEvent[]> {
-    return Observable.of(rogerthat.service.data.agenda_events || []);
+    return of(rogerthat.service.data.agenda_events || []);
   }
 
   getPresence(eventId: number) {

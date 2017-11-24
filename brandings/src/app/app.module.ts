@@ -18,7 +18,6 @@ import { MissingTranslationWarnHandler } from '../util/missing-translation-handl
 import { AppComponent } from './app.component';
 import { REDUCER_INJECTION_TOKEN, reducerProvider } from './app.state';
 import { BrandingEffects } from './branding.effects';
-import './operators';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, 'assets/i18n/');

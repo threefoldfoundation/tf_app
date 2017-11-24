@@ -4,6 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { AlertController, LoadingController, NavParams } from 'ionic-angular';
 import { Loading } from 'ionic-angular/components/loading/loading';
 import { Observable } from 'rxjs/Observable';
+import { filter } from 'rxjs/operators/filter';
 import { Subscription } from 'rxjs/Subscription';
 import { GetEventPresenceAction, UpdateEventPresenceAction } from '../../actions/branding.actions';
 import { AgendaEventDetail, EventPresence, UpdatePresenceData } from '../../interfaces/agenda.interfaces';
@@ -34,7 +35,7 @@ export class EventDetailsPageComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.agendaEvent = this.navParams.get('event');
     this.store.dispatch(new GetEventPresenceAction(this.agendaEvent.id));
-    this.eventPresence$ = <Observable<EventPresence>>this.store.select(getEventPresence).filter(p => p !== null);
+    this.eventPresence$ = <Observable<EventPresence>>this.store.select(getEventPresence).pipe(filter(p => p !== null));
     this.status$ = this.store.select(getEventPresenceStatus);
     this.updateStatus$ = this.store.select(updateEventPresenceStatus);
   }
