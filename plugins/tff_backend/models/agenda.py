@@ -48,7 +48,7 @@ class Event(NdbModel):
     def list(cls, skip_past=True):
         qry = cls.query()
         if skip_past:
-            qry.filter(Event.past == False)
+            qry = qry.filter(Event.past == False)
         return qry.order(Event.start_timestamp)
 
     @classmethod
