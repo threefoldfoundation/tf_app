@@ -90,3 +90,8 @@ indexes:
   properties:
   - name: event_id
   - name: username
+
+- kind: Event
+  properties:
+  - name: past
+  - name: start_timestamp

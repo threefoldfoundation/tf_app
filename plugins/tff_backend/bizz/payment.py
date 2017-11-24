@@ -453,6 +453,7 @@ def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None, epoc
 @returns()
 @arguments(transaction_id=(int, long), backlog_type=unicode)
 def _save_transaction_to_backlog(transaction_id, backlog_type):
+    return  # Temporarily disabled
     if backlog_type not in ('tierion', 'git'):
         raise Exception('Invalid backlog_type')
     cfg = get_config(NAMESPACE)
