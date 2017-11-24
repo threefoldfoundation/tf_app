@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { IAppState } from '../../../../framework/client/ngrx';
-import { SearchUsersQuery, UserList } from '../../../../its_you_online_auth/client/interfaces/user.interfaces';
 import { SearchUsersAction } from '../../actions/index';
+import { SearchUsersQuery, UserList } from '../../interfaces/profile.interfaces';
 import { getUserList, getUserQueryList } from '../../tff.state';
 
 @Component({
@@ -24,7 +24,7 @@ export class UserListPageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.onQuery({ cursor: null, query: null });
+    this.onQuery({ cursor: null, query: null, kyc_status: null });
     this.userList$ = this.store.select(getUserList);
     this.query$ = this.store.select(getUserQueryList);
   }

@@ -9,3 +9,6 @@ PyPDF2==1.23
 qrcode==5.3
 reportlab==3.1.44
 xhtml2pdf==0.0.6
+GoogleAppEngineCloudStorageClient
+git+https://github.com/onfido/api-python-client.git
+pycountry

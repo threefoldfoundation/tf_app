@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
 import { SeeDocument, SeeDocumentDetails } from '../interfaces/see.interfaces';
 import { RogerthatService } from './rogerthat.service';
-import { Observable } from 'rxjs/Observable';
 
 @Injectable()
 export class SeeService {

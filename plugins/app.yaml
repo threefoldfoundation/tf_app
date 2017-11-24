@@ -1,3 +1,10 @@
 libraries:
 - name: PIL
   version: latest
+- name: ssl
+  version: latest
+
+handlers:
+- url: /favicon.ico
+  static_files: static/plugins/tff_backend/img/favicon.ico
+  upload: static/plugins/tff_backend/img/favicon.ico

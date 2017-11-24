@@ -14,6 +14,9 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+import logging
+
+from google.appengine.api import search
 
 from framework.bizz.authentication import get_current_session
 from framework.plugin_loader import get_plugin, BrandingPlugin
@@ -32,12 +35,14 @@ from plugins.tff_backend.handlers.index import IndexPageHandler
 from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
 from plugins.tff_backend.handlers.unauthenticated import RefreshCallbackHandler, RefreshHandler, AppleReviewQrHandler, \
     JWTQrHandler
+from plugins.tff_backend.models.user import TffProfile, KYCStatus
+from plugins.tff_backend.patch_onfido_lib import patch_onfido_lib
 
 
 class TffBackendPlugin(BrandingPlugin):
     def __init__(self, configuration):
         super(TffBackendPlugin, self).__init__(configuration)
-        self.configuration = parse_complex_value(TffConfiguration, configuration, False)
+        self.configuration = parse_complex_value(TffConfiguration, configuration, False)  # type: TffConfiguration
 
         rogerthat_api_plugin = get_plugin('rogerthat_api')
         assert (isinstance(rogerthat_api_plugin, RogerthatApiPlugin))
@@ -52,6 +57,7 @@ class TffBackendPlugin(BrandingPlugin):
         rogerthat_api_plugin.subscribe('friend.invite_result', rogerthat_callbacks.friend_invite_result,
                                        trigger_only=True)
         rogerthat_api_plugin.subscribe('system.api_call', rogerthat_callbacks.system_api_call)
+        patch_onfido_lib()
 
     def get_handlers(self, auth):
         yield Handler(url='/', handler=IndexPageHandler)
@@ -88,3 +94,11 @@ class TffBackendPlugin(BrandingPlugin):
 
     def get_permissions(self):
         return get_permission_strings(get_current_session().scopes)
+
+    def get_extra_profile_fields(self, profile):
+        tff_profile = TffProfile.create_key(profile.username).get()  # type: TffProfile
+        if not tff_profile:
+            logging.error('No TffProfile found for profile %s', profile)
+            return []
+        kyc_status = (tff_profile.kyc and tff_profile.kyc.status) or KYCStatus.UNVERIFIED.value
+        return [search.NumberField('kyc_status', kyc_status)]

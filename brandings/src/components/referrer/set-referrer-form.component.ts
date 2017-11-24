@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
-import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 import { NgForm } from '@angular/forms';
+import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 
 @Component({
   selector: 'set-referrer-form',

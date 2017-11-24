@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
+import { Profile } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
 import { AgendaEvent, EventParticipant, GetEventParticipantsPayload } from '../interfaces/agenda-events.interfaces';
 import {
   CreateTransactionPayload,
@@ -13,8 +13,10 @@ import {
   NodeOrdersQuery,
   Transaction,
   TransactionList,
-  WalletBalance
+  WalletBalance,
 } from '../interfaces/index';
+import { Check } from '../interfaces/onfido.interfaces';
+import { SearchUsersQuery, SetKYCStatusPayload, TffProfile, UserList } from '../interfaces/profile.interfaces';
 import { PaginatedResult } from '../interfaces/shared.interfaces';
 import { TffConfig } from './tff-config.service';
 
@@ -71,6 +73,14 @@ export class TffService {
     return this.http.get<Profile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}`);
   }
 
+  getTffProfile(username: string) {
+    return this.http.get<TffProfile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/profile`);
+  }
+
+  setKYCStatus(username: string, payload: SetKYCStatusPayload) {
+    return this.http.put<TffProfile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/profile/kyc`, payload);
+  }
+
   getBalance(username: string) {
     return this.http.get<WalletBalance[]>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/balance`);
   }
@@ -108,6 +118,10 @@ export class TffService {
       { params });
   }
 
+  getKYCChecks(username: string) {
+    return this.http.get<Check[]>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/kyc/checks`);
+  }
+
   private _getQueryParams<T>(queryObject: T): HttpParams {
     let params = new HttpParams();
     const q = <[ keyof T ]>Object.keys(queryObject);
@@ -118,4 +132,5 @@ export class TffService {
     }
     return params;
   }
+
 }

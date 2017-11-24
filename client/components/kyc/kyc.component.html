@@ -1,0 +1,47 @@
+<h2>{{ 'tff.kyc' | translate }}</h2>
+<tff-api-request-status [status]="status"></tff-api-request-status>
+<div *ngIf="profile" fxLayout="column">
+  <p>{{ getStatus(profile.kyc.status) }}</p>
+  <tff-api-request-status [status]="updateStatus"></tff-api-request-status>
+  <form *ngIf="allowedStatuses.includes(kyc.INFO_SET)" fxLayout="column" #form="ngForm">
+    <p><i>In the future you will be able to change information here</i></p>
+  </form>
+  <div class="kyc-buttons">
+    <button mat-raised-button *ngIf="allowedStatuses.includes(kyc.PENDING_SUBMIT)" (click)="submit(kyc.PENDING_SUBMIT)"
+            [disabled]="updateStatus.loading">
+      <mat-icon>replay</mat-icon>
+      {{ 'tff.resend_flow' | translate }}
+    </button>
+    <button mat-raised-button *ngIf="allowedStatuses.includes(kyc.INFO_SET)" (click)="submit(kyc.INFO_SET)"
+            [disabled]="updateStatus.loading">
+      <mat-icon>save</mat-icon>
+      {{ 'tff.set_information' | translate }}
+    </button>
+    <button mat-raised-button *ngIf="allowedStatuses.includes(kyc.PENDING_APPROVAL)"
+            (click)="submit(kyc.PENDING_APPROVAL)" [disabled]="updateStatus.loading">
+      {{ 'tff.verify_via_onfido' | translate }}
+    </button>
+    <button mat-raised-button *ngIf="allowedStatuses.includes(kyc.VERIFIED)" (click)="submit(kyc.VERIFIED)"
+            [disabled]="updateStatus.loading">
+      <mat-icon>check</mat-icon>
+      {{ 'tff.mark_as_verified' | translate }}
+    </button>
+    <button mat-raised-button color="warn" *ngIf="allowedStatuses.includes(kyc.DENIED)" (click)="submit(kyc.DENIED)"
+            [disabled]="updateStatus.loading">
+      <mat-icon>close</mat-icon>
+      {{ 'tff.deny_kyc' | translate }}
+    </button>
+  </div>
+  <h3>{{ 'tff.checks' | translate }}</h3>
+  <mat-nav-list class="kyc-check-list">
+    <a mat-list-item *ngFor="let check of checks" [href]="check.results_uri" target="_blank">
+      <h4 matLine>{{ check.created_at | date : 'short' }}</h4>
+      <p matLine>{{ check.status }} - {{ check.result }}</p>
+      <button mat-icon-button>
+        <mat-icon>open_in_new</mat-icon>
+      </button>
+    </a>
+  </mat-nav-list>
+  <tff-api-request-status [status]="checksStatus"></tff-api-request-status>
+  <tff-kyc-updates [updates]="profile.kyc.updates"></tff-kyc-updates>
+</div>

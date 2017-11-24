@@ -1,5 +1,5 @@
 import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
-import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/interfaces/index';
+import { Profile } from '../../../its_you_online_auth/client/interfaces/index';
 import { AgendaEvent, EventParticipant } from '../interfaces/agenda-events.interfaces';
 import {
   GlobalStats,
@@ -13,6 +13,8 @@ import {
   TransactionList,
   WalletBalance
 } from '../interfaces/index';
+import { Check } from '../interfaces/onfido.interfaces';
+import { SearchUsersQuery, TffProfile, UserList } from '../interfaces/profile.interfaces';
 
 export interface ITffState {
   orders: NodeOrderList;
@@ -42,6 +44,9 @@ export interface ITffState {
   createTransactionStatus: ApiRequestStatus;
   balance: WalletBalance[];
   balanceStatus: ApiRequestStatus;
+  tffProfile: TffProfile | null;
+  tffProfileStatus: ApiRequestStatus;
+  setKYCStatus: ApiRequestStatus;
   agendaEvents: AgendaEvent[];
   agendaEventsStatus: ApiRequestStatus;
   agendaEvent: AgendaEvent | null;
@@ -50,6 +55,8 @@ export interface ITffState {
   updateAgendaEventStatus: ApiRequestStatus;
   eventParticipants: PaginatedResult<EventParticipant>;
   eventParticipantsStatus: ApiRequestStatus;
+  kycChecks: Check[];
+  kycChecksStatus: ApiRequestStatus;
 }
 
 export const emptyPaginatedResult: PaginatedResult<any> = {
@@ -86,6 +93,7 @@ export const initialTffState: ITffState = {
   updateGlobalStatsStatus: apiRequestInitial,
   userListQuery: {
     query: null,
+    kyc_status: null,
     cursor: null,
   },
   userList: emptyPaginatedResult,
@@ -97,6 +105,9 @@ export const initialTffState: ITffState = {
   createTransactionStatus: apiRequestInitial,
   balance: [],
   balanceStatus: apiRequestInitial,
+  tffProfile: null,
+  tffProfileStatus: apiRequestInitial,
+  setKYCStatus: apiRequestInitial,
   agendaEvents: [],
   agendaEventsStatus: apiRequestInitial,
   agendaEvent: null,
@@ -105,4 +116,6 @@ export const initialTffState: ITffState = {
   updateAgendaEventStatus: apiRequestInitial,
   eventParticipants: emptyPaginatedResult,
   eventParticipantsStatus: apiRequestInitial,
+  kycChecks: [],
+  kycChecksStatus: apiRequestInitial,
 };

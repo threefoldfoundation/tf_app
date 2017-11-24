@@ -1,7 +1,7 @@
 import { Action } from '@ngrx/store';
 import { type } from '../../../framework/client/core/utils/type';
 import { ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
-import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/index';
+import { Profile } from '../../../its_you_online_auth/client/index';
 import { AgendaEvent, EventParticipant, GetEventParticipantsPayload } from '../interfaces/agenda-events.interfaces';
 import {
   CreateTransactionPayload,
@@ -16,6 +16,8 @@ import {
   TransactionList,
   WalletBalance
 } from '../interfaces/index';
+import { Check } from '../interfaces/onfido.interfaces';
+import { SearchUsersQuery, SetKYCStatusPayload, TffProfile, UserList } from '../interfaces/profile.interfaces';
 import { PaginatedResult } from '../interfaces/shared.interfaces';
 
 // duplicated code needed else the type of the action type is only 'string'
@@ -66,6 +68,12 @@ export interface ITffActionTypes {
   CREATE_TRANSACTION: '[TFF] Create transaction';
   CREATE_TRANSACTION_COMPLETE: '[TFF] Create transaction success';
   CREATE_TRANSACTION_FAILED: '[TFF] Create transaction failed';
+  GET_TFF_PROFILE: '[TFF] Get tff profile';
+  GET_TFF_PROFILE_COMPLETE: '[TFF] Get tff profile complete';
+  GET_TFF_PROFILE_FAILED: '[TFF] Get tff profile failed';
+  SET_KYC_STATUS: '[TFF] Set KYC status';
+  SET_KYC_STATUS_COMPLETE: '[TFF] Set KYC status complete';
+  SET_KYC_STATUS_FAILED: '[TFF] Set KYC status failed';
   GET_AGENDA_EVENTS: '[TFF] Get agenda events ';
   GET_AGENDA_EVENTS_COMPLETE: '[TFF] Get agenda events success';
   GET_AGENDA_EVENTS_FAILED: '[TFF] Get agenda events failed';
@@ -82,6 +90,9 @@ export interface ITffActionTypes {
   GET_EVENT_PARTICIPANTS: '[TFF] Get event participants';
   GET_EVENT_PARTICIPANTS_COMPLETE: '[TFF] Get event participants success';
   GET_EVENT_PARTICIPANTS_FAILED: '[TFF] Get event participants failed';
+  GET_KYC_CHECKS: '[TFF] Get KYC checks';
+  GET_KYC_CHECKS_COMPLETE: '[TFF] Get KYC checks complete';
+  GET_KYC_CHECKS_FAILED: '[TFF] Get KYC checks failed';
 }
 
 export const TffActionTypes: ITffActionTypes = {
@@ -130,6 +141,12 @@ export const TffActionTypes: ITffActionTypes = {
   CREATE_TRANSACTION: type('[TFF] Create transaction'),
   CREATE_TRANSACTION_COMPLETE: type('[TFF] Create transaction success'),
   CREATE_TRANSACTION_FAILED: type('[TFF] Create transaction failed'),
+  GET_TFF_PROFILE: type('[TFF] Get tff profile'),
+  GET_TFF_PROFILE_COMPLETE: type('[TFF] Get tff profile complete'),
+  GET_TFF_PROFILE_FAILED: type('[TFF] Get tff profile failed'),
+  SET_KYC_STATUS: type('[TFF] Set KYC status'),
+  SET_KYC_STATUS_COMPLETE: type('[TFF] Set KYC status complete'),
+  SET_KYC_STATUS_FAILED: type('[TFF] Set KYC status failed'),
   GET_AGENDA_EVENTS: type('[TFF] Get agenda events '),
   GET_AGENDA_EVENTS_COMPLETE: type('[TFF] Get agenda events success'),
   GET_AGENDA_EVENTS_FAILED: type('[TFF] Get agenda events failed'),
@@ -146,6 +163,9 @@ export const TffActionTypes: ITffActionTypes = {
   GET_EVENT_PARTICIPANTS: type('[TFF] Get event participants'),
   GET_EVENT_PARTICIPANTS_COMPLETE: type('[TFF] Get event participants success'),
   GET_EVENT_PARTICIPANTS_FAILED: type('[TFF] Get event participants failed'),
+  GET_KYC_CHECKS: type('[TFF] Get KYC checks'),
+  GET_KYC_CHECKS_COMPLETE: type('[TFF] Get KYC checks complete'),
+  GET_KYC_CHECKS_FAILED: type('[TFF] Get KYC checks failed'),
 };
 
 export class GetOrdersAction implements Action {
@@ -453,6 +473,53 @@ export class CreateTransactionFailedAction implements Action {
   }
 }
 
+export class GetTffProfileAction implements Action {
+  type = TffActionTypes.GET_TFF_PROFILE;
+
+  constructor(public payload: string) {
+  }
+}
+
+export class GetTffProfileCompleteAction implements Action {
+  type = TffActionTypes.GET_TFF_PROFILE_COMPLETE;
+
+  constructor(public payload: TffProfile) {
+  }
+}
+
+export class GetTffProfileFailedAction implements Action {
+  type = TffActionTypes.GET_TFF_PROFILE_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+
+export class SetKYCStatusAction implements Action {
+  type = TffActionTypes.SET_KYC_STATUS;
+
+  constructor(public username: string, public payload: SetKYCStatusPayload) {
+
+  }
+}
+
+
+export class SetKYCStatusCompleteAction implements Action {
+  type = TffActionTypes.SET_KYC_STATUS_COMPLETE;
+
+  constructor(public payload: TffProfile) {
+
+  }
+}
+
+export class SetKYCStatusFailedAction implements Action {
+  type = TffActionTypes.SET_KYC_STATUS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+
+  }
+}
+
 export class GetAgendaEventsAction implements Action {
   type = TffActionTypes.GET_AGENDA_EVENTS;
 }
@@ -560,6 +627,27 @@ export class GetEventParticipantsFailedAction implements Action {
   }
 }
 
+export class GetKYCChecksAction implements Action {
+  type = TffActionTypes.GET_KYC_CHECKS;
+
+  constructor(public payload: string) {
+  }
+}
+
+export class GetKYCChecksCompleteAction implements Action {
+  type = TffActionTypes.GET_KYC_CHECKS_COMPLETE;
+
+  constructor(public payload: Check[]) {
+  }
+}
+
+export class GetKYCChecksFailedAction implements Action {
+  type = TffActionTypes.GET_KYC_CHECKS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type TffActions
   = GetOrdersAction
   | GetOrdersCompleteAction
@@ -606,6 +694,13 @@ export type TffActions
   | CreateTransactionAction
   | CreateTransactionCompleteAction
   | CreateTransactionFailedAction
+  | GetTffProfileAction
+  | GetTffProfileCompleteAction
+  | GetTffProfileFailedAction
+  | SetKYCStatusAction
+  | SetKYCStatusCompleteAction
+  | SetKYCStatusFailedAction
+  | CreateTransactionFailedAction
   | GetAgendaEventsAction
   | GetAgendaEventsCompleteAction
   | GetAgendaEventsFailedAction
@@ -621,4 +716,7 @@ export type TffActions
   | UpdateAgendaEventFailedAction
   | GetEventParticipantsAction
   | GetEventParticipantsCompleteAction
-  | GetEventParticipantsFailedAction;
+  | GetEventParticipantsFailedAction
+  | GetKYCChecksAction
+  | GetKYCChecksCompleteAction
+  | GetKYCChecksFailedAction;

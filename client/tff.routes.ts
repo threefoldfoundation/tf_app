@@ -17,6 +17,7 @@ import {
   UserPageComponent,
   UserTransactionsListPageComponent
 } from './components/index';
+import { KycPageComponent } from './pages/kyc/index';
 
 export const TffRoutes: Route[] = [
   { path: '', redirectTo: 'orders', pathMatch: 'full' },
@@ -93,11 +94,16 @@ export const TffRoutes: Route[] = [
     component: UserPageComponent,
     data: {
       sidebarItems: [
-        //   {
-        //   label: 'tff.details',
-        //   icon: 'person',
-        //   route: 'details',
-        // },
+        {
+          label: 'tff.details',
+          icon: 'person',
+          route: 'details',
+        },
+        {
+          label: 'tff.kyc',
+          icon: 'search',
+          route: 'kyc',
+        },
         {
           label: 'tff.transactions',
           icon: 'attach_money',
@@ -106,12 +112,18 @@ export const TffRoutes: Route[] = [
       meta: { title: 'tff.users' },
     },
     children: [
-      { path: '', redirectTo: 'transactions', pathMatch: 'full' },
+      { path: '', redirectTo: 'kyc', pathMatch: 'full' },
       {
         path: 'details',
         canActivate: [ MetaGuard ],
         data: { meta: { title: 'tff.user_details' } },
         component: UserDetailsPageComponent,
+      },
+      {
+        path: 'kyc',
+        canActivate: [ MetaGuard ],
+        data: { meta: { title: 'tff.kyc' } },
+        component: KycPageComponent,
       },
       {
         path: 'transactions',

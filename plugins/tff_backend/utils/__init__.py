@@ -16,6 +16,7 @@
 # @@license_version:1.3@@
 
 import json
+import mimetypes
 import re
 
 from mcfw.rpc import returns, arguments

@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { GlobalStats } from '../../interfaces/global-stats.interfaces';
 import { Observable } from 'rxjs/Observable';
-import { getGlobalStats, getGlobalStatsStatus, updateGlobalStatsStatus } from '../../tff.state';
-import { GetGlobalStatsAction, UpdateGlobalStatsAction } from '../../actions/threefold.action';
+import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
+import { GetGlobalStatsAction, UpdateGlobalStatsAction } from '../../actions/threefold.action';
+import { GlobalStats } from '../../interfaces/global-stats.interfaces';
+import { getGlobalStats, getGlobalStatsStatus, updateGlobalStatsStatus } from '../../tff.state';
 
 @Component({
   encapsulation: ViewEncapsulation.None,

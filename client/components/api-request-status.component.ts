@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 import { ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
 import { ApiErrorService } from '../services/api-error.service';
 
 @Component({
   selector: 'tff-api-request-status',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   template: `
     <div fxLayoutAlign="center center">
       <mat-progress-spinner mode="indeterminate" *ngIf="status.loading" [diameter]="64" [strokeWidth]="6"></mat-progress-spinner>

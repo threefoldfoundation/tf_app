@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Platform } from 'ionic-angular';
-import { TranslateService } from '@ngx-translate/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { TranslateService } from '@ngx-translate/core';
+import { Platform } from 'ionic-angular';
 
 @Component({
   encapsulation: ViewEncapsulation.None,
