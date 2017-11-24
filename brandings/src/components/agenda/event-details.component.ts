@@ -7,7 +7,7 @@ import {
   AgendaEventType,
   EventPresence,
   EventPresenceStatus,
-  UpdatePresenceData
+  UpdatePresenceData,
 } from '../../interfaces/agenda.interfaces';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 
@@ -15,7 +15,7 @@ import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
   selector: 'event-details',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'event-details.component.html'
+  templateUrl: 'event-details.component.html',
 })
 
 export class EventDetailsComponent {
@@ -44,7 +44,7 @@ export class EventDetailsComponent {
         buttons: <AlertButton[]>[
           { text: this.translate.instant('no'), handler: () => this.submit(false, status) },
           { text: this.translate.instant('yes'), handler: () => this.submit(true, status) },
-        ]
+        ],
       }).present();
     } else {
       this.submit(false, status);

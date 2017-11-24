@@ -13,7 +13,7 @@ import { EventDetailsPageComponent } from './event-details-page.component';
 @Component({
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'agenda-page.component.html'
+  templateUrl: 'agenda-page.component.html',
 })
 
 export class AgendaPageComponent implements OnInit {
@@ -32,7 +32,7 @@ export class AgendaPageComponent implements OnInit {
       ...event,
       is_in_past: new Date() > new Date(event.end_timestamp),
       start_date: this.getDate(event.start_timestamp),
-      end_date: this.getDate(event.end_timestamp)
+      end_date: this.getDate(event.end_timestamp),
     })));
   }
 

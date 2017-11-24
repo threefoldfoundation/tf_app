@@ -9,12 +9,12 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
     case BrandingActionTypes.API_CALL_COMPLETE:
       return {
         ...state,
-        apiCallResult: { ...action.payload }
+        apiCallResult: { ...action.payload },
       };
     case BrandingActionTypes.GET_GLOBAL_STATS:
       return {
         ...state,
-        globalStatsStatus: apiRequestLoading
+        globalStatsStatus: apiRequestLoading,
       };
     case BrandingActionTypes.GET_GLOBAL_STATS_COMPLETE:
       return {
@@ -25,12 +25,12 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
     case BrandingActionTypes.GET_GLOBAL_STATS_FAILED:
       return {
         ...state,
-        globalStatsStatus: action.payload
+        globalStatsStatus: action.payload,
       };
     case BrandingActionTypes.GET_SEE_DOCUMENTS:
       return {
         ...state,
-        seeDocumentsStatus: apiRequestLoading
+        seeDocumentsStatus: apiRequestLoading,
       };
     case BrandingActionTypes.GET_SEE_DOCUMENTS_COMPLETE:
       return {
@@ -41,12 +41,12 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
     case BrandingActionTypes.GET_SEE_DOCUMENTS_FAILED:
       return {
         ...state,
-        seeDocumentsStatus: action.payload
+        seeDocumentsStatus: action.payload,
       };
     case BrandingActionTypes.SET_REFERRER:
       return {
         ...state,
-        setReferrerStatus: apiRequestLoading
+        setReferrerStatus: apiRequestLoading,
       };
     case BrandingActionTypes.SET_REFERRER_COMPLETE:
       return {
@@ -57,33 +57,33 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
     case BrandingActionTypes.SET_REFERRER_FAILED:
       return {
         ...state,
-        setReferrerStatus: action.payload
+        setReferrerStatus: action.payload,
       };
     case BrandingActionTypes.GET_EVENTS:
       return {
         ...state,
-        events: initialState.events
+        events: initialState.events,
       };
     case BrandingActionTypes.GET_EVENTS_COMPLETE:
       return {
         ...state,
-        events: action.payload
+        events: action.payload,
       };
     case BrandingActionTypes.GET_EVENT_PRESENCE:
       return {
         ...state,
-        eventPresenceStatus: apiRequestLoading
+        eventPresenceStatus: apiRequestLoading,
       };
     case BrandingActionTypes.GET_EVENT_PRESENCE_COMPLETE:
       return {
         ...state,
         eventPresence: action.payload,
-        eventPresenceStatus: apiRequestSuccess
+        eventPresenceStatus: apiRequestSuccess,
       };
     case BrandingActionTypes.GET_EVENT_PRESENCE_FAILED:
       return {
         ...state,
-        eventPresenceStatus: action.payload
+        eventPresenceStatus: action.payload,
       };
     case BrandingActionTypes.UPDATE_EVENT_PRESENCE:
       let newPresentCount = state.eventPresence!.present_count;
@@ -98,7 +98,7 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
         eventPresence: {
           ...state.eventPresence!,
           present_count: newPresentCount,
-        }
+        },
       };
     case BrandingActionTypes.UPDATE_EVENT_PRESENCE_COMPLETE:
       return {
@@ -107,12 +107,12 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
           ...<EventPresence>state.eventPresence,
           ...action.payload
         },
-        updateEventPresenceStatus: apiRequestSuccess
+        updateEventPresenceStatus: apiRequestSuccess,
       };
     case BrandingActionTypes.UPDATE_EVENT_PRESENCE_FAILED:
       return {
         ...state,
-        updateEventPresenceStatus: action.payload
+        updateEventPresenceStatus: action.payload,
       };
   }
   return state;

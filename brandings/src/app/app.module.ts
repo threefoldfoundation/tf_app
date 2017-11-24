@@ -41,7 +41,7 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
       loader: {
         provide: TranslateLoader,
         useFactory: HttpLoaderFactory,
-        deps: [ HttpClient ]
+        deps: [ HttpClient ],
       },
     }),
     StoreModule.forRoot(REDUCER_INJECTION_TOKEN),
@@ -50,7 +50,7 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
   bootstrap: [ IonicApp ],
   entryComponents: [
     AppComponent,
-    PAGES
+    PAGES,
   ],
   providers: [
     DecimalPipe,
@@ -62,7 +62,7 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
     reducerProvider,
     { provide: ErrorHandler, useClass: IonicErrorHandler },
     { provide: MissingTranslationHandler, useClass: MissingTranslationWarnHandler },
-  ]
+  ],
 })
 export class AppModule {
 }

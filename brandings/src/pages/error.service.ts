@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
+import { InAppBrowser } from '@ionic-native/in-app-browser';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController } from 'ionic-angular';
-import { InAppBrowser } from '@ionic-native/in-app-browser';
 
 @Injectable()
 export class ErrorService {
@@ -19,10 +19,10 @@ export class ErrorService {
         text: this.translate.instant('update_app'),
         handler: () => {
           this.inAppBrowser.create(url, '_system');
-        }
+        },
       }, {
-        text: this.translate.instant('close')
-      } ]
+        text: this.translate.instant('close'),
+      } ],
     }).present();
   }
 }

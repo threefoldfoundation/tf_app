@@ -13,7 +13,7 @@ import { getEventPresence, getEventPresenceStatus, IBrandingState, updateEventPr
 @Component({
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'event-details-page.component.html'
+  templateUrl: 'event-details-page.component.html',
 })
 export class EventDetailsPageComponent implements OnInit, OnDestroy {
   agendaEvent: AgendaEventDetail;
@@ -59,7 +59,7 @@ export class EventDetailsPageComponent implements OnInit, OnDestroy {
         this.alertCtrl.create({
           title: this.translate.instant('error'),
           message: status.error.error,
-          buttons: [ this.translate.instant('close') ]
+          buttons: [ this.translate.instant('close') ],
         }).present();
       }
     });
