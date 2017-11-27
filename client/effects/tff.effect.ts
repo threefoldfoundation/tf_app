@@ -97,7 +97,7 @@ export class TffEffects {
 
   @Effect() getAgendaEvents$ = this.actions$
     .ofType<actions.GetAgendaEventsAction>(actions.TffActionTypes.GET_AGENDA_EVENTS)
-    .switchMap(() => this.tffService.getAgendaEvents()
+    .switchMap(action => this.tffService.getAgendaEvents(action.payload)
       .map(payload => new actions.GetAgendaEventsCompleteAction(payload))
       .catch(err => handleApiError(actions.GetAgendaEventsFailedAction, err)));
 

@@ -25,9 +25,9 @@ from plugins.tff_backend.to.agenda import EventTO, EventParticipantListTO
 
 @rest('/agenda-events', 'get', Scopes.TEAM, silent_result=True)
 @returns([EventTO])
-@arguments()
-def api_list_events():
-    return [EventTO.from_model(model) for model in list_events()]
+@arguments(past=bool)
+def api_list_events(past=False):
+    return [EventTO.from_model(model) for model in list_events(past)]
 
 
 @rest('/agenda-events', 'post', Scopes.ADMINS)

@@ -35,6 +35,7 @@
   "register": "Register",
   "show_full_description": "Show full description",
   "start": "Start",
+  "there_are_currently_no_events": "There are currently no events planned.",
   "submit": "Submit",
   "till_x": "Till {{ timestamp }}",
   "todo": "Todo",
