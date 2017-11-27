@@ -1,5 +1,5 @@
-<mat-nav-list>
-  <a *ngFor="let agendaEvent of events" [routerLink]="[agendaEvent.id]" mat-list-item>
+<mat-nav-list *ngIf="status.success">
+  <a *ngFor="let agendaEvent of events; trackBy: trackById" [routerLink]="[agendaEvent.id]" mat-list-item>
     <h4 matLine>{{ agendaEvent.title }}</h4>
     <p matLine>{{ agendaEvent.start_timestamp | date : 'medium' }}</p>
   </a>

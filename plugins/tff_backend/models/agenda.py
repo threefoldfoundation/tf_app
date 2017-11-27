@@ -52,6 +52,11 @@ class Event(NdbModel):
         return qry.order(Event.start_timestamp)
 
     @classmethod
+    def list_by_past(cls, past=False):
+        qry = cls.query().filter(Event.past == past)
+        return qry.order(Event.start_timestamp)
+
+    @classmethod
     def list_expired(cls, timestamp):
         return cls.query().filter(Event.start_timestamp < timestamp).filter(Event.past == False)
 

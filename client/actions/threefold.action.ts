@@ -14,7 +14,7 @@ import {
   NodeOrdersQuery,
   Transaction,
   TransactionList,
-  WalletBalance
+  WalletBalance,
 } from '../interfaces/index';
 import { PaginatedResult } from '../interfaces/shared.interfaces';
 
@@ -455,6 +455,9 @@ export class CreateTransactionFailedAction implements Action {
 
 export class GetAgendaEventsAction implements Action {
   type = TffActionTypes.GET_AGENDA_EVENTS;
+
+  constructor(public payload: boolean) {
+  }
 }
 
 export class GetAgendaEventsCompleteAction implements Action {
