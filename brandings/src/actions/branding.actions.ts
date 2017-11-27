@@ -1,6 +1,7 @@
 import { Action } from '@ngrx/store';
 import { AgendaEvent, EventPresence, UpdatePresenceData } from '../interfaces/agenda.interfaces';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
+import { NodeStatus } from '../interfaces/node-status.interfaces';
 import { SetReferralResult } from '../interfaces/referrals.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
@@ -27,6 +28,9 @@ interface IBrandingActionTypes {
   UPDATE_EVENT_PRESENCE: 'Update event presence';
   UPDATE_EVENT_PRESENCE_COMPLETE: 'Update event presence complete';
   UPDATE_EVENT_PRESENCE_FAILED: 'Update event presence failed';
+  GET_NODE_STATUS: 'Get node status';
+  GET_NODE_STATUS_COMPLETE: 'Get node status complete';
+  GET_NODE_STATUS_FAILED: 'Get node status failed';
 }
 
 export const BrandingActionTypes: IBrandingActionTypes = {
@@ -50,6 +54,9 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   UPDATE_EVENT_PRESENCE: 'Update event presence',
   UPDATE_EVENT_PRESENCE_COMPLETE: 'Update event presence complete',
   UPDATE_EVENT_PRESENCE_FAILED: 'Update event presence failed',
+  GET_NODE_STATUS: 'Get node status',
+  GET_NODE_STATUS_COMPLETE: 'Get node status complete',
+  GET_NODE_STATUS_FAILED: 'Get node status failed',
 };
 
 export class ApiCallAction implements Action {
@@ -185,6 +192,24 @@ export class UpdateEventPresenceFailedAction implements Action {
   }
 }
 
+export class GetNodeStatusAction implements Action {
+  type = BrandingActionTypes.GET_NODE_STATUS;
+}
+
+export class GetNodeStatusCompleteAction implements Action {
+  type = BrandingActionTypes.GET_NODE_STATUS_COMPLETE;
+
+  constructor(public payload: NodeStatus) {
+  }
+}
+
+export class GetNodeStatusFailedAction implements Action {
+  type = BrandingActionTypes.GET_NODE_STATUS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type BrandingActions
   = ApiCallAction
   | ApiCallCompleteAction
@@ -205,4 +230,7 @@ export type BrandingActions
   | GetEventPresenceFailedAction
   | UpdateEventPresenceAction
   | UpdateEventPresenceCompleteAction
-  | UpdateEventPresenceFailedAction;
+  | UpdateEventPresenceFailedAction
+  | GetNodeStatusAction
+  | GetNodeStatusCompleteAction
+  | GetNodeStatusFailedAction;

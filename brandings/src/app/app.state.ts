@@ -20,5 +20,5 @@ export function getReducers() {
 }
 
 export const reducerProvider = [
-  { provide: REDUCER_INJECTION_TOKEN, useFactory: getReducers }
+  { provide: REDUCER_INJECTION_TOKEN, useFactory: getReducers },
 ];

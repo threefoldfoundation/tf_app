@@ -17,8 +17,9 @@
 import json
 import logging
 
-from framework.plugin_loader import get_config
 from google.appengine.ext import deferred
+
+from framework.plugin_loader import get_config
 from mcfw.properties import object_factory
 from mcfw.rpc import parse_complex_value, serialize_complex_value, returns, arguments
 from plugins.rogerthat_api.models.settings import RogerthatSettings
@@ -31,10 +32,11 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemb
     FormAcknowledgedCallbackResultTO, SendApiCallCallbackResultTO, MessageAcknowledgedCallbackResultTO, \
     PokeCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
+from plugins.tff_backend.api.rogerthat.agenda import get_presence, update_presence
 from plugins.tff_backend.api.rogerthat.global_stats import api_list_global_stats
 from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, api_iyo_see_detail
+from plugins.tff_backend.api.rogerthat.nodes import api_get_node_status
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
-from plugins.tff_backend.api.rogerthat.agenda import get_presence, update_presence
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed
 from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \
@@ -44,7 +46,6 @@ from plugins.tff_backend.bizz.user import user_registered, store_public_key, sto
     is_user_in_roles
 from plugins.tff_backend.plugin_consts import NAMESPACE, BUY_TOKENS_TAG
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
-
 
 TAG_MAPPING = {
     'order_node': order_node,
@@ -66,7 +67,8 @@ API_METHOD_MAPPING = {
     'referrals.set': api_set_referral,
     'global_stats.list': api_list_global_stats,
     'iyo.see.list': api_iyo_see_list,
-    'iyo.see.detail': api_iyo_see_detail
+    'iyo.see.detail': api_iyo_see_detail,
+    'node.status': api_get_node_status
 }
 
 

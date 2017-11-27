@@ -7,7 +7,7 @@ import { TodoListService } from '../../services/todo-list.service';
   selector: 'todo-list-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  templateUrl: 'todo-list-page.component.html'
+  templateUrl: 'todo-list-page.component.html',
 })
 
 export class TodoListPageComponent implements OnInit {

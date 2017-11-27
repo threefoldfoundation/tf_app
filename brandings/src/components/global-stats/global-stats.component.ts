@@ -7,7 +7,7 @@ import { GlobalStats } from '../../interfaces/global-stats.interfaces';
   selector: 'global-stats',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'global-stats.component.html'
+  templateUrl: 'global-stats.component.html',
 })
 
 export class GlobalStatsComponent {
