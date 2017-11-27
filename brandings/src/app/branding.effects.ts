@@ -7,6 +7,7 @@ import { switchMap } from 'rxjs/operators/switchMap';
 import * as actions from '../actions/branding.actions';
 import { AgendaService } from '../services/agenda.service';
 import { GlobalStatsService } from '../services/global-stats.service';
+import { NodeService } from '../services/node.service';
 import { ReferrerService } from '../services/referrer.service';
 import { SeeService } from '../services/see.service';
 import { handleApiError } from '../util/rpc';
@@ -48,10 +49,17 @@ export class BrandingEffects {
       map(result => new actions.UpdateEventPresenceCompleteAction(result)),
       catchError(err => handleApiError(actions.UpdateEventPresenceFailedAction, err)))));
 
+  @Effect() getNodeStatus$: Observable<actions.BrandingActions> = this.actions$
+    .ofType<actions.GetNodeStatusAction>(actions.BrandingActionTypes.GET_NODE_STATUS)
+    .pipe(switchMap(action => this.nodeService.getStatus().pipe(
+      map(result => new actions.GetNodeStatusCompleteAction(result)),
+      catchError(err => handleApiError(actions.GetNodeStatusFailedAction, err)))));
+
   constructor(private actions$: Actions,
               private globalStatsService: GlobalStatsService,
               private referrerService: ReferrerService,
               private agendaService: AgendaService,
-              private seeService: SeeService) {
+              private seeService: SeeService,
+              private nodeService: NodeService) {
   }
 }

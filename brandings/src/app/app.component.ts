@@ -9,6 +9,7 @@ import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
 import { AgendaPageComponent } from '../pages/agenda/agenda-page.component';
 import { ErrorService } from '../pages/error.service';
 import { GlobalStatsPageComponent } from '../pages/global-stats/global-stats-page.component';
+import { NodeStatusPageComponent } from '../pages/node-status/node-status-page.component';
 import { InvitePageComponent } from '../pages/referrals/invite-page.component';
 import { SetReferrerPageComponent } from '../pages/referrals/set-referrer-page.component';
 import { SeePageComponent } from '../pages/see/see-page.component';
@@ -61,6 +62,7 @@ export class AppComponent implements OnInit {
           { tag: 'referrals_invite', page: InvitePageComponent },
           { tag: 'set_referrer', page: SetReferrerPageComponent },
           { tag: 'agenda', page: AgendaPageComponent },
+          { tag: 'node_status', page: NodeStatusPageComponent},
         ];
         // the or is for debugging
         const page = pages.find(p => sha256(p.tag) === rogerthat.menuItem.hashedTag || p.tag === rogerthat.menuItem.hashedTag);
