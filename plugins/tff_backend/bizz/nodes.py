@@ -18,7 +18,7 @@ import json
 import logging
 from collections import defaultdict
 
-from google.appengine.api import urlfetch, apiproxy_stub_map, users
+from google.appengine.api import urlfetch, apiproxy_stub_map
 from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
 

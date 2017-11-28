@@ -20,6 +20,7 @@ from google.appengine.api import users
 from google.appengine.ext.deferred import deferred
 
 from mcfw.consts import DEBUG
+from mcfw.rpc import arguments
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
@@ -28,6 +29,7 @@ from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.utils.app import create_app_user
 
 
+@arguments(params=dict, user_detail=UserDetailsTO)
 def api_get_node_status(params, user_detail):
     # type: (dict, UserDetailsTO) -> dict
     try:

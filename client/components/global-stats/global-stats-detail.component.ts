@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { CurrencyValue, GlobalStats } from '../../interfaces/global-stats.interfaces';
 import { NgForm } from '@angular/forms';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
+import { CurrencyValue, GlobalStats } from '../../interfaces/global-stats.interfaces';
 
 import * as _ from 'lodash';
 
@@ -38,7 +38,7 @@ export class GlobalStatsDetailComponent {
         timestamp: Math.round(new Date().getTime() / 1000),
         auto_update: true,
       };
-      this._globalStats = Object.assign({}, this._globalStats, { currencies: [ ...this._globalStats.currencies, newCurrency ] });
+      this._globalStats = {...this._globalStats,  currencies: [ ...this._globalStats.currencies, newCurrency ]};
     }
     this.newCurrency = '';
   }

@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-from google.appengine.ext import ndb
 
 from framework.bizz.job import run_job
 from plugins.tff_backend.bizz.hoster import set_hoster_status_in_user_data

@@ -65,6 +65,7 @@ def update_currencies():
     ndb.put_multi(to_put)
 
 
+@arguments(currencies=(CurrencyValueTO, CurrencyValue), dollar_value=(int, long))
 def _get_currency_conversions(currencies, dollar_value):
     # type: (list[CurrencyValueTO | CurrencyValue], int) -> list[CurrencyValue]
     currency_result = _get_current_currency_rates()
