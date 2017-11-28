@@ -84,5 +84,4 @@
   <plugin name="cordova-plugin-statusbar" spec="^2.2.3"/>
   <plugin name="cordova-plugin-splashscreen" spec="^4.0.3"/>
   <plugin name="cordova-plugin-inappbrowser" spec="^1.7.1"/>
-  <engine name="browser" spec="~5.0.1"/>
 </widget>

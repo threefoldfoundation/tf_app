@@ -16,7 +16,7 @@ import { AgendaEvent, EventPresenceStatus } from '../../interfaces/agenda.interf
       max-height: 58px; /* fallback */
       -webkit-line-clamp: 3; /* number of lines to show */
       -webkit-box-orient: vertical;
-    }` ]
+    }` ],
 })
 export class AgendaComponent {
   statuses = EventPresenceStatus;

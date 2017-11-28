@@ -70,6 +70,7 @@ class TffProfile(NdbModel):
 
     referrer_user = ndb.UserProperty()
     referrer_username = ndb.StringProperty()
+    node_id = ndb.StringProperty()
     kyc = ndb.StructuredProperty(KYCInformation)  # type: KYCInformation
 
     @classmethod

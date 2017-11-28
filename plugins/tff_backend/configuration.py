@@ -84,4 +84,5 @@ class TffConfiguration(TO):
     backup_disabled = bool_property('backup_disabled')
     intercom_admin_id = long_property('intercom_admin_id')
     cloudstorage_encryption_key = unicode_property('cloudstorage_encryption_key')
+    exchangerate_key = unicode_property('exchangerate_key')
     onfido = typed_property('onfido', OnfidoConfiguration)

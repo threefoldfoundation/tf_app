@@ -1,6 +1,7 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { AgendaEvent, EventPresence } from '../interfaces/agenda.interfaces';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
+import { NodeStatus } from '../interfaces/node-status.interfaces';
 import { apiRequestInitial, ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
 import { TodoList } from '../interfaces/todo-list.interfaces';
@@ -20,6 +21,8 @@ export interface IBrandingState {
   eventPresence: EventPresence | null;
   eventPresenceStatus: ApiRequestStatus;
   updateEventPresenceStatus: ApiRequestStatus;
+  nodeStatus: NodeStatus | null;
+  nodeStatusStatus: ApiRequestStatus;
 }
 
 export const getAppState = createFeatureSelector<IBrandingState>('app');
@@ -37,6 +40,8 @@ export const initialState: IBrandingState = {
   eventPresence: null,
   eventPresenceStatus: apiRequestInitial,
   updateEventPresenceStatus: apiRequestInitial,
+  nodeStatus: null,
+  nodeStatusStatus: apiRequestInitial,
 };
 
 export const getApicallResult = createSelector(getAppState, s => s.apiCallResult);
@@ -56,3 +61,6 @@ export const getEvents = createSelector(getAppState, s => s.events);
 export const getEventPresence = createSelector(getAppState, s => s.eventPresence);
 export const getEventPresenceStatus = createSelector(getAppState, s => s.eventPresenceStatus);
 export const updateEventPresenceStatus = createSelector(getAppState, s => s.updateEventPresenceStatus);
+
+export const getNodeStatus = createSelector(getAppState, s => s.nodeStatus);
+export const getNodeStatusStatus = createSelector(getAppState, s => s.nodeStatusStatus);

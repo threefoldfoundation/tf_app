@@ -9,6 +9,7 @@ import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
 import { MissingTranslationHandler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { ChartModule } from 'angular2-chartjs';
 import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 import { COMPONENTS } from '../components/index';
 import { PAGES } from '../pages/index';
@@ -18,7 +19,6 @@ import { MissingTranslationWarnHandler } from '../util/missing-translation-handl
 import { AppComponent } from './app.component';
 import { REDUCER_INJECTION_TOKEN, reducerProvider } from './app.state';
 import { BrandingEffects } from './branding.effects';
-import './operators';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, 'assets/i18n/');
@@ -41,16 +41,17 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
       loader: {
         provide: TranslateLoader,
         useFactory: HttpLoaderFactory,
-        deps: [ HttpClient ]
+        deps: [ HttpClient ],
       },
     }),
     StoreModule.forRoot(REDUCER_INJECTION_TOKEN),
     EffectsModule.forRoot([ BrandingEffects ]),
+    ChartModule,
   ],
   bootstrap: [ IonicApp ],
   entryComponents: [
     AppComponent,
-    PAGES
+    PAGES,
   ],
   providers: [
     DecimalPipe,
@@ -62,7 +63,7 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
     reducerProvider,
     { provide: ErrorHandler, useClass: IonicErrorHandler },
     { provide: MissingTranslationHandler, useClass: MissingTranslationWarnHandler },
-  ]
+  ],
 })
 export class AppModule {
 }

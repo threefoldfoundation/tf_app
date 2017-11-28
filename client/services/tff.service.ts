@@ -95,8 +95,9 @@ export class TffService {
     return this.http.post<Transaction>(`${TffConfig.API_URL}/users/${encodeURIComponent(payload.username)}/transactions`, data);
   }
 
-  getAgendaEvents() {
-    return this.http.get<AgendaEvent[]>(`${TffConfig.API_URL}/agenda-events`);
+  getAgendaEvents(past: boolean) {
+    const params = this._getQueryParams({ past });
+    return this.http.get<AgendaEvent[]>(`${TffConfig.API_URL}/agenda-events`, { params });
   }
 
   getAgendaEvent(id: number) {

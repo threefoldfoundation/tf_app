@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-from babel.numbers import list_currencies
 
 NAMESPACE = u'tff_backend'
 
@@ -25,7 +24,6 @@ SUPPORTED_CRYPTO_CURRENCIES = {'BTC'}
 CRYPTO_CURRENCY_NAMES = {
     'BTC': 'Bitcoin'
 }
-SUPPORTED_CURRENCIES = list_currencies() | SUPPORTED_CRYPTO_CURRENCIES
 
 BUY_TOKENS_FLOW_V3 = u'buy_tokens_ITO_v3'
 BUY_TOKENS_FLOW_V3_PAUSED = u'buy_tokens_ITO_v3_paused'

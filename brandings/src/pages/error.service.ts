@@ -19,10 +19,10 @@ export class ErrorService {
         text: this.translate.instant('update_app'),
         handler: () => {
           this.inAppBrowser.create(url, '_system');
-        }
+        },
       }, {
-        text: this.translate.instant('close')
-      } ]
+        text: this.translate.instant('close'),
+      } ],
     }).present();
   }
 }

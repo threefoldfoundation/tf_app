@@ -6,7 +6,7 @@ import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
   selector: 'set-referrer-form',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'set-referrer-form.component.html'
+  templateUrl: 'set-referrer-form.component.html',
 })
 
 export class SetReferrerFormComponent {

@@ -5,9 +5,11 @@ import { Actions } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
+import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
 import { AgendaPageComponent } from '../pages/agenda/agenda-page.component';
 import { ErrorService } from '../pages/error.service';
 import { GlobalStatsPageComponent } from '../pages/global-stats/global-stats-page.component';
+import { NodeStatusPageComponent } from '../pages/node-status/node-status-page.component';
 import { InvitePageComponent } from '../pages/referrals/invite-page.component';
 import { SetReferrerPageComponent } from '../pages/referrals/set-referrer-page.component';
 import { SeePageComponent } from '../pages/see/see-page.component';
@@ -40,7 +42,11 @@ export class AppComponent implements OnInit {
     platform.ready().then(() => {
       rogerthat.callbacks.ready(() => {
         console.timeEnd('loaded');
-        statusBar.styleDefault();
+        if (rogerthat.system.appId.includes('staging')) {
+          statusBar.backgroundColorByHexString('#5f9e62');
+        } else {
+          statusBar.styleDefault();
+        }
         splashScreen.hide();
         this.rogerthatService.initialize();
         if (!rogerthat.menuItem) {
@@ -60,6 +66,7 @@ export class AppComponent implements OnInit {
           { tag: 'referrals_invite', page: InvitePageComponent },
           { tag: 'set_referrer', page: SetReferrerPageComponent },
           { tag: 'agenda', page: AgendaPageComponent },
+          { tag: 'node_status', page: NodeStatusPageComponent },
         ];
         // the or is for debugging
         const page = pages.find(p => sha256(p.tag) === rogerthat.menuItem.hashedTag || p.tag === rogerthat.menuItem.hashedTag);
@@ -75,7 +82,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.actions$.withLatestFrom(this.store).subscribe(([ action, store ]) => {
+    this.actions$.pipe(withLatestFrom(this.store)).subscribe(([ action, store ]) => {
       // Useful for debugging
       console.log('Dispatching action', action, store);
     });

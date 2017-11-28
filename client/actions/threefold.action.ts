@@ -14,7 +14,7 @@ import {
   NodeOrdersQuery,
   Transaction,
   TransactionList,
-  WalletBalance
+  WalletBalance,
 } from '../interfaces/index';
 import { Check } from '../interfaces/onfido.interfaces';
 import { SearchUsersQuery, SetKYCStatusPayload, TffProfile, UserList } from '../interfaces/profile.interfaces';
@@ -522,6 +522,9 @@ export class SetKYCStatusFailedAction implements Action {
 
 export class GetAgendaEventsAction implements Action {
   type = TffActionTypes.GET_AGENDA_EVENTS;
+
+  constructor(public payload: boolean) {
+  }
 }
 
 export class GetAgendaEventsCompleteAction implements Action {

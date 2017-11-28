@@ -34,8 +34,8 @@ from plugins.tff_backend.to.agenda import EventTO, EventParticipantListTO, \
     EventParticipantTO
 
 
-def list_events(skip_past=False):
-    return Event.list(skip_past)
+def list_events(past=False):
+    return Event.list_by_past(past)
 
 
 @returns(Event)
