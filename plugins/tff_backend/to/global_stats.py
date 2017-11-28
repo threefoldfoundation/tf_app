@@ -34,25 +34,3 @@ class GlobalStatsTO(TO):
     value = long_property('value')
     currencies = typed_property('currencies', CurrencyValueTO, True)  # type: list[CurrencyValueTO]
     market_cap = long_property('market_cap')
-
-
-class YahooFinanceCurrencyConversionTO(TO):
-    id = unicode_property('id')
-    Name = unicode_property('Name')
-    Rate = unicode_property('Rate')
-    Date = unicode_property('Date')  # e.g. 9/15/2017
-    Time = unicode_property('Time')  # e.g. 9:26am
-    Bid = unicode_property('Bid')
-    Ask = unicode_property('Ask')
-
-
-class YahooFinanceCurrencyRateTO(TO):
-    rate = typed_property('rate', YahooFinanceCurrencyConversionTO,
-                          True)  # type: list[YahooFinanceCurrencyConversionTO]
-
-
-class YahooFinanceCurrencyResultTO(TO):
-    count = long_property('count')
-    created = unicode_property('created')
-    lang = unicode_property('lang')
-    results = typed_property('results', YahooFinanceCurrencyRateTO, False)  # type: YahooFinanceCurrencyRateTO
