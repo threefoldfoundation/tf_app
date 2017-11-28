@@ -28,8 +28,10 @@ from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
 from framework.bizz.session import create_session
+from framework.i18n_utils import DEFAULT_LANGUAGE
 from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
+from framework.utils.jinja_extensions import TranslateExtension
 from mcfw.consts import MISSING
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
@@ -66,6 +68,8 @@ from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user
 
 FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     trim_blocks=True,
+    extensions=['jinja2.ext.autoescape', TranslateExtension],
+    autoescape=True,
     loader=jinja2.FileSystemLoader([os.path.join(os.path.dirname(__file__), 'flows')]))
 
 
@@ -425,13 +429,15 @@ def generate_kyc_flow(country_code, iyo_username):
             step['positive_reference'] = 'flush_results'
     template_params = {
         'start_reference': sorted_steps[0]['reference'],
-        'steps': sorted_steps
+        'steps': sorted_steps,
+        'language': DEFAULT_LANGUAGE
     }
     return FLOWS_JINJA_ENVIRONMENT.get_template('kyc_part_2.xml').render(template_params), flow_params
 
 
 def _get_extra_properties(country_code):
     return REQUIRED_DOCUMENT_TYPES[country_code]
+
 
 def _get_step_info(property):
     results = filter(lambda step: step['type'] == property, kyc_steps)
