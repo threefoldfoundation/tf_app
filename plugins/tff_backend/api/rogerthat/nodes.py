@@ -47,6 +47,8 @@ def api_get_node_status(params, user_detail):
                     raise ApiCallException(
                         u'It looks like you either do not have a node yet or it has never been online yet.')
         return get_node_stats(node_id)
+    except ApiCallException:
+        raise
     except Exception as e:
         logging.exception(e)
         raise ApiCallException(u'Could not get node status. Please try again later.')
