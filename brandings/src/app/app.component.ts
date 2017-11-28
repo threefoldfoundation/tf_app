@@ -42,7 +42,11 @@ export class AppComponent implements OnInit {
     platform.ready().then(() => {
       rogerthat.callbacks.ready(() => {
         console.timeEnd('loaded');
-        statusBar.styleDefault();
+        if (rogerthat.system.appId.includes('staging')) {
+          statusBar.backgroundColorByHexString('#5f9e62');
+        } else {
+          statusBar.styleDefault();
+        }
         splashScreen.hide();
         this.rogerthatService.initialize();
         if (!rogerthat.menuItem) {
@@ -62,7 +66,7 @@ export class AppComponent implements OnInit {
           { tag: 'referrals_invite', page: InvitePageComponent },
           { tag: 'set_referrer', page: SetReferrerPageComponent },
           { tag: 'agenda', page: AgendaPageComponent },
-          { tag: 'node_status', page: NodeStatusPageComponent},
+          { tag: 'node_status', page: NodeStatusPageComponent },
         ];
         // the or is for debugging
         const page = pages.find(p => sha256(p.tag) === rogerthat.menuItem.hashedTag || p.tag === rogerthat.menuItem.hashedTag);

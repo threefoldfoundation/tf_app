@@ -35,7 +35,6 @@
     "@ngx-translate/http-loader": "^2.0.0",
     "angular2-chartjs": "^0.4.1",
     "chart.js": "^2.7.1",
-    "cordova-browser": "^5.0.1",
     "cordova-plugin-console": "^1.1.0",
     "cordova-plugin-device": "^1.1.7",
     "cordova-plugin-inappbrowser": "^1.7.2",
@@ -70,8 +69,6 @@
       "ionic-plugin-keyboard": {},
       "cordova-plugin-inappbrowser": {}
     },
-    "platforms": [
-      "browser"
-    ]
+    "platforms": []
   }
 }

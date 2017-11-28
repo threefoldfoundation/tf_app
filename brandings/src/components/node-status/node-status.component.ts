@@ -1,7 +1,6 @@
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { TimestampPipe } from '../../../../client/pipes/timestamp.pipe';
 import { NodeStatus, StatisticValue } from '../../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 
@@ -31,7 +30,7 @@ export class NodeStatusComponent implements OnChanges {
   charts: LineChart[] = [];
 
   constructor(private translate: TranslateService,
-              private timestampPipe: TimestampPipe,
+              private datePipe: DatePipe,
               private decimalPipe: DecimalPipe) {
   }
 
@@ -111,6 +110,6 @@ export class NodeStatusComponent implements OnChanges {
   }
 
   getUptime() {
-    return this.translate.instant('online_since_x', { bootTime: this.timestampPipe.transform(this.nodeStatus.bootTime!, 'medium') });
+    return this.translate.instant('online_since_x', { bootTime: this.datePipe.transform(this.nodeStatus.bootTime! * 1000, 'medium') });
   }
 }
