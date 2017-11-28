@@ -48,7 +48,7 @@ class Event(NdbModel):
     def list(cls, skip_past=True):
         qry = cls.query()
         if skip_past:
-            qry = qry.filter(Event.past == False)
+            qry = qry.filter(Event.past == False)  # noQA
         return qry.order(Event.start_timestamp)
 
     @classmethod
@@ -58,7 +58,7 @@ class Event(NdbModel):
 
     @classmethod
     def list_expired(cls, timestamp):
-        return cls.query().filter(Event.start_timestamp < timestamp).filter(Event.past == False)
+        return cls.query().filter(Event.start_timestamp < timestamp).filter(Event.past == False)  # noQA
 
 
 class EventParticipant(NdbModel):

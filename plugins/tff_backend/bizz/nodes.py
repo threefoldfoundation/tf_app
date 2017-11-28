@@ -18,7 +18,7 @@ import json
 import logging
 from collections import defaultdict
 
-from google.appengine.api import urlfetch, apiproxy_stub_map, users
+from google.appengine.api import urlfetch, apiproxy_stub_map
 from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
 
@@ -31,7 +31,7 @@ from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import refresh_jwt
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-from plugins.tff_backend.bizz.odoo import get_odoo_serial_number
+from plugins.tff_backend.bizz.odoo import get_node_id_from_odoo
 from plugins.tff_backend.bizz.todo import HosterSteps, update_hoster_progress
 from plugins.tff_backend.consts.hoster import DEBUG_NODE_DATA
 from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
@@ -93,18 +93,18 @@ def check_if_node_comes_online(order_key):
     order_id = order.id
     if not order.odoo_sale_order_id:
         raise BusinessException('Cannot check status of node order without odoo_sale_order_id')
-    serial_number = get_odoo_serial_number(order.odoo_sale_order_id)
-    if not serial_number:
-        raise BusinessException('Could not find node serial number for order %s on odoo' % order_id)
+    node_id = get_node_id_from_odoo(order.odoo_sale_order_id)
+    if not node_id:
+        raise BusinessException('Could not find node id for sale order %s on odoo' % order_id)
 
-    status = get_node_status(serial_number)
+    status = get_node_status(node_id)
     if status == u'running':
         logging.info('Marking node from node order %s as arrived', order_id)
         human_user, app_id = get_app_user_tuple(order.app_user)
         order.populate(arrival_time=now(),
                        status=NodeOrderStatus.ARRIVED)
         order.put()
-        deferred.defer(set_node_id_on_profile, order.app_user, serial_number, _transactional=True)
+        deferred.defer(set_node_id_on_profile, order.app_user, node_id, _transactional=True)
         deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED,
                        _transactional=True)
     else:
@@ -144,12 +144,12 @@ def get_node_stats(node_id):
     return _get_stats(data)
 
 
-def get_node_serial_number_for_user(app_user):
+def get_node_id_for_user(app_user):
     for order in NodeOrder.list_by_user(app_user):
         if order.status in (NodeOrderStatus.SENT, NodeOrderStatus.ARRIVED):
-            serial_number = get_odoo_serial_number(order.id)
-            if serial_number:
-                return serial_number
+            node_id = get_node_id_from_odoo(order.odoo_sale_order_id)
+            if node_id:
+                return node_id
 
 
 def _get_stats(data):

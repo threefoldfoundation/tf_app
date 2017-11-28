@@ -18,7 +18,7 @@ import logging
 
 from framework.bizz.job import run_job
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-from plugins.tff_backend.bizz.odoo import get_odoo_serial_number
+from plugins.tff_backend.bizz.odoo import get_node_id_from_odoo
 from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 from plugins.tff_backend.models.user import TffProfile
 
@@ -35,10 +35,10 @@ def _get_orders(status):
 
 def _set_node_id(order_key):
     order = order_key.get()  # type: NodeOrder
-    serial_number = get_odoo_serial_number(order.id)
-    if serial_number:
+    node_id = get_node_id_from_odoo(order.odoo_sale_order_id)
+    if node_id:
         username = get_iyo_username(order.app_user)
         profile = TffProfile.create_key(username).get()  # type: TffProfile
-        profile.node_id = serial_number
+        profile.node_id = node_id
         profile.put()
-        logging.info('Saved node_id %s for user %s', serial_number, username)
+        logging.info('Saved node_id %s for user %s', node_id, username)
