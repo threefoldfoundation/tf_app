@@ -147,7 +147,7 @@ def get_node_stats(node_id):
 def get_node_serial_number_for_user(app_user):
     for order in NodeOrder.list_by_user(app_user):
         if order.status in (NodeOrderStatus.SENT, NodeOrderStatus.ARRIVED):
-            serial_number = get_odoo_serial_number(order.id)
+            serial_number = get_odoo_serial_number(order.odoo_sale_order_id)
             if serial_number:
                 return serial_number
 

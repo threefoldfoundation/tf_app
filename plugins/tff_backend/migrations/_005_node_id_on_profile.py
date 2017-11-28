@@ -35,7 +35,7 @@ def _get_orders(status):
 
 def _set_node_id(order_key):
     order = order_key.get()  # type: NodeOrder
-    serial_number = get_odoo_serial_number(order.id)
+    serial_number = get_odoo_serial_number(order.odoo_sale_order_id)
     if serial_number:
         username = get_iyo_username(order.app_user)
         profile = TffProfile.create_key(username).get()  # type: TffProfile
