@@ -28,7 +28,7 @@ from mcfw.rpc import arguments, returns
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.tff_backend.models.global_stats import GlobalStats, CurrencyValue
 from plugins.tff_backend.plugin_consts import NAMESPACE
-from plugins.tff_backend.to.global_stats import GlobalStatsTO, CurrencyValueTO
+from plugins.tff_backend.to.global_stats import GlobalStatsTO
 
 
 class ApiCallException(Exception):
@@ -65,7 +65,6 @@ def update_currencies():
     ndb.put_multi(to_put)
 
 
-@arguments(currencies=(CurrencyValueTO, CurrencyValue), dollar_value=(int, long))
 def _get_currency_conversions(currencies, dollar_value):
     # type: (list[CurrencyValueTO | CurrencyValue], int) -> list[CurrencyValue]
     currency_result = _get_current_currency_rates()
