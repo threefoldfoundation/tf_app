@@ -191,7 +191,7 @@ def confirm_odoo_quotation(order_id):
     return result
 
 
-def get_odoo_serial_number(order_id):
+def get_node_id_from_odoo(order_id):
     cfg = get_config(NAMESPACE)
     erp_client = _get_erp_client(cfg)
 
@@ -208,5 +208,5 @@ def get_odoo_serial_number(order_id):
             for lot_id in stock_move.lot_ids.id:
                 stock_production_lot = stock_production_lot_model.browse(lot_id)
                 if stock_production_lot.product_id.id == cfg.odoo.stock_id:
-                    return stock_production_lot.name
+                    return stock_production_lot.ref
     return None

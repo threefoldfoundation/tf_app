@@ -44,7 +44,7 @@ from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_docum
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.odoo import create_odoo_quotation, update_odoo_quotation, QuotationState, \
-    confirm_odoo_quotation, get_odoo_serial_number
+    confirm_odoo_quotation, get_node_id_from_odoo
 from plugins.tff_backend.bizz.rogerthat import put_user_data
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
@@ -462,7 +462,7 @@ def put_node_order(order_id, order):
                            HosterSteps.NODE_POWERED)  # nuke todo list
             deferred.defer(set_hoster_status_in_user_data, order_model.app_user)
         elif order_model.status == NodeOrderStatus.SENT:
-            if not order_model.odoo_sale_order_id or not get_odoo_serial_number(order_model.odoo_sale_order_id):
+            if not order_model.odoo_sale_order_id or not get_node_id_from_odoo(order_model.odoo_sale_order_id):
                 raise HttpBadRequestException('no_serial_number_configured_yet',
                                               {'sale_order': order_model.odoo_sale_order_id})
             order_model.send_time = now()

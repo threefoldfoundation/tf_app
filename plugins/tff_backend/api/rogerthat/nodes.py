@@ -24,7 +24,7 @@ from mcfw.rpc import arguments
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-from plugins.tff_backend.bizz.nodes import get_node_stats, get_node_serial_number_for_user, set_node_id_on_profile
+from plugins.tff_backend.bizz.nodes import get_node_stats, get_node_id_for_user, set_node_id_on_profile
 from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.utils.app import create_app_user
 
@@ -42,7 +42,7 @@ def api_get_node_status(params, user_detail):
                 logging.warn('Fetching node serial number from odoo since it was not set on TffProfile for user %s',
                              user_detail.email)
                 app_user = create_app_user(users.User(user_detail.email), user_detail.app_id)
-                node_id = get_node_serial_number_for_user(app_user)
+                node_id = get_node_id_for_user(app_user)
                 if node_id:
                     deferred.defer(set_node_id_on_profile, app_user, node_id)
                 else:
