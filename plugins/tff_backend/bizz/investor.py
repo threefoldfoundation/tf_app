@@ -68,6 +68,13 @@ from plugins.tff_backend.utils import get_step_value, get_step, round_currency_a
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from requests.exceptions import HTTPError
 
+INVESTMENT_TODO_MAPPING = {
+    InvestmentAgreement.STATUS_CANCELED: None,
+    InvestmentAgreement.STATUS_CREATED: InvestorSteps.FLOW_AMOUNT,
+    InvestmentAgreement.STATUS_SIGNED: InvestorSteps.PAY,
+    InvestmentAgreement.STATUS_PAID: InvestorSteps.ASSIGN_TOKENS,
+}
+
 
 @returns(FlowMemberResultCallbackResultTO)
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
@@ -303,7 +310,7 @@ def _invest(agreement_key, email, app_id, retry_count):
     pdf_url = upload_to_gcs(pdf_name, pdf_contents, 'application/pdf')
     logging.debug('Storing Investment Agreement in the datastore')
     deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, pdf_url)
-    deferred.defer(update_investor_progress, email, app_id, InvestorSteps.FLOW_AMOUNT)
+    deferred.defer(update_investor_progress, email, app_id, INVESTMENT_TODO_MAPPING[agreement.status])
 
 
 def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url):
@@ -494,7 +501,8 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         if intercom_tags:
             for i_tag in intercom_tags:
                 deferred.defer(intercom_helpers.tag_intercom_users, i_tag, [iyo_username])
-        deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id, InvestorSteps.PAY)
+        deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id,
+                       INVESTMENT_TODO_MAPPING[agreement.status])
         deferred.defer(_inform_support_of_new_investment, iyo_username, agreement.id, agreement.token_count_float)
         logging.debug('Sending confirmation message')
         prefix_message = u'Thank you. We successfully received your digital signature.' \
@@ -551,7 +559,7 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
         user_email, app_id, = get_app_user_tuple(agreement.app_user)
         deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TokenType.I,
                        long(agreement.token_count_float * 100), _transactional=True)
-        deferred.defer(update_investor_progress, user_email.email(), app_id, InvestorSteps.ASSIGN_TOKENS,
+        deferred.defer(update_investor_progress, user_email.email(), app_id, INVESTMENT_TODO_MAPPING[agreement.status],
                        _transactional=True)
         deferred.defer(_send_tokens_assigned_message, agreement.app_user, _transactional=True)
 
