@@ -30,7 +30,7 @@ AUDIT_LOG_TYPE_MAPPING = {
     AuditLogType.UPDATE_GLOBAL_STATS: GlobalStatsTO,
     AuditLogType.UPDATE_INVESTMENT_AGREEMENT: InvestmentAgreementTO,
     AuditLogType.UPDATE_AGENDA_EVENT: EventTO,
-    AuditLogType.SET_KYC_STATUS.value: TffProfileTO,
+    AuditLogType.SET_KYC_STATUS: TffProfileTO,
 }
 
 
