@@ -92,4 +92,4 @@ def tag_intercom_users(tag, iyo_usernames):
     if isinstance(tag, IntercomTags):
         tag = tag.value
     users = [{'user_id': username} for username in iyo_usernames]
-    return get_intercom_plugin().tag_users(tag.value, users)
+    return get_intercom_plugin().tag_users(tag, users)
