@@ -128,7 +128,7 @@ export class TffService {
     const q = <[ keyof T ]>Object.keys(queryObject);
     for (const key of q) {
       if (queryObject[ key ] !== null) {
-        params = params.set(key, encodeURIComponent(queryObject[ key ].toString()));
+        params = params.set(key, queryObject[ key ].toString());
       }
     }
     return params;
