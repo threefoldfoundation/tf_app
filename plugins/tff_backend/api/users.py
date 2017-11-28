@@ -47,11 +47,11 @@ def api_search_users(page_size=50, cursor=None, query='', kyc_status=None):
 
 
 @rest('/users/<username:[^/]+>', 'get', Scopes.TEAM, silent_result=True)
-@returns(TffProfileTO)
+@returns(dict)
 @arguments(username=str)
 def api_get_user(username):
     username = username.decode('utf-8')  # username must be unicode
-    return TffProfileTO.from_model(get_profile(username))
+    return get_profile(username).to_dict()
 
 
 @rest('/users/<username:[^/]+>/profile', 'get', Scopes.TEAM, silent_result=True)
