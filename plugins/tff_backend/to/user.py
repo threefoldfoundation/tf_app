@@ -14,22 +14,19 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+from framework.to import TO
+from mcfw.properties import unicode_property, typed_property, long_property
 
-NAMESPACE = u'tff_backend'
 
-KEY_ALGORITHM = u'ed25519'
-KEY_NAME = u'threefold'
+class SetKYCPayloadTO(TO):
+    status = long_property('status')
+    comment = unicode_property('comment')
+    data = typed_property('data', dict)
 
-SUPPORTED_CRYPTO_CURRENCIES = {'BTC'}
-CRYPTO_CURRENCY_NAMES = {
-    'BTC': 'Bitcoin'
-}
 
-BUY_TOKENS_FLOW_V3 = u'buy_tokens_ITO_v3'
-BUY_TOKENS_FLOW_V3_PAUSED = u'buy_tokens_ITO_v3_paused'
-BUY_TOKENS_FLOW_V3_KYC_MENTION = u'buy_tokens_ITO_v3_KYCmention'
-BUY_TOKENS_FLOW_V4 = u'buy_tokens_ITO_v4'
-KYC_FLOW_PART_1 = u'kyc_part_1'
-KYC_FLOW_PART_1_TAG = u'kyc_part_1'
-KYC_FLOW_PART_2_TAG = u'kyc_part_2'
-BUY_TOKENS_TAG = u'invest_itft'
+class TffProfileTO(TO):
+    username = unicode_property('username')
+    app_user = unicode_property('app_user')
+    referrer_user = unicode_property('referrer_user')
+    referrer_username = unicode_property('referrer_username')
+    kyc = typed_property('kyc', dict)

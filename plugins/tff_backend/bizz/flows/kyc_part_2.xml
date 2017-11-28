@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<messageFlowDefinitionSet xmlns="https://rogerth.at/api/1/MessageFlow.xsd"
+                          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:schemaLocation="https://rogerth.at/api/1/MessageFlow.xsd ">
+  <definition
+    name="kyc_part_2"
+    language="en"
+    startReference="{{ start_reference }}">
+    {% for step in steps %}
+    <formMessage id="{{ step.reference }}" alertIntervalType="NONE" alertType="SILENT"
+                 brandingKey="{{ step.branding_key }}" positiveReference="{{ step.positive_reference }}" vibrate="false"
+                 autoLock="true" negativeReference="{{ step.negative_reference }}">
+      <content>{{ step.message }}</content>
+      <form positiveButtonConfirmation="" negativeButtonCaption="{{ step.negative_caption }}"
+            positiveButtonCaption="{{ step.positive_caption }}" negativeButtonConfirmation="">
+        {% if step.type == 'TextLineWidget' %}
+        <widget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="TextLineWidget" maxChars="100"
+                value="{{ step.value }}"
+                keyboardType="{{ step.keyboard_type }}"/>
+        {% elif step.type == 'SelectDateWidget' %}
+        <widget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="SelectDateWidget" minuteInterval="15"
+                mode="date" unit="&lt;value/&gt;"
+        {% if step.value %}date="{{ step.value }}"{% endif %}/>
+        {% elif step.type == 'PhotoUploadWidget' %}
+        <widget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="PhotoUploadWidget"
+                quality="2000000" gallery="false" camera="true"/>
+        {% elif step.type == 'SelectSingleWidget' %}
+        <widget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="SelectSingleWidget">
+          {% for choice in step.choices %}
+          <choice value="{{ choice.value }}" label="{{ choice.label }}"/>
+          {% endfor %}
+        </widget>
+        {% endif %}
+      </form>
+    </formMessage>
+    {% endfor %}
+    <resultsFlush
+      id="flush_results"
+      reference="end_the_end"/>
+    <end id="end_premature_end"/>
+    <end id="end_the_end"/>
+  </definition>
+</messageFlowDefinitionSet>

@@ -1,6 +1,5 @@
 import { insertItem, updateItem } from '../../../framework/client/ngrx/redux-utils';
 import { apiRequestLoading, apiRequestSuccess } from '../../../framework/client/rpc/rpc.interfaces';
-import { UserList } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
 import * as actions from '../actions/threefold.action';
 import { TffActions } from '../actions/threefold.action';
 import { initialTffState, ITffState } from '../states/index';
@@ -212,7 +211,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         userList: {
           cursor: action.payload.cursor,
           more: action.payload.more,
-          results: [ ...state.userList.results, ...(<UserList>action.payload).results ],
+          results: [ ...state.userList.results, ...action.payload.results ],
         },
         userListStatus: apiRequestSuccess,
       };
@@ -237,6 +236,23 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       return {
         ...state,
         userStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_TFF_PROFILE:
+      return {
+        ...state,
+        tffProfile: null,
+        tffProfileStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_TFF_PROFILE_COMPLETE:
+      return {
+        ...state,
+        tffProfile: action.payload,
+        tffProfileStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_TFF_PROFILE_FAILED:
+      return {
+        ...state,
+        tffProfileStatus: action.payload,
       };
     case actions.TffActionTypes.GET_BALANCE:
       return {
@@ -296,6 +312,16 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         createTransactionStatus: action.payload,
       };
+    case actions.TffActionTypes.SET_KYC_STATUS:
+      return { ...state, setKYCStatus: apiRequestLoading };
+    case actions.TffActionTypes.SET_KYC_STATUS_COMPLETE:
+      return {
+        ...state,
+        setKYCStatus: apiRequestSuccess,
+        tffProfile: action.payload
+      };
+    case actions.TffActionTypes.SET_KYC_STATUS_FAILED:
+      return { ...state, setKYCStatus: action.payload };
     case actions.TffActionTypes.GET_AGENDA_EVENTS:
       return {
         ...state,
@@ -382,6 +408,22 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       return {
         ...state,
         eventParticipantsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_KYC_CHECKS:
+      return {
+        ...state,
+        kycChecksStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_KYC_CHECKS_COMPLETE:
+      return {
+        ...state,
+        kycChecks: action.payload,
+        kycChecksStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_KYC_CHECKS_FAILED:
+      return {
+        ...state,
+        kycChecksStatus: action.payload,
       };
     default:
       return state;

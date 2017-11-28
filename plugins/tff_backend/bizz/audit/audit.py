@@ -14,15 +14,15 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-from functools import wraps
 import logging
+from functools import wraps
 
-from enum import Enum
+from google.appengine.ext import ndb
 from six import string_types
 
+from enum import Enum
 from framework.bizz.authentication import get_current_session
 from framework.to import TO
-from google.appengine.ext import ndb
 from plugins.tff_backend.bizz.audit import mapping
 from plugins.tff_backend.models.audit import AuditLog
 from plugins.tff_backend.to.audit import AuditLogDetailsTO, AuditLogDetailsListTO

@@ -16,7 +16,7 @@ export class TffEffects {
       .map(payload => new actions.GetOrdersCompleteAction(payload))
       .catch(err => handleApiError(actions.GetOrdersFailedAction, err)));
 
-  @Effect() getNodeOrdes$ = this.actions$
+  @Effect() getNodeOrder$ = this.actions$
     .ofType<actions.GetOrderAction>(actions.TffActionTypes.GET_ORDER)
     .switchMap(action => this.tffService.getNodeOrder(action.payload)
       .map(payload => new actions.GetOrderCompleteAction(payload))
@@ -77,6 +77,18 @@ export class TffEffects {
       .map(payload => new actions.GetUserCompleteAction(payload))
       .catch(err => handleApiError(actions.GetUserFailedAction, err)));
 
+  @Effect() getTffProfile$ = this.actions$
+    .ofType<actions.GetTffProfileAction>(actions.TffActionTypes.GET_TFF_PROFILE)
+    .switchMap(action => this.tffService.getTffProfile(action.payload)
+      .map(payload => new actions.GetTffProfileCompleteAction(payload))
+      .catch(err => handleApiError(actions.GetTffProfileFailedAction, err)));
+
+  @Effect() setKYCStatus$ = this.actions$
+    .ofType<actions.SetKYCStatusAction>(actions.TffActionTypes.SET_KYC_STATUS)
+    .switchMap(action => this.tffService.setKYCStatus(action.username, action.payload)
+      .map(payload => new actions.SetKYCStatusCompleteAction(payload))
+      .catch(err => handleApiError(actions.SetKYCStatusFailedAction, err)));
+
   @Effect() getBalance$ = this.actions$
     .ofType<actions.GetBalanceAction>(actions.TffActionTypes.GET_BALANCE)
     .switchMap(action => this.tffService.getBalance(action.payload)
@@ -124,6 +136,12 @@ export class TffEffects {
     .switchMap(action => this.tffService.getEventParticipants(action.payload)
       .map(result => new actions.GetEventParticipantsCompleteAction(result))
       .catch(err => handleApiError(actions.GetEventParticipantsFailedAction, err)));
+
+  @Effect() getKYCChecks$ = this.actions$
+    .ofType<actions.GetKYCChecksAction>(actions.TffActionTypes.GET_KYC_CHECKS)
+    .switchMap(action => this.tffService.getKYCChecks(action.payload)
+      .map(result => new actions.GetKYCChecksCompleteAction(result))
+      .catch(err => handleApiError(actions.GetKYCChecksFailedAction, err)));
 
   constructor(private actions$: Actions<actions.TffActions>,
               private tffService: TffService,

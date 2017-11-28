@@ -1,0 +1,20 @@
+tff-kyc img {
+  width: 150px;
+  max-height: 100px;
+}
+
+tff-kyc .mat-form-field {
+  width: 300px !important;
+}
+
+tff-kyc .picture-container {
+  padding-right: 16px;
+}
+
+tff-kyc .kyc-buttons .mat-raised-button {
+  margin: 8px;
+}
+
+tff-kyc .kyc-check-list {
+  width: 350px;
+}

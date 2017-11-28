@@ -1,0 +1,16 @@
+<h3>{{ 'tff.updates' | translate }}</h3>
+<p *ngIf="updates.length === 0">
+  <i>{{ 'tff.no_updates_yet' | translate}}</i>
+</p>
+<mat-card *ngFor="let comment of updates" class="kyc-card">
+  <mat-card-header>
+    <mat-card-title>{{ comment.timestamp | date : 'short' }} - {{ comment.author }}</mat-card-title>
+    <mat-card-subtitle>
+      <s>{{ getStatusString(comment.from_status) | translate }}</s> -&gt;
+      {{ getStatusString(comment.to_status) | translate }}
+    </mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <p>{{ comment.comment }}</p>
+  </mat-card-content>
+</mat-card>

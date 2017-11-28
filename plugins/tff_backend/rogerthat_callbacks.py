@@ -42,12 +42,13 @@ from plugins.tff_backend.bizz.hoster import order_node, order_node_signed
 from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \
     investment_agreement_signed_by_admin, invest_complete, start_invest
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1, kyc_part_2
 from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_info_in_userdata, \
     is_user_in_roles
-from plugins.tff_backend.plugin_consts import NAMESPACE, BUY_TOKENS_TAG
+from plugins.tff_backend.plugin_consts import NAMESPACE, BUY_TOKENS_TAG, KYC_FLOW_PART_1_TAG, KYC_FLOW_PART_2_TAG
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 
-TAG_MAPPING = {
+FMR_TAG_MAPPING = {
     'order_node': order_node,
     'sign_order_node_tos': order_node_signed,
     'invest': invest_tft,
@@ -55,6 +56,9 @@ TAG_MAPPING = {
     'invest_complete': invest_complete,
     'sign_investment_agreement': investment_agreement_signed,
     'sign_investment_agreement_admin': investment_agreement_signed_by_admin,
+    KYC_FLOW_PART_1_TAG: kyc_part_1,
+    KYC_FLOW_PART_2_TAG: kyc_part_2,
+    'start_invest': kyc_part_1  # KYC flow started from within the invest flow
 }
 
 POKE_TAG_MAPPING = {
@@ -86,8 +90,9 @@ def flow_member_result(rt_settings, request_id, message_flow_run_id, member, ste
     user_details = log_and_parse_user_details(user_details)
     steps = parse_complex_value(object_factory("step_type", FLOW_STEP_MAPPING), steps, True)
 
-    f = TAG_MAPPING.get(parse_to_human_readable_tag(tag))
+    f = FMR_TAG_MAPPING.get(parse_to_human_readable_tag(tag))
     if not f:
+        logging.info('[tff] Ignoring flow_member_result with tag %s', tag)
         return None
 
     result = f(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
@@ -104,7 +109,7 @@ def form_update(rt_settings, request_id, status, form_result, answer_id, member,
     user_details = log_and_parse_user_details(user_details)
     form_result = parse_complex_value(FormResultTO, form_result, False)
 
-    f = TAG_MAPPING.get(parse_to_human_readable_tag(tag))
+    f = FMR_TAG_MAPPING.get(parse_to_human_readable_tag(tag))
     if not f:
         return None
 
@@ -119,7 +124,7 @@ def messaging_update(rt_settings, request_id, status, answer_id, received_timest
         return None
 
     user_details = log_and_parse_user_details(user_details)
-    f = TAG_MAPPING.get(parse_to_human_readable_tag(tag))
+    f = FMR_TAG_MAPPING.get(parse_to_human_readable_tag(tag))
     if not f:
         return None
 

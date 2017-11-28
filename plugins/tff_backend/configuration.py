@@ -57,14 +57,32 @@ class AppleConfiguration(TO):
     iyo_username = unicode_property('iyo_username')
 
 
+class OnfidoConfiguration(TO):
+    api_key = unicode_property('api_key')
+
+
 class TffConfiguration(TO):
-    rogerthat = typed_property('1', RogerthatConfiguration, False)  # type: RogerthatConfiguration
-    ledger = typed_property('3', LedgerConfiguration, False)  # type: LedgerConfiguration
-    odoo = typed_property('4', OdooConfiguration, False)  # type: OdooConfiguration
-    orchestator = typed_property('5', OrchestatorConfiguration, False)  # type: OrchestatorConfiguration
-    investor = typed_property('6', InvestorConfiguration, False)  # type: InvestorConfiguration
-    apple = typed_property('apple', AppleConfiguration)  # type: AppleConfiguration
+    """
+    Args:
+        rogerthat(RogerthatConfiguration)
+        ledger(LedgerConfiguration)
+        odoo(OdooConfiguration)
+        orchestator(OrchestatorConfiguration)
+        investor(InvestorConfiguration)
+        apple(AppleConfiguration)
+        backup_disabled(bool)
+        intercom_admin_id(unicode)
+        cloudstorage_encryption_key(unicode)
+        onfido(OnfidoConfiguration)
+    """
+    rogerthat = typed_property('1', RogerthatConfiguration, False)
+    ledger = typed_property('3', LedgerConfiguration, False)
+    odoo = typed_property('4', OdooConfiguration, False)
+    orchestator = typed_property('5', OrchestatorConfiguration, False)
+    investor = typed_property('6', InvestorConfiguration, False)
+    apple = typed_property('apple', AppleConfiguration)
     backup_disabled = bool_property('backup_disabled')
     intercom_admin_id = long_property('intercom_admin_id')
     cloudstorage_encryption_key = unicode_property('cloudstorage_encryption_key')
     exchangerate_key = unicode_property('exchangerate_key')
+    onfido = typed_property('onfido', OnfidoConfiguration)

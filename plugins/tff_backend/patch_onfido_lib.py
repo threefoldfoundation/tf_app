@@ -15,21 +15,13 @@
 #
 # @@license_version:1.3@@
 
-NAMESPACE = u'tff_backend'
+from onfido.rest import RESTClientObject
+from urllib3.contrib.appengine import AppEngineManager
 
-KEY_ALGORITHM = u'ed25519'
-KEY_NAME = u'threefold'
 
-SUPPORTED_CRYPTO_CURRENCIES = {'BTC'}
-CRYPTO_CURRENCY_NAMES = {
-    'BTC': 'Bitcoin'
-}
+def new_restapiclient_init(self, pools_size=4):
+    self.pool_manager = AppEngineManager()
 
-BUY_TOKENS_FLOW_V3 = u'buy_tokens_ITO_v3'
-BUY_TOKENS_FLOW_V3_PAUSED = u'buy_tokens_ITO_v3_paused'
-BUY_TOKENS_FLOW_V3_KYC_MENTION = u'buy_tokens_ITO_v3_KYCmention'
-BUY_TOKENS_FLOW_V4 = u'buy_tokens_ITO_v4'
-KYC_FLOW_PART_1 = u'kyc_part_1'
-KYC_FLOW_PART_1_TAG = u'kyc_part_1'
-KYC_FLOW_PART_2_TAG = u'kyc_part_2'
-BUY_TOKENS_TAG = u'invest_itft'
+
+def patch_onfido_lib():
+    RESTClientObject.__init__ = new_restapiclient_init

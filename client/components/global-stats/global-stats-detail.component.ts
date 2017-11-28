@@ -11,26 +11,26 @@ import * as _ from 'lodash';
   templateUrl: 'global-stats-detail.component.html'
 })
 export class GlobalStatsDetailComponent {
-  @Output() onSave = new EventEmitter<GlobalStats>();
+  @Output() public onSave = new EventEmitter<GlobalStats>();
 
 
   get globalStats() {
     return this._globalStats;
   }
 
-  @Input() status: ApiRequestStatus;
-  @Input() updateStatus: ApiRequestStatus;
+  @Input() public status: ApiRequestStatus;
+  @Input() public updateStatus: ApiRequestStatus;
 
   @Input()
   set globalStats(value: GlobalStats) {
     this._globalStats = _.cloneDeep<GlobalStats>(value);
   }
 
-  newCurrency: string;
+  public newCurrency: string;
 
   private _globalStats: GlobalStats;
 
-  addCurrency() {
+  public addCurrency() {
     if (this.globalStats.currencies.every(c => c.currency !== this.newCurrency)) {
       const newCurrency: CurrencyValue = {
         currency: this.newCurrency,
@@ -43,11 +43,11 @@ export class GlobalStatsDetailComponent {
     this.newCurrency = '';
   }
 
-  removeCurrency(currency: CurrencyValue) {
+  public removeCurrency(currency: CurrencyValue) {
     this._globalStats.currencies = this._globalStats.currencies.filter(c => c.currency !== currency.currency);
   }
 
-  save(form: NgForm) {
+  public save(form: NgForm) {
     if (form.form.valid) {
       this.onSave.emit(this.globalStats);
     }
