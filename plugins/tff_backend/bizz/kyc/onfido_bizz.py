@@ -36,6 +36,8 @@ def get_api_client():
         return _client
     config = get_config(NAMESPACE)
     assert isinstance(config, TffConfiguration)
+    if DEBUG:
+        assert config.onfido.api_key.startswith('test_')
     onfido.configuration.api_key['Authorization'] = 'token=%s' % config.onfido.api_key
     onfido.configuration.api_key_prefix['Authorization'] = 'Token'
     api = onfido.DefaultApi()
@@ -60,7 +62,6 @@ def list_applicants():
 
 def upload_document(applicant_id, document_type, document_url, side=None):
     # type: (str, str, str, str) -> onfido.Document
-    client = get_api_client()
     logging.info('Downloading %s', document_url)
     file_response = urlfetch.fetch(document_url)  # type: urlfetch._URLFetchResult
     if file_response.status_code != 200:
@@ -70,10 +71,14 @@ def upload_document(applicant_id, document_type, document_url, side=None):
         file_name = '%s.png' % document_type
     else:
         file_name = '%s.jpg' % document_type
+    return _upload_document(applicant_id, document_type, side, file_name, file_response.content, content_type)
+
+
+def _upload_document(applicant_id, document_type, side, file_name, file_content, content_type):
     params = [
         ('type', document_type),
         ('side', side),
-        ('file', (file_name, file_response.content, content_type)),
+        ('file', (file_name, file_content, content_type)),
     ]
     payload, payload_content_type = encode_multipart_formdata(params)
     headers = {
@@ -81,6 +86,7 @@ def upload_document(applicant_id, document_type, document_url, side=None):
         'Content-Type': payload_content_type,
         'Accept': 'application/json'
     }
+    client = get_api_client()
     url = '%s/applicants/%s/documents' % (client.api_client.host, applicant_id)
     response = urlfetch.fetch(url, payload, urlfetch.POST, headers=headers)  # type: urlfetch._URLFetchResult
     if response.status_code != 201:

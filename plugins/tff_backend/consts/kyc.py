@@ -7,7 +7,8 @@ unsupported_countries = ['CHN', 'KOR', 'PRK', 'SGP', 'USA']
 #            map(lambda country: {'value': country.alpha_3, 'label': country.name}, pycountry.countries)),
 #     key=lambda c: c['label'])
 
-country_choices = [{'label': u'Afghanistan', 'value': u'AFG'}, {'label': u'Albania', 'value': u'ALB'},
+country_choices = [{'label': u'United Arab Emirates', 'value': u'UAE'},
+                   {'label': u'Afghanistan', 'value': u'AFG'}, {'label': u'Albania', 'value': u'ALB'},
                    {'label': u'Algeria', 'value': u'DZA'}, {'label': u'American Samoa', 'value': u'ASM'},
                    {'label': u'Andorra', 'value': u'AND'}, {'label': u'Angola', 'value': u'AGO'},
                    {'label': u'Anguilla', 'value': u'AIA'}, {'label': u'Antarctica', 'value': u'ATA'},
