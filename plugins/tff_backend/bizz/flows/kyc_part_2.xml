@@ -48,7 +48,7 @@
       id="flush_results"
       reference="message_the_end"/>
     <message id="message_the_end" allowDismiss="true" autoLock="true" vibrate="false" alertType="SILENT"
-             alertIntervalType="NONE" dismissReference="end_the_end" brandingKey="{{ step.branding_key }}">
+             alertIntervalType="NONE" dismissReference="end_the_end" brandingKey="{{ branding_key }}">
       <content>{% translate language, 'tff', 'kyc_end_flow' %}</content>
     </message>
     <end id="end_premature_end"/>

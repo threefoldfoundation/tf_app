@@ -423,7 +423,8 @@ def generate_kyc_flow(country_code, iyo_username):
     template_params = {
         'start_reference': sorted_steps[0]['reference'],
         'steps': sorted_steps,
-        'language': DEFAULT_LANGUAGE
+        'language': DEFAULT_LANGUAGE,
+        'branding_key':  branding_key
     }
     return FLOWS_JINJA_ENVIRONMENT.get_template('kyc_part_2.xml').render(template_params), flow_params
 
