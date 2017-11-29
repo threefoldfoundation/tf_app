@@ -241,7 +241,7 @@ def _cancel_quotation(order_id):
     def trans():
         node_order = get_node_order(order_id)
         if node_order.odoo_sale_order_id:
-            update_odoo_quotation(node_order.odoo_sale_order_id, {'state': QuotationState.CANCEL})
+            update_odoo_quotation(node_order.odoo_sale_order_id, {'state': QuotationState.CANCEL.value})
 
         node_order.populate(status=NodeOrderStatus.CANCELED, cancel_time=now())
         node_order.put()
