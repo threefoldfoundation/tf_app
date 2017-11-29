@@ -25,6 +25,8 @@ from mcfw.properties import object_factory
 from mcfw.rpc import arguments, returns
 from onfido import Applicant, Address
 from onfido.rest import ApiException
+from plugins.its_you_online_auth.bizz.profile import index_profile
+from plugins.its_you_online_auth.models import Profile
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING, FormFlowStepTO
@@ -154,6 +156,7 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
         deferred.defer(upload_document, applicant.id, document['type'], document['value'], document.get('side'))
     profile.kyc.set_status(KYCStatus.SUBMITTED.value, username)
     profile.put()
+    deferred.defer(index_profile, Profile.create_key(username))
 
 
 def _validate_kyc_status(username):

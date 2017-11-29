@@ -9,7 +9,6 @@ import { ITffState } from '../../states/tff.state';
 import { getEventParticipants, getEventParticipantsStatus } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   selector: 'tff-event-participants-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,

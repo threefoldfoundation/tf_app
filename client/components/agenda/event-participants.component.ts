@@ -4,7 +4,6 @@ import { Profile } from '../../../../its_you_online_auth/client/interfaces/user.
 import { EventParticipant, EventPresenceStatus } from '../../interfaces/agenda-events.interfaces';
 
 @Component({
-  moduleId: module.id,
   selector: 'tff-event-participants',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,

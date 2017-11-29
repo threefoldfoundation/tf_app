@@ -36,7 +36,9 @@
   <mat-nav-list class="kyc-check-list">
     <a mat-list-item *ngFor="let check of checks" [href]="check.results_uri" target="_blank" rel="noopener">
       <h4 matLine>{{ check.created_at | date : 'short' }}</h4>
-      <p matLine>{{ check.status }} - {{ check.result }}</p>
+      <p matLine>
+        <span>{{ ('tff.kyc_' + check.status) | translate }}</span>&nbsp;
+        <span *ngIf="check.result">- {{ ('tff.kyc_result_' + check.result) | translate }}</span></p>
       <button mat-icon-button>
         <mat-icon>open_in_new</mat-icon>
       </button>

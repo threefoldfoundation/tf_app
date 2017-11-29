@@ -13,7 +13,6 @@ import { SetKYCStatusPayload, TffProfile } from '../../interfaces/profile.interf
 import { getKYCChecks, getKYCChecksStatus, getTffProfile, getTffProfileStatus, setKYCStatus } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   selector: 'tff-kyc-page',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,

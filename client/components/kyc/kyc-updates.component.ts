@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@a
 import { KYCStatus, KYCStatuses, KYCStatusUpdate } from '../../interfaces/profile.interfaces';
 
 @Component({
-  moduleId: module.id,
   selector: 'tff-kyc-updates',
   encapsulation: ViewEncapsulation.None,
   preserveWhitespaces: false,

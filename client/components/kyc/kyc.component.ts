@@ -17,7 +17,6 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { Applicant, Check, KYC_STATUS_MAPPING, KYCStatus, KYCStatuses, SetKYCStatusPayload, TffProfile } from '../../interfaces';
 
 @Component({
-  moduleId: module.id,
   selector: 'tff-kyc',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -67,7 +66,7 @@ export class KycComponent implements OnChanges {
       .subscribe((data: PromptDialogResult) => this.setStatus.emit({
         status,
         comment: data.value,
-        data: status === KYCStatus.INFO_SET ? this.data : {}
+        data: status === KYCStatus.INFO_SET ? this.data : {},
       }));
   }
 }
