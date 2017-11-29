@@ -58,7 +58,6 @@ FMR_TAG_MAPPING = {
     'sign_investment_agreement_admin': investment_agreement_signed_by_admin,
     KYC_FLOW_PART_1_TAG: kyc_part_1,
     KYC_FLOW_PART_2_TAG: kyc_part_2,
-    'start_invest': kyc_part_1  # KYC flow started from within the invest flow
 }
 
 POKE_TAG_MAPPING = {

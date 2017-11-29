@@ -47,6 +47,7 @@ from plugins.tff_backend.bizz.hoster import get_publickey_label
 from plugins.tff_backend.bizz.intercom_helpers import IntercomTags
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
+from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
 from plugins.tff_backend.bizz.rogerthat import create_error_message
@@ -105,6 +106,10 @@ def invest_itft(message_flow_run_id, member, steps, end_id, end_message_flow_id,
            flow_params=unicode, token=unicode)
 def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
            flush_id, flush_message_flow_id, service_identity, user_details, flow_params, token):
+    if flush_id == 'flush_kyc':
+        # KYC flow started from within the invest flow
+        return kyc_part_1(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
+                          result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params)
     try:
         email = user_details[0].email
         app_id = user_details[0].app_id
