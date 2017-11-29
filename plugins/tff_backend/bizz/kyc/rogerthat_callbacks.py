@@ -147,7 +147,7 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
             applicant = create_applicant(applicant)
             profile.kyc.applicant_id = applicant.id
     except ApiException as e:
-        if e.status in xrange(400, 422):
+        if e.status in xrange(400, 499):
             raise BusinessException('Invalid status code from onfido: %s %s' % (e.status, e.body))
         raise
     for document in documents:
