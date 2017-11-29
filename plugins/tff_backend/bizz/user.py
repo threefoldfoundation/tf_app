@@ -41,6 +41,7 @@ from plugins.intercom_support.rogerthat_callbacks import start_or_get_chat
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
     has_access_to_organization
 from plugins.its_you_online_auth.bizz.profile import get_profile, index_profile
+from plugins.its_you_online_auth.libs.itsyouonline import Address, userview
 from plugins.its_you_online_auth.models import Profile
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.api import system, messaging
@@ -64,6 +65,7 @@ from plugins.tff_backend.models.user import ProfilePointer, TffProfile, KYCInfor
 from plugins.tff_backend.plugin_consts import NAMESPACE, KEY_NAME, KEY_ALGORITHM, KYC_FLOW_PART_1, KYC_FLOW_PART_1_TAG
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
 from plugins.tff_backend.to.user import SetKYCPayloadTO
+from plugins.tff_backend.utils import convert_to_str
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 
 FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
@@ -71,15 +73,6 @@ FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape', TranslateExtension],
     autoescape=True,
     loader=jinja2.FileSystemLoader([os.path.join(os.path.dirname(__file__), 'flows')]))
-
-
-def convert_to_str(v):
-    if v is None:
-        return None
-    if isinstance(v, unicode):
-        return v.encode('utf-8')
-    return v
-
 
 @returns()
 @arguments(user_detail=UserDetailsTO, origin=unicode, data=unicode)

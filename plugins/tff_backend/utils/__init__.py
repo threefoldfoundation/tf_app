@@ -79,13 +79,13 @@ def round_currency_amount(currency, amount):
     return round(amount, decimals_after_comma)
 
 
-def _convert_to_str(data):
+def convert_to_str(data):
     if isinstance(data, unicode):
         return data.encode('utf-8')
     elif isinstance(data, list):
         for i, list_item in enumerate(data):
-            data[i] = _convert_to_str(list_item)
+            data[i] = convert_to_str(list_item)
     elif isinstance(data, dict):
         for key, val in data.iteritems():
-            data[key] = _convert_to_str(val)
+            data[key] = convert_to_str(val)
     return data

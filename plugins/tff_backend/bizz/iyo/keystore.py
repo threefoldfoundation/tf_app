@@ -18,6 +18,7 @@
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey
+from plugins.tff_backend.utils import convert_to_str
 
 
 @returns(IYOKeyStoreKey)
@@ -25,7 +26,7 @@ from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey
 def create_keystore_key(username, data):
     client = get_itsyouonline_client_from_username(username)
     data = serialize_complex_value(data, IYOKeyStoreKey, False, skip_missing=True)
-    result = client.api.users.SaveKeyStoreKey(data, username)
+    result = client.api.users.SaveKeyStoreKey(data, convert_to_str(username))
     return IYOKeyStoreKey(**result.json())
 
 
@@ -33,5 +34,5 @@ def create_keystore_key(username, data):
 @arguments(username=unicode)
 def get_keystore(username):
     client = get_itsyouonline_client_from_username(username)
-    result = client.api.users.GetKeyStore(username)
+    result = client.api.users.GetKeyStore(convert_to_str(username))
     return [IYOKeyStoreKey(**key) for key in result.json()]
