@@ -24,6 +24,8 @@ from mcfw.consts import DEBUG
 from mcfw.properties import object_factory
 from mcfw.rpc import arguments, returns
 from onfido import Applicant, Address
+from onfido.rest import ApiException
+from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING, FormFlowStepTO
 from plugins.rogerthat_api.to.messaging.forms import FormResultTO, UnicodeWidgetResultTO, LongWidgetResultTO
@@ -138,11 +140,16 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
     if isinstance(result, FlowMemberResultCallbackResultTO):
         return result
     profile = get_tff_profile(username)
-    if profile.kyc.applicant_id:
-        applicant = update_applicant(profile.kyc.applicant_id, applicant)
-    else:
-        applicant = create_applicant(applicant)
-        profile.kyc.applicant_id = applicant.id
+    try:
+        if profile.kyc.applicant_id:
+            applicant = update_applicant(profile.kyc.applicant_id, applicant)
+        else:
+            applicant = create_applicant(applicant)
+            profile.kyc.applicant_id = applicant.id
+    except ApiException as e:
+        if e.status in xrange(400, 422):
+            raise BusinessException('Invalid status code from onfido: %s %s' % (e.status, e.body))
+        raise
     for document in documents:
         deferred.defer(upload_document, applicant.id, document['type'], document['value'], document.get('side'))
     profile.kyc.set_status(KYCStatus.SUBMITTED.value, username)
