@@ -34,7 +34,7 @@
   </div>
   <h3>{{ 'tff.checks' | translate }}</h3>
   <mat-nav-list class="kyc-check-list">
-    <a mat-list-item *ngFor="let check of checks" [href]="check.results_uri" target="_blank">
+    <a mat-list-item *ngFor="let check of checks" [href]="check.results_uri" target="_blank" rel="noopener">
       <h4 matLine>{{ check.created_at | date : 'short' }}</h4>
       <p matLine>{{ check.status }} - {{ check.result }}</p>
       <button mat-icon-button>

@@ -8,7 +8,7 @@
     <p *ngIf="document.start_date">{{ 'start' | translate }}: {{ document.start_date | date : dateFormat }}</p>
     <p *ngIf="document.end_date">{{ 'end' | translate }}: {{ document.end_date | date : dateFormat }}</p>
     <p>
-      {{ 'link' | translate }}: <a [href]="document.link" target="_blank">{{ document.link }}</a>
+      {{ 'link' | translate }}: <a [href]="document.link" target="_blank" rel="noopener">{{ document.link }}</a>
     </p>
     <div *ngIf="!showFull" [innerHTML]="document.markdown_short_description | markdown"></div>
     <div *ngIf="showFull" [innerHTML]="document.markdown_full_description | markdown"></div>

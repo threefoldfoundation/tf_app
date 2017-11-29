@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@a
   selector: 'tff-document-url',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<p *ngIf="url">{{ 'tff.document_url' | translate }}: <a [href]="url" target="_blank">{{ url }}</a></p>`,
+  template: `<p *ngIf="url">{{ 'tff.document_url' | translate }}: <a [href]="url" target="_blank"  rel="noopener">{{ url }}</a></p>`,
 })
 
 export class IyoSeeComponent {
