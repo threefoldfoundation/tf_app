@@ -38,7 +38,7 @@ def get_app_id_from_app_user(app_user):
 @returns(tuple)
 @arguments(app_user=users.User)
 def get_app_user_tuple(app_user):
-    # type: (users.User) -> tuple(users.User, unicode)
+    # type: (users.User) -> tuple[users.User, unicode]
     return get_app_user_tuple_by_email(app_user.email())
 
 

@@ -32,7 +32,7 @@ def get_user(username, jwt=None):
         client = get_itsyouonline_client_from_jwt(jwt)
     else:
         client = get_itsyouonline_client_from_username(username)
-    result = client.api.users.GetUserInformation(username)
+    result = client.api.users.GetUserInformation(convert_to_str(username))
     return userview(convert_to_str(result.json()))
 
 
@@ -42,8 +42,8 @@ def invite_user_to_organization(username, organization_id):
     logging.info('Inviting user %s to IYO organization %s', username, organization_id)
     client = get_itsyouonline_client()
     try:
-        client.api.organizations.AddOrganizationMember(AddOrganizationMemberReqBody.create(convert_to_str(username)),
-                                                       organization_id)
+        data = AddOrganizationMemberReqBody(searchstring=convert_to_str(username))
+        client.api.organizations.AddOrganizationMember(data=data, globalid=organization_id)
     except HTTPError as e:
         if e.response.status_code != httplib.CONFLICT:
             raise e

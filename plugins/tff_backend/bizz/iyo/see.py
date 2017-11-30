@@ -15,8 +15,6 @@
 #
 # @@license_version:1.3@@
 
-import urllib
-
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username
 from plugins.tff_backend.to.iyo.see import IYOSeeDocument, IYOSeeDocumentView
@@ -30,7 +28,8 @@ def get_see_document(organization_id, username, uniqueid, version=u"latest"):
     query_params = {
         'version': version
     }
-    result = client.api.users.GetSeeObject(uniqueid, organization_id, convert_to_str(username), query_params=query_params)
+    result = client.api.users.GetSeeObject(uniqueid, organization_id, convert_to_str(username),
+                                           query_params=query_params)
     return IYOSeeDocument(**result.json())
 
 
@@ -68,6 +67,6 @@ def update_see_document(organization_id, username, doc):
 def sign_see_document(organization_id, username, doc):
     client = get_itsyouonline_client_from_username(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
-    result = client.api.users.SignSeeObject(data, str(doc.version), urllib.quote(doc.uniqueid), organization_id,
+    result = client.api.users.SignSeeObject(data, convert_to_str(doc.version), doc.uniqueid, organization_id,
                                             convert_to_str(username))
     return IYOSeeDocumentView(**result.json())
