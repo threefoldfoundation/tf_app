@@ -98,7 +98,7 @@ def kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                 result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     parsed_flow_params = json.loads(flow_params)
-    applicant = Applicant(country=parsed_flow_params['nationality'], addresses=[Address()])
+    applicant = Applicant(nationality=parsed_flow_params['nationality'], addresses=[Address()])
     documents = []
 
     def _set_attr(prop, value):
@@ -106,6 +106,8 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
             setattr(applicant, prop, value)
         elif prop.startswith('address_'):
             prop = prop.replace('address_', '')
+            if prop == 'country':
+                applicant.country = value
             setattr(applicant.addresses[0], prop, value)
         else:
             logging.warn('Ignoring unknown property %s with value %s', prop, value)
