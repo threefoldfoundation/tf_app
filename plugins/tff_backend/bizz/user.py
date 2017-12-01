@@ -23,7 +23,7 @@ import os
 import time
 
 import jinja2
-from google.appengine.api import users
+from google.appengine.api import users, urlfetch
 from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
@@ -41,7 +41,6 @@ from plugins.intercom_support.rogerthat_callbacks import start_or_get_chat
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
     has_access_to_organization
 from plugins.its_you_online_auth.bizz.profile import get_profile, index_profile
-from plugins.its_you_online_auth.libs.itsyouonline import Address, userview
 from plugins.its_you_online_auth.models import Profile
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.api import system, messaging
@@ -73,6 +72,7 @@ FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape', TranslateExtension],
     autoescape=True,
     loader=jinja2.FileSystemLoader([os.path.join(os.path.dirname(__file__), 'flows')]))
+
 
 @returns()
 @arguments(user_detail=UserDetailsTO, origin=unicode, data=unicode)
@@ -365,12 +365,21 @@ def set_kyc_status(username, payload, current_user_id):
     if payload.status == KYCStatus.INFO_SET:
         update_applicant(profile.kyc.applicant_id, deserialize(payload.data, Applicant))
     elif payload.status == KYCStatus.PENDING_APPROVAL:
-        check_result = create_check(profile.kyc.applicant_id)
-        logging.info('Check result from Onfido: %s', check_result)
+        deferred.defer(_create_check, profile.kyc.applicant_id)
     deferred.defer(store_kyc_in_user_data, profile.app_user)
     deferred.defer(index_profile, Profile.create_key(username))
     profile.put()
     return profile
+
+
+def _create_check(applicant_id):
+    # This can take a bit of time
+    urlfetch.set_default_fetch_deadline(300)
+    try:
+        create_check(applicant_id)
+    except Exception as e:
+        logging.exception(e.message)
+        raise PermanentTaskFailure(e)
 
 
 def send_kyc_flow(app_user):
@@ -424,7 +433,7 @@ def generate_kyc_flow(country_code, iyo_username):
         'start_reference': sorted_steps[0]['reference'],
         'steps': sorted_steps,
         'language': DEFAULT_LANGUAGE,
-        'branding_key':  branding_key
+        'branding_key': branding_key
     }
     return FLOWS_JINJA_ENVIRONMENT.get_template('kyc_part_2.xml').render(template_params), flow_params
 

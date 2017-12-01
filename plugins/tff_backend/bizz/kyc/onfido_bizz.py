@@ -102,7 +102,9 @@ def create_check(applicant_id):
         onfido.Report(name='watchlist', variant='full'),
     ]
     check = Check(type='express', reports=reports)
-    return get_api_client().create_check(applicant_id, data=check)
+    result = get_api_client().create_check(applicant_id, data=check)
+    logging.info('Check result from Onfido: %s', result)
+    return result
 
 
 def serialize(data):
