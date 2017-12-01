@@ -167,8 +167,8 @@ def _get_stats(data):
                 stats['bootTime'] = values['bootTime']
             elif key == 'stats':
                 stats['network'] = {
-                    'incoming': values[u'network.throughput.incoming/enp1s0']['history']['3600'],
-                    'outgoing': values[u'network.throughput.outgoing/enp1s0']['history']['3600']
+                    'incoming': values[u'network.throughput.incoming/enp1s0']['history'].get('3600', []),
+                    'outgoing': values[u'network.throughput.outgoing/enp1s0']['history'].get('3600', [])
                 }
                 stats['cpu'] = _get_cpu_stats(values)
     return stats
