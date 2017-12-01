@@ -23,7 +23,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         },
         ordersQuery: {
           ...state.ordersQuery,
-          cursor: action.payload.cursor
+          cursor: action.payload.cursor,
         },
         ordersStatus: apiRequestSuccess,
       };
@@ -36,6 +36,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       return {
         ...state,
         order: initialTffState.order,
+        updateOrderStatus: initialTffState.updateOrderStatus,
       };
     case actions.TffActionTypes.GET_ORDER:
       return {
@@ -57,7 +58,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
     case actions.TffActionTypes.UPDATE_ORDER:
       return {
         ...state,
-        updateOrderStatus: apiRequestLoading
+        updateOrderStatus: apiRequestLoading,
       };
     case actions.TffActionTypes.UPDATE_ORDER_COMPLETE:
       return {
@@ -65,7 +66,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         order: action.payload,
         orders: {
           ...state.orders,
-          results: updateItem(state.orders.results, action.payload, 'id')
+          results: updateItem(state.orders.results, action.payload, 'id'),
         },
         updateOrderStatus: apiRequestSuccess,
       };
@@ -88,13 +89,13 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         investmentAgreements: {
           cursor: action.payload.cursor,
           more: action.payload.more,
-          results: [ ...state.investmentAgreements.results, ...action.payload.results ]
+          results: [ ...state.investmentAgreements.results, ...action.payload.results ],
         },
         investmentAgreementsStatus: apiRequestSuccess,
         investmentAgreementsQuery: {
           ...state.investmentAgreementsQuery,
-          cursor: action.payload.cursor
-        }
+          cursor: action.payload.cursor,
+        },
       };
     case actions.TffActionTypes.GET_INVESTMENT_AGREEMENTS_FAILED:
       return {
@@ -134,7 +135,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         investmentAgreement: action.payload,
         investmentAgreements: {
           ...state.investmentAgreements,
-          results: updateItem(state.investmentAgreements.results, action.payload, 'id')
+          results: updateItem(state.investmentAgreements.results, action.payload, 'id'),
         },
         updateInvestmentAgreementStatus: apiRequestSuccess,
       };
@@ -206,7 +207,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         userListQuery: {
           ...state.userListQuery,
-          cursor: action.payload.cursor
+          cursor: action.payload.cursor,
         },
         userList: {
           cursor: action.payload.cursor,
@@ -304,7 +305,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         createTransactionStatus: apiRequestSuccess,
         userTransactions: {
           ...state.userTransactions,
-          results: [ ...state.userTransactions.results, action.payload ]
+          results: [ ...state.userTransactions.results, action.payload ],
         },
       };
     case actions.TffActionTypes.CREATE_TRANSACTION_FAILED:
@@ -318,14 +319,14 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       return {
         ...state,
         setKYCStatus: apiRequestSuccess,
-        tffProfile: action.payload
+        tffProfile: action.payload,
       };
     case actions.TffActionTypes.SET_KYC_STATUS_FAILED:
       return { ...state, setKYCStatus: action.payload };
     case actions.TffActionTypes.GET_AGENDA_EVENTS:
       return {
         ...state,
-        agendaEventsStatus: apiRequestLoading
+        agendaEventsStatus: apiRequestLoading,
       };
     case actions.TffActionTypes.GET_AGENDA_EVENTS_COMPLETE:
       return {
@@ -341,7 +342,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
     case actions.TffActionTypes.GET_AGENDA_EVENT:
       return {
         ...state,
-        agendaEventStatus: apiRequestLoading
+        agendaEventStatus: apiRequestLoading,
       };
     case actions.TffActionTypes.GET_AGENDA_EVENT_COMPLETE:
       return {
@@ -357,12 +358,12 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
     case actions.TffActionTypes.RESET_AGENDA_EVENT:
       return {
         ...state,
-        createAgendaEventStatus: initialTffState.createAgendaEventStatus
+        createAgendaEventStatus: initialTffState.createAgendaEventStatus,
       };
     case actions.TffActionTypes.CREATE_AGENDA_EVENT:
       return {
         ...state,
-        createAgendaEventStatus: apiRequestLoading
+        createAgendaEventStatus: apiRequestLoading,
       };
     case actions.TffActionTypes.CREATE_AGENDA_EVENT_COMPLETE:
       return {
@@ -379,7 +380,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
     case actions.TffActionTypes.UPDATE_AGENDA_EVENT:
       return {
         ...state,
-        updateAgendaEventStatus: apiRequestLoading
+        updateAgendaEventStatus: apiRequestLoading,
       };
     case actions.TffActionTypes.UPDATE_AGENDA_EVENT_COMPLETE:
       return {
