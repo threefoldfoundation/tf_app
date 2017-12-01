@@ -366,9 +366,9 @@ def set_kyc_status(username, payload, current_user_id):
         update_applicant(profile.kyc.applicant_id, deserialize(payload.data, Applicant))
     elif payload.status == KYCStatus.PENDING_APPROVAL:
         deferred.defer(_create_check, profile.kyc.applicant_id)
-    deferred.defer(store_kyc_in_user_data, profile.app_user)
-    deferred.defer(index_profile, Profile.create_key(username))
     profile.put()
+    deferred.defer(store_kyc_in_user_data, profile.app_user, _countdown=2)
+    deferred.defer(index_profile, Profile.create_key(username), _countdown=2)
     return profile
 
 

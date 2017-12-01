@@ -31,7 +31,7 @@ from framework.utils import now, azzert
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.rogerthat_api.api import messaging, system
+from plugins.rogerthat_api.api import messaging
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
 from plugins.rogerthat_api.to.messaging import Message, AttachmentTO, AnswerTO
@@ -47,6 +47,7 @@ from plugins.tff_backend.bizz.hoster import get_publickey_label
 from plugins.tff_backend.bizz.intercom_helpers import IntercomTags
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
+from plugins.tff_backend.bizz.kyc.onfido_bizz import get_applicant
 from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
@@ -54,8 +55,9 @@ from plugins.tff_backend.bizz.rogerthat import create_error_message
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
-from plugins.tff_backend.bizz.user import user_code
+from plugins.tff_backend.bizz.user import user_code, get_tff_profile
 from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS, ACCOUNT_NUMBERS
+from plugins.tff_backend.consts.kyc import country_choices
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TokenType
 from plugins.tff_backend.dal.investment_agreements import get_investment_agreement
 from plugins.tff_backend.models.global_stats import GlobalStats
@@ -65,7 +67,7 @@ from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE
     BUY_TOKENS_FLOW_V3_KYC_MENTION
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
-from plugins.tff_backend.utils import get_step_value, get_step, round_currency_amount
+from plugins.tff_backend.utils import get_step_value, round_currency_amount
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from requests.exceptions import HTTPError
 
@@ -123,17 +125,14 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         else:
             token_count_float = float(get_step_value(steps, 'message_get_order_size_ITO'))
             amount = get_investment_amount(currency, token_count_float)
-
-        overview_step = get_step(steps, 'message_overview')
-        if overview_step and overview_step.answer_id == u"button_use":
-            api_key = get_rogerthat_api_key()
-            user_data_keys = ['name', 'billing_address', 'address']
-            current_user_data = system.get_user_data(api_key, email, app_id, user_data_keys)
-            name = current_user_data['name']
-            billing_address = current_user_data['billing_address'] or current_user_data['address']
-        else:
-            name = get_step_value(steps, 'message_name')
-            billing_address = get_step_value(steps, 'message_billing_address')
+        username = get_iyo_username(app_user)
+        tff_profile = get_tff_profile(username)
+        applicant = get_applicant(tff_profile.kyc.applicant_id)
+        name = '%s %s ' % (applicant.first_name, applicant.last_name)
+        address = '%s %s' % (applicant.addresses[0].street, applicant.addresses[0].building_number)
+        address += '\n%s %s' % (applicant.addresses[0].postcode, applicant.addresses[0].town)
+        country = filter(lambda c: c['value'] == applicant.addresses[0].country, country_choices)[0]['label']
+        address += '\n%s' % country
         precision = 2
         reference = user_code(get_iyo_username(app_user))
         agreement = InvestmentAgreement(creation_time=now(),
@@ -144,7 +143,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
                                         token_precision=precision,
                                         currency=currency,
                                         name=name,
-                                        address=billing_address,
+                                        address=address,
                                         status=InvestmentAgreement.STATUS_CREATED,
                                         version=version,
                                         reference=reference)

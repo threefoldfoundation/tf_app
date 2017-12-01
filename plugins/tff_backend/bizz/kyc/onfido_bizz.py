@@ -45,6 +45,11 @@ def get_api_client():
     return api
 
 
+def get_applicant(applicant_id):
+    # type: (str) -> Applicant
+    return get_api_client().find_applicant(applicant_id)
+
+
 def create_applicant(applicant):
     applicant.sandbox = DEBUG
     return get_api_client().create_applicant(data=applicant)
