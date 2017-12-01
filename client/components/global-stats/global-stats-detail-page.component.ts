@@ -15,7 +15,7 @@ import { getGlobalStats, getGlobalStatsStatus, updateGlobalStatsStatus } from '.
     <tff-global-stats-detail [globalStats]="globalStats$ | async"
                              [status]="getStatus$ | async"
                              [updateStatus]="updateStatus$ | async"
-                             (onSave)="save($event)"></tff-global-stats-detail>`,
+                             (submit)="onSubmit($event)"></tff-global-stats-detail>`,
 })
 
 export class GlobalStatsDetailPageComponent implements OnInit {
@@ -36,7 +36,7 @@ export class GlobalStatsDetailPageComponent implements OnInit {
   }
 
 
-  save(globalStats: GlobalStats) {
+  onSubmit(globalStats: GlobalStats) {
     this.store.dispatch(new UpdateGlobalStatsAction(globalStats));
   }
 }
