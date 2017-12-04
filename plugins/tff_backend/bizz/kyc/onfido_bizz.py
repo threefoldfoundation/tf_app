@@ -82,9 +82,10 @@ def upload_document(applicant_id, document_type, document_url, side=None):
 def _upload_document(applicant_id, document_type, side, file_name, file_content, content_type):
     params = [
         ('type', document_type),
-        ('side', side),
         ('file', (file_name, file_content, content_type)),
     ]
+    if side:
+        params.append(('side', side))
     payload, payload_content_type = encode_multipart_formdata(params)
     headers = {
         'Authorization': onfido.configuration.get_api_key_with_prefix('Authorization'),
