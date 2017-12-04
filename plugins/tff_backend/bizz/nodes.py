@@ -114,7 +114,7 @@ def check_if_node_comes_online(order_key):
 @ndb.transactional(xg=True)
 def set_node_id_on_profile(app_user, node_id):
     username = get_iyo_username(app_user)
-    profile = TffProfile.create_key(username)
+    profile = TffProfile.create_key(username).get()
     profile.node_id = node_id
     profile.put()
 
