@@ -87,12 +87,12 @@ def _upload_document(applicant_id, document_type, side, file_name, file_content,
     if side:
         params.append(('side', side))
     payload, payload_content_type = encode_multipart_formdata(params)
+    client = get_api_client()
     headers = {
         'Authorization': onfido.configuration.get_api_key_with_prefix('Authorization'),
         'Content-Type': payload_content_type,
         'Accept': 'application/json'
     }
-    client = get_api_client()
     url = '%s/applicants/%s/documents' % (client.api_client.host, applicant_id)
     response = urlfetch.fetch(url, payload, urlfetch.POST, headers=headers)  # type: urlfetch._URLFetchResult
     if response.status_code != 201:
