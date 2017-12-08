@@ -33,6 +33,8 @@ from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING, FormFlowS
 from plugins.rogerthat_api.to.messaging.forms import FormResultTO, UnicodeWidgetResultTO, LongWidgetResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     TYPE_FLOW, FlowCallbackResultTypeTO
+from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
+from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.kyc.onfido_bizz import update_applicant, create_applicant, upload_document
 from plugins.tff_backend.bizz.rogerthat import create_error_message
@@ -73,6 +75,12 @@ def kyc_part_1(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
     assert isinstance(step.form_result, FormResultTO)
     assert isinstance(step.form_result.result, UnicodeWidgetResultTO)
     country_code = step.form_result.result.value
+    ref_step = get_step(steps, 'message_referrer')
+    if ref_step and not result.referrer_user:
+        try:
+            api_set_referral({'code': ref_step.get_value()}, user_details[0])
+        except ApiCallException as e:
+            return create_error_message(FlowMemberResultCallbackResultTO(), e.message)
     xml, flow_params = generate_kyc_flow(country_code, iyo_username)
     result = FlowCallbackResultTypeTO(flow=xml, tag=KYC_FLOW_PART_2_TAG, force_language=None,
                                       flow_params=json.dumps(flow_params))
@@ -109,7 +117,6 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
             setattr(applicant.addresses[0], prop, value)
         else:
             logging.warn('Ignoring unknown property %s with value %s', prop, value)
-
     for step in steps:
         assert isinstance(step, FormFlowStepTO)
         step_id_split = step.step_id.split('_', 1)
