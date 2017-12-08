@@ -30,7 +30,8 @@ export class OrderDetailComponent implements OnChanges {
   }
 
   getOrderStatus(): string {
-    return this.translate.instant(ORDER_STATUSES.find(s => s.value === this.nodeOrder.status).label);
+    const status = ORDER_STATUSES.find(s => s.value === this.nodeOrder.status);
+    return status ? this.translate.instant(status.label) : '';
   }
 
   setOrderStatus(status: NodeOrderStatuses) {

@@ -38,7 +38,7 @@ export class UserTransactionsListPageComponent implements OnInit {
   }
 
   ngOnInit() {
-    const username = this.route.parent.snapshot.params.username;
+    const username = (<ActivatedRoute>this.route.parent).snapshot.params.username;
     this.store.dispatch(new GetUserTransactionsAction(username));
     this.store.dispatch(new GetBalanceAction(username));
     this.transactionList$ = this.store.select(getUserTransactions);

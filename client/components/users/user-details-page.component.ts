@@ -17,7 +17,7 @@ import { getUser } from '../../tff.state';
     </div>`
 })
 export class UserDetailsPageComponent implements OnInit {
-  user$: Observable<Profile>;
+  user$: Observable<Profile | null>;
 
   constructor(private store: Store<IAppState>) {
   }

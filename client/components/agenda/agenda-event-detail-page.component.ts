@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
+import { filter } from 'rxjs/operators/filter';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import { GetAgendaEventAction, UpdateAgendaEventAction } from '../../actions/threefold.action';
 import { AgendaEvent } from '../../interfaces/agenda-events.interfaces';
@@ -31,7 +32,7 @@ export class AgendaEventDetailPageComponent implements OnInit {
   ngOnInit() {
     const eventId = this.route.snapshot.params.eventId;
     this.store.dispatch(new GetAgendaEventAction(eventId));
-    this.agendaEvent$ = this.store.select(getAgendaEvent);
+    this.agendaEvent$ = <Observable<AgendaEvent>>this.store.select(getAgendaEvent).pipe(filter(a => a !== null));
     this.status$ = this.store.select(getAgendaEventStatus);
     this.updateStatus$ = this.store.select(updateAgendaEventStatus);
   }

@@ -5,13 +5,13 @@ import {
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
-  InvestmentAgreementsQuery,
+  InvestmentAgreementsQuery, InvestmentAgreementsStatuses,
   NodeOrder,
   NodeOrderList,
   NodeOrdersQuery,
   PaginatedResult,
   TransactionList,
-  WalletBalance
+  WalletBalance,
 } from '../interfaces/index';
 import { Check } from '../interfaces/onfido.interfaces';
 import { SearchUsersQuery, TffProfile, UserList } from '../interfaces/profile.interfaces';

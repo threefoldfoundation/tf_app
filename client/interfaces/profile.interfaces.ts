@@ -1,5 +1,6 @@
 import { Profile } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
 import { Applicant } from './onfido.interfaces';
+import { PaginatedResult } from './shared.interfaces';
 
 export interface TffProfile {
   app_user: string;
@@ -79,11 +80,7 @@ export interface SearchUsersQuery {
   query: string | null;
 }
 
-export interface UserList {
-  cursor: string;
-  more: boolean;
-  results: Profile[];
-}
+export type UserList = PaginatedResult<Profile>;
 
 export interface SetKYCStatusPayload {
   status: KYCStatus;

@@ -9,7 +9,7 @@ export enum InvestmentAgreementsStatuses {
 
 export interface InvestmentAgreementsQuery {
   cursor: string | null;
-  status: InvestmentAgreementsStatuses;
+  status: InvestmentAgreementsStatuses | null;
   query: string | null;
 }
 

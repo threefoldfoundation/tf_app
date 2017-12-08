@@ -3,16 +3,15 @@ import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs/Observable';
+import { filter } from 'rxjs/operators/filter';
 import { Subscription } from 'rxjs/Subscription';
 import { DialogService } from '../../../../framework/client/dialog/services/dialog.service';
 import { getIdentity, Identity } from '../../../../framework/client/identity/index';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import {
-  GetGlobalStatsAction,
-  GetInvestmentAgreementAction,
-  ResetInvestmentAgreementAction,
-  UpdateInvestmentAgreementAction
+  GetGlobalStatsAction, GetInvestmentAgreementAction, ResetInvestmentAgreementAction,
+  UpdateInvestmentAgreementAction,
 } from '../../actions/threefold.action';
 import { GlobalStats } from '../../interfaces/global-stats.interfaces';
 import { InvestmentAgreement, InvestmentAgreementsStatuses } from '../../interfaces/investment-agreements.interfaces';
@@ -53,13 +52,13 @@ export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy
     const agreementId = this.route.snapshot.params.investmentAgreementId;
     this.store.dispatch(new ResetInvestmentAgreementAction());
     this.store.dispatch(new GetInvestmentAgreementAction(agreementId));
-    this.investmentAgreement$ = this.store.select(getInvestmentAgreement);
+    this.investmentAgreement$ = <Observable<InvestmentAgreement>>this.store.select(getInvestmentAgreement).pipe(filter(s => s !== null));
     this.status$ = this.store.select(getInvestmentAgreementStatus);
     this.updateStatus$ = this.store.select(updateInvestmentAgreementStatus);
     this.canUpdate$ = this.store.select(getIdentity).filter(i => i !== null)
       .map((identity: Identity) => identity.permissions.includes(TffPermissions.ADMINS));
-    this.globalStats$ = this.store.select(getGlobalStats);
-    this._investmentSub = this.investmentAgreement$.filter(i => i !== null && i.token !== null).subscribe(investment => {
+    this.globalStats$ = <Observable<GlobalStats>>this.store.select(getGlobalStats).pipe(filter(s => s !== null));
+    this._investmentSub = this.investmentAgreement$.filter(i => i.token !== null).subscribe(investment => {
       this.store.dispatch(new GetGlobalStatsAction(investment.token));
     });
     this._errorSub = this.updateStatus$.filter(status => !status.success && !status.loading && status.error !== null)

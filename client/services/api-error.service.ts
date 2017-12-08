@@ -21,7 +21,7 @@ export class ApiErrorService {
    * @param {ApiError} err
    * @returns {string}
    */
-  getErrorMessage(err: ApiError): string {
+  getErrorMessage(err: ApiError | null): string {
     if (!err) {
       this.log.error('ApiErrorService.getErrorMessage called without error object');
       // Assuming that this is a mistake, an empty message is returned.
@@ -47,7 +47,7 @@ export class ApiErrorService {
     return msg;
   }
 
-  showErrorDialog(error: ApiError, title = 'tff.error', closeButton = 'tff.close') {
+  showErrorDialog(error: ApiError | null, title = 'tff.error', closeButton = 'tff.close') {
     return this.dialogService.openAlert({
       title: this.translate.instant(title),
       message: this.getErrorMessage(error),

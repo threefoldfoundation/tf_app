@@ -1,12 +1,5 @@
 import {
-  ChangeDetectionStrategy,
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  ViewChild,
+  ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
@@ -48,8 +41,12 @@ export class KycComponent implements OnChanges {
   }
 
   public getStatus(status: KYCStatus) {
-    const statusString = this.translate.instant(KYCStatuses.find(s => s.value === status).label);
-    return this.translate.instant('tff.current_status', { status: statusString });
+    const kycStatus = KYCStatuses.find(s => s.value === status);
+    if (kycStatus) {
+      const statusString = this.translate.instant(kycStatus.label);
+      return this.translate.instant('tff.current_status', { status: statusString });
+    }
+    return '';
   }
 
   public submit(status: KYCStatus) {
@@ -62,7 +59,7 @@ export class KycComponent implements OnChanges {
       message: this.translate.instant('tff.enter_optional_comment'),
       cancel: this.translate.instant('tff.cancel'),
       required: false,
-    }).afterClosed().pipe(filter((data?: PromptDialogResult) => data && data.submitted))
+    }).afterClosed().pipe(filter((data?: PromptDialogResult) => !!data && data.submitted))
       .subscribe((data: PromptDialogResult) => this.setStatus.emit({
         status,
         comment: data.value,

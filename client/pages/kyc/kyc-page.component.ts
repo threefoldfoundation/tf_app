@@ -39,9 +39,9 @@ export class KycPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.tffProfile$ = this.store.select(getTffProfile).pipe(
+    this.tffProfile$ = <Observable<TffProfile>>this.store.select(getTffProfile).pipe(
       filter(p => p !== null),
-      map(profile => ({
+      map((profile: TffProfile) => ({
         ...profile, kyc: {
           ...profile.kyc,
           updates: profile.kyc.updates.concat().reverse()

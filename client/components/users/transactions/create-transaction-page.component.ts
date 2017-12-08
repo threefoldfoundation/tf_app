@@ -38,12 +38,12 @@ export class CreateTransactionPageComponent implements OnInit, OnDestroy {
       token_count: 0,
       token_type: TokenTypes.I,
       memo: null,
-      username: this.route.parent.snapshot.params.username,
+      username: (<ActivatedRoute>this.route.parent).snapshot.params.username,
     };
     this.store.dispatch(new ResetNewTransactionAction());
     this.createStatus$ = this.store.select(createTransactionStatus);
     this._createSub = this.createStatus$.filter(s => s.success)
-      .subscribe(status => this.router.navigate([ '..' ], { relativeTo: this.route }));
+      .subscribe(() => this.router.navigate([ '..' ], { relativeTo: this.route }));
   }
 
   ngOnDestroy() {

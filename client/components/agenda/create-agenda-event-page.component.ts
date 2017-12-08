@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
+import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
 import { ApiRequestStatus, apiRequestSuccess } from '../../../../framework/client/rpc/rpc.interfaces';
 import { CreateAgendaEventAction, ResetAgendaEventAction } from '../../actions/threefold.action';
 import { AgendaEvent, AgendaEventType } from '../../interfaces/agenda-events.interfaces';
@@ -32,17 +33,18 @@ export class CreateAgendaEventPageComponent implements OnInit {
   ngOnInit() {
     const now = new Date().toISOString();
     this.event = {
-      description: null,
-      location: null,
+      description: '',
+      location: '',
       type: AgendaEventType.EVENT,
       start_timestamp: now,
       end_timestamp: now,
     };
     this.store.dispatch(new ResetAgendaEventAction());
     this.createStatus$ = this.store.select(createAgendaEventStatus);
-    this.createStatus$.filter(status => status.success)
-      .withLatestFrom(this.store.select(getAgendaEvent))
-      .subscribe(([ status, event ]) => this.router.navigate([ '..', event.id ], { relativeTo: this.route }));
+    this.createStatus$.filter(status => status.success).pipe(withLatestFrom(this.store.select(getAgendaEvent)))
+      .subscribe(([ status, event ]: [ ApiRequestStatus, AgendaEvent ]) => {
+        return this.router.navigate([ '..', event.id ], { relativeTo: this.route });
+      });
   }
 
   onSubmitted(event: AgendaEvent) {

@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { UpdateSecondaryTitleAction } from '../../../../framework/client/sidebar/actions/sidebar.action';
 import { SidebarTitle } from '../../../../framework/client/sidebar/interfaces/sidebar.interfaces';
+import { Profile } from '../../../../its_you_online_auth/client/interfaces';
 import { GetTffProfileAction, GetUserAction } from '../../actions/threefold.action';
 import { getUser } from '../../tff.state';
 
@@ -27,7 +28,7 @@ export class UserPageComponent implements OnInit, OnDestroy {
     const username = this.route.snapshot.params.username;
     this.store.dispatch(new GetUserAction(username));
     this.store.dispatch(new GetTffProfileAction(username));
-    this._userSub = this.store.select(getUser).filter(u => u !== null).subscribe(user => {
+    this._userSub = this.store.select(getUser).filter(u => u !== null).subscribe((user: Profile) => {
       const name = user.info && user.info.firstname ? `${user.info.firstname} ${user.info.lastname}` : user.username;
       this.store.dispatch(new UpdateSecondaryTitleAction(<SidebarTitle>{ label: name, isTranslation: false }));
     });

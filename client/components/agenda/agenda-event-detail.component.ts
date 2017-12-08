@@ -42,9 +42,11 @@ export class AgendaEventDetailComponent {
   }
 
   onDateChange(property: 'start_timestamp' | 'end_timestamp', event: MatDatepickerInputEvent<Date>) {
-    this.event[ property ] = event.value.toISOString();
-    if (property === 'start_timestamp' && this.event.end_timestamp && event.value > new Date(this.event.end_timestamp)) {
-      this.event.end_timestamp = this.event.start_timestamp;
+    if (event.value) {
+      this.event[ property ] = event.value.toISOString();
+      if (property === 'start_timestamp' && this.event.end_timestamp && event.value > new Date(this.event.end_timestamp)) {
+        this.event.end_timestamp = this.event.start_timestamp;
+      }
     }
   }
 
