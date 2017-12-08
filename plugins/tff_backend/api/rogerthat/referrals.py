@@ -15,7 +15,6 @@
 #
 # @@license_version:1.3@@
 
-
 from google.appengine.ext import ndb, deferred
 
 from mcfw.rpc import returns, arguments
