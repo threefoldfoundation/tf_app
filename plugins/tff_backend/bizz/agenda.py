@@ -68,7 +68,7 @@ def list_participants(event_id, cursor=None, page_size=50):
 @arguments(event=EventTO)
 def put_event(event):
     # type: (EventTO) -> Event
-    model = Event() if event.id is MISSING else Event.get_by_id(event.id)
+    model = Event(past=False) if event.id is MISSING else Event.get_by_id(event.id)
     args = event.to_dict(exclude=['id'])
     args.update(
         start_timestamp=dateutil.parser.parse(event.start_timestamp.replace('Z', '')),
