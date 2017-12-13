@@ -457,7 +457,7 @@ def put_node_order(order_id, order):
         if order_model.status == NodeOrderStatus.CANCELED:
             order_model.cancel_time = now()
             if order_model.odoo_sale_order_id:
-                deferred.defer(update_odoo_quotation, order_model.odoo_sale_order_id, {'state': QuotationState.CANCEL})
+                deferred.defer(update_odoo_quotation, order_model.odoo_sale_order_id, {'state': QuotationState.CANCEL.value})
             deferred.defer(update_hoster_progress, human_user.email(), app_id,
                            HosterSteps.NODE_POWERED)  # nuke todo list
             deferred.defer(set_hoster_status_in_user_data, order_model.app_user)
