@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulatio
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
+import { filter } from 'rxjs/operators/filter';
 import { Subscription } from 'rxjs/Subscription';
 import { IAppState } from '../../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../../framework/client/rpc/rpc.interfaces';
@@ -21,7 +22,6 @@ import { createTransactionStatus } from '../../../tff.state';
                               (onCreateTransaction)="createTransaction($event)"></tff-create-transaction>
     </div>`
 })
-
 export class CreateTransactionPageComponent implements OnInit, OnDestroy {
   transaction: CreateTransactionPayload;
   createStatus$: Observable<ApiRequestStatus>;
@@ -42,7 +42,7 @@ export class CreateTransactionPageComponent implements OnInit, OnDestroy {
     };
     this.store.dispatch(new ResetNewTransactionAction());
     this.createStatus$ = this.store.select(createTransactionStatus);
-    this._createSub = this.createStatus$.filter(s => s.success)
+    this._createSub = this.createStatus$.pipe(filter(s => s.success))
       .subscribe(() => this.router.navigate([ '..' ], { relativeTo: this.route }));
   }
 

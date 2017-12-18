@@ -12,7 +12,6 @@ import { getUser } from '../../tff.state';
   preserveWhitespaces: false,
   template: `
     <div class="default-component-padding">
-      <p>Sorry, haven't gotten the chance yet to create a nice page</p>
       <pre>{{ user$ | async | json }}</pre>
     </div>`
 })

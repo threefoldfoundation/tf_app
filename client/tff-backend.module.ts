@@ -4,18 +4,8 @@ import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
-  MatButtonModule,
-  MatCardModule,
-  MatChipsModule,
-  MatDatepickerModule,
-  MatIconModule,
-  MatInputModule,
-  MatListModule,
-  MatNativeDateModule,
-  MatProgressSpinnerModule,
-  MatSelectModule,
-  MatSlideToggleModule,
-  MatTabsModule
+  MatButtonModule, MatCardModule, MatChipsModule, MatDatepickerModule, MatIconModule, MatInputModule, MatListModule,
+  MatNativeDateModule, MatProgressSpinnerModule, MatSelectModule, MatSlideToggleModule, MatTabsModule,
 } from '@angular/material';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
@@ -28,7 +18,6 @@ import { AddRoutesAction } from '../../framework/client/sidebar/index';
 import { AddToolbarItemAction } from '../../framework/client/toolbar/actions';
 import { ToolbarItemTypes } from '../../framework/client/toolbar/interfaces';
 import { TffEffects } from './effects';
-import './operators';
 import { MarkdownPipe } from './pipes/markdown.pipe';
 import { TimestampPipe } from './pipes/timestamp.pipe';
 import { tffReducer } from './reducers';

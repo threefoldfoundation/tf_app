@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
+import { filter } from 'rxjs/operators/filter';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import { GetGlobalStatsAction, UpdateGlobalStatsAction } from '../../actions/threefold.action';
@@ -30,7 +31,7 @@ export class GlobalStatsDetailPageComponent implements OnInit {
   ngOnInit() {
     const statsId = this.route.snapshot.params.globalStatsId;
     this.store.dispatch(new GetGlobalStatsAction(statsId));
-    this.globalStats$ = <Observable<GlobalStats>>this.store.select(getGlobalStats).filter(s => s !== null);
+    this.globalStats$ = <Observable<GlobalStats>>this.store.select(getGlobalStats).pipe(filter(s => s !== null));
     this.getStatus$ = this.store.select(getGlobalStatsStatus);
     this.updateStatus$ = this.store.select(updateGlobalStatsStatus);
   }

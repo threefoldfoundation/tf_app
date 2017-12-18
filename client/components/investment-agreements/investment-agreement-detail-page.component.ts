@@ -4,6 +4,7 @@ import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs/Observable';
 import { filter } from 'rxjs/operators/filter';
+import { map } from 'rxjs/operators/map';
 import { Subscription } from 'rxjs/Subscription';
 import { DialogService } from '../../../../framework/client/dialog/services/dialog.service';
 import { getIdentity, Identity } from '../../../../framework/client/identity/index';
@@ -52,16 +53,19 @@ export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy
     const agreementId = this.route.snapshot.params.investmentAgreementId;
     this.store.dispatch(new ResetInvestmentAgreementAction());
     this.store.dispatch(new GetInvestmentAgreementAction(agreementId));
-    this.investmentAgreement$ = <Observable<InvestmentAgreement>>this.store.select(getInvestmentAgreement).pipe(filter(s => s !== null));
+    this.investmentAgreement$ = <Observable<InvestmentAgreement>>this.store.select(getInvestmentAgreement).pipe(
+      filter(s => s !== null));
     this.status$ = this.store.select(getInvestmentAgreementStatus);
     this.updateStatus$ = this.store.select(updateInvestmentAgreementStatus);
-    this.canUpdate$ = this.store.select(getIdentity).filter(i => i !== null)
-      .map((identity: Identity) => identity.permissions.includes(TffPermissions.ADMINS));
+    this.canUpdate$ = this.store.select(getIdentity).pipe(
+      filter(i => i !== null),
+      map((identity: Identity) => identity.permissions.includes(TffPermissions.ADMINS))
+    );
     this.globalStats$ = <Observable<GlobalStats>>this.store.select(getGlobalStats).pipe(filter(s => s !== null));
-    this._investmentSub = this.investmentAgreement$.filter(i => i.token !== null).subscribe(investment => {
+    this._investmentSub = this.investmentAgreement$.pipe(filter(i => i.token !== null)).subscribe(investment => {
       this.store.dispatch(new GetGlobalStatsAction(investment.token));
     });
-    this._errorSub = this.updateStatus$.filter(status => !status.success && !status.loading && status.error !== null)
+    this._errorSub = this.updateStatus$.pipe(filter(status => !status.success && !status.loading && status.error !== null))
       .subscribe(status => this.apiErrorService.showErrorDialog(status.error));
   }
 

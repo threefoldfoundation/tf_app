@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
+import { first } from 'rxjs/operators/first';
+import { map } from 'rxjs/operators/map';
+import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
 import { Subscription } from 'rxjs/Subscription';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
@@ -30,9 +33,10 @@ export class InvestmentAgreementListPageComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.query$ = this.store.select(getInvestmentAgreementsQuery);
     this.listStatus$ = this.store.select(getInvestmentAgreementsStatus);
-    this.investmentAgreements$ = this.store.select(getInvestmentAgreements).withLatestFrom(this.query$)
-      .map(([ result, query ]) => ({ ...result, results: result.results.filter(o => query.status ? o.status === query.status : true) }));
-    this._sub = this.investmentAgreements$.first().subscribe(result => {
+    this.investmentAgreements$ = this.store.select(getInvestmentAgreements).pipe(
+      withLatestFrom(this.query$),
+      map(([ result, query ]) => ({ ...result, results: result.results.filter(o => query.status ? o.status === query.status : true) })));
+    this._sub = this.investmentAgreements$.pipe(first()).subscribe(result => {
       // Load some investments on page load
       if (!result.results.length) {
         this.onQuery({ cursor: null, status: null, query: null });

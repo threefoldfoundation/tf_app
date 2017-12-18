@@ -1,23 +1,13 @@
 import { MetaGuard } from '@ngx-meta/core';
 import { Route } from '../../framework/client/app.routes';
-import { CreateAgendaEventPageComponent } from './components/agenda/create-agenda-event-page.component';
 import {
-  AgendaEventDetailPageComponent,
-  AgendaEventsListPageComponent,
-  CreateTransactionPageComponent,
-  EventParticipantsPageComponent,
-  GlobalStatsDetailPageComponent,
-  GlobalStatsListPageComponent,
-  InvestmentAgreementDetailPageComponent,
-  InvestmentAgreementListPageComponent,
-  OrderDetailPageComponent,
-  OrderListPageComponent,
-  UserDetailsPageComponent,
-  UserListPageComponent,
-  UserPageComponent,
-  UserTransactionsListPageComponent
-} from './components/index';
-import { KycPageComponent } from './pages/kyc/index';
+  AgendaEventDetailPageComponent, AgendaEventsListPageComponent, CreateAgendaEventPageComponent, CreateTransactionPageComponent,
+  EventParticipantsPageComponent, GlobalStatsDetailPageComponent, GlobalStatsListPageComponent, InvestmentAgreementDetailPageComponent,
+  InvestmentAgreementListPageComponent, OrderDetailPageComponent, OrderListPageComponent, UserPageComponent,
+  UserTransactionsListPageComponent,
+} from './components';
+import { KycPageComponent } from './pages/kyc';
+import { UserDetailsPageComponent, UserListPageComponent } from './pages/users';
 
 export const TffRoutes: Route[] = [
   { path: '', redirectTo: 'orders', pathMatch: 'full' },

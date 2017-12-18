@@ -39,7 +39,7 @@ export class OrderDetailPageComponent implements OnInit, OnDestroy {
     this.order$ = <Observable<NodeOrder>>this.store.select(getOrder).pipe(filter(o => o !== null));
     this.orderStatus$ = this.store.select(getOrderStatus);
     this.updateOrderStatus$ = this.store.select(updateOrderStatus);
-    this._errorSub = this.updateOrderStatus$.filter(status => !status.success && !status.loading && status.error !== null)
+    this._errorSub = this.updateOrderStatus$.pipe(filter(status => !status.success && !status.loading && status.error !== null))
       .subscribe(status => this.apiErrorService.showErrorDialog(status.error));
   }
 

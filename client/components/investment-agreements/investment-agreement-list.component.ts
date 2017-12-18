@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { debounceTime } from 'rxjs/operators/debounceTime';
+import { distinctUntilChanged } from 'rxjs/operators/distinctUntilChanged';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
@@ -42,10 +44,10 @@ export class InvestmentAgreementListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this._querySub = this._debouncedQuery
-      .debounceTime(300)
-      .distinctUntilChanged()
-      .subscribe(query => this.onQuery.emit(query));
+    this._querySub = this._debouncedQuery.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => this.onQuery.emit(query));
   }
 
   ngOnDestroy() {

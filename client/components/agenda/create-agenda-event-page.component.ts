@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
+import { filter } from 'rxjs/operators/filter';
 import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
+import { Subscription } from 'rxjs/Subscription';
 import { ApiRequestStatus, apiRequestSuccess } from '../../../../framework/client/rpc/rpc.interfaces';
 import { CreateAgendaEventAction, ResetAgendaEventAction } from '../../actions/threefold.action';
 import { AgendaEvent, AgendaEventType } from '../../interfaces/agenda-events.interfaces';
@@ -20,11 +22,12 @@ import { createAgendaEventStatus, getAgendaEvent } from '../../tff.state';
     </div>`
 })
 
-export class CreateAgendaEventPageComponent implements OnInit {
+export class CreateAgendaEventPageComponent implements OnInit, OnDestroy {
   createStatus$: Observable<ApiRequestStatus>;
   event: Partial<AgendaEvent>;
   status = apiRequestSuccess;
 
+  private _createStatusSubscription: Subscription;
   constructor(private store: Store<ITffState>,
               private router: Router,
               private route: ActivatedRoute) {
@@ -41,10 +44,16 @@ export class CreateAgendaEventPageComponent implements OnInit {
     };
     this.store.dispatch(new ResetAgendaEventAction());
     this.createStatus$ = this.store.select(createAgendaEventStatus);
-    this.createStatus$.filter(status => status.success).pipe(withLatestFrom(this.store.select(getAgendaEvent)))
-      .subscribe(([ status, event ]: [ ApiRequestStatus, AgendaEvent ]) => {
+    this._createStatusSubscription = this.createStatus$.pipe(
+      filter(status => status.success),
+      withLatestFrom(this.store.select(getAgendaEvent)),
+    ).subscribe(([ status, event ]: [ ApiRequestStatus, AgendaEvent ]) => {
         return this.router.navigate([ '..', event.id ], { relativeTo: this.route });
       });
+  }
+
+  ngOnDestroy() {
+    this._createStatusSubscription.unsubscribe();
   }
 
   onSubmitted(event: AgendaEvent) {
