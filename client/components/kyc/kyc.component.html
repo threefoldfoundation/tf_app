@@ -1,4 +1,3 @@
-<h2>{{ 'tff.kyc' | translate }}</h2>
 <tff-api-request-status [status]="status"></tff-api-request-status>
 <div *ngIf="profile" fxLayout="column">
   <p>{{ getStatus(profile.kyc.status) }}</p>

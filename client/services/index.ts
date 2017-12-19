@@ -1,4 +1,3 @@
-import { UserSearchComponent } from '../components';
 import {
   AgendaEventDetailComponent, AgendaEventDetailPageComponent, AgendaEventsListComponent, AgendaEventsListPageComponent,
   ApiRequestStatusComponent, CreateAgendaEventPageComponent, CreateTransactionComponent, CreateTransactionPageComponent,
@@ -6,10 +5,13 @@ import {
   GlobalStatsListPageComponent, InvestmentAgreementAmountComponent, InvestmentAgreementDetailComponent,
   InvestmentAgreementDetailPageComponent, InvestmentAgreementListComponent, InvestmentAgreementListPageComponent, IyoSeeComponent,
   KycComponent, KycUpdatesComponent, OrderDetailComponent, OrderDetailPageComponent, OrderListComponent, OrderListPageComponent,
-  TransactionListComponent, UserListComponent, UserTransactionsListPageComponent, WalletBalanceComponent,
-} from '../components/index';
-import { KycPageComponent } from '../pages/kyc';
-import { UserDetailsPageComponent, UserListPageComponent, UserPageComponent } from '../pages/users';
+  SearchInvestmentAgreementsComponent, SearchNodeOrdersComponent, TransactionListComponent, UserListComponent, UserSearchComponent,
+  WalletBalanceComponent,
+} from '../components';
+import {
+  KycPageComponent, UserDetailsPageComponent, UserListPageComponent, UserNodeOrdersPageComponent, UserPageComponent,
+  UserPurchaseAgreementsPageComponent, UserTransactionsListPageComponent,
+} from '../pages';
 import { ApiErrorService } from './api-error.service';
 import { TffConfig } from './tff-config.service';
 import { TffService } from './tff.service';
@@ -21,11 +23,8 @@ export const TFF_PROVIDERS: any[] = [
 ];
 
 export const TFF_PAGES = [
-  KycPageComponent,
-  UserDetailsPageComponent,
-  UserListPageComponent,
-  UserPageComponent,
-  UserTransactionsListPageComponent,
+  KycPageComponent, UserDetailsPageComponent, UserListPageComponent, UserNodeOrdersPageComponent, UserPageComponent,
+  UserPurchaseAgreementsPageComponent, UserTransactionsListPageComponent,
 ];
 
 export const TFF_COMPONENTS: any[] = [
@@ -54,6 +53,8 @@ export const TFF_COMPONENTS: any[] = [
   OrderDetailPageComponent,
   OrderListComponent,
   OrderListPageComponent,
+  SearchInvestmentAgreementsComponent,
+  SearchNodeOrdersComponent,
   TransactionListComponent,
   UserListComponent,
   UserSearchComponent,

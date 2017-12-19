@@ -1,28 +1,11 @@
-<div class="orders-content">
-  <form fxLayout="row" fxLayout.sm="column">
-    <mat-form-field fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%">
-      <mat-select name="node_status" [(ngModel)]="query.status" (ngModelChange)="submit(false)"
-                  [placeholder]="'tff.status' | translate">
-        <mat-option [value]="null">{{ 'tff.all' | translate }}</mat-option>
-        <mat-option *ngFor="let status of statuses" [value]="status.value">
-          {{ status.label | translate }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%" fxFlexOffset="5%" fxFlexOffset.sm="0">
-      <input type="search" name="node_search" matInput [(ngModel)]="query.query"
-             [placeholder]="'tff.search' | translate" (ngModelChange)="submit()">
-    </mat-form-field>
-  </form>
-
-  <mat-nav-list *ngIf="orders">
-    <mat-list-item *ngFor="let order of orders.results" [routerLink]="order.id">
-      <h4 matLine>{{ 'tff.node_order_x' | translate : { orderId: order.id } }}</h4>
-      <p matLine>{{ order.billing_info.name }}</p>
-      <p matLine>{{ order.order_time | timestamp }}</p>
-    </mat-list-item>
-    <button mat-button *ngIf="orders.more" (click)="loadMore()">
-      {{ 'tff.load_more' | translate }}
-    </button>
-  </mat-nav-list>
-</div>
+<mat-nav-list *ngIf="orders">
+  <a mat-list-item *ngFor="let order of orders.results" [routerLink]="['/node-orders', order.id]" [target]="linkTarget">
+    <h4 matLine>{{ 'tff.node_order_x' | translate : { orderId: order.id } }}</h4>
+    <p matLine>{{ order.billing_info.name }}</p>
+    <p matLine>{{ order.order_time | timestamp }}</p>
+  </a>
+  <button mat-button *ngIf="orders.more" (click)="loadMore.emit()">
+    {{ 'tff.load_more' | translate }}
+  </button>
+</mat-nav-list>
+<tff-api-request-status [status]="status"></tff-api-request-status>

@@ -1,28 +1,15 @@
-<div class="investment-agreements-content">
-  <form fxLayout="row" fxLayout.sm="column">
-    <mat-form-field fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%">
-      <mat-select name="investment_status" [(ngModel)]="query.status" (ngModelChange)="submit(false)"
-                  [placeholder]="'tff.status' | translate">
-        <mat-option [value]="null">{{ 'tff.all' | translate }}</mat-option>
-        <mat-option *ngFor="let status of statuses" [value]="status.value">{{ status.label | translate }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%" fxFlexOffset="5%" fxFlexOffset.sm="0">
-      <input type="search" name="investment_search" matInput [(ngModel)]="query.query"
-             [placeholder]="'tff.search' | translate" (ngModelChange)="submit()">
-    </mat-form-field>
-  </form>
-  <mat-nav-list *ngIf="investmentAgreements">
-    <a *ngFor="let agreement of investmentAgreements.results" [routerLink]="agreement.id" mat-list-item>
-      <h4 matLine>{{ 'tff.investment_agreement_x' | translate : { id: agreement.id, ref: agreement.reference } }}</h4>
-      <p matLine *ngIf="agreement.name">{{ agreement.name }}</p>
-      <tff-investment-agreement-amount matLine [amount]="agreement.amount"
-                                       [currency]="agreement.currency"
-                                       [tokenCount]="agreement.token_count_float"></tff-investment-agreement-amount>
-      <p matLine>{{ agreement.creation_time | timestamp }}</p>
-    </a>
-    <button mat-button *ngIf="investmentAgreements.more" (click)="loadMore()">
-      {{ 'tff.load_more' | translate }}
-    </button>
-  </mat-nav-list>
-</div>
+<mat-nav-list *ngIf="investmentAgreements">
+  <a *ngFor="let agreement of investmentAgreements.results" [routerLink]="['/investment-agreements', agreement.id]"
+     [target]="linkTarget" mat-list-item>
+    <h4 matLine>{{ 'tff.investment_agreement_x' | translate : { id: agreement.id, ref: agreement.reference } }}</h4>
+    <p matLine *ngIf="agreement.name">{{ agreement.name }}</p>
+    <tff-investment-agreement-amount matLine [amount]="agreement.amount"
+                                     [currency]="agreement.currency"
+                                     [tokenCount]="agreement.token_count_float"></tff-investment-agreement-amount>
+    <p matLine>{{ agreement.creation_time | timestamp }}</p>
+  </a>
+  <button mat-button *ngIf="investmentAgreements.more" (click)="loadMore.emit()">
+    {{ 'tff.load_more' | translate }}
+  </button>
+</mat-nav-list>
+<tff-api-request-status [status]="status"></tff-api-request-status>
