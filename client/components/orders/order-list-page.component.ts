@@ -16,10 +16,10 @@ import { getNodeOrdersQuery, getOrders, getOrdersStatus } from '../../tff.state'
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   template: `
+    <tff-search-node-orders [query]="query$ | async" (search)="onSearch($event)"></tff-search-node-orders>
     <tff-order-list [orders]="orders$ | async"
-                    [listStatus]="listStatus$ | async"
-                    [query]="query$ | async"
-                    (onQuery)="loadOrders($event)"></tff-order-list>`
+                    [status]="listStatus$ | async"
+                    (loadMore)="onLoadMore()"></tff-order-list>`
 })
 export class OrderListPageComponent implements OnInit, OnDestroy {
   orders$: Observable<NodeOrderList>;
@@ -40,7 +40,7 @@ export class OrderListPageComponent implements OnInit, OnDestroy {
     this._sub = this.orders$.pipe(first()).subscribe(result => {
       // Load some orders on initial page load
       if (!result.results.length) {
-        this.loadOrders({ cursor: null, status: null, query: null });
+        this.onSearch({ cursor: null, status: null, query: null });
       }
     });
   }
@@ -49,7 +49,11 @@ export class OrderListPageComponent implements OnInit, OnDestroy {
     this._sub.unsubscribe();
   }
 
-  loadOrders(payload: NodeOrdersQuery) {
+  onSearch(payload: NodeOrdersQuery) {
     this.store.dispatch(new GetOrdersAction(payload));
+  }
+
+  onLoadMore() {
+    this.query$.pipe(first()).subscribe(query => this.onSearch(query));
   }
 }

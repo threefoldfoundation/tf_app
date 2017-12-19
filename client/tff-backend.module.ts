@@ -5,7 +5,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   MatButtonModule, MatCardModule, MatChipsModule, MatDatepickerModule, MatIconModule, MatInputModule, MatListModule,
-  MatNativeDateModule, MatProgressSpinnerModule, MatSelectModule, MatSlideToggleModule, MatTabsModule,
+  MatNativeDateModule, MatProgressSpinnerModule, MatSelectModule, MatSlideToggleModule, MatTabsModule, MatToolbarModule,
 } from '@angular/material';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
@@ -26,7 +26,7 @@ import { TffRoutes } from './tff.routes';
 
 const MATERIAL_IMPORTS = [
   MatButtonModule, MatInputModule, MatListModule, MatIconModule, MatSelectModule, MatChipsModule, MatSlideToggleModule,
-  MatProgressSpinnerModule, MatCardModule, MatDatepickerModule, MatNativeDateModule, MatTabsModule, MatIconModule
+  MatProgressSpinnerModule, MatCardModule, MatDatepickerModule, MatNativeDateModule, MatTabsModule, MatIconModule, MatToolbarModule,
 ];
 
 @NgModule({

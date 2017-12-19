@@ -4,7 +4,7 @@ import { WalletBalance } from '../../../interfaces/transactions.interfaces';
 
 @Component({
   selector: 'tff-wallet-balance',
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'wallet-balance.component.html',
   styles: [ `.wallet-balance-card {

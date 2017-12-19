@@ -17,6 +17,9 @@ import { getKYCChecks, getKYCChecksStatus, getTffProfile, getTffProfileStatus, s
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <mat-toolbar>
+      <h2>{{ 'tff.kyc' | translate }}</h2>
+    </mat-toolbar>
     <div class="default-component-padding">
       <tff-kyc [profile]="tffProfile$ | async"
                [status]="status$ | async"

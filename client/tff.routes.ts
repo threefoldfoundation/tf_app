@@ -7,24 +7,29 @@ import {
   UserTransactionsListPageComponent,
 } from './components';
 import { KycPageComponent } from './pages/kyc';
-import { UserDetailsPageComponent, UserListPageComponent } from './pages/users';
+import {
+  UserDetailsPageComponent, UserListPageComponent, UserNodeOrdersPageComponent,
+  UserPurchaseAgreementsPageComponent,
+} from './pages/users';
 
 export const TffRoutes: Route[] = [
-  { path: '', redirectTo: 'orders', pathMatch: 'full' },
+  { path: '', redirectTo: 'node-orders', pathMatch: 'full' },
+  { path: 'orders', redirectTo: 'node-orders', pathMatch: 'full' },
   {
-    path: 'orders',
+    path: 'node-orders',
     canActivate: [ MetaGuard ],
     data: {
       icon: 'shop',
       id: 'tff_orders',
       meta: {
-        title: 'tff.orders',
+        title: 'tff.node_orders',
       },
     },
     component: OrderListPageComponent,
   },
+  { path: 'orders/:orderId', redirectTo: 'node-orders/:orderId', pathMatch: 'full' },
   {
-    path: 'orders/:orderId',
+    path: 'node-orders/:orderId',
     canActivate: [ MetaGuard ],
     data: { meta: { title: 'tff.order_detail' } },
     component: OrderDetailPageComponent,
@@ -96,8 +101,18 @@ export const TffRoutes: Route[] = [
         },
         {
           label: 'tff.transactions',
-          icon: 'attach_money',
+          icon: 'compare_arrows',
           route: 'transactions',
+        },
+        {
+          label: 'tff.node_orders',
+          icon: 'shop',
+          route: 'node-orders',
+        },
+        {
+          label: 'tff.investment_agreements',
+          icon: 'attach_money',
+          route: 'investment-agreements',
         } ],
       meta: { title: 'tff.users' },
     },
@@ -126,6 +141,18 @@ export const TffRoutes: Route[] = [
         canActivate: [ MetaGuard ],
         data: { meta: { title: 'tff.create_transaction' } },
         component: CreateTransactionPageComponent,
+      },
+      {
+        path: 'node-orders',
+        canActivate: [ MetaGuard ],
+        data: { meta: { title: 'tff.node_orders' } },
+        component: UserNodeOrdersPageComponent,
+      },
+      {
+        path: 'investment-agreements',
+        canActivate: [ MetaGuard ],
+        data: { meta: { title: 'tff.investment_agreements' } },
+        component: UserPurchaseAgreementsPageComponent,
       } ],
   },
   {

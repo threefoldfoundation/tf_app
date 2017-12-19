@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { first } from 'rxjs/operators/first';
@@ -13,12 +13,12 @@ import { getInvestmentAgreements, getInvestmentAgreementsQuery, getInvestmentAgr
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None,
   template: `
+    <tff-search-investment-agreements [query]="query$ | async"
+                                      (search)="onQuery($event)"></tff-search-investment-agreements>
     <tff-investment-agreements [investmentAgreements]="investmentAgreements$ | async"
-                               [listStatus]="listStatus$ | async"
-                               [query]="query$ | async"
-                               (onQuery)="onQuery($event)"></tff-investment-agreements>`
+                               [status]="listStatus$ | async"
+                               (loadMore)="onLoadMore()"></tff-investment-agreements>`
 })
 export class InvestmentAgreementListPageComponent implements OnInit, OnDestroy {
   investmentAgreements$: Observable<InvestmentAgreementList>;
@@ -50,5 +50,9 @@ export class InvestmentAgreementListPageComponent implements OnInit, OnDestroy {
 
   onQuery(payload: InvestmentAgreementsQuery) {
     this.store.dispatch(new GetInvestmentAgreementsAction(payload));
+  }
+
+  onLoadMore() {
+    this.query$.pipe(first()).subscribe(query => this.onQuery(query));
   }
 }

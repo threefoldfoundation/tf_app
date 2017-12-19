@@ -111,7 +111,8 @@ class NodeOrder(NdbModel):
 
     @property
     def document_url(self):
-        return get_serving_url(self.filename(self.id)) if self.tos_iyo_see_id else None
+        has_doc = self.tos_iyo_see_id is not None or self.status in (NodeOrderStatus.ARRIVED, NodeOrderStatus.SENT)
+        return get_serving_url(self.filename(self.id)) if has_doc else None
 
     @classmethod
     def filename(cls, node_order_id):

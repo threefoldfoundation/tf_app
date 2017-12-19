@@ -13,13 +13,15 @@ import { getBalance, getBalanceStatus, getUserTransactions, getUserTransactionsS
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="default-component-padding">
+    <mat-toolbar>
       <h2>{{ 'tff.wallet' | translate }}</h2>
-      <tff-wallet-balance [balance]="balance$ | async" [status]="balanceStatus$ | async"></tff-wallet-balance>
+    </mat-toolbar>
+    <tff-wallet-balance [balance]="balance$ | async" [status]="balanceStatus$ | async"></tff-wallet-balance>
+    <mat-toolbar>
       <h2>{{ 'tff.transactions' | translate }}</h2>
-      <tff-transaction-list [transactionList]="transactionList$ | async"
-                            [status]="transactionListStatus$ | async"></tff-transaction-list>
-    </div>
+    </mat-toolbar>
+    <tff-transaction-list [transactionList]="transactionList$ | async"
+                          [status]="transactionListStatus$ | async"></tff-transaction-list>
     <div class="fab-bottom-right">
       <a mat-fab [routerLink]="['create']">
         <mat-icon>add</mat-icon>
