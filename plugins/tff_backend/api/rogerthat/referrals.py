@@ -19,11 +19,12 @@ from google.appengine.ext import ndb, deferred
 
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.to import UserDetailsTO
-from plugins.tff_backend.bizz.authentication import Roles, Organization
+from plugins.tff_backend.bizz.authentication import Organization, RogerthatRoles
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.iyo.user import invite_user_to_organization, remove_user_from_organization
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-from plugins.tff_backend.bizz.service import delete_user_from_role, add_user_to_role
+from plugins.tff_backend.bizz.service import remove_user_from_role, add_user_to_role
+from plugins.tff_backend.bizz.user import store_referral_in_user_data
 from plugins.tff_backend.models.user import TffProfile, ProfilePointer
 
 
@@ -58,10 +59,11 @@ def api_set_referral(params, user_detail):
         my_profile.referrer_username = pp.username
         my_profile.put()
 
-        deferred.defer(delete_user_from_role, user_detail, Roles.PUBLIC, _transactional=True)
-        deferred.defer(add_user_to_role, user_detail, Roles.MEMBERS, _transactional=True)
+        deferred.defer(remove_user_from_role, user_detail, RogerthatRoles.PUBLIC, _transactional=True)
+        deferred.defer(add_user_to_role, user_detail, RogerthatRoles.MEMBERS, _transactional=True)
         deferred.defer(remove_user_from_organization, username, Organization.PUBLIC, _transactional=True)
         deferred.defer(invite_user_to_organization, username, Organization.MEMBERS, _transactional=True)
+        deferred.defer(store_referral_in_user_data, my_profile.key, _transactional=True)
 
     ndb.transaction(trans, xg=True)
     return {u'result': u'You successfully joined the ThreeFold community. Welcome aboard!'}

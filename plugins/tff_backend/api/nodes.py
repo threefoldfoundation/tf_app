@@ -27,7 +27,7 @@ from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
-@rest('/orders', 'get', Scopes.TEAM, silent_result=True)
+@rest('/orders', 'get', Scopes.BACKEND_READONLY, silent_result=True)
 @returns(NodeOrderListTO)
 @arguments(page_size=(int, long), cursor=unicode, query=unicode, status=(int, long))
 def api_get_node_orders(page_size=20, cursor=None, query=None, status=None):
@@ -36,7 +36,7 @@ def api_get_node_orders(page_size=20, cursor=None, query=None, status=None):
     return NodeOrderListTO.from_search(*search_node_orders(sanitise_search_query(query, filters), page_size, cursor))
 
 
-@rest('/orders/<order_id:[^/]+>', 'get', Scopes.TEAM)
+@rest('/orders/<order_id:[^/]+>', 'get', Scopes.BACKEND_READONLY)
 @returns(NodeOrderTO)
 @arguments(order_id=(int, long))
 def api_get_node_order(order_id):
@@ -44,7 +44,7 @@ def api_get_node_order(order_id):
 
 
 @audit(AuditLogType.UPDATE_NODE_ORDER, 'order_id')
-@rest('/orders/<order_id:[^/]+>', 'put', Scopes.ADMINS)
+@rest('/orders/<order_id:[^/]+>', 'put', Scopes.BACKEND_ADMIN)
 @returns(NodeOrderTO)
 @arguments(order_id=(int, long), data=NodeOrderTO)
 def api_put_node_order(order_id, data):

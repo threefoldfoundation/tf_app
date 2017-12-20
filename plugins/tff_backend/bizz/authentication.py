@@ -24,38 +24,36 @@ from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_NAMESPACE
 
 config = get_config(IYO_NAMESPACE)
 ROOT_ORGANIZATION = config.root_organization.name
-USERS_REGEX = re.compile('^user:memberof:%s.(admins|team|public|members)$' % ROOT_ORGANIZATION)
+USERS_REGEX = re.compile('^user:memberof:%s\.(.*)' % ROOT_ORGANIZATION)
 
 
-class Roles(object):
-    ADMINS = 'admins'
-    TEAM = 'team'
+class RogerthatRoles(object):
     PUBLIC = 'public'
     HOSTERS = 'hosters'
     MEMBERS = 'members'
     INVESTOR = 'investors'
 
 
-class PluginRoles(object):
-    ADMINS = 'tff.admins'
-    # Anyone who works for Threefold and is part of our team
-    TEAM = 'tff.team'
-    # Anyone who registers on website
-    PUBLIC = 'tff.public'
-    # Everyone who signs up has this role
-    # Threefold members, anyone who is or ambassador, token holder or hoster
-    MEMBERS = 'tff.members'
+class Roles(object):
+    BACKEND = 'backend'
+    BACKEND_ADMIN = 'backend.admin'
+    BACKEND_READONLY = 'backend.readonly'
+    PUBLIC = 'public'
+    HOSTERS = 'hosters'
+    MEMBERS = 'members'
+    INVESTOR = 'investors'
 
 
 class Organization(object):
-    ADMINS = '%s.%s' % (ROOT_ORGANIZATION, Roles.ADMINS)
-    TEAM = '%s.%s' % (ROOT_ORGANIZATION, Roles.TEAM)
+    BACKEND = '%s.%s' % (ROOT_ORGANIZATION, Roles.BACKEND)
+    BACKEND_ADMIN = '%s.%s' % (ROOT_ORGANIZATION, Roles.BACKEND_ADMIN)
+    BACKEND_READONLY = '%s.%s' % (ROOT_ORGANIZATION, Roles.BACKEND_READONLY)
     PUBLIC = '%s.%s' % (ROOT_ORGANIZATION, Roles.PUBLIC)
     MEMBERS = '%s.%s' % (ROOT_ORGANIZATION, Roles.MEMBERS)
 
     ROLES = {
-        Roles.ADMINS: ADMINS,
-        Roles.TEAM: TEAM,
+        Roles.BACKEND: BACKEND,
+        Roles.BACKEND_ADMIN: BACKEND,
         Roles.PUBLIC: PUBLIC,
         Roles.MEMBERS: MEMBERS,
     }
@@ -68,16 +66,17 @@ class Organization(object):
 class Scope(object):
     _memberof = 'user:memberof:%s'
     ROOT_ADMINS = _memberof % ROOT_ORGANIZATION
-    ADMINS = _memberof % Organization.ADMINS
-    TEAM = _memberof % Organization.TEAM
+    BACKEND = _memberof % Organization.BACKEND
+    BACKEND_ADMIN = _memberof % Organization.BACKEND_ADMIN
+    BACKEND_READONLY = _memberof % Organization.BACKEND_READONLY
     PUBLIC = _memberof % Organization.PUBLIC
     MEMBERS = _memberof % Organization.MEMBERS
 
 
 class Scopes(object):
-    ADMINS = [Scope.ADMINS, Scope.ROOT_ADMINS]
-    TEAM = ADMINS + [Scope.TEAM]
-    PUBLIC = TEAM + [Scope.PUBLIC]
+    BACKEND_ADMIN = [Scope.ROOT_ADMINS, Scope.BACKEND, Scope.BACKEND_ADMIN]
+    BACKEND_READONLY = BACKEND_ADMIN + [Scope.BACKEND_READONLY]
+    PUBLIC = BACKEND_READONLY + [Scope.PUBLIC]
     MEMBERS = PUBLIC + [Scope.MEMBERS]
 
 
@@ -85,7 +84,7 @@ def get_permissions_from_scopes(scopes):
     permissions = []
     for scope in scopes:
         if scope == Scope.ROOT_ADMINS:
-            permissions.append(Roles.ADMINS)
+            permissions.append(Roles.BACKEND_ADMIN)
             break
         users_re = USERS_REGEX.match(scope)
         # e.g. {root_org}.members
