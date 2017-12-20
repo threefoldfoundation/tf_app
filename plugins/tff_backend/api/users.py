@@ -33,7 +33,7 @@ from plugins.tff_backend.to.user import SetKYCPayloadTO, TffProfileTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
-@rest('/users', 'get', Scopes.TEAM, silent_result=True)
+@rest('/users', 'get', Scopes.BACKEND_READONLY, silent_result=True)
 @returns(dict)
 @arguments(page_size=(int, long), cursor=unicode, query=unicode, kyc_status=(int, long, NoneType))
 def api_search_users(page_size=50, cursor=None, query='', kyc_status=None):
@@ -46,7 +46,7 @@ def api_search_users(page_size=50, cursor=None, query='', kyc_status=None):
     }
 
 
-@rest('/users/<username:[^/]+>', 'get', Scopes.TEAM, silent_result=True)
+@rest('/users/<username:[^/]+>', 'get', Scopes.BACKEND_READONLY, silent_result=True)
 @returns(dict)
 @arguments(username=str)
 def api_get_user(username):
@@ -54,7 +54,7 @@ def api_get_user(username):
     return get_profile(username).to_dict()
 
 
-@rest('/users/<username:[^/]+>/profile', 'get', Scopes.TEAM, silent_result=True)
+@rest('/users/<username:[^/]+>/profile', 'get', Scopes.BACKEND_READONLY, silent_result=True)
 @returns(TffProfileTO)
 @arguments(username=str)
 def api_get_tff_user(username):
@@ -63,7 +63,7 @@ def api_get_tff_user(username):
 
 
 @audit(AuditLogType.SET_KYC_STATUS, 'username')
-@rest('/users/<username:[^/]+>/profile/kyc', 'put', Scopes.TEAM)
+@rest('/users/<username:[^/]+>/profile/kyc', 'put', Scopes.BACKEND_ADMIN)
 @returns(TffProfileTO)
 @arguments(username=str, data=SetKYCPayloadTO)
 def api_set_kyc_status(username, data):
@@ -71,7 +71,7 @@ def api_set_kyc_status(username, data):
     return TffProfileTO.from_model(set_kyc_status(username, data, get_current_session().user_id))
 
 
-@rest('/users/<username:[^/]+>/transactions', 'get', Scopes.TEAM)
+@rest('/users/<username:[^/]+>/transactions', 'get', Scopes.BACKEND_ADMIN)
 @returns(PendingTransactionListTO)
 @arguments(username=str, token_type=unicode, page_size=(int, long), cursor=unicode)
 def api_get_transactions(username, token_type=None, page_size=50, cursor=None):
@@ -80,7 +80,7 @@ def api_get_transactions(username, token_type=None, page_size=50, cursor=None):
     return PendingTransactionListTO.from_query(*get_pending_transactions(app_user, token_type, page_size, cursor))
 
 
-@rest('/users/<username:[^/]+>/balance', 'get', Scopes.TEAM)
+@rest('/users/<username:[^/]+>/balance', 'get', Scopes.BACKEND_ADMIN)
 @returns([WalletBalanceTO])
 @arguments(username=str)
 def api_get_balance(username):
@@ -89,7 +89,7 @@ def api_get_balance(username):
     return get_all_balances(app_user)
 
 
-@rest('/users/<username:[^/]+>/transactions', 'post', Scopes.ADMINS)
+@rest('/users/<username:[^/]+>/transactions', 'post', Scopes.BACKEND_ADMIN)
 @returns(PendingTransactionTO)
 @arguments(username=str, data=NewTransactionTO)
 def api_create_transaction(username, data):
@@ -102,7 +102,7 @@ def api_create_transaction(username, data):
     return PendingTransactionTO.from_model(transaction)
 
 
-@rest('/users/<username:[^/]+>/kyc/checks', 'get', Scopes.ADMINS, silent_result=True)
+@rest('/users/<username:[^/]+>/kyc/checks', 'get', Scopes.BACKEND_READONLY, silent_result=True)
 @returns([dict])
 @arguments(username=str)
 def api_kyc_list_checks(username):

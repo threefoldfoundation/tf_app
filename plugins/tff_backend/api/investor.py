@@ -31,7 +31,7 @@ from plugins.tff_backend.to.investor import InvestmentAgreementListTO, Investmen
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
-@rest('/investment-agreements', 'get', Scopes.TEAM, silent_result=True)
+@rest('/investment-agreements', 'get', Scopes.BACKEND_ADMIN, silent_result=True)
 @returns(InvestmentAgreementListTO)
 @arguments(page_size=(int, long), cursor=unicode, query=unicode, status=(int, long))
 def api_get_investment_agreements(page_size=20, cursor=None, query=None, status=None):
@@ -41,7 +41,7 @@ def api_get_investment_agreements(page_size=20, cursor=None, query=None, status=
         *search_investment_agreements(sanitise_search_query(query, filters), page_size, cursor))
 
 
-@rest('/investment-agreements/<agreement_id:[^/]+>', 'get', Scopes.TEAM)
+@rest('/investment-agreements/<agreement_id:[^/]+>', 'get', Scopes.BACKEND_ADMIN)
 @returns(InvestmentAgreementTO)
 @arguments(agreement_id=(int, long))
 def api_get_investment_agreement(agreement_id):
@@ -49,7 +49,7 @@ def api_get_investment_agreement(agreement_id):
 
 
 @audit(AuditLogType.UPDATE_INVESTMENT_AGREEMENT, 'agreement_id')
-@rest('/investment-agreements/<agreement_id:[^/]+>', 'put', Scopes.ADMINS)
+@rest('/investment-agreements/<agreement_id:[^/]+>', 'put', Scopes.BACKEND_ADMIN)
 @returns(InvestmentAgreementTO)
 @arguments(agreement_id=(int, long), data=InvestmentAgreementTO)
 def api_put_investment_agreement(agreement_id, data):

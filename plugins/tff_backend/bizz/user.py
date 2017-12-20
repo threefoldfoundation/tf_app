@@ -50,10 +50,10 @@ from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_QR, REGISTRATIO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.authentication import Organization, Roles
+from plugins.tff_backend.bizz.authentication import Organization, Roles, RogerthatRoles
 from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user, tag_intercom_users, IntercomTags
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
-from plugins.tff_backend.bizz.iyo.user import get_user, invite_user_to_organization
+from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.bizz.kyc.onfido_bizz import create_check, update_applicant, deserialize, list_checks, serialize
 from plugins.tff_backend.bizz.rogerthat import create_error_message
@@ -129,11 +129,6 @@ def user_registered(user_detail, origin, data):
     scopes = decoded_jwt['scope']
     # Creation session such that the JWT is automatically up to date
     _, session = create_session(username, scopes, jwt, secret=username)
-
-    deferred.defer(invite_user_to_organization, username, Organization.PUBLIC)
-    deferred.defer(add_user_to_public_role, user_detail)
-    deferred.defer(populate_intercom_user, session.key, user_detail)
-
 
 def populate_intercom_user(session_key, user_detail=None):
     """
@@ -259,6 +254,16 @@ def store_iyo_info_in_userdata(username, user_detail):
         system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
 
 
+def store_referral_in_user_data(profile_key):
+    profile = profile_key.get()
+    user_data = {
+        'has_referrer': profile.referrer_user is not None
+    }
+    email, app_id = get_app_user_tuple(profile.app_user)
+    api_key = get_rogerthat_api_key()
+    system.put_user_data(api_key, email.email(), app_id, user_data)
+
+
 @returns()
 @arguments(user_detail=UserDetailsTO)
 def store_public_key(user_detail):
@@ -321,7 +326,7 @@ def add_user_to_public_role(user_detail):
     if has_access_to_organization(client, organization_id, username):
         logging.info('User is already in members role, not adding to public role')
     else:
-        add_user_to_role(user_detail, Roles.PUBLIC)
+        add_user_to_role(user_detail, RogerthatRoles.PUBLIC)
 
 
 def get_tff_profile(username):

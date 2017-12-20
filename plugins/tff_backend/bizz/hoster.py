@@ -36,7 +36,7 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FormAckn
     MessageCallbackResultTypeTO, TYPE_MESSAGE
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agreements import create_hosting_agreement_pdf
-from plugins.tff_backend.bizz.authentication import Roles
+from plugins.tff_backend.bizz.authentication import Roles, RogerthatRoles
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.intercom_helpers import tag_intercom_users, IntercomTags
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
@@ -359,7 +359,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         order.put()
 
         # TODO: send mail to TF support
-        deferred.defer(add_user_to_role, user_detail, Roles.HOSTERS)
+        deferred.defer(add_user_to_role, user_detail, RogerthatRoles.HOSTERS)
         deferred.defer(update_hoster_progress, user_detail.email, user_detail.app_id, HosterSteps.FLOW_SIGN)
         intercom_tags = get_intercom_tags_for_node_order(order)
         for intercom_tag in intercom_tags:

@@ -40,7 +40,7 @@ from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormRes
 from plugins.rogerthat_api.to.messaging.service_callback_results import FormAcknowledgedCallbackResultTO, \
     MessageCallbackResultTypeTO, TYPE_MESSAGE, FlowMemberResultCallbackResultTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
-from plugins.tff_backend.bizz.authentication import Roles
+from plugins.tff_backend.bizz.authentication import Roles, RogerthatRoles
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.bizz.hoster import get_publickey_label
@@ -500,7 +500,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
                            sign_time=now())
         agreement.put_async()
 
-        deferred.defer(add_user_to_role, user_detail, Roles.INVESTOR)
+        deferred.defer(add_user_to_role, user_detail, RogerthatRoles.INVESTOR)
         intercom_tags = get_intercom_tags_for_investment(agreement)
         if intercom_tags:
             for i_tag in intercom_tags:

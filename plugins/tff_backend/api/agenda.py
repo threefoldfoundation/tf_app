@@ -23,28 +23,28 @@ from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.to.agenda import EventTO, EventParticipantListTO
 
 
-@rest('/agenda-events', 'get', Scopes.TEAM, silent_result=True)
+@rest('/agenda-events', 'get', Scopes.BACKEND_READONLY, silent_result=True)
 @returns([EventTO])
 @arguments(past=bool)
 def api_list_events(past=False):
     return [EventTO.from_model(model) for model in list_events(past)]
 
 
-@rest('/agenda-events', 'post', Scopes.ADMINS)
+@rest('/agenda-events', 'post', Scopes.BACKEND_ADMIN)
 @returns(EventTO)
 @arguments(data=EventTO)
 def api_create_event(data):
     return EventTO.from_model(put_event(data))
 
 
-@rest('/agenda-events/<event_id:[^/]+>/participants', 'get', Scopes.TEAM, silent_result=True)
+@rest('/agenda-events/<event_id:[^/]+>/participants', 'get', Scopes.BACKEND_READONLY, silent_result=True)
 @returns(EventParticipantListTO)
 @arguments(event_id=(int, long), cursor=unicode, page_size=(int, long))
 def api_list_event_participants(event_id, cursor=None, page_size=50):
     return list_participants(event_id, cursor, page_size)
 
 
-@rest('/agenda-events/<event_id:[^/]+>', 'get', Scopes.TEAM)
+@rest('/agenda-events/<event_id:[^/]+>', 'get', Scopes.BACKEND_READONLY)
 @returns(EventTO)
 @arguments(event_id=(int, long))
 def api_get_event(event_id):
@@ -52,7 +52,7 @@ def api_get_event(event_id):
 
 
 @audit(AuditLogType.UPDATE_AGENDA_EVENT, 'event_id')
-@rest('/agenda-events/<event_id:[^/]+>', 'put', Scopes.ADMINS)
+@rest('/agenda-events/<event_id:[^/]+>', 'put', Scopes.BACKEND_ADMIN)
 @returns(EventTO)
 @arguments(event_id=(int, long), data=EventTO)
 def api_put_event(event_id, data):
