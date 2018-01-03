@@ -115,6 +115,7 @@
     "purchase_itokens": "Purchase iTokens",
     "register_to_threefold": "Register to threefold",
     "resend_flow": "Resend KYC flow",
+    "resend_kyc_enter_reason_why": "Enter an optional message that is shown to the user before the KYC flow",
     "save": "Save",
     "search": "Search",
     "select_document": "Select document",

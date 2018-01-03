@@ -1,5 +1,12 @@
 import {
-  ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild,
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
@@ -53,12 +60,17 @@ export class KycComponent implements OnChanges {
     if (status === KYCStatus.INFO_SET && !this.form.form.valid) {
       return;
     }
+    let message = this.translate.instant('tff.enter_optional_comment');
+    if (status === KYCStatus.PENDING_SUBMIT) {
+      message = this.translate.instant('tff.resend_kyc_enter_reason_why');
+    }
     this.dialogService.openPrompt({
       title: this.translate.instant('tff.comment'),
       ok: this.translate.instant('tff.submit'),
-      message: this.translate.instant('tff.enter_optional_comment'),
+      message,
       cancel: this.translate.instant('tff.cancel'),
       required: false,
+      inputType: 'textarea',
     }).afterClosed().pipe(filter((data?: PromptDialogResult) => !!data && data.submitted))
       .subscribe((data: PromptDialogResult) => this.setStatus.emit({
         status,
