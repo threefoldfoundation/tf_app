@@ -1,0 +1,84 @@
+<form #form="ngForm" (ngSubmit)="submit()" fxLayout="column" fxFlex="40" fxFlex.md="60" fxFlex.xs="100"
+      class="default-component-padding">
+  <mat-form-field>
+    <mat-chip-list #chipList>
+      <mat-chip *ngIf="selectedUser" (remove)="selectedUser = null">
+        {{ getUserInfoLine(selectedUser) }}
+        <mat-icon matChipRemove>cancel</mat-icon>
+      </mat-chip>
+      <input [placeholder]="'tff.user' | translate"
+             [formControl]="userSearchControl"
+             [matAutocomplete]="userAutoComplete"
+             [matChipInputFor]="chipList" #userSearchInput>
+    </mat-chip-list>
+    <mat-autocomplete #userAutoComplete="matAutocomplete" (optionSelected)="setSelectedUser($event)">
+      <mat-option *ngFor="let user of userList$ | async" [value]="user">
+        {{ getUserInfoLine(user) }}
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+  <mat-form-field>
+    <mat-select name="token" [(ngModel)]="agreement.token" [placeholder]="'tff.token' | translate" required
+                (ngModelChange)="getCurrencies()">
+      <mat-option *ngFor="let tokenType of tokenTypes$ | async" [value]="tokenType">
+        {{ tokenType}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field>
+    <mat-select name="currency" [(ngModel)]="agreement.currency" required
+                [placeholder]="'tff.currency' | translate" [disabled]="!agreement.token">
+      <mat-option *ngFor="let currency of currencies$ | async" [value]="currency">
+        {{ currency }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field>
+    <input type="number" name="token_count" min="1" [(ngModel)]="agreement.amount" matInput
+           [placeholder]="'tff.amount' | translate" required>
+    <span matSuffix>{{ agreement.currency }}</span>
+  </mat-form-field>
+  <mat-form-field>
+    <mat-select name="status" [(ngModel)]="agreement.status" [placeholder]="'tff.status' | translate">
+      <mat-option *ngFor="let status of statuses" [value]="status.value">
+        {{ status.label | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field>
+    <input matInput
+           required
+           name="sign_time"
+           [matDatepicker]="pickerSign"
+           [max]="maxDate"
+           [placeholder]="'tff.sign_time' |  translate"
+           [value]="getDate(agreement.sign_time)"
+           (dateChange)="onDateChange('sign_time', $event)">
+    <mat-datepicker-toggle matSuffix [for]="pickerSign"></mat-datepicker-toggle>
+    <mat-datepicker #pickerSign></mat-datepicker>
+  </mat-form-field>
+  <mat-form-field>
+    <input matInput
+           required
+           name="paid_time"
+           [matDatepicker]="pickerPaid"
+           [max]="maxDate"
+           [placeholder]="'tff.paid_time' |  translate"
+           [value]="getDate(agreement.paid_time)"
+           [disabled]="!isPaid()"
+           (dateChange)="onDateChange('paid_time', $event)">
+    <mat-datepicker-toggle matSuffix [for]="pickerPaid"></mat-datepicker-toggle>
+    <mat-datepicker #pickerPaid></mat-datepicker>
+  </mat-form-field>
+  <div class="default-component-padding">
+    <button type="button" mat-raised-button (click)="fileInput.click()">{{ 'tff.select_document' | translate }}</button>
+    <input hidden type="file" accept="application/pdf,image/*" #fileInput (change)="setDocument($event)" required/>
+    <span *ngIf="selectedDocument"> {{ 'tff.selected_document' | translate : {document: selectedDocument.name} }}</span>
+  </div>
+  <tff-api-request-status [status]="createStatus$ | async"></tff-api-request-status>
+  <div>
+    <button mat-raised-button [disabled]="!form.form.valid || !agreement.document" color="primary">
+      {{ 'tff.create_investment_agreement' | translate }}
+    </button>
+  </div>
+</form>

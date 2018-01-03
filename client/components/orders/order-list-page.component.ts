@@ -14,12 +14,13 @@ import { getNodeOrdersQuery, getOrders, getOrdersStatus } from '../../tff.state'
 @Component({
   selector: 'tff-order-list-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None,
   template: `
-    <tff-search-node-orders [query]="query$ | async" (search)="onSearch($event)"></tff-search-node-orders>
-    <tff-order-list [orders]="orders$ | async"
-                    [status]="listStatus$ | async"
-                    (loadMore)="onLoadMore()"></tff-order-list>`
+    <div class="default-component-padding">
+      <tff-search-node-orders [query]="query$ | async" (search)="onSearch($event)"></tff-search-node-orders>
+      <tff-order-list [orders]="orders$ | async"
+                      [status]="listStatus$ | async"
+                      (loadMore)="onLoadMore()"></tff-order-list>
+    </div>`
 })
 export class OrderListPageComponent implements OnInit, OnDestroy {
   orders$: Observable<NodeOrderList>;

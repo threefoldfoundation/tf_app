@@ -1,14 +1,26 @@
 import { MetaGuard } from '@ngx-meta/core';
 import { Route } from '../../framework/client/app.routes';
 import {
-  AgendaEventDetailPageComponent, AgendaEventsListPageComponent, CreateAgendaEventPageComponent, CreateTransactionPageComponent,
-  EventParticipantsPageComponent, GlobalStatsDetailPageComponent, GlobalStatsListPageComponent, InvestmentAgreementDetailPageComponent,
-  InvestmentAgreementListPageComponent, OrderDetailPageComponent, OrderListPageComponent, UserPageComponent,
+  AgendaEventDetailPageComponent,
+  AgendaEventsListPageComponent,
+  CreateAgendaEventPageComponent,
+  CreateTransactionPageComponent,
+  EventParticipantsPageComponent,
+  GlobalStatsDetailPageComponent,
+  GlobalStatsListPageComponent,
+  InvestmentAgreementDetailPageComponent,
+  InvestmentAgreementListPageComponent,
+  OrderDetailPageComponent,
+  OrderListPageComponent,
+  UserPageComponent,
   UserTransactionsListPageComponent,
 } from './components';
+import { CreateInvestmentAgreementPageComponent } from './pages/investment-agreements';
 import { KycPageComponent } from './pages/kyc';
 import {
-  UserDetailsPageComponent, UserListPageComponent, UserNodeOrdersPageComponent,
+  UserDetailsPageComponent,
+  UserListPageComponent,
+  UserNodeOrdersPageComponent,
   UserPurchaseAgreementsPageComponent,
 } from './pages/users';
 
@@ -45,6 +57,12 @@ export const TffRoutes: Route[] = [
       },
     },
     component: InvestmentAgreementListPageComponent,
+  },
+  {
+    path: 'investment-agreements/create',
+    canActivate: [ MetaGuard ],
+    data: { meta: { title: 'tff.create_investment_agreement' } },
+    component: CreateInvestmentAgreementPageComponent,
   },
   {
     path: 'investment-agreements/:investmentAgreementId',

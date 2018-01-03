@@ -15,6 +15,7 @@ export const getInvestmentAgreementsStatus = createSelector(getTffState, s => s.
 export const getInvestmentAgreement = createSelector(getTffState, s => s.investmentAgreement);
 export const getInvestmentAgreementStatus = createSelector(getTffState, s => s.investmentAgreementStatus);
 export const updateInvestmentAgreementStatus = createSelector(getTffState, s => s.updateInvestmentAgreementStatus);
+export const createInvestmentAgreementStatus = createSelector(getTffState, s => s.createInvestmentAgreementStatus);
 export const getGlobalStatsList = createSelector(getTffState, s => s.globalStatsList);
 export const getGlobalStatsListStatus = createSelector(getTffState, s => s.globalStatsListStatus);
 export const getGlobalStats = createSelector(getTffState, s => s.globalStats);

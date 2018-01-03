@@ -75,9 +75,9 @@ export interface KYCStatusUpdate {
 }
 
 export interface SearchUsersQuery {
-  cursor: string | null;
-  kyc_status: KYCStatus | null;
-  query: string | null;
+  cursor?: string | null;
+  kyc_status?: KYCStatus;
+  query?: string;
 }
 
 export type UserList = PaginatedResult<Profile>;

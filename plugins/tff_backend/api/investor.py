@@ -25,9 +25,10 @@ from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.audit.audit import audit
 from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
-from plugins.tff_backend.bizz.investor import put_investment_agreement
+from plugins.tff_backend.bizz.investor import put_investment_agreement, create_investment_agreement
 from plugins.tff_backend.dal.investment_agreements import search_investment_agreements, get_investment_agreement
-from plugins.tff_backend.to.investor import InvestmentAgreementListTO, InvestmentAgreementTO
+from plugins.tff_backend.to.investor import InvestmentAgreementListTO, InvestmentAgreementTO, \
+    CreateInvestmentAgreementTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
@@ -39,6 +40,13 @@ def api_get_investment_agreements(page_size=20, cursor=None, query=None, status=
     filters = {'status': status}
     return InvestmentAgreementListTO.from_search(
         *search_investment_agreements(sanitise_search_query(query, filters), page_size, cursor))
+
+
+@rest('/investment-agreements', 'post', Scopes.BACKEND_ADMIN, silent=True)
+@returns(InvestmentAgreementTO)
+@arguments(data=CreateInvestmentAgreementTO)
+def api_create_investment_agreement(data):
+    return InvestmentAgreementTO.from_model(create_investment_agreement(data))
 
 
 @rest('/investment-agreements/<agreement_id:[^/]+>', 'get', Scopes.BACKEND_ADMIN)

@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Profile } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
 import { AgendaEvent, EventParticipant, GetEventParticipantsPayload } from '../interfaces/agenda-events.interfaces';
 import {
+  CreateInvestmentAgreementPayload,
   CreateTransactionPayload,
   GlobalStats,
   InvestmentAgreement,
@@ -50,6 +51,10 @@ export class TffService {
 
   updateInvestmentAgreement(agreement: InvestmentAgreement) {
     return this.http.put<InvestmentAgreement>(`${TffConfig.API_URL}/investment-agreements/${agreement.id}`, agreement);
+  }
+
+  createInvestmentAgreement(agreement: CreateInvestmentAgreementPayload) {
+    return this.http.post<InvestmentAgreement>(`${TffConfig.API_URL}/investment-agreements`, agreement);
   }
 
   getGlobalStatsList() {

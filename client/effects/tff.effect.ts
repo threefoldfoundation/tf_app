@@ -56,6 +56,13 @@ export class TffEffects {
         catchError(err => handleApiError(actions.UpdateInvestmentAgreementFailedAction, err)),
       )));
 
+  @Effect() createInvestmentAgreement$ = this.actions$
+    .ofType<actions.CreateInvestmentAgreementAction>(actions.TffActionTypes.CREATE_INVESTMENT_AGREEMENT).pipe(
+      switchMap(action => this.tffService.createInvestmentAgreement(action.payload).pipe(
+        map(payload => new actions.CreateInvestmentAgreementCompleteAction(payload)),
+        catchError(err => handleApiError(actions.CreateInvestmentAgreementFailedAction, err)),
+      )));
+
   @Effect() getGlobalStatsList$ = this.actions$
     .ofType<actions.GetGlobalStatsListAction>(actions.TffActionTypes.GET_GLOBAL_STATS_LIST).pipe(
       withLatestFrom(this.store.select(getGlobalStatsList)),

@@ -5,7 +5,7 @@ import {
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
-  InvestmentAgreementsQuery, InvestmentAgreementsStatuses,
+  InvestmentAgreementsQuery,
   NodeOrder,
   NodeOrderList,
   NodeOrdersQuery,
@@ -29,6 +29,7 @@ export interface ITffState {
   investmentAgreement: InvestmentAgreement | null;
   investmentAgreementStatus: ApiRequestStatus;
   updateInvestmentAgreementStatus: ApiRequestStatus;
+  createInvestmentAgreementStatus: ApiRequestStatus;
   globalStatsList: GlobalStats[];
   globalStatsListStatus: ApiRequestStatus;
   globalStats: GlobalStats | null;
@@ -86,14 +87,13 @@ export const initialTffState: ITffState = {
   },
   investmentAgreementStatus: apiRequestInitial,
   updateInvestmentAgreementStatus: apiRequestInitial,
+  createInvestmentAgreementStatus: apiRequestInitial,
   globalStatsList: [],
   globalStatsListStatus: apiRequestInitial,
   globalStats: null,
   globalStatsStatus: apiRequestInitial,
   updateGlobalStatsStatus: apiRequestInitial,
   userListQuery: {
-    query: null,
-    kyc_status: null,
     cursor: null,
   },
   userList: emptyPaginatedResult,

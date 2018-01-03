@@ -4,8 +4,20 @@ import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
-  MatButtonModule, MatCardModule, MatChipsModule, MatDatepickerModule, MatIconModule, MatInputModule, MatListModule,
-  MatNativeDateModule, MatProgressSpinnerModule, MatSelectModule, MatSlideToggleModule, MatTabsModule, MatToolbarModule,
+  MatAutocompleteModule,
+  MatButtonModule,
+  MatCardModule,
+  MatChipsModule,
+  MatDatepickerModule,
+  MatIconModule,
+  MatInputModule,
+  MatListModule,
+  MatNativeDateModule,
+  MatProgressSpinnerModule,
+  MatSelectModule,
+  MatSlideToggleModule,
+  MatTabsModule,
+  MatToolbarModule,
 } from '@angular/material';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
@@ -25,8 +37,20 @@ import { TFF_COMPONENTS, TFF_PROVIDERS } from './services';
 import { TffRoutes } from './tff.routes';
 
 const MATERIAL_IMPORTS = [
-  MatButtonModule, MatInputModule, MatListModule, MatIconModule, MatSelectModule, MatChipsModule, MatSlideToggleModule,
-  MatProgressSpinnerModule, MatCardModule, MatDatepickerModule, MatNativeDateModule, MatTabsModule, MatIconModule, MatToolbarModule,
+  MatAutocompleteModule,
+  MatButtonModule,
+  MatCardModule,
+  MatChipsModule,
+  MatDatepickerModule,
+  MatIconModule,
+  MatInputModule,
+  MatListModule,
+  MatNativeDateModule,
+  MatProgressSpinnerModule,
+  MatSelectModule,
+  MatSlideToggleModule,
+  MatTabsModule,
+  MatToolbarModule,
 ];
 
 @NgModule({
