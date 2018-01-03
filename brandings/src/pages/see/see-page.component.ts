@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@
 import { Store } from '@ngrx/store';
 import { Platform } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
+import { map } from 'rxjs/operators/map';
+import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
 import { GetSeeDocumentsAction } from '../../actions/branding.actions';
 import { IAppState } from '../../app/app.state';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
@@ -16,6 +18,7 @@ import { getSeeDocuments, getSeeDocumentsStatus } from '../../state/app.state';
 export class SeePageComponent implements OnInit {
   documents$: Observable<SeeDocument[]>;
   status$: Observable<ApiRequestStatus>;
+  hasNoDocuments$: Observable<boolean>;
 
   constructor(private platform: Platform,
               private store: Store<IAppState>) {
@@ -25,6 +28,10 @@ export class SeePageComponent implements OnInit {
     this.documents$ = this.store.select(getSeeDocuments);
     this.status$ = this.store.select(getSeeDocumentsStatus);
     this.store.dispatch(new GetSeeDocumentsAction());
+    this.hasNoDocuments$ = this.status$.pipe(
+      withLatestFrom(this.documents$),
+      map(([ status, docs ]) => status.success && docs.length === 0),
+    );
   }
 
   close() {

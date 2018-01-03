@@ -11,4 +11,5 @@
 <ion-content padding>
   <api-request-status [status]="status$ | async"></api-request-status>
   <see-document [document]="document" *ngFor="let document of documents$ | async"></see-document>
+  <p *ngIf="hasNoDocuments$ | async"><i>{{ 'there_are_no_documents' | translate }}</i></p>
 </ion-content>
