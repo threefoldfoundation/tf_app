@@ -28,7 +28,7 @@ from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
 from framework.bizz.session import create_session
-from framework.i18n_utils import DEFAULT_LANGUAGE
+from framework.i18n_utils import DEFAULT_LANGUAGE, translate
 from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
 from framework.utils.jinja_extensions import TranslateExtension
@@ -47,6 +47,7 @@ from plugins.rogerthat_api.api import system, messaging
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
 from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_QR, REGISTRATION_ORIGIN_OAUTH
+from plugins.rogerthat_api.to.messaging import AnswerTO, Message
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
@@ -56,12 +57,13 @@ from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keyst
 from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.bizz.kyc.onfido_bizz import create_check, update_applicant, deserialize, list_checks, serialize
-from plugins.tff_backend.bizz.rogerthat import create_error_message
+from plugins.tff_backend.bizz.rogerthat import create_error_message, send_rogerthat_message
 from plugins.tff_backend.bizz.service import add_user_to_role, get_main_branding_hash
 from plugins.tff_backend.consts.kyc import kyc_steps, DEFAULT_KYC_STEPS, REQUIRED_DOCUMENT_TYPES
 from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.models.user import ProfilePointer, TffProfile, KYCInformation, KYCStatus
-from plugins.tff_backend.plugin_consts import NAMESPACE, KEY_NAME, KEY_ALGORITHM, KYC_FLOW_PART_1, KYC_FLOW_PART_1_TAG
+from plugins.tff_backend.plugin_consts import NAMESPACE, KEY_NAME, KEY_ALGORITHM, KYC_FLOW_PART_1, KYC_FLOW_PART_1_TAG, \
+    BUY_TOKENS_TAG
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
 from plugins.tff_backend.to.user import SetKYCPayloadTO
 from plugins.tff_backend.utils import convert_to_str
@@ -371,6 +373,8 @@ def set_kyc_status(username, payload, current_user_id):
         update_applicant(profile.kyc.applicant_id, deserialize(payload.data, Applicant))
     elif payload.status == KYCStatus.PENDING_APPROVAL:
         deferred.defer(_create_check, profile.kyc.applicant_id)
+    elif payload.status == KYCStatus.VERIFIED:
+        deferred.defer(_send_kyc_approved_message, profile.key)
     profile.put()
     deferred.defer(store_kyc_in_user_data, profile.app_user, _countdown=2)
     deferred.defer(index_profile, Profile.create_key(username), _countdown=2)
@@ -510,3 +514,23 @@ def list_kyc_checks(username):
     if not profile.kyc.applicant_id:
         return []
     return serialize(list_checks(profile.kyc.applicant_id))
+
+
+def _send_kyc_approved_message(profile_key):
+    profile = profile_key.get()  # type: TffProfile
+    email, app_id = get_app_user_tuple(profile.app_user)
+    message = translate(DEFAULT_LANGUAGE, 'tff', 'you_have_been_kyc_approved')
+    answers = [AnswerTO(type=u'button',
+                        action='smi://%s' % BUY_TOKENS_TAG,
+                        id=u'purchase',
+                        caption=translate(DEFAULT_LANGUAGE, 'tff', 'purchase_itokens'),
+                        ui_flags=0,
+                        color=None),
+               AnswerTO(type=u'button',
+                        action=None,
+                        id=u'close',
+                        caption=translate(DEFAULT_LANGUAGE, 'tff', 'close'),
+                        ui_flags=0,
+                        color=None)]
+    send_rogerthat_message(MemberTO(member=email.email(), app_id=app_id, alert_flags=Message.ALERT_FLAG_VIBRATE),
+                           message, answers, 0)

@@ -110,6 +110,7 @@
     "pending_approval": "Pending approval",
     "phone": "Phone",
     "preview": "Preview",
+    "purchase_itokens": "Purchase iTokens",
     "register_to_threefold": "Register to threefold",
     "resend_flow": "Resend KYC flow",
     "save": "Save",
@@ -159,6 +160,7 @@
     "wallet": "Wallet",
     "wants_recording_x": "Wants recording ({{ amount }})",
     "x_tokens": "{{ count }} tokens",
-    "x_tokens_will_be_assigned": "{{ tokens }} tokens will be assigned to this user."
+    "x_tokens_will_be_assigned": "{{ tokens }} tokens will be assigned to this user.",
+    "you_have_been_kyc_approved": "You have been verified by our KYC Provider! You can start purchasing tokens now!"
   }
 }

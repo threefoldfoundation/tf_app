@@ -33,10 +33,10 @@ def put_user_data(app_user, updated_user_data):
 
 
 @returns(unicode)
-@arguments(member=MemberTO, message=unicode, answers=(None, [AnswerTO]))
-def send_rogerthat_message(member, message, answers=None):
+@arguments(member=MemberTO, message=unicode, answers=(None, [AnswerTO]), flags=(int, long))
+def send_rogerthat_message(member, message, answers=None, flags=None):
     # type: (MemberTO, unicode, list[AnswerTO]) -> unicode
-    flags = Message.FLAG_AUTO_LOCK
+    flags = flags if flags is not None else Message.FLAG_AUTO_LOCK
     if not answers:
         flags = flags | Message.FLAG_ALLOW_DISMISS
         answers = []
