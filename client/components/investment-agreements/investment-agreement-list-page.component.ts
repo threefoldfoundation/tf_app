@@ -14,11 +14,18 @@ import { getInvestmentAgreements, getInvestmentAgreementsQuery, getInvestmentAgr
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <tff-search-investment-agreements [query]="query$ | async"
-                                      (search)="onQuery($event)"></tff-search-investment-agreements>
-    <tff-investment-agreements [investmentAgreements]="investmentAgreements$ | async"
-                               [status]="listStatus$ | async"
-                               (loadMore)="onLoadMore()"></tff-investment-agreements>`
+    <div class="default-component-padding">
+      <tff-search-investment-agreements [query]="query$ | async"
+                                        (search)="onQuery($event)"></tff-search-investment-agreements>
+      <tff-investment-agreements [investmentAgreements]="investmentAgreements$ | async"
+                                 [status]="listStatus$ | async"
+                                 (loadMore)="onLoadMore()"></tff-investment-agreements>
+    </div>
+    <div class="fab-bottom-right">
+      <a mat-fab [routerLink]="['create']">
+        <mat-icon>add</mat-icon>
+      </a>
+    </div>`
 })
 export class InvestmentAgreementListPageComponent implements OnInit, OnDestroy {
   investmentAgreements$: Observable<InvestmentAgreementList>;

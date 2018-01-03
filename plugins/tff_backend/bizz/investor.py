@@ -40,7 +40,7 @@ from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormRes
 from plugins.rogerthat_api.to.messaging.service_callback_results import FormAcknowledgedCallbackResultTO, \
     MessageCallbackResultTypeTO, TYPE_MESSAGE, FlowMemberResultCallbackResultTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
-from plugins.tff_backend.bizz.authentication import Roles, RogerthatRoles
+from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.bizz.hoster import get_publickey_label
@@ -62,10 +62,12 @@ from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TokenType
 from plugins.tff_backend.dal.investment_agreements import get_investment_agreement
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement
+from plugins.tff_backend.models.user import KYCStatus
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
     BUY_TOKENS_FLOW_V3_KYC_MENTION
-from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO
+from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO, \
+    CreateInvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, round_currency_amount
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
@@ -126,27 +128,8 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
             token_count_float = float(get_step_value(steps, 'message_get_order_size_ITO'))
             amount = get_investment_amount(currency, token_count_float)
         username = get_iyo_username(app_user)
-        tff_profile = get_tff_profile(username)
-        applicant = get_applicant(tff_profile.kyc.applicant_id)
-        name = '%s %s ' % (applicant.first_name, applicant.last_name)
-        address = '%s %s' % (applicant.addresses[0].street, applicant.addresses[0].building_number)
-        address += '\n%s %s' % (applicant.addresses[0].postcode, applicant.addresses[0].town)
-        country = filter(lambda c: c['value'] == applicant.addresses[0].country, country_choices)[0]['label']
-        address += '\n%s' % country
-        precision = 2
-        reference = user_code(get_iyo_username(app_user))
-        agreement = InvestmentAgreement(creation_time=now(),
-                                        app_user=app_user,
-                                        token=token,
-                                        amount=amount,
-                                        token_count=long(token_count_float * pow(10, precision)),
-                                        token_precision=precision,
-                                        currency=currency,
-                                        name=name,
-                                        address=address,
-                                        status=InvestmentAgreement.STATUS_CREATED,
-                                        version=version,
-                                        reference=reference)
+        agreement = _create_investment_agreement(amount, currency, token, token_count_float, username, version,
+                                                 app_user, status=InvestmentAgreement.STATUS_CREATED)
         agreement.put()
 
         if version == BUY_TOKENS_FLOW_V3_PAUSED:
@@ -158,6 +141,55 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
     except Exception as e:
         logging.exception(e)
         return create_error_message(FlowMemberResultCallbackResultTO())
+
+
+def _create_investment_agreement(amount, currency, token, token_count_float, username, version, app_user, **kwargs):
+    tff_profile = get_tff_profile(username)
+    if tff_profile.kyc.status != KYCStatus.VERIFIED:
+        raise HttpBadRequestException('cannot_invest_not_kyc_verified')
+    applicant = get_applicant(tff_profile.kyc.applicant_id)
+    name = '%s %s ' % (applicant.first_name, applicant.last_name)
+    address = '%s %s' % (applicant.addresses[0].street, applicant.addresses[0].building_number)
+    address += '\n%s %s' % (applicant.addresses[0].postcode, applicant.addresses[0].town)
+    country = filter(lambda c: c['value'] == applicant.addresses[0].country, country_choices)[0]['label']
+    address += '\n%s' % country
+    precision = 2
+    reference = user_code(username)
+    agreement = InvestmentAgreement(creation_time=now(),
+                                    app_user=app_user,
+                                    token=token,
+                                    amount=amount,
+                                    token_count=long(token_count_float * pow(10, precision)),
+                                    token_precision=precision,
+                                    currency=currency,
+                                    name=name,
+                                    address=address,
+                                    version=version,
+                                    reference=reference,
+                                    **kwargs)
+    return agreement
+
+
+@returns(InvestmentAgreement)
+@arguments(agreement=CreateInvestmentAgreementTO)
+def create_investment_agreement(agreement):
+    # type: (CreateInvestmentAgreementTO) -> InvestmentAgreement
+    app_user = users.User(agreement.app_user)
+    username = get_iyo_username(app_user)
+    token_count_float = get_token_count(agreement.currency, agreement.amount)
+    agreement_model = _create_investment_agreement(agreement.amount, agreement.currency, agreement.token,
+                                                   token_count_float, username, 'manually_created', app_user,
+                                                   status=agreement.status, paid_time=agreement.paid_time,
+                                                   sign_time=agreement.sign_time)
+    prefix, doc_content_base64 = agreement.document.split(',')
+    content_type = prefix.split(';')[0].replace('data:', '')
+    doc_content = base64.b64decode(doc_content_base64)
+    agreement_model.put()
+    pdf_name = InvestmentAgreement.filename(agreement_model.id)
+    pdf_url = upload_to_gcs(pdf_name, doc_content, content_type)
+    deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_model.key, app_user, pdf_url,
+                   content_type, send_sign_message=False)
+    return agreement_model
 
 
 @returns(MessageCallbackResultTypeTO)
@@ -317,20 +349,19 @@ def _invest(agreement_key, email, app_id, retry_count):
     deferred.defer(update_investor_progress, email, app_id, INVESTMENT_TODO_MAPPING[agreement.status])
 
 
-def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url):
+def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url, content_type='application/pdf',
+                                             send_sign_message=True):
     # type: (ndb.Key, users.User, unicode) -> None
     iyo_username = get_iyo_username(app_user)
-    organization_id = get_iyo_organization_id()
-
     doc_id = u'Internal Token Offering %s' % agreement_key.id()
     doc_category = u'Purchase Agreement'
     iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
-                                     globalid=organization_id,
+                                     globalid=get_iyo_organization_id(),
                                      uniqueid=doc_id,
                                      version=1,
                                      category=doc_category,
                                      link=pdf_url,
-                                     content_type=u'application/pdf',
+                                     content_type=content_type,
                                      markdown_short_description=u'Internal Token Offering - Purchase Agreement',
                                      markdown_full_description=u'Internal Token Offering - Purchase Agreement')
     logging.debug('Creating IYO SEE document: %s', iyo_see_doc)
@@ -340,14 +371,14 @@ def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url):
         if e.response.status_code != httplib.CONFLICT:
             raise e
 
-    attachment_name = u' - '.join([doc_id, doc_category])
-
     def trans():
         agreement = agreement_key.get()
         agreement.iyo_see_id = doc_id
         agreement.put()
-        deferred.defer(_send_ito_agreement_sign_message, agreement.key, app_user, pdf_url, attachment_name,
-                       _transactional=True)
+        if send_sign_message:
+            attachment_name = u' - '.join([doc_id, doc_category])
+            deferred.defer(_send_ito_agreement_sign_message, agreement.key, app_user, pdf_url, attachment_name,
+                           _transactional=True)
 
     ndb.transaction(trans)
 

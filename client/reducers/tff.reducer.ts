@@ -144,6 +144,23 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         updateInvestmentAgreementStatus: action.payload,
       };
+    case actions.TffActionTypes.CREATE_INVESTMENT_AGREEMENT:
+      return {
+        ...state,
+        createInvestmentAgreementStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.CREATE_INVESTMENT_AGREEMENT_COMPLETE:
+      return {
+        ...state,
+        investmentAgreement: action.payload,
+        investmentAgreements: initialTffState.investmentAgreements,
+        createInvestmentAgreementStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.CREATE_INVESTMENT_AGREEMENT_FAILED:
+      return {
+        ...state,
+        createInvestmentAgreementStatus: action.payload,
+      };
     case actions.TffActionTypes.GET_GLOBAL_STATS_LIST:
       return {
         ...state,

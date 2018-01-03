@@ -53,5 +53,16 @@ export interface InvestmentAgreement {
   document_url: string | null;
 }
 
+export interface CreateInvestmentAgreementPayload {
+  app_user: string;
+  amount: number;
+  token: string;
+  currency: string;
+  status: InvestmentAgreementsStatuses;
+  sign_time: number | null;
+  paid_time: number | null;
+  document: string;
+}
+
 export interface InvestmentAgreementList extends PaginatedResult<InvestmentAgreement> {
 }

@@ -4,6 +4,7 @@ import { ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
 import { Profile } from '../../../its_you_online_auth/client/index';
 import { AgendaEvent, EventParticipant, GetEventParticipantsPayload } from '../interfaces/agenda-events.interfaces';
 import {
+  CreateInvestmentAgreementPayload,
   CreateTransactionPayload,
   GlobalStats,
   InvestmentAgreement,
@@ -43,6 +44,9 @@ export interface ITffActionTypes {
   UPDATE_INVESTMENT_AGREEMENT: '[TFF] Update investment agreement';
   UPDATE_INVESTMENT_AGREEMENT_COMPLETE: '[TFF] Update investment agreement success';
   UPDATE_INVESTMENT_AGREEMENT_FAILED: '[TFF] Update investment agreement failed';
+  CREATE_INVESTMENT_AGREEMENT: '[TFF] Create investment agreement';
+  CREATE_INVESTMENT_AGREEMENT_COMPLETE: '[TFF] Create investment agreement success';
+  CREATE_INVESTMENT_AGREEMENT_FAILED: '[TFF] Create investment agreement failed';
   GET_GLOBAL_STATS_LIST: '[TFF] Get global stats list';
   GET_GLOBAL_STATS_LIST_COMPLETE: '[TFF] Get global stats list success';
   GET_GLOBAL_STATS_LIST_FAILED: '[TFF] Get global stats list failed';
@@ -116,6 +120,9 @@ export const TffActionTypes: ITffActionTypes = {
   UPDATE_INVESTMENT_AGREEMENT: type('[TFF] Update investment agreement'),
   UPDATE_INVESTMENT_AGREEMENT_COMPLETE: type('[TFF] Update investment agreement success'),
   UPDATE_INVESTMENT_AGREEMENT_FAILED: type('[TFF] Update investment agreement failed'),
+  CREATE_INVESTMENT_AGREEMENT: type('[TFF] Create investment agreement'),
+  CREATE_INVESTMENT_AGREEMENT_COMPLETE: type('[TFF] Create investment agreement success'),
+  CREATE_INVESTMENT_AGREEMENT_FAILED: type('[TFF] Create investment agreement failed'),
   GET_GLOBAL_STATS_LIST: type('[TFF] Get global stats list'),
   GET_GLOBAL_STATS_LIST_COMPLETE: type('[TFF] Get global stats list success'),
   GET_GLOBAL_STATS_LIST_FAILED: type('[TFF] Get global stats list failed'),
@@ -297,6 +304,26 @@ export class UpdateInvestmentAgreementCompleteAction implements Action {
 
 export class UpdateInvestmentAgreementFailedAction implements Action {
   type = TffActionTypes.UPDATE_INVESTMENT_AGREEMENT_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+export class CreateInvestmentAgreementAction implements Action {
+  type = TffActionTypes.CREATE_INVESTMENT_AGREEMENT;
+
+  constructor(public payload: CreateInvestmentAgreementPayload) {
+  }
+}
+
+export class CreateInvestmentAgreementCompleteAction implements Action {
+  type = TffActionTypes.CREATE_INVESTMENT_AGREEMENT_COMPLETE;
+
+  constructor(public payload: InvestmentAgreement) {
+  }
+}
+
+export class CreateInvestmentAgreementFailedAction implements Action {
+  type = TffActionTypes.CREATE_INVESTMENT_AGREEMENT_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
@@ -672,6 +699,9 @@ export type TffActions
   | UpdateInvestmentAgreementAction
   | UpdateInvestmentAgreementCompleteAction
   | UpdateInvestmentAgreementFailedAction
+  | CreateInvestmentAgreementAction
+  | CreateInvestmentAgreementCompleteAction
+  | CreateInvestmentAgreementFailedAction
   | GetGlobalStatsListAction
   | GetGlobalStatsListCompleteAction
   | GetGlobalStatsListFailedAction
