@@ -35,7 +35,8 @@
 
 ## CONTACT SUPPORT
 
-- TBD how to determine the offline/online state.
+- Show the ONLINE state between 8am and 5pm CET on Monday-Friday.
+- Otherwise, show the OFFLINE state.
 
 ## INBOX
 
