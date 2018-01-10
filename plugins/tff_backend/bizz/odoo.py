@@ -207,6 +207,6 @@ def get_node_id_from_odoo(order_id):
             stock_move = stock_move_model.browse(move_line)
             for lot_id in stock_move.lot_ids.id:
                 stock_production_lot = stock_production_lot_model.browse(lot_id)
-                if stock_production_lot.product_id.id == cfg.odoo.stock_id:
+                if stock_production_lot.product_id.id in cfg.odoo.product_ids.values():
                     return stock_production_lot.ref
     return None
