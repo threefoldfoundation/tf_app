@@ -2,14 +2,18 @@
 
 ## THREEFOLD NEWS
 
-- Show the 3 most recent news items using `rogerthat.news.list`
-  - response contains `result` and `cursor`
+- Show the 3 most recent news items using `rogerthat.news.list(params, resultHandler, errorHandler)`
+  - `params` can contain `cursor` (string), `limit` (int), `service` (string)
+    - the `service` param is only permitted for the app's main service. If set, news can be filtered by sender.
+  - the response given via the resultHandler contains `result` and `cursor`
+    - `cursor` is a string
     - `result` is an array of news items
-    - a news item (AppNewsItemTO) contains: `title`, `message`, `image_url`, ...
+      - a news item (AppNewsItemTO) contains: `id`, `partial`, `title`, `message`, `image_url`...
+      - when `partial` is `true` then `title`, `message`, `image_url`... will be `undefined`.  The complete news item will be downloaded async and delivered via `rogerthat.callbacks.newsReceived(newsItems)`.
   - TODO in rogerthat:
-    - implementation of rogerthat.news.list
+    - implementation of `rogerthat.news.list` and `rogerthat.callbacks.newsReceived`
     - new partials should be downloaded completely
-- Register to updates using `rogerthat.callbacks.badgeUpdated({type: 'news', number: 3})`.
+    - send badge updates: `rogerthat.callbacks.badgeUpdated({type: 'news', number: 3})`
 
 ## BUY TOKENS
 
