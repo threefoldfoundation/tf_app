@@ -3,8 +3,7 @@
 ## THREEFOLD NEWS
 
 - Show the 3 most recent news items using `rogerthat.news.list(params, resultHandler, errorHandler)`
-  - `params` can contain `cursor` (string), `limit` (int), `service` (string)
-    - the `service` param is only permitted for the app's main service. If set, news can be filtered by sender.
+  - `params` can contain `cursor` (string), `limit` (int)
   - the response given via the resultHandler contains `result` and `cursor`
     - `cursor` is a string
     - `result` is an array of news items
