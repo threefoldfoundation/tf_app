@@ -48,3 +48,10 @@ export const getEventParticipantsStatus = createSelector(getTffState, s => s.eve
 
 export const getKYCChecks = createSelector(getTffState, s => s.kycChecks);
 export const getKYCChecksStatus = createSelector(getTffState, s => s.kycChecksStatus);
+
+export const getDistinctFlows = createSelector(getTffState, s => s.distinctFlows);
+export const getDistinctFlowsStatus = createSelector(getTffState, s => s.distinctFlowsStatus);
+export const getFlowRuns = createSelector(getTffState, s => s.flowRuns);
+export const getFlowRunsStatus = createSelector(getTffState, s => s.flowRunsStatus);
+export const getFlowRun = createSelector(getTffState, s => s.flowRun);
+export const getFlowRunStatus = createSelector(getTffState, s => s.flowRunStatus);

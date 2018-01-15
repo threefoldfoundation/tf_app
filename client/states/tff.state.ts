@@ -2,6 +2,8 @@ import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/r
 import { Profile } from '../../../its_you_online_auth/client/interfaces/index';
 import { AgendaEvent, EventParticipant } from '../interfaces/agenda-events.interfaces';
 import {
+  FlowRun,
+  FlowRunList,
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
@@ -58,6 +60,13 @@ export interface ITffState {
   eventParticipantsStatus: ApiRequestStatus;
   kycChecks: Check[];
   kycChecksStatus: ApiRequestStatus;
+  distinctFlows: string[];
+  distinctFlowsStatus: ApiRequestStatus;
+  flowRuns: FlowRunList;
+  flowRunsStatus: ApiRequestStatus;
+  flowRun: FlowRun | null;
+  flowRunStatus: ApiRequestStatus;
+
 }
 
 export const emptyPaginatedResult: PaginatedResult<any> = {
@@ -118,4 +127,10 @@ export const initialTffState: ITffState = {
   eventParticipantsStatus: apiRequestInitial,
   kycChecks: [],
   kycChecksStatus: apiRequestInitial,
+  distinctFlows: [],
+  distinctFlowsStatus: apiRequestInitial,
+  flowRuns: emptyPaginatedResult,
+  flowRunsStatus: apiRequestInitial,
+  flowRun: null,
+  flowRunStatus: apiRequestInitial,
 };

@@ -443,6 +443,58 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         kycChecksStatus: action.payload,
       };
+    case actions.TffActionTypes.GET_FLOW_RUN_FLOWS:
+      return {
+        ...state,
+        distinctFlowsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN_FLOWS_COMPLETE:
+      return {
+        ...state,
+        distinctFlows: action.payload,
+        distinctFlowsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN_FLOWS_FAILED:
+      return {
+        ...state,
+        distinctFlowsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUNS:
+      return {
+        ...state,
+        flowRuns: action.payload.cursor ? state.flowRuns : initialTffState.flowRuns,
+        flowRunsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUNS_COMPLETE:
+      return {
+        ...state,
+        flowRuns: {
+          ...action.payload,
+          results: [ ...state.flowRuns.results, ...action.payload.results ],
+        },
+        flowRunsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUNS_FAILED:
+      return {
+        ...state,
+        flowRunsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN:
+      return {
+        ...state,
+        flowRunStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN_COMPLETE:
+      return {
+        ...state,
+        flowRun: action.payload,
+        flowRunStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN_FAILED:
+      return {
+        ...state,
+        flowRunStatus: action.payload,
+      };
     default:
       return state;
   }

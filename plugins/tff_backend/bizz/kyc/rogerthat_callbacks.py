@@ -80,7 +80,8 @@ def kyc_part_1(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
         try:
             api_set_referral({'code': ref_step.get_value()}, user_details[0])
         except ApiCallException as e:
-            return create_error_message(FlowMemberResultCallbackResultTO(), e.message)
+            pass
+            # return create_error_message(FlowMemberResultCallbackResultTO(), e.message)
     xml, flow_params = generate_kyc_flow(country_code, iyo_username)
     result = FlowCallbackResultTypeTO(flow=xml, tag=KYC_FLOW_PART_2_TAG, force_language=None,
                                       flow_params=json.dumps(flow_params))
@@ -105,6 +106,8 @@ def kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
            flow_params=unicode)
 def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                 result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
+    if end_id != 'end_the_end':
+        return
     parsed_flow_params = json.loads(flow_params)
     applicant = Applicant(nationality=parsed_flow_params['nationality'], addresses=[Address()])
     documents = []

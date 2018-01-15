@@ -2,10 +2,12 @@ import { Action } from '@ngrx/store';
 import { type } from '../../../framework/client/core/utils/type';
 import { ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
 import { Profile } from '../../../its_you_online_auth/client/index';
-import { AgendaEvent, EventParticipant, GetEventParticipantsPayload } from '../interfaces/agenda-events.interfaces';
 import {
   CreateInvestmentAgreementPayload,
   CreateTransactionPayload,
+  FlowRun,
+  FlowRunList,
+  FlowRunQuery,
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
@@ -16,7 +18,8 @@ import {
   Transaction,
   TransactionList,
   WalletBalance,
-} from '../interfaces/index';
+} from '../interfaces';
+import { AgendaEvent, EventParticipant, GetEventParticipantsPayload } from '../interfaces/agenda-events.interfaces';
 import { Check } from '../interfaces/onfido.interfaces';
 import { SearchUsersQuery, SetKYCStatusPayload, TffProfile, UserList } from '../interfaces/profile.interfaces';
 import { PaginatedResult } from '../interfaces/shared.interfaces';
@@ -97,6 +100,15 @@ export interface ITffActionTypes {
   GET_KYC_CHECKS: '[TFF] Get KYC checks';
   GET_KYC_CHECKS_COMPLETE: '[TFF] Get KYC checks complete';
   GET_KYC_CHECKS_FAILED: '[TFF] Get KYC checks failed';
+  GET_FLOW_RUN_FLOWS: '[TFF] Get flow run flows';
+  GET_FLOW_RUN_FLOWS_COMPLETE: '[TFF] Get flow run flows complete';
+  GET_FLOW_RUN_FLOWS_FAILED: '[TFF] Get flow run flows failed';
+  GET_FLOW_RUNS: '[TFF] Get flow runs';
+  GET_FLOW_RUNS_COMPLETE: '[TFF] Get flow runs complete';
+  GET_FLOW_RUNS_FAILED: '[TFF] Get flow runs failed';
+  GET_FLOW_RUN: '[TFF] Get flow run';
+  GET_FLOW_RUN_COMPLETE: '[TFF] Get flow run complete';
+  GET_FLOW_RUN_FAILED: '[TFF] Get flow run failed';
 }
 
 export const TffActionTypes: ITffActionTypes = {
@@ -173,6 +185,15 @@ export const TffActionTypes: ITffActionTypes = {
   GET_KYC_CHECKS: type('[TFF] Get KYC checks'),
   GET_KYC_CHECKS_COMPLETE: type('[TFF] Get KYC checks complete'),
   GET_KYC_CHECKS_FAILED: type('[TFF] Get KYC checks failed'),
+  GET_FLOW_RUN_FLOWS: type('[TFF] Get flow run flows'),
+  GET_FLOW_RUN_FLOWS_COMPLETE: type('[TFF] Get flow run flows complete'),
+  GET_FLOW_RUN_FLOWS_FAILED: type('[TFF] Get flow run flows failed'),
+  GET_FLOW_RUNS: type('[TFF] Get flow runs'),
+  GET_FLOW_RUNS_COMPLETE: type('[TFF] Get flow runs complete'),
+  GET_FLOW_RUNS_FAILED: type('[TFF] Get flow runs failed'),
+  GET_FLOW_RUN: type('[TFF] Get flow run'),
+  GET_FLOW_RUN_COMPLETE: type('[TFF] Get flow run complete'),
+  GET_FLOW_RUN_FAILED: type('[TFF] Get flow run failed'),
 };
 
 export class GetOrdersAction implements Action {
@@ -678,6 +699,68 @@ export class GetKYCChecksFailedAction implements Action {
   }
 }
 
+export class GetFlowRunFlowsAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUN_FLOWS;
+}
+
+export class GetFlowRunFlowsCompleteAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUN_FLOWS_COMPLETE;
+
+  constructor(public payload: string[]) {
+  }
+}
+
+export class GetFlowRunFlowsFailedAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUN_FLOWS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetFlowRunsAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUNS;
+
+  constructor(public payload: FlowRunQuery) {
+
+  }
+}
+
+export class GetFlowRunsCompleteAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUNS_COMPLETE;
+
+  constructor(public payload: FlowRunList) {
+  }
+}
+
+export class GetFlowRunsFailedAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUNS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetFlowRunAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUN;
+
+  constructor(public payload: string) {
+
+  }
+}
+
+export class GetFlowRunCompleteAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUN_COMPLETE;
+
+  constructor(public payload: FlowRun) {
+  }
+}
+
+export class GetFlowRunFailedAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUN_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type TffActions
   = GetOrdersAction
   | GetOrdersCompleteAction
@@ -752,4 +835,13 @@ export type TffActions
   | GetEventParticipantsFailedAction
   | GetKYCChecksAction
   | GetKYCChecksCompleteAction
-  | GetKYCChecksFailedAction;
+  | GetKYCChecksFailedAction
+  | GetFlowRunFlowsAction
+  | GetFlowRunFlowsCompleteAction
+  | GetFlowRunFlowsFailedAction
+  | GetFlowRunsAction
+  | GetFlowRunsCompleteAction
+  | GetFlowRunsFailedAction
+  | GetFlowRunAction
+  | GetFlowRunCompleteAction
+  | GetFlowRunFailedAction;

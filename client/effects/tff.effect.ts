@@ -176,6 +176,27 @@ export class TffEffects {
         catchError(err => handleApiError(actions.GetKYCChecksFailedAction, err)),
       )));
 
+  @Effect() getDistinctFlows$ = this.actions$
+    .ofType<actions.GetFlowRunFlowsAction>(actions.TffActionTypes.GET_FLOW_RUN_FLOWS).pipe(
+      switchMap(() => this.tffService.getDistinctFlows().pipe(
+        map(result => new actions.GetFlowRunFlowsCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetFlowRunFlowsFailedAction, err)),
+      )));
+
+  @Effect() getFlowRuns$ = this.actions$
+    .ofType<actions.GetFlowRunsAction>(actions.TffActionTypes.GET_FLOW_RUNS).pipe(
+      switchMap(action => this.tffService.getFlowRuns(action.payload).pipe(
+        map(result => new actions.GetFlowRunsCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetFlowRunsFailedAction, err)),
+      )));
+
+  @Effect() getFlowRun$ = this.actions$
+    .ofType<actions.GetFlowRunAction>(actions.TffActionTypes.GET_FLOW_RUN).pipe(
+      switchMap(action => this.tffService.getFlowRun(action.payload).pipe(
+        map(result => new actions.GetFlowRunCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetFlowRunFailedAction, err)),
+      )));
+
   constructor(private actions$: Actions<actions.TffActions>,
               private tffService: TffService,
               private store: Store<IAppState>) {
