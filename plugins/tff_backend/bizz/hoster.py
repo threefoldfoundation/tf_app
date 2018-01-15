@@ -19,9 +19,10 @@ import base64
 import json
 import logging
 
-from google.appengine.api import users, mail
+from google.appengine.api import users
 from google.appengine.ext import ndb, deferred
 
+from framework.consts import get_base_url
 from framework.plugin_loader import get_config
 from framework.utils import now
 from mcfw.exceptions import HttpBadRequestException
@@ -36,7 +37,8 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FormAckn
     MessageCallbackResultTypeTO, TYPE_MESSAGE
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agreements import create_hosting_agreement_pdf
-from plugins.tff_backend.bizz.authentication import Roles, RogerthatRoles
+from plugins.tff_backend.bizz.authentication import RogerthatRoles
+from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.intercom_helpers import tag_intercom_users, IntercomTags
 from plugins.tff_backend.bizz.iyo.keystore import get_keystore
@@ -480,7 +482,6 @@ def put_node_order(order_id, order):
 
 def _inform_support_of_new_node_order(node_order_id):
     node_order = get_node_order(node_order_id)
-    cfg = get_config(NAMESPACE)
     iyo_username = get_iyo_username(node_order.app_user)
 
     subject = 'New Node Order by %s' % node_order.billing_info.name
@@ -490,19 +491,16 @@ We just received a new Node order from %(name)s (IYO username %(iyo_username)s) 
 This order needs to be manually approved since this user has not invested more than %(tokens)s tokens yet via the app.
 Check the old purchase agreements to verify if this user can sign up as a hoster and if not, contact him.
 
-Please visit https://tff-backend.appspot.com/orders/%(node_order_id)s to approve or cancel this order.
+Please visit %(base_url)s/orders/%(node_order_id)s to approve or cancel this order.
 """ % {
         'name': node_order.billing_info.name,
         'iyo_username': iyo_username,
+        'base_url': get_base_url(),
         'node_order_id': node_order.id,
         'tokens': REQUIRED_TOKEN_COUNT_TO_HOST
     }
 
-    for email in cfg.investor.support_emails:
-        mail.send_mail(sender='no-reply@tff-backend.appspotmail.com',
-                       to=email,
-                       subject=subject,
-                       body=body)
+    send_emails_to_support(subject, body)
 
 
 def _send_node_order_sent_message(node_order_id):

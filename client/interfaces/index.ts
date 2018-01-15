@@ -1,3 +1,4 @@
+export * from './flow-statistics.interfaces';
 export * from './global-stats.interfaces';
 export * from './investment-agreements.interfaces';
 export * from './iyo-see.interfaces';

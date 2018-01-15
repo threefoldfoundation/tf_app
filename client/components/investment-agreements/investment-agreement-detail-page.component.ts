@@ -9,10 +9,13 @@ import { Subscription } from 'rxjs/Subscription';
 import { DialogService } from '../../../../framework/client/dialog/services/dialog.service';
 import { getIdentity } from '../../../../framework/client/identity/index';
 import { Identity } from '../../../../framework/client/identity/interfaces';
+import { filterNull } from '../../../../framework/client/ngrx';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import {
-  GetGlobalStatsAction, GetInvestmentAgreementAction, ResetInvestmentAgreementAction,
+  GetGlobalStatsAction,
+  GetInvestmentAgreementAction,
+  ResetInvestmentAgreementAction,
   UpdateInvestmentAgreementAction,
 } from '../../actions/threefold.action';
 import { TffPermission } from '../../interfaces';
@@ -60,8 +63,8 @@ export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy
     this.status$ = this.store.select(getInvestmentAgreementStatus);
     this.updateStatus$ = this.store.select(updateInvestmentAgreementStatus);
     this.canUpdate$ = this.store.select(getIdentity).pipe(
-      filter(i => i !== null),
-      map((identity: Identity) => (<TffPermission[]>identity.permissions).some(p => TffPermissions.BACKEND_ADMIN.includes(p))),
+      filterNull<Identity>(),
+      map(identity => (<TffPermission[]>identity.permissions).some(p => TffPermissions.BACKEND_ADMIN.includes(p))),
     );
     this.globalStats$ = <Observable<GlobalStats>>this.store.select(getGlobalStats).pipe(filter(s => s !== null));
     this._investmentSub = this.investmentAgreement$.pipe(filter(i => i.token !== null)).subscribe(investment => {

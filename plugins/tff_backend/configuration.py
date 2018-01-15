@@ -46,10 +46,6 @@ class OrchestatorConfiguration(TO):
     jwt = unicode_property('1')
 
 
-class InvestorConfiguration(TO):
-    support_emails = unicode_list_property('1')
-
-
 class AppleConfiguration(TO):
     username = unicode_property('username')
     password = unicode_property('password')
@@ -66,6 +62,7 @@ class TffConfiguration(TO):
         rogerthat(RogerthatConfiguration)
         ledger(LedgerConfiguration)
         odoo(OdooConfiguration)
+        support_emails(list[string])
         orchestator(OrchestatorConfiguration)
         investor(InvestorConfiguration)
         apple(AppleConfiguration)
@@ -78,7 +75,7 @@ class TffConfiguration(TO):
     ledger = typed_property('3', LedgerConfiguration, False)
     odoo = typed_property('4', OdooConfiguration, False)
     orchestator = typed_property('5', OrchestatorConfiguration, False)
-    investor = typed_property('6', InvestorConfiguration, False)
+    support_emails = unicode_list_property('support_emails')
     apple = typed_property('apple', AppleConfiguration)
     backup_disabled = bool_property('backup_disabled')
     intercom_admin_id = long_property('intercom_admin_id')

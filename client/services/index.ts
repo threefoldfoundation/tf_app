@@ -9,6 +9,8 @@ import {
   CreateTransactionPageComponent,
   EventParticipantsComponent,
   EventParticipantsPageComponent,
+  FlowRunDetailComponent,
+  FlowRunStatusComponent,
   GlobalStatsDetailComponent,
   GlobalStatsDetailPageComponent,
   GlobalStatsListPageComponent,
@@ -33,6 +35,9 @@ import {
 } from '../components';
 import {
   CreateInvestmentAgreementPageComponent,
+  FlowStatisticsDetailPageComponent,
+  FlowStatisticsOverviewPageComponent,
+  FlowStatisticsPageComponent,
   KycPageComponent,
   UserDetailsPageComponent,
   UserListPageComponent,
@@ -53,6 +58,9 @@ export const TFF_PROVIDERS: any[] = [
 
 export const TFF_PAGES = [
   CreateInvestmentAgreementPageComponent,
+  FlowStatisticsDetailPageComponent,
+  FlowStatisticsOverviewPageComponent,
+  FlowStatisticsPageComponent,
   KycPageComponent,
   UserDetailsPageComponent,
   UserListPageComponent,
@@ -73,6 +81,8 @@ export const TFF_COMPONENTS: any[] = [
   CreateTransactionPageComponent,
   EventParticipantsComponent,
   EventParticipantsPageComponent,
+  FlowRunStatusComponent,
+  FlowRunDetailComponent,
   GlobalStatsDetailComponent,
   GlobalStatsDetailPageComponent,
   GlobalStatsListPageComponent,

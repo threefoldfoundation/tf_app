@@ -105,6 +105,8 @@ def kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
            flow_params=unicode)
 def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                 result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
+    if end_id != 'end_the_end':
+        return
     parsed_flow_params = json.loads(flow_params)
     applicant = Applicant(nationality=parsed_flow_params['nationality'], addresses=[Address()])
     documents = []

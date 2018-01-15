@@ -22,7 +22,8 @@ import logging
 from types import NoneType
 
 from google.appengine.api import users, mail
-from google.appengine.ext import deferred, ndb, db
+from google.appengine.api.app_identity import app_identity
+from google.appengine.ext import deferred, ndb
 
 from babel.numbers import get_currency_name
 from framework.consts import get_base_url
@@ -41,6 +42,7 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FormAckn
     MessageCallbackResultTypeTO, TYPE_MESSAGE, FlowMemberResultCallbackResultTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
+from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.bizz.hoster import get_publickey_label
@@ -69,7 +71,7 @@ from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO, \
     CreateInvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
-from plugins.tff_backend.utils import get_step_value, round_currency_amount
+from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from requests.exceptions import HTTPError
 
@@ -119,7 +121,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         app_id = user_details[0].app_id
         app_user = create_app_user_by_email(email, app_id)
         logging.info('User %s wants to invest', email)
-        version = db.Key(steps[0].message_flow_id).name()
+        version = get_key_name_from_key_string(steps[0].message_flow_id)
         currency = get_step_value(steps, 'message_get_currency').replace('_cur', '')
         if version.startswith(BUY_TOKENS_FLOW_V3):
             amount = float(get_step_value(steps, 'message_get_order_size_ITO').replace(',', '.'))
@@ -640,8 +642,6 @@ def put_investment_agreement(agreement_id, agreement, admin_user):
 
 
 def _inform_support_of_new_investment(iyo_username, agreement_id, token_count):
-    cfg = get_config(NAMESPACE)
-
     subject = "New purchase agreement signed"
     body = """Hello,
 
@@ -652,12 +652,7 @@ Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more de
        "agreement_id": agreement_id,
        'base_url': get_base_url(),
        "token_count_float": token_count}  # noQA
-
-    for email in cfg.investor.support_emails:
-        mail.send_mail(sender="no-reply@tff-backend.appspotmail.com",
-                       to=email,
-                       subject=subject,
-                       body=body)
+    send_emails_to_support(subject, body)
 
 
 @returns()

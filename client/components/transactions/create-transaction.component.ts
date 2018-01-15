@@ -11,7 +11,7 @@ import { CreateTransactionPayload, TokenTypes } from '../../interfaces/transacti
 })
 
 export class CreateTransactionComponent {
-  tokenTypes = Object.keys(TokenTypes).map((t: keyof TokenTypes) => <TokenTypes>TokenTypes[ <any>t ]);
+  tokenTypes = Object.keys(TokenTypes).map(t => <TokenTypes>TokenTypes[ <any>t ]);
   @Input() createStatus: ApiRequestStatus;
   @Output() onCreateTransaction = new EventEmitter<CreateTransactionPayload>();
   @ViewChild('form') form: NgForm;

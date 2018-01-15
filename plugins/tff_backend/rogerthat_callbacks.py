@@ -39,6 +39,7 @@ from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, a
 from plugins.tff_backend.api.rogerthat.nodes import api_get_node_status
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
 from plugins.tff_backend.bizz.authentication import Organization
+from plugins.tff_backend.bizz.flow_statistics import save_flow_statistics
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed
 from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \
@@ -88,19 +89,25 @@ def log_and_parse_user_details(user_details):
 
 def flow_member_result(rt_settings, request_id, message_flow_run_id, member, steps, end_id, end_message_flow_id,
                        parent_message_key, tag, result_key, flush_id, flush_message_flow_id, service_identity,
-                       user_details, flow_params, **kwargs):
+                       user_details, flow_params, timestamp, **kwargs):
     user_details = log_and_parse_user_details(user_details)
     steps = parse_complex_value(object_factory("step_type", FLOW_STEP_MAPPING), steps, True)
 
     f = FMR_TAG_MAPPING.get(parse_to_human_readable_tag(tag))
-    if not f:
-        logging.info('[tff] Ignoring flow_member_result with tag %s', tag)
-        return None
+    should_process_flush = f and not flush_id.startswith('flush_monitoring')
 
-    result = f(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
-               flush_id, flush_message_flow_id, service_identity, user_details, flow_params)
-
-    return result and serialize_complex_value(result, FlowMemberResultCallbackResultTO, False, skip_missing=True)
+    result = None
+    try:
+        if should_process_flush:
+            result = f(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
+                       result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params)
+            return result and serialize_complex_value(result, FlowMemberResultCallbackResultTO, False,
+                                                      skip_missing=True)
+        else:
+            logging.info('[tff] Ignoring flow_member_result with tag %s', tag)
+    finally:
+        deferred.defer(save_flow_statistics, parent_message_key, steps, end_id, tag, flush_id, flush_message_flow_id,
+                       user_details[0], timestamp, result)
 
 
 def form_update(rt_settings, request_id, status, form_result, answer_id, member, message_key, tag, received_timestamp,

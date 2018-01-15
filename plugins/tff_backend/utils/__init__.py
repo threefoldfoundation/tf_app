@@ -16,8 +16,9 @@
 # @@license_version:1.3@@
 
 import json
-import mimetypes
 import re
+
+from google.appengine.ext import db
 
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.to.messaging.flow import BaseFlowStepTO
@@ -89,3 +90,10 @@ def convert_to_str(data):
         for key, val in data.iteritems():
             data[key] = convert_to_str(val)
     return data
+
+
+def get_key_name_from_key_string(key_string):
+    try:
+        return db.Key(key_string).name()
+    except db.BadArgumentError:
+        return key_string

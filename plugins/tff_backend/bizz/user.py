@@ -421,7 +421,7 @@ def generate_kyc_flow(country_code, iyo_username):
             'reference': 'message_%s' % prop,
             'positive_reference': None,
             'positive_caption': step_info.get('positive_caption', 'Continue'),
-            'negative_reference': 'end_premature_end',
+            'negative_reference': 'flush_end_canceled',
             'negative_caption': step_info.get('negative_caption', 'Cancel'),
             'keyboard_type': step_info.get('keyboard_type', 'DEFAULT'),
             'type': step_info.get('widget', 'TextLineWidget'),

@@ -1,4 +1,4 @@
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule, CurrencyPipe, DatePipe, I18nPluralPipe } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
@@ -31,10 +31,13 @@ import { AddToolbarItemAction } from '../../framework/client/toolbar/actions';
 import { ToolbarItemTypes } from '../../framework/client/toolbar/interfaces';
 import { TffEffects } from './effects';
 import { MarkdownPipe } from './pipes/markdown.pipe';
+import { ProfileNamePipe } from './pipes/profile-name.pipe';
+import { TimeDurationPipe } from './pipes/time-duration.pipe';
+import { TimePipe } from './pipes/time.pipe';
 import { TimestampPipe } from './pipes/timestamp.pipe';
 import { tffReducer } from './reducers';
+import { TffRoutes } from './routes';
 import { TFF_COMPONENTS, TFF_PROVIDERS } from './services';
-import { TffRoutes } from './tff.routes';
 
 const MATERIAL_IMPORTS = [
   MatAutocompleteModule,
@@ -53,6 +56,15 @@ const MATERIAL_IMPORTS = [
   MatToolbarModule,
 ];
 
+const PIPES = [
+  TimestampPipe,
+  MarkdownPipe,
+  TimePipe,
+  TimeDurationPipe,
+  ProfileNamePipe,
+];
+
+
 @NgModule({
   imports: [
     CommonModule,
@@ -69,13 +81,14 @@ const MATERIAL_IMPORTS = [
   ],
   declarations: [
     TFF_COMPONENTS,
-    TimestampPipe,
-    MarkdownPipe,
+    PIPES,
   ],
   providers: [
     DatePipe,
     CurrencyPipe,
+    I18nPluralPipe,
     TFF_PROVIDERS,
+    PIPES,
   ],
   exports: [
     TFF_COMPONENTS,
