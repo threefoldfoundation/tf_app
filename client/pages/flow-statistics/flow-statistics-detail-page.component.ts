@@ -19,6 +19,10 @@ import { getFlowRun, getFlowRunStatus, getUser, getUserStatus } from '../../tff.
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="default-component-padding">
+      <button mat-button [routerLink]="['..']">
+        <mat-icon>arrow_back</mat-icon>
+        {{ 'tff.back' | translate }}
+      </button>
       <tff-api-request-status [status]="status$ | async"></tff-api-request-status>
       <tff-flow-run-detail [flowRun]="flowRun$ | async" [user]="user$ | async" *ngIf="(status$ | async)?.success"></tff-flow-run-detail>
     </div>`,

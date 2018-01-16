@@ -1,5 +1,7 @@
 import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
 import { Profile } from '../../../its_you_online_auth/client/interfaces/index';
+import { Installation } from '../../../rogerthat_api/client/interfaces';
+import { InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces/app';
 import { AgendaEvent, EventParticipant } from '../interfaces/agenda-events.interfaces';
 import {
   FlowRun,
@@ -66,7 +68,12 @@ export interface ITffState {
   flowRunsStatus: ApiRequestStatus;
   flowRun: FlowRun | null;
   flowRunStatus: ApiRequestStatus;
-
+  installations: InstallationsList;
+  installationsStatus: ApiRequestStatus;
+  installation: Installation | null;
+  installationStatus: ApiRequestStatus;
+  installationLogs: InstallationLog[];
+  installationLogsStatus: ApiRequestStatus;
 }
 
 export const emptyPaginatedResult: PaginatedResult<any> = {
@@ -133,4 +140,10 @@ export const initialTffState: ITffState = {
   flowRunsStatus: apiRequestInitial,
   flowRun: null,
   flowRunStatus: apiRequestInitial,
+  installations: emptyPaginatedResult,
+  installationsStatus: apiRequestInitial,
+  installation: null,
+  installationStatus: apiRequestInitial,
+  installationLogs: [],
+  installationLogsStatus: apiRequestInitial,
 };

@@ -1,4 +1,8 @@
 <div class="default-component-padding">
+  <button mat-button [routerLink]="['..']">
+    <mat-icon>arrow_back</mat-icon>
+    {{ 'tff.back' | translate }}
+  </button>
   <h2>{{ 'tff.flow_runs_for' | translate : { flowName: flowName } }}</h2>
   <div *ngIf="flowRuns$ | async as flowRuns">
     <mat-nav-list>

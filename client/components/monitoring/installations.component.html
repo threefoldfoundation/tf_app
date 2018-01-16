@@ -1,0 +1,15 @@
+<mat-nav-list>
+  <a mat-list-item *ngFor="let installation of installations.results; trackBy: trackById"
+     [routerLink]="installation.id">
+    <tff-installation-status [status]="installation.status"></tff-installation-status>
+    <p>
+      {{ installation.timestamp | timestamp : 'dd/MM/yyyy HH:mm:ss' }} - {{ getMobileType(installation) | translate}}
+      - {{ installation.version }}
+    </p>
+  </a>
+</mat-nav-list>
+<tff-api-request-status [status]="status"></tff-api-request-status>
+<button mat-button *ngIf="installations.more" (click)="loadMore.emit({cursor: installations.cursor})"
+        [disabled]="status.loading">
+  {{ 'tff.load_more' | translate }}
+</button>
