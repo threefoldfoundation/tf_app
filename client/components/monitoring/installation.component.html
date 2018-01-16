@@ -1,0 +1,17 @@
+<tff-api-request-status [status]="status"></tff-api-request-status>
+<div *ngIf="status.success">
+  <tff-installation-status [status]="installation.status"></tff-installation-status>
+  <p>{{ 'tff.app_version_x' | translate : { version: installation.version } }}</p>
+  <div *ngIf="installation.mobile">
+    <h3>{{ 'tff.mobile' | translate }}</h3>
+    <p>{{ installation.mobile.description }}</p>
+    <p>{{ getMobileType(installation.mobile) | translate }}</p>
+    <p>{{ 'tff.hardware_model_x' | translate : { model: installation.mobile.hardware_model } }}</p>
+    <p>{{ 'tff.operating_system_version_x' | translate : { version: installation.mobile.os_version } }}</p>
+  </div>
+  <div *ngIf="installation.user_details">
+    <h3>{{ 'tff.profile' | translate }}</h3>
+    <p *ngIf="installation.user_details.name">{{ 'tff.name_x' | translate : { name: installation.user_details.name } }}</p>
+    <p>{{ 'tff.language_x' | translate : { language: installation.user_details.language } }}</p>
+  </div>
+</div>

@@ -203,6 +203,27 @@ export class TffEffects {
         catchError(err => handleApiError(actions.GetFlowRunFailedAction, err)),
       )));
 
+  @Effect() getInstallations$ = this.actions$
+    .ofType<actions.GetInstallationsAction>(actions.TffActionTypes.GET_INSTALLATIONS).pipe(
+      switchMap(action => this.tffService.getInstallations(action.payload).pipe(
+        map(result => new actions.GetInstallationsCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetInstallationsFailedAction, err)),
+      )));
+
+  @Effect() getInstallation$ = this.actions$
+    .ofType<actions.GetInstallationAction>(actions.TffActionTypes.GET_INSTALLATION).pipe(
+      switchMap(action => this.tffService.getInstallation(action.payload).pipe(
+        map(result => new actions.GetInstallationCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetInstallationFailedAction, err)),
+      )));
+
+  @Effect() getInstallationLogs$ = this.actions$
+    .ofType<actions.GetInstallationLogsAction>(actions.TffActionTypes.GET_INSTALLATION_LOGS).pipe(
+      switchMap(action => this.tffService.getInstallationLogs(action.payload).pipe(
+        map(result => new actions.GetInstallationLogsCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetInstallationLogsFailedAction, err)),
+      )));
+
   constructor(private actions$: Actions<actions.TffActions>,
               private tffService: TffService,
               private store: Store<IAppState>) {

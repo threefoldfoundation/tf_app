@@ -2,14 +2,19 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators/map';
-import { Profile } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
-import { AgendaEvent, EventParticipant, GetEventParticipantsPayload } from '../interfaces/agenda-events.interfaces';
+import { Profile } from '../../../its_you_online_auth/client/interfaces';
+import { Installation, InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces';
 import {
+  AgendaEvent,
+  Check,
   CreateInvestmentAgreementPayload,
   CreateTransactionPayload,
+  EventParticipant,
   FlowRun,
   FlowRunList,
   FlowRunQuery,
+  GetEventParticipantsPayload,
+  GetInstallationsQuery,
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
@@ -17,13 +22,15 @@ import {
   NodeOrder,
   NodeOrderList,
   NodeOrdersQuery,
+  PaginatedResult,
+  SearchUsersQuery,
+  SetKYCStatusPayload,
+  TffProfile,
   Transaction,
   TransactionList,
+  UserList,
   WalletBalance,
-} from '../interfaces/index';
-import { Check } from '../interfaces/onfido.interfaces';
-import { SearchUsersQuery, SetKYCStatusPayload, TffProfile, UserList } from '../interfaces/profile.interfaces';
-import { PaginatedResult } from '../interfaces/shared.interfaces';
+} from '../interfaces';
 import { TffConfig } from './tff-config.service';
 
 @Injectable()
@@ -148,6 +155,19 @@ export class TffService {
     return this.http.get<FlowRun<string>>(`${TffConfig.API_URL}/flow-statistics/details/${id}`).pipe(
       map(result => this.convertFlowRun(result)),
     );
+  }
+
+  getInstallations(query: GetInstallationsQuery) {
+    const params = this._getQueryParams(query);
+    return this.http.get<InstallationsList>(`${TffConfig.API_URL}/installations`, { params });
+  }
+
+  getInstallation(installationId: string) {
+    return this.http.get<Installation>(`${TffConfig.API_URL}/installations/${installationId}`);
+  }
+
+  getInstallationLogs(installationId: string) {
+    return this.http.get<InstallationLog[]>(`${TffConfig.API_URL}/installations/${installationId}/logs`);
   }
 
   private _getQueryParams<T>(queryObject: T): HttpParams {

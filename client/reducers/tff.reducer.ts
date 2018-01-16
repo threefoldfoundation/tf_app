@@ -495,6 +495,57 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         flowRunStatus: action.payload,
       };
+    case actions.TffActionTypes.GET_INSTALLATIONS:
+      return {
+        ...state,
+        installations: action.payload.cursor ? state.installations : initialTffState.installations,
+        installationsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_INSTALLATIONS_COMPLETE:
+      return {
+        ...state,
+        installations: { ...action.payload, results: [ ...state.installations.results, ...action.payload.results ] },
+        installationsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_INSTALLATIONS_FAILED:
+      return {
+        ...state,
+        installationsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION:
+      return {
+        ...state,
+        installation: initialTffState.installation,
+        installationStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_COMPLETE:
+      return {
+        ...state,
+        installation: action.payload,
+        installationStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_FAILED:
+      return {
+        ...state,
+        installationStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_LOGS:
+      return {
+        ...state,
+        installationLogs: initialTffState.installationLogs,
+        installationLogsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_LOGS_COMPLETE:
+      return {
+        ...state,
+        installationLogs: action.payload,
+        installationLogsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_LOGS_FAILED:
+      return {
+        ...state,
+        installationLogsStatus: action.payload,
+      };
     default:
       return state;
   }
