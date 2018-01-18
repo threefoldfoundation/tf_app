@@ -11,7 +11,7 @@
                  alertIntervalType="NONE"
                  alertType="SILENT"
                  brandingKey="{{ step.branding_key }}"
-                 positiveReference="flush_monitoring_{{ step.positive_reference }}"
+                 positiveReference="{{ 'flush_monitoring_' if not loop.last else ''}}{{ step.positive_reference }}"
                  vibrate="false"
                  autoLock="true"
                  negativeReference="{{ step.negative_reference }}">
@@ -48,20 +48,28 @@
         {% endif %}
       </form>
     </formMessage>
+    {% if not loop.last %}
     <resultsFlush
       id="flush_monitoring_{{ step.positive_reference }}"
       reference="{{ step.positive_reference }}"/>
+    {% endif %}
     {% endfor %}
     <resultsFlush
       id="flush_results"
-      reference="message_the_end"/>
+      reference="flush_monitoring_end"/>
     <resultsFlush
-      id="flush_end_canceled"
+      id="flush_monitoring_end_canceled"
       reference="end_canceled"/>
-    <message id="message_the_end" allowDismiss="true" autoLock="true" vibrate="false" alertType="SILENT"
-             alertIntervalType="NONE" dismissReference="end_the_end" brandingKey="{{ branding_key }}">
+    <resultsFlush
+      id="flush_monitoring_end"
+      reference="message_thanks_message"/>
+    <message id="message_thanks_message" allowDismiss="true" autoLock="true" vibrate="false" alertType="SILENT"
+             alertIntervalType="NONE" dismissReference="flush_monitoring_end_the_end" brandingKey="{{ branding_key }}">
       <content>{% translate language, 'tff', 'kyc_end_flow' %}</content>
     </message>
+    <resultsFlush
+      id="flush_monitoring_end_the_end"
+      reference="end_the_end"/>
     <end id="end_canceled"/>
     <end id="end_the_end"/>
   </definition>

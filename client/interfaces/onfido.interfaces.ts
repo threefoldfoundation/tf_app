@@ -48,7 +48,7 @@ export interface Check {
   reports: string[];
   result: 'clear' | 'consider' | 'unidentified';
   results_uri: string;
-  status: 'complete' | 'in_progress';
+  status: 'complete' | 'in_progress' | 'awaiting_applicant' | 'withdrawn' | 'paused' | 'reopened';
   tags: string[];
   type: 'standard' | 'express';
 }

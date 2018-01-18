@@ -32,7 +32,7 @@ from framework.i18n_utils import DEFAULT_LANGUAGE, translate
 from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
 from framework.utils.jinja_extensions import TranslateExtension
-from mcfw.consts import MISSING
+from mcfw.consts import MISSING, DEBUG
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
 from onfido import Applicant
@@ -400,6 +400,8 @@ def send_kyc_flow(app_user, message=None):
 
 
 def generate_kyc_flow(country_code, iyo_username):
+    # TODO remove debug
+    country_code = 'BEL'
     logging.info('Generating KYC flow for user %s and country %s', iyo_username, country_code)
     flow_params = {'nationality': country_code}
     properties = DEFAULT_KYC_STEPS.union(_get_extra_properties(country_code))
@@ -408,7 +410,7 @@ def generate_kyc_flow(country_code, iyo_username):
         known_information['address_country'] = country_code
     except HttpNotFoundException:
         logging.error('No profile found for user %s!', iyo_username)
-        return create_error_message(FlowMemberResultCallbackResultTO())
+        return create_error_message()
 
     steps = []
     branding_key = get_main_branding_hash()
@@ -421,7 +423,7 @@ def generate_kyc_flow(country_code, iyo_username):
             'reference': 'message_%s' % prop,
             'positive_reference': None,
             'positive_caption': step_info.get('positive_caption', 'Continue'),
-            'negative_reference': 'flush_end_canceled',
+            'negative_reference': 'flush_monitoring_end_canceled',
             'negative_caption': step_info.get('negative_caption', 'Cancel'),
             'keyboard_type': step_info.get('keyboard_type', 'DEFAULT'),
             'type': step_info.get('widget', 'TextLineWidget'),
@@ -447,6 +449,8 @@ def generate_kyc_flow(country_code, iyo_username):
 
 
 def _get_extra_properties(country_code):
+    if DEBUG:
+        return []
     return REQUIRED_DOCUMENT_TYPES[country_code]
 
 
