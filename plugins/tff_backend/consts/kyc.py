@@ -1,6 +1,6 @@
 # coding=utf-8
 
-unsupported_countries = ['CHN', 'KOR', 'PRK', 'SGP', 'USA']
+unsupported_countries = ['CHN', 'KOR', 'PRK', 'SGP']
 # import pycountry
 # country_choices = sorted(
 #     filter(lambda c: c['value'] not in unsupported_countries,
@@ -131,6 +131,7 @@ country_choices = [{'label': u'Afghanistan', 'value': u'AFG'}, {'label': u'Alban
                    {'label': u'Turks and Caicos Islands', 'value': u'TCA'}, {'label': u'Tuvalu', 'value': u'TUV'},
                    {'label': u'Uganda', 'value': u'UGA'}, {'label': u'Ukraine', 'value': u'UKR'},
                    {'label': u'United Arab Emirates', 'value': u'ARE'}, {'label': u'United Kingdom', 'value': u'GBR'},
+                   {'label': u'United States', 'value': u'USA'},
                    {'label': u'United States Minor Outlying Islands', 'value': u'UMI'},
                    {'label': u'Uruguay', 'value': u'URY'}, {'label': u'Uzbekistan', 'value': u'UZB'},
                    {'label': u'Vanuatu', 'value': u'VUT'},
