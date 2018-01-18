@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { catchError } from 'rxjs/operators/catchError';
+import { debounceTime } from 'rxjs/operators/debounceTime';
 import { map } from 'rxjs/operators/map';
 import { switchMap } from 'rxjs/operators/switchMap';
 import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
@@ -11,11 +12,14 @@ import * as actions from '../actions/threefold.action';
 import { TffService } from '../services/tff.service';
 import { getGlobalStatsList } from '../tff.state';
 
+const SEARCH_DEBOUNCE_TIME = 400;
+
 @Injectable()
 export class TffEffects {
 
   @Effect() getNodeOrders$ = this.actions$
     .ofType<actions.GetOrdersAction>(actions.TffActionTypes.GET_ORDERS).pipe(
+      debounceTime(SEARCH_DEBOUNCE_TIME),
       switchMap(action => this.tffService.getNodeOrders(action.payload).pipe(
         map(payload => new actions.GetOrdersCompleteAction(payload)),
         catchError(err => handleApiError(actions.GetOrdersFailedAction, err)),
@@ -37,6 +41,7 @@ export class TffEffects {
 
   @Effect() getInvestmentAgreements$ = this.actions$
     .ofType<actions.GetInvestmentAgreementsAction>(actions.TffActionTypes.GET_INVESTMENT_AGREEMENTS).pipe(
+      debounceTime(SEARCH_DEBOUNCE_TIME),
       switchMap(action => this.tffService.getInvestmentAgreements(action.payload).pipe(
         map(payload => new actions.GetInvestmentAgreementsCompleteAction(payload)),
         catchError(err => handleApiError(actions.GetInvestmentAgreementsFailedAction, err)),
@@ -87,6 +92,7 @@ export class TffEffects {
 
   @Effect() searchUsers$ = this.actions$
     .ofType<actions.SearchUsersAction>(actions.TffActionTypes.SEARCH_USERS).pipe(
+      debounceTime(SEARCH_DEBOUNCE_TIME),
       switchMap(action => this.tffService.searchUsers(action.payload).pipe(
         map(payload => new actions.SearchUsersCompleteAction(payload)),
         catchError(err => handleApiError(actions.SearchUsersFailedAction, err)),

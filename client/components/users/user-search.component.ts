@@ -1,8 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { debounceTime } from 'rxjs/operators/debounceTime';
-import { distinctUntilChanged } from 'rxjs/operators/distinctUntilChanged';
-import { Subject } from 'rxjs/Subject';
-import { Subscription } from 'rxjs/Subscription';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { KYCStatuses } from '../../interfaces';
 import { SearchUsersQuery } from '../../interfaces/profile.interfaces';
 
@@ -11,35 +7,26 @@ import { SearchUsersQuery } from '../../interfaces/profile.interfaces';
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'user-search.component.html',
 })
-export class UserSearchComponent implements OnInit, OnDestroy {
+export class UserSearchComponent {
   statuses = KYCStatuses;
+  searchString: string;
   @Output() search = new EventEmitter<SearchUsersQuery>();
 
   get query(): SearchUsersQuery {
-    return this._query;
+    return { ...this._query, query: this.searchString };
   }
 
   @Input() set query(value: SearchUsersQuery) {
-    this._query = { ...value };
+    this._query = { ...value, query: this.searchString || value.query };
+    if (!this.searchString) {
+      this.searchString = value.query || '';
+    }
   }
 
-  private _debouncedQuery = new Subject<SearchUsersQuery>();
-  private _querySub: Subscription;
   private _query: SearchUsersQuery;
-
-  ngOnInit() {
-    this._querySub = this._debouncedQuery.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-    ).subscribe(query => this.search.emit(query));
-  }
-
-  ngOnDestroy() {
-    this._querySub.unsubscribe();
-  }
 
   submit() {
     this.query = { ...this.query, cursor: null };
-    this._debouncedQuery.next(this.query);
+    this.search.next(this.query);
   }
 }
