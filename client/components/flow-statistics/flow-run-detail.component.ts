@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 import { Profile } from '../../../../its_you_online_auth/client/interfaces';
+import { FlowStep } from '../../../../rogerthat_api/client/interfaces';
+import { WidgetType } from '../../../../rogerthat_api/client/interfaces/forms';
 import { FlowRun } from '../../interfaces';
 import { FlowRunStatus } from '../../interfaces/flow-statistics.interfaces';
 
@@ -22,7 +24,7 @@ import { FlowRunStatus } from '../../interfaces/flow-statistics.interfaces';
     }` ],
 })
 export class FlowRunDetailComponent {
-  FlowRunStatus = FlowRunStatus;
+  WidgetType = WidgetType;
   @Input() flowRun: FlowRun;
   @Input() user: Profile;
 
@@ -33,4 +35,9 @@ export class FlowRunDetailComponent {
   shouldShowNextStep(flowRun: FlowRun) {
     return [ FlowRunStatus.STARTED, FlowRunStatus.IN_PROGRESS, FlowRunStatus.STALLED ].includes(flowRun.status);
   }
+
+  trackSteps(index: number, step: FlowStep) {
+    return index;
+  }
+
 }

@@ -99,12 +99,13 @@ def flow_member_result(rt_settings, request_id, message_flow_run_id, member, ste
     result = None
     try:
         if should_process_flush:
+            logging.info('Processing flow_member_result with tag %s and flush_id %s', tag, flush_id)
             result = f(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                        result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params)
             return result and serialize_complex_value(result, FlowMemberResultCallbackResultTO, False,
                                                       skip_missing=True)
         else:
-            logging.info('[tff] Ignoring flow_member_result with tag %s', tag)
+            logging.info('[tff] Ignoring flow_member_result with tag %s and flush_id %s', tag, flush_id)
     finally:
         deferred.defer(save_flow_statistics, parent_message_key, steps, end_id, tag, flush_id, flush_message_flow_id,
                        user_details[0], timestamp, result)

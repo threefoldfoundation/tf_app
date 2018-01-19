@@ -20,6 +20,7 @@ import logging
 
 from google.appengine.ext.deferred import deferred
 
+from framework.consts import get_base_url
 from mcfw.consts import DEBUG
 from mcfw.properties import object_factory
 from mcfw.rpc import arguments, returns
@@ -34,6 +35,7 @@ from plugins.rogerthat_api.to.messaging.forms import FormResultTO, UnicodeWidget
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     TYPE_FLOW, FlowCallbackResultTypeTO
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
+from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.kyc.onfido_bizz import update_applicant, create_applicant, upload_document
@@ -66,21 +68,29 @@ def kyc_part_1(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
     iyo_username = get_iyo_username(user_details[0])
     if not iyo_username:
         logging.error('No username found for user %s', user_details[0])
-        return create_error_message(FlowMemberResultCallbackResultTO())
+        return create_error_message()
+    if flush_id == 'flush_corporation':
+        url = get_base_url() + '/users/%s' % iyo_username
+        msg = """"User %s (%s) wants to be KYC approved using his partnership/corporation or trust""" % (
+            iyo_username, url)
+        send_emails_to_support('Corporation wants to sign up', msg)
+
     result = _validate_kyc_status(iyo_username)
     if isinstance(result, FlowMemberResultCallbackResultTO):
         return result
-    step = get_step(steps, 'message_nationality') or get_step(steps, 'message_nationality_with_vibration')
-    assert isinstance(step, FormFlowStepTO)
-    assert isinstance(step.form_result, FormResultTO)
-    assert isinstance(step.form_result.result, UnicodeWidgetResultTO)
-    country_code = step.form_result.result.value
     ref_step = get_step(steps, 'message_referrer')
     if ref_step and not result.referrer_user:
         try:
             api_set_referral({'code': ref_step.get_value()}, user_details[0])
         except ApiCallException as e:
-            return create_error_message(FlowMemberResultCallbackResultTO(), e.message)
+            return create_error_message(e.message)
+    if flush_id == 'flush_corporation':
+        return
+    step = get_step(steps, 'message_nationality') or get_step(steps, 'message_nationality_with_vibration')
+    assert isinstance(step, FormFlowStepTO)
+    assert isinstance(step.form_result, FormResultTO)
+    assert isinstance(step.form_result.result, UnicodeWidgetResultTO)
+    country_code = step.form_result.result.value
     xml, flow_params = generate_kyc_flow(country_code, iyo_username)
     result = FlowCallbackResultTypeTO(flow=xml, tag=KYC_FLOW_PART_2_TAG, force_language=None,
                                       flow_params=json.dumps(flow_params))
@@ -105,8 +115,6 @@ def kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
            flow_params=unicode)
 def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                 result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    if end_id != 'end_the_end':
-        return
     parsed_flow_params = json.loads(flow_params)
     applicant = Applicant(nationality=parsed_flow_params['nationality'], addresses=[Address()])
     documents = []
@@ -148,7 +156,7 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
     username = get_iyo_username(user_details[0])
     if not username:
         logging.error('Could not find username for user %s!' % user_details[0])
-        return create_error_message(FlowMemberResultCallbackResultTO())
+        return create_error_message()
     result = _validate_kyc_status(username)
     if isinstance(result, FlowMemberResultCallbackResultTO):
         return result
@@ -185,5 +193,5 @@ def _validate_kyc_status(username):
             elif status == KYCStatus.VERIFIED:
                 message = 'You have already been verified, so you do not need to enter this process again. Thank you!'
             if not DEBUG:
-                return create_error_message(FlowMemberResultCallbackResultTO(), message)
+                return create_error_message(message)
     return profile

@@ -25,16 +25,17 @@ from google.appengine.ext import ndb, deferred
 from framework.consts import get_base_url
 from framework.plugin_loader import get_config
 from framework.utils import now
+from mcfw.consts import DEBUG
 from mcfw.exceptions import HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.rogerthat_api.api import messaging, system
-from plugins.rogerthat_api.to import UserDetailsTO
+from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
 from plugins.rogerthat_api.to.messaging import AttachmentTO, Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
-from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
-from plugins.rogerthat_api.to.messaging.service_callback_results import FormAcknowledgedCallbackResultTO, \
-    MessageCallbackResultTypeTO, TYPE_MESSAGE
+from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormTO, SignWidgetResultTO
+from plugins.rogerthat_api.to.messaging.service_callback_results import TYPE_FLOW, FlowCallbackResultTypeTO, \
+    FlowMemberResultCallbackResultTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agreements import create_hosting_agreement_pdf
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
@@ -48,7 +49,7 @@ from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.odoo import create_odoo_quotation, update_odoo_quotation, QuotationState, \
     confirm_odoo_quotation, get_node_id_from_odoo
 from plugins.tff_backend.bizz.rogerthat import put_user_data, create_error_message
-from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
+from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
 from plugins.tff_backend.bizz.todo.hoster import HosterSteps
 from plugins.tff_backend.configuration import TffConfiguration
@@ -56,7 +57,8 @@ from plugins.tff_backend.consts.hoster import REQUIRED_TOKEN_COUNT_TO_HOST
 from plugins.tff_backend.dal.node_orders import get_node_order
 from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping, NodeOrderStatus, ContactInfo
 from plugins.tff_backend.models.investor import InvestmentAgreement
-from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE
+from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE, FLOW_HOSTER_SIGNATURE_RECEIVED, \
+    FLOW_SIGN_HOSTING_AGREEMENT
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderDetailsTO
 from plugins.tff_backend.utils import get_step_value, get_step
@@ -138,7 +140,7 @@ def _order_node(order_key, user_email, app_id, steps):
     socket = socket_step and socket_step.answer_id.replace('button_', '')
 
     # Only one node is allowed per user, and one per location
-    if NodeOrder.has_order_for_user_or_location(app_user, billing_info.address):
+    if NodeOrder.has_order_for_user_or_location(app_user, billing_info.address) and not DEBUG:
         logging.info('User already has a node order, sending abort message')
         msg = u'Dear ThreeFold Member, we sadly cannot grant your request to host an additional ThreeFold Node:' \
               u' We are currently only allowing one Node to be hosted per ThreeFold Member and location.' \
@@ -184,12 +186,13 @@ def _create_node_order_pdf(node_order_id):
     logging.debug('Creating Hosting agreement')
     pdf_name = NodeOrder.filename(node_order_id)
     pdf_contents = create_hosting_agreement_pdf(node_order.billing_info.name, node_order.billing_info.address)
+    pdf_size = len(pdf_contents)
     pdf_url = upload_to_gcs(pdf_name, pdf_contents, 'application/pdf')
-    deferred.defer(_order_node_iyo_see, node_order.app_user, node_order_id, pdf_url)
+    deferred.defer(_order_node_iyo_see, node_order.app_user, node_order_id, pdf_url, pdf_size)
     deferred.defer(update_hoster_progress, user_email.email(), app_id, HosterSteps.FLOW_ADDRESS)
 
 
-def _order_node_iyo_see(app_user, node_order_id, pdf_url):
+def _order_node_iyo_see(app_user, node_order_id, pdf_url, pdf_size):
     iyo_username = get_iyo_username(app_user)
     organization_id = get_iyo_organization_id()
 
@@ -211,15 +214,15 @@ def _order_node_iyo_see(app_user, node_order_id, pdf_url):
         order = get_node_order(node_order_id)
         order.tos_iyo_see_id = iyo_see_doc.uniqueid
         order.put()
-        deferred.defer(_create_quotation, app_user, node_order_id, pdf_url, attachment_name,
+        deferred.defer(_create_quotation, app_user, node_order_id, pdf_url, attachment_name, pdf_size,
                        _transactional=True)
 
     ndb.transaction(trans)
 
 
 @returns()
-@arguments(app_user=users.User, order_id=(int, long), pdf_url=unicode, attachment_name=unicode)
-def _create_quotation(app_user, order_id, pdf_url, attachment_name):
+@arguments(app_user=users.User, order_id=(int, long), pdf_url=unicode, attachment_name=unicode, pdf_size=(int, long))
+def _create_quotation(app_user, order_id, pdf_url, attachment_name, pdf_size):
     order = get_node_order(order_id)
     config = get_config(NAMESPACE)
     assert isinstance(config, TffConfiguration)
@@ -234,7 +237,7 @@ def _create_quotation(app_user, order_id, pdf_url, attachment_name):
     order.put()
 
     deferred.defer(_send_order_node_sign_message, app_user, order_id, pdf_url, attachment_name,
-                   odoo_sale_order_name)
+                   odoo_sale_order_name, pdf_size)
 
 
 @returns()
@@ -252,88 +255,57 @@ def _cancel_quotation(order_id):
 
 
 @returns()
-@arguments(app_user=users.User, order_id=(int, long), pdf_url=unicode, attachment_name=unicode, order_name=unicode)
-def _send_order_node_sign_message(app_user, order_id, pdf_url, attachment_name, order_name):
+@arguments(app_user=users.User, order_id=(int, long), pdf_url=unicode, attachment_name=unicode, order_name=unicode,
+           pdf_size=(int, long))
+def _send_order_node_sign_message(app_user, order_id, pdf_url, attachment_name, order_name, pdf_size):
     logging.debug('Sending SIGN widget to app user')
-    widget = SignTO()
-    widget.algorithm = KEY_ALGORITHM
-    widget.caption = u'Please enter your PIN code to digitally sign the terms and conditions'
-    widget.key_name = KEY_NAME
-    widget.payload = base64.b64encode(pdf_url).decode('utf-8')
-
-    form = SignFormTO()
-    form.negative_button = u'Abort'
-    form.negative_button_ui_flags = 0
-    form.positive_button = u'Accept'
-    form.positive_button_ui_flags = Message.UI_FLAG_EXPECT_NEXT_WAIT_5
-    form.type = SignTO.TYPE
-    form.widget = widget
-
-    attachment = AttachmentTO()
-    attachment.content_type = u'application/pdf'
-    attachment.download_url = pdf_url
-    attachment.name = attachment_name
-    message = u"""Order %(order_name)s Received
-
-You have now been approved for hosting duties!
-We will keep you updated of the Node shipping process through the app.
-
-Please review the terms and conditions and press the "Sign" button to accept.
-""" % {"order_name": order_name}
+    widget = SignTO(algorithm=KEY_ALGORITHM,
+                    key_name=KEY_NAME,
+                    payload=base64.b64encode(pdf_url).decode('utf-8'))
+    form = SignFormTO(positive_button_ui_flags=Message.UI_FLAG_EXPECT_NEXT_WAIT_5,
+                      widget=widget)
+    attachment = AttachmentTO(content_type=u'application/pdf',
+                              download_url=pdf_url,
+                              name=attachment_name,
+                              size=pdf_size)
 
     member_user, app_id = get_app_user_tuple(app_user)
-    messaging.send_form(api_key=get_rogerthat_api_key(),
-                        parent_message_key=None,
-                        member=member_user.email(),
-                        message=message,
-                        form=form,
-                        flags=0,
-                        alert_flags=Message.ALERT_FLAG_VIBRATE,
-                        branding=get_main_branding_hash(),
-                        tag=json.dumps({u'__rt__.tag': u'sign_order_node_tos',
-                                        u'order_id': order_id}).decode('utf-8'),
-                        attachments=[attachment],
-                        app_id=app_id,
-                        step_id=u'sign_order_node_tos')
+
+    members = [MemberTO(member=member_user.email(), app_id=app_id, alert_flags=0)]
+    tag = json.dumps({
+        u'__rt__.tag': u'sign_order_node_tos',
+        u'order_id': order_id
+    }).decode('utf-8')
+    flow_params = json.dumps({
+        'order_name': order_name,
+        'form': form.to_dict(),
+        'attachments': [attachment.to_dict()]
+    })
+    messaging.start_local_flow(get_rogerthat_api_key(), None, members, None, tag=tag, context=None,
+                               flow=FLOW_SIGN_HOSTING_AGREEMENT, flow_params=flow_params)
 
 
-@returns(FormAcknowledgedCallbackResultTO)
-@arguments(status=int, form_result=FormResultTO, answer_id=unicode, member=unicode, message_key=unicode, tag=unicode,
-           received_timestamp=int, acked_timestamp=int, parent_message_key=unicode, result_key=unicode,
-           service_identity=unicode, user_details=[UserDetailsTO])
-def order_node_signed(status, form_result, answer_id, member, message_key, tag, received_timestamp, acked_timestamp,
-                      parent_message_key, result_key, service_identity, user_details):
-    """
-    Args:
-        status (int)
-        form_result (FormResultTO)
-        answer_id (unicode)
-        member (unicode)
-        message_key (unicode)
-        tag (unicode)
-        received_timestamp (int)
-        acked_timestamp (int)
-        parent_message_key (unicode)
-        result_key (unicode)
-        service_identity (unicode)
-        user_details(list[UserDetailsTO])
-
-    Returns:
-        FormAcknowledgedCallbackResultTO
-    """
+@returns(FlowMemberResultCallbackResultTO)
+@arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
+           end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flow_params=unicode)
+def order_node_signed(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
+                      result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     try:
         user_detail = user_details[0]
         tag_dict = json.loads(tag)
         order = get_node_order(tag_dict['order_id'])
 
-        if answer_id != FormTO.POSITIVE:
+        last_step = steps[-1]
+        if last_step.answer_id != FormTO.POSITIVE:
             logging.info('Zero-Node order was canceled')
             deferred.defer(_cancel_quotation, order.id)
             return None
 
         logging.info('Received signature for Zero-Node order')
 
-        sign_result = form_result.result.get_value()
+        sign_result = last_step.form_result.result.get_value()
         assert isinstance(sign_result, SignWidgetResultTO)
         payload_signature = sign_result.payload_signature
 
@@ -349,7 +321,7 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
         doc_view.signature = payload_signature
         keystore_label = get_publickey_label(sign_result.public_key.public_key, user_detail)
         if not keystore_label:
-            return create_error_message(FormAcknowledgedCallbackResultTO())
+            return create_error_message()
         doc_view.keystore_label = keystore_label
         logging.debug('Signing IYO SEE document')
         sign_see_document(iyo_organization_id, iyo_username, doc_view)
@@ -368,25 +340,15 @@ def order_node_signed(status, form_result, answer_id, member, message_key, tag, 
             deferred.defer(tag_intercom_users, intercom_tag, [iyo_username])
 
         logging.debug('Sending confirmation message')
-        message = MessageCallbackResultTypeTO()
-        message.alert_flags = Message.ALERT_FLAG_VIBRATE
-        message.answers = []
-        message.branding = get_main_branding_hash()
-        message.dismiss_button_ui_flags = 0
-        message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
-        message.message = u'Thank you. We successfully received your digital signature.' \
-                          u' We have stored a copy of this agreement in your ThreeFold Documents.\n\n' \
-                          u'Your order with ID "%s" has been placed successfully.\n' % order.human_readable_id
-        message.step_id = u'order_completed'
-        message.tag = None
-
-        result = FormAcknowledgedCallbackResultTO()
-        result.type = TYPE_MESSAGE
-        result.value = message
-        return result
+        result = FlowCallbackResultTypeTO(flow=FLOW_HOSTER_SIGNATURE_RECEIVED,
+                                          tag=None,
+                                          force_language=None,
+                                          flow_params=json.dumps({'orderId': order.human_readable_id}))
+        return FlowMemberResultCallbackResultTO(type=TYPE_FLOW,
+                                                value=result)
     except:
         logging.exception('An unexpected error occurred')
-        return create_error_message(FormAcknowledgedCallbackResultTO())
+        return create_error_message()
 
 
 def get_publickey_label(public_key, user_details):

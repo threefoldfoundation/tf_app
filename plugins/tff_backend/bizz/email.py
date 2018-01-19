@@ -28,6 +28,7 @@ def send_emails_to_support(subject, body):
     sender = 'no-reply@%s.appspotmail.com' % app_identity.get_application_id()
     logging.debug('Sending email to support: %s\n %s', subject, body)
     for email in cfg.support_emails:
+        logging.debug('Sending email to %s', email)
         mail.send_mail(sender=sender,
                        to=email,
                        subject=subject,

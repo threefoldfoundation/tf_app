@@ -1,8 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { debounceTime } from 'rxjs/operators/debounceTime';
-import { distinctUntilChanged } from 'rxjs/operators/distinctUntilChanged';
-import { Subject } from 'rxjs/Subject';
-import { Subscription } from 'rxjs/Subscription';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { NodeOrdersQuery, ORDER_STATUSES } from '../../interfaces';
 
 @Component({
@@ -10,39 +6,26 @@ import { NodeOrdersQuery, ORDER_STATUSES } from '../../interfaces';
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'search-node-orders.component.html',
 })
-export class SearchNodeOrdersComponent implements OnInit, OnDestroy {
+export class SearchNodeOrdersComponent {
   statuses = ORDER_STATUSES;
+  searchString: string | null;
   @Output() search = new EventEmitter();
 
   get query() {
-    return this._query;
+    return { ...this._query, query: this.searchString };
   }
 
   @Input() set query(value: NodeOrdersQuery) {
-    this._query = { ...value };
+    this._query = { ...value, query: this.searchString || value.query };
+    if (!this.searchString) {
+      this.searchString = value.query;
+    }
   }
 
-  private _debouncedQuery = new Subject<NodeOrdersQuery>();
-  private _querySub: Subscription;
   private _query: NodeOrdersQuery;
 
-  ngOnInit() {
-    this._querySub = this._debouncedQuery.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-    ).subscribe(query => this.search.emit(query));
-  }
-
-  ngOnDestroy() {
-    this._querySub.unsubscribe();
-  }
-
-  submit(debounced: boolean = true) {
+  submit() {
     this.query = { ...this.query, cursor: null };
-    if (debounced) {
-      this._debouncedQuery.next(this.query);
-    } else {
-      this.search.emit(this.query);
-    }
+    this.search.emit(this.query);
   }
 }
