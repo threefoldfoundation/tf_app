@@ -28,7 +28,6 @@ from mcfw.cache import cached
 from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import refresh_jwt
-from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.odoo import get_node_id_from_odoo
@@ -38,7 +37,6 @@ from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.utils.app import get_app_user_tuple
-from plugins.tff_backend.bizz import get_rogerthat_api_key
 
 
 @returns(apiproxy_stub_map.UserRPC)
