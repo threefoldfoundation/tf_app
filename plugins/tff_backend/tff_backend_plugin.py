@@ -87,7 +87,7 @@ class TffBackendPlugin(BrandingPlugin):
     def get_client_routes(self):
         return ['/orders<route:.*>', '/node-orders<route:.*>', '/investment-agreements<route:.*>',
                 '/global-stats<route:.*>', '/users<route:.*>', '/agenda<route:.*>', '/flow-statistics<route:.*>',
-                '/installations<route:.*>']
+                '/installations<route:.*>', '/dashboard<route:.*>']
 
     def get_modules(self):
         perms = get_permissions_from_scopes(get_current_session().scopes)
@@ -99,6 +99,7 @@ class TffBackendPlugin(BrandingPlugin):
             yield Module(u'tff_agenda', [], 5)
             yield Module(u'tff_flow_statistics', [], 6)
             yield Module(u'tff_installations', [], 7)
+            yield Module(u'tff_dashboard', [], 8)
         if is_admin:
             yield Module(u'tff_investment_agreements', [], 2)
 

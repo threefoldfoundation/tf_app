@@ -1,0 +1,24 @@
+<div fxLayout="row" fxLayout.lt-md="column">
+  <div fxFlex="60" fxFlex.lt-md="100">
+    <mat-card *ngFor="let stats of flowStats; trackBy: trackFlowStats" class="flow-card">
+      <mat-card-header>
+        <mat-card-title>{{ getFlowName(stats.flow_name) }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Started: {{ stats.stats[FlowRunStatus.STARTED] }}</p>
+        <p>In progress: {{ stats.stats[FlowRunStatus.IN_PROGRESS] }}</p>
+        <p>Stalled: {{ stats.stats[FlowRunStatus.STALLED] }}</p>
+        <p>Canceled: {{ stats.stats[FlowRunStatus.CANCELED] }}</p>
+        <p>Finished: {{ stats.stats[FlowRunStatus.FINISHED] }}</p>
+      </mat-card-content>
+    </mat-card>
+    <p>{{ 'tff.stats_for_last_x' | translate : { time: timeDuration | timeDuration } }}</p>
+  </div>
+  <div fxFlex="40" fxFlex.lt-md="100">
+    <div *ngFor="let flowRun of flowRuns; trackBy: trackFlowRuns" fxLayout="row" class="ticker-line">
+      <tff-flow-run-status [status]="flowRun.status"></tff-flow-run-status>
+      <p class="date">{{ flowRun.last_step_date | time }}</p>
+      <p class="message">{{ getFlowStepText(flowRun) }}</p>
+    </div>
+  </div>
+</div>

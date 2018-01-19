@@ -203,6 +203,13 @@ export class TffEffects {
         catchError(err => handleApiError(actions.GetFlowRunFailedAction, err)),
       )));
 
+  @Effect() getFlowStats$ = this.actions$
+    .ofType<actions.GetFlowStatsAction>(actions.TffActionTypes.GET_FLOW_STATS).pipe(
+      switchMap(action => this.tffService.getFlowStats(action.payload).pipe(
+        map(result => new actions.GetFlowStatsCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetFlowStatsFailedAction, err)),
+      )));
+
   @Effect() getInstallations$ = this.actions$
     .ofType<actions.GetInstallationsAction>(actions.TffActionTypes.GET_INSTALLATIONS).pipe(
       switchMap(action => this.tffService.getInstallations(action.payload).pipe(

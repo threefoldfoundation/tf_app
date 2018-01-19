@@ -21,12 +21,12 @@ export interface TimePipeTranslationMapping {
 
 export const translationMapping: TimePipeTranslationMapping = {
   s: {
-    '=0': 'tff.a_few_seconds_ago',
-    '=1': 'tff.a_few_seconds_ago',
-    '=2': 'tff.a_few_seconds_ago',
-    '=3': 'tff.a_few_seconds_ago',
-    '=4': 'tff.a_few_seconds_ago',
-    '=5': 'tff.a_few_seconds_ago',
+    '=0': 'tff.just_now',
+    '=1': 'tff.just_now',
+    '=2': 'tff.just_now',
+    '=3': 'tff.just_now',
+    '=4': 'tff.just_now',
+    '=5': 'tff.just_now',
     'other': 'tff.x_seconds_ago',
   },
   m: {

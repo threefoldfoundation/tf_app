@@ -55,6 +55,8 @@ export const getFlowRuns = createSelector(getTffState, s => s.flowRuns);
 export const getFlowRunsStatus = createSelector(getTffState, s => s.flowRunsStatus);
 export const getFlowRun = createSelector(getTffState, s => s.flowRun);
 export const getFlowRunStatus = createSelector(getTffState, s => s.flowRunStatus);
+export const getFlowStats = createSelector(getTffState, s => s.flowStats);
+export const getFlowStatsStatus = createSelector(getTffState, s => s.flowStatsStatus);
 
 export const getInstallations = createSelector(getTffState, s => s.installations);
 export const getInstallationsStatus = createSelector(getTffState, s => s.installationsStatus);

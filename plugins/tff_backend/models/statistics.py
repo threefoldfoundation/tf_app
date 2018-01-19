@@ -49,7 +49,7 @@ class FlowRun(NdbModel):
     flow_name = ndb.StringProperty()
     start_date = ndb.DateTimeProperty()
     status = ndb.IntegerProperty(choices=FLOW_RUN_STATUSES)
-    statistics = ndb.StructuredProperty(FlowRunStatistics)
+    statistics = ndb.StructuredProperty(FlowRunStatistics)  # type: FlowRunStatistics
     steps = ndb.JsonProperty(repeated=True, compressed=True)
     tag = ndb.StringProperty()
     user = ndb.StringProperty()
@@ -74,10 +74,9 @@ class FlowRun(NdbModel):
             .order(-cls.start_date)
 
     @classmethod
-    def list_by_start_date(cls, flow_name, start_date):
+    def list_by_start_date(cls, start_date):
         return cls.query() \
-            .filter(cls.flow_name == flow_name) \
-            .filter(cls.start_date < start_date) \
+            .filter(cls.start_date > start_date) \
             .order(-cls.start_date)
 
     @classmethod

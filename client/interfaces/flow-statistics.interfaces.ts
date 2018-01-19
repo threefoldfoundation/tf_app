@@ -20,10 +20,31 @@ export interface FlowRun<DateType = Date> {
   user: string;
 }
 
+export interface FirebaseFlowStep {
+  step_id: string;
+  answer_id: string;
+  button: string;
+}
+
+export interface FirebaseFlowRun<DateType = Date> {
+  id: string;
+  last_step_date: DateType;
+  last_step: FirebaseFlowStep;
+  flow_name: string;
+  status: FlowRunStatus;
+}
+
 export type FlowRunList<DateType = Date> = PaginatedResult<FlowRun<DateType>>;
 
 export interface StepStatistics {
   time_taken: number;
+}
+
+export interface FlowStats {
+  flow_name: string;
+  stats: {
+    [ key: string]: number,
+  };
 }
 
 export interface FlowRunStatistics<DateType = Date> {
@@ -34,10 +55,10 @@ export interface FlowRunStatistics<DateType = Date> {
 }
 
 export interface FlowRunQuery {
-  cursor: string | null;
-  flow_name: string;
-  max_date?: string;
-  per_page?: number;
+  cursor?: string | null;
+  flow_name?: string;
+  min_date?: string;
+  page_size?: number;
 }
 
 export const FLOW_RUN_STATUSES = [
