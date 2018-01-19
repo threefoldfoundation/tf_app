@@ -23,7 +23,7 @@ from plugins.rogerthat_api.api import friends
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agenda import update_expired_events
 from plugins.tff_backend.bizz.global_stats import update_currencies
-from plugins.tff_backend.bizz.nodes import check_online_nodes
+from plugins.tff_backend.bizz.nodes import check_online_nodes, check_node_statuses
 from plugins.tff_backend.bizz.payment import sync_transactions, sync_wallets
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.plugin_consts import NAMESPACE
@@ -100,6 +100,12 @@ class CheckNodesOnlineHandler(webapp2.RequestHandler):
 
     def get(self):
         deferred.defer(check_online_nodes)
+
+
+class CheckNodesStatusesHandler(webapp2.RequestHandler):
+
+    def get(self):
+        deferred.defer(check_node_statuses)
 
 
 class ExpiredEventsHandler(webapp2.RequestHandler):
