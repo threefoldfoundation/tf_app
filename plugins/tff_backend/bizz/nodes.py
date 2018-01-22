@@ -28,6 +28,7 @@ from mcfw.cache import cached
 from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import refresh_jwt
+from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.odoo import get_node_id_from_odoo
@@ -37,6 +38,7 @@ from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.utils.app import get_app_user_tuple
+from plugins.tff_backend.bizz import get_rogerthat_api_key
 
 
 @returns(apiproxy_stub_map.UserRPC)
@@ -128,22 +130,22 @@ def get_node_stats(node_id, profile=None):
         return _get_stats(DEBUG_NODE_DATA)
     if node_id:
         # Start 3 api calls at the same time and wait for all of them to finish afterwards
-        rpcs = [
-            _orc_call('/nodes/%s/info' % node_id),
-            _orc_call('/nodes/%s/stats' % node_id),
-        ]
+        rpcs = {
+            'info': _orc_call('/nodes/%s/info' % node_id),
+            'stats': _orc_call('/nodes/%s/stats' % node_id),
+        }
 
         if not profile:
             profile = TffProfile.query().filter(TffProfile.node_id == node_id).get()
-        data['status'] = profile and profile.node_status
 
-        results = [rpc.get_result() for rpc in rpcs]
-        for i, key in enumerate(data):
-            if results[i].status_code == 200:
-                data[key] = json.loads(results[i].content)
+        for key, rpc in rpcs.iteritems():
+            result = rpc.get_result()
+            if result.status_code == 200:
+                data[key] = json.loads(result.content)
             else:
-                logging.warn('Response from orchestrator: %s %s' % (results[i].status_code, results[i].content))
+                logging.warn('Response from orchestrator: %s %s' % (result.status_code, result.content))
 
+    data['status'] = {'status': profile and profile.node_status or 'halted'}
     return _get_stats(data)
 
 
@@ -231,3 +233,6 @@ def _check_node_status(tff_profile_key, statuses):
                      tff_profile.username, tff_profile.node_id, tff_profile.node_status, status)
         tff_profile.node_status = status
         tff_profile.put()
+
+        user, app_id = get_app_user_tuple(tff_profile.app_user)
+        system.put_user_data(get_rogerthat_api_key(), user.email(), app_id, {'node_status': status})
