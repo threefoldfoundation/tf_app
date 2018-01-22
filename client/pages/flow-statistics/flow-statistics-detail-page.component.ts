@@ -6,7 +6,9 @@ import { combineLatest } from 'rxjs/operators/combineLatest';
 import { filter } from 'rxjs/operators/filter';
 import { map } from 'rxjs/operators/map';
 import { take } from 'rxjs/operators/take';
+import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
 import { Subscription } from 'rxjs/Subscription';
+import { filterNull } from '../../../../framework/client/ngrx';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { Profile } from '../../../../its_you_online_auth/client/interfaces';
 import { GetFlowRunAction, GetUserAction } from '../../actions';
@@ -41,14 +43,18 @@ export class FlowStatisticsDetailPageComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.flowId = this.route.snapshot.params.flowId;
-    this.flowRun$ = <Observable<FlowRun>>this.store.select(getFlowRun).pipe(filter(f => f !== null));
+    this.flowRun$ = this.store.select(getFlowRun).pipe(filterNull());
     this.status$ = this.store.select(getFlowRunStatus).pipe(
       combineLatest(this.store.select(getUserStatus)),
       map(([ s1, s2 ]) => ({ success: s1.success && s2.success, loading: s1.loading || s2.loading, error: s1.error || s2.error })),
     );
-    this.user$ = <Observable<Profile>>this.store.select(getUser).pipe(filter(p => p !== null));
+    this.user$ = this.store.select(getUser).pipe(filterNull());
     this.getFlowRun();
-    this._flowRunSubscription = this.flowRun$.pipe(take(1)).subscribe(f => this.store.dispatch(new GetUserAction(f.user)));
+    this._flowRunSubscription = this.store.select(getFlowRunStatus).pipe(
+      filter(s => s.success),
+      withLatestFrom(this.flowRun$),
+      take(1),
+    ).subscribe(([ _, f ]) => this.store.dispatch(new GetUserAction(f.user)));
   }
 
   ngOnDestroy() {
