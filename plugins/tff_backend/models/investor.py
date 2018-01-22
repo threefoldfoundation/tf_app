@@ -87,5 +87,5 @@ class InvestmentAgreement(NdbModel):
         statuses = [statuses] if isinstance(statuses, int) else statuses
         return [investment for investment in cls.list_by_user(app_user) if investment.status in statuses]
 
-    def to_dict(self, extra_properties=None):
-        return super(InvestmentAgreement, self).to_dict(['document_url'])
+    def to_dict(self, extra_properties=None, include=None, exclude=None):
+        return super(InvestmentAgreement, self).to_dict(extra_properties or ['document_url'], include, exclude)

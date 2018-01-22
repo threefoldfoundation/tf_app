@@ -443,6 +443,125 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         kycChecksStatus: action.payload,
       };
+    case actions.TffActionTypes.GET_FLOW_RUN_FLOWS:
+      return {
+        ...state,
+        distinctFlowsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN_FLOWS_COMPLETE:
+      return {
+        ...state,
+        distinctFlows: action.payload,
+        distinctFlowsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN_FLOWS_FAILED:
+      return {
+        ...state,
+        distinctFlowsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUNS:
+      return {
+        ...state,
+        flowRuns: action.payload.cursor ? state.flowRuns : initialTffState.flowRuns,
+        flowRunsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUNS_COMPLETE:
+      return {
+        ...state,
+        flowRuns: {
+          ...action.payload,
+          results: [ ...state.flowRuns.results, ...action.payload.results ],
+        },
+        flowRunsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUNS_FAILED:
+      return {
+        ...state,
+        flowRunsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN:
+      return {
+        ...state,
+        flowRunStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN_COMPLETE:
+      return {
+        ...state,
+        flowRun: action.payload,
+        flowRunStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN_FAILED:
+      return {
+        ...state,
+        flowRunStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_FLOW_STATS:
+      return {
+        ...state,
+        flowStatsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_FLOW_STATS_COMPLETE:
+      return {
+        ...state,
+        flowStats: action.payload,
+        flowStatsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_FLOW_STATS_FAILED:
+      return {
+        ...state,
+        flowStatsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_INSTALLATIONS:
+      return {
+        ...state,
+        installations: action.payload.cursor ? state.installations : initialTffState.installations,
+        installationsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_INSTALLATIONS_COMPLETE:
+      return {
+        ...state,
+        installations: { ...action.payload, results: [ ...state.installations.results, ...action.payload.results ] },
+        installationsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_INSTALLATIONS_FAILED:
+      return {
+        ...state,
+        installationsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION:
+      return {
+        ...state,
+        installation: initialTffState.installation,
+        installationStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_COMPLETE:
+      return {
+        ...state,
+        installation: action.payload,
+        installationStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_FAILED:
+      return {
+        ...state,
+        installationStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_LOGS:
+      return {
+        ...state,
+        installationLogs: initialTffState.installationLogs,
+        installationLogsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_LOGS_COMPLETE:
+      return {
+        ...state,
+        installationLogs: action.payload,
+        installationLogsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_LOGS_FAILED:
+      return {
+        ...state,
+        installationLogsStatus: action.payload,
+      };
     default:
       return state;
   }

@@ -5,6 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { filter } from 'rxjs/operators/filter';
 import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
 import { Subscription } from 'rxjs/Subscription';
+import { filterNull } from '../../../../framework/client/ngrx';
 import { ApiRequestStatus, apiRequestSuccess } from '../../../../framework/client/rpc/rpc.interfaces';
 import { CreateAgendaEventAction, ResetAgendaEventAction } from '../../actions/threefold.action';
 import { AgendaEvent, AgendaEventType } from '../../interfaces/agenda-events.interfaces';
@@ -46,7 +47,7 @@ export class CreateAgendaEventPageComponent implements OnInit, OnDestroy {
     this.createStatus$ = this.store.select(createAgendaEventStatus);
     this._createStatusSubscription = this.createStatus$.pipe(
       filter(status => status.success),
-      withLatestFrom(this.store.select(getAgendaEvent)),
+      withLatestFrom(this.store.select(getAgendaEvent).pipe(filterNull<AgendaEvent>())),
     ).subscribe(([ status, event ]: [ ApiRequestStatus, AgendaEvent ]) => {
         return this.router.navigate([ '..', event.id ], { relativeTo: this.route });
       });

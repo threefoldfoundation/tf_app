@@ -3,8 +3,8 @@
     <mat-nav-list *ngIf="status.success">
       <a *ngFor="let userPresence of presence[tab.value]; trackBy: trackByUsername"
          [routerLink]="'/users/' + userPresence.username" mat-list-item target="_blank">
-        <h4 matLine>{{ getUserName(userPresence.user) }}</h4>
-        <p matLine *ngIf="getUserName(userPresence.user) != userPresence.username">
+        <h4 matLine>{{ userPresence.user | profileName }}</h4>
+        <p matLine *ngIf="(userPresence.user | profileName) != userPresence.username">
           {{ userPresence.username }}
         </p>
         <p matLine *ngIf="userPresence.user.info?.validatedemailaddresses.length">

@@ -25,11 +25,13 @@ from mcfw.restapi import rest_functions
 from mcfw.rpc import parse_complex_value
 from plugins.rogerthat_api.rogerthat_api_plugin import RogerthatApiPlugin
 from plugins.tff_backend import rogerthat_callbacks
-from plugins.tff_backend.api import investor, payment, nodes, global_stats, users, audit, agenda
+from plugins.tff_backend.api import investor, payment, nodes, global_stats, users, audit, agenda, flow_statistics, \
+    installations
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings, Roles
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler, \
-    BackupHandler, CheckNodesOnlineHandler, ExpiredEventsHandler, CheckNodesStatusesHandler
+    BackupHandler, CheckNodesOnlineHandler, CheckNodesStatusesHandler, ExpiredEventsHandler
+from plugins.tff_backend.handlers.flow_statistics import CheckStuckFlowsHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
 from plugins.tff_backend.handlers.unauthenticated import RefreshCallbackHandler, RefreshHandler, AppleReviewQrHandler, \
@@ -66,7 +68,7 @@ class TffBackendPlugin(BrandingPlugin):
         yield Handler(url='/refresh/callback', handler=RefreshCallbackHandler)
         yield Handler(url='/qr', handler=JWTQrHandler)
         yield Handler(url='/qr/apple', handler=AppleReviewQrHandler)
-        authenticated_handlers = [nodes, investor, global_stats, users, audit, agenda]
+        authenticated_handlers = [nodes, investor, global_stats, users, audit, agenda, flow_statistics, installations]
         for _module in authenticated_handlers:
             for url, handler in rest_functions(_module, authentication=AUTHENTICATED):
                 yield Handler(url=url, handler=handler)
@@ -80,10 +82,12 @@ class TffBackendPlugin(BrandingPlugin):
             yield Handler(url='/admin/cron/tff_backend/check_nodes_online', handler=CheckNodesOnlineHandler)
             yield Handler(url='/admin/cron/tff_backend/check_nodes_statuses', handler=CheckNodesStatusesHandler)
             yield Handler(url='/admin/cron/tff_backend/events/expired', handler=ExpiredEventsHandler)
+            yield Handler(url='/admin/cron/tff_backend/check_stuck_flows', handler=CheckStuckFlowsHandler)
 
     def get_client_routes(self):
-        return ['/node-orders<route:.*>', '/investment-agreements<route:.*>', '/global-stats<route:.*>',
-                '/users<route:.*>', '/agenda<route:.*>']
+        return ['/orders<route:.*>', '/node-orders<route:.*>', '/investment-agreements<route:.*>',
+                '/global-stats<route:.*>', '/users<route:.*>', '/agenda<route:.*>', '/flow-statistics<route:.*>',
+                '/installations<route:.*>', '/dashboard<route:.*>']
 
     def get_modules(self):
         perms = get_permissions_from_scopes(get_current_session().scopes)
@@ -93,6 +97,9 @@ class TffBackendPlugin(BrandingPlugin):
             yield Module(u'tff_global_stats', [], 3)
             yield Module(u'tff_users', [], 4)
             yield Module(u'tff_agenda', [], 5)
+            yield Module(u'tff_flow_statistics', [], 6)
+            yield Module(u'tff_installations', [], 7)
+            yield Module(u'tff_dashboard', [], 8)
         if is_admin:
             yield Module(u'tff_investment_agreements', [], 2)
 
@@ -105,4 +112,5 @@ class TffBackendPlugin(BrandingPlugin):
             logging.error('No TffProfile found for profile %s', profile)
             return []
         kyc_status = (tff_profile.kyc and tff_profile.kyc.status) or KYCStatus.UNVERIFIED.value
-        return [search.NumberField('kyc_status', kyc_status)]
+        return [search.NumberField('kyc_status', kyc_status),
+                search.AtomField('app_email', tff_profile.app_user.email().lower())]

@@ -1,7 +1,11 @@
 import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
 import { Profile } from '../../../its_you_online_auth/client/interfaces/index';
+import { Installation } from '../../../rogerthat_api/client/interfaces';
+import { InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces/app';
 import { AgendaEvent, EventParticipant } from '../interfaces/agenda-events.interfaces';
 import {
+  FlowRun,
+  FlowRunList, FlowStats,
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
@@ -58,6 +62,20 @@ export interface ITffState {
   eventParticipantsStatus: ApiRequestStatus;
   kycChecks: Check[];
   kycChecksStatus: ApiRequestStatus;
+  distinctFlows: string[];
+  distinctFlowsStatus: ApiRequestStatus;
+  flowRuns: FlowRunList;
+  flowRunsStatus: ApiRequestStatus;
+  flowRun: FlowRun | null;
+  flowRunStatus: ApiRequestStatus;
+  flowStats: FlowStats[],
+  flowStatsStatus: ApiRequestStatus,
+  installations: InstallationsList;
+  installationsStatus: ApiRequestStatus;
+  installation: Installation | null;
+  installationStatus: ApiRequestStatus;
+  installationLogs: InstallationLog[];
+  installationLogsStatus: ApiRequestStatus;
 }
 
 export const emptyPaginatedResult: PaginatedResult<any> = {
@@ -118,4 +136,18 @@ export const initialTffState: ITffState = {
   eventParticipantsStatus: apiRequestInitial,
   kycChecks: [],
   kycChecksStatus: apiRequestInitial,
+  distinctFlows: [],
+  distinctFlowsStatus: apiRequestInitial,
+  flowRuns: emptyPaginatedResult,
+  flowRunsStatus: apiRequestInitial,
+  flowRun: null,
+  flowRunStatus: apiRequestInitial,
+  flowStats: [],
+  flowStatsStatus: apiRequestInitial,
+  installations: emptyPaginatedResult,
+  installationsStatus: apiRequestInitial,
+  installation: null,
+  installationStatus: apiRequestInitial,
+  installationLogs: [],
+  installationLogsStatus: apiRequestInitial,
 };

@@ -1,11 +1,20 @@
 import { Action } from '@ngrx/store';
 import { type } from '../../../framework/client/core/utils/type';
-import { ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
-import { Profile } from '../../../its_you_online_auth/client/index';
-import { AgendaEvent, EventParticipant, GetEventParticipantsPayload } from '../interfaces/agenda-events.interfaces';
+import { ApiRequestStatus } from '../../../framework/client/rpc';
+import { Profile } from '../../../its_you_online_auth/client';
+import { Installation, InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces';
 import {
+  AgendaEvent,
+  Check,
   CreateInvestmentAgreementPayload,
   CreateTransactionPayload,
+  EventParticipant,
+  FlowRun,
+  FlowRunList,
+  FlowRunQuery,
+  FlowStats,
+  GetEventParticipantsPayload,
+  GetInstallationsQuery,
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
@@ -13,13 +22,15 @@ import {
   NodeOrder,
   NodeOrderList,
   NodeOrdersQuery,
+  PaginatedResult,
+  SearchUsersQuery,
+  SetKYCStatusPayload,
+  TffProfile,
   Transaction,
   TransactionList,
+  UserList,
   WalletBalance,
-} from '../interfaces/index';
-import { Check } from '../interfaces/onfido.interfaces';
-import { SearchUsersQuery, SetKYCStatusPayload, TffProfile, UserList } from '../interfaces/profile.interfaces';
-import { PaginatedResult } from '../interfaces/shared.interfaces';
+} from '../interfaces';
 
 // duplicated code needed else the type of the action type is only 'string'
 
@@ -97,6 +108,27 @@ export interface ITffActionTypes {
   GET_KYC_CHECKS: '[TFF] Get KYC checks';
   GET_KYC_CHECKS_COMPLETE: '[TFF] Get KYC checks complete';
   GET_KYC_CHECKS_FAILED: '[TFF] Get KYC checks failed';
+  GET_FLOW_RUN_FLOWS: '[TFF] Get flow run flows';
+  GET_FLOW_RUN_FLOWS_COMPLETE: '[TFF] Get flow run flows complete';
+  GET_FLOW_RUN_FLOWS_FAILED: '[TFF] Get flow run flows failed';
+  GET_FLOW_RUNS: '[TFF] Get flow runs';
+  GET_FLOW_RUNS_COMPLETE: '[TFF] Get flow runs complete';
+  GET_FLOW_RUNS_FAILED: '[TFF] Get flow runs failed';
+  GET_FLOW_RUN: '[TFF] Get flow run';
+  GET_FLOW_RUN_COMPLETE: '[TFF] Get flow run complete';
+  GET_FLOW_RUN_FAILED: '[TFF] Get flow run failed';
+  GET_FLOW_STATS: '[TFF] Get flow stats';
+  GET_FLOW_STATS_COMPLETE: '[TFF] Get flow stats complete';
+  GET_FLOW_STATS_FAILED: '[TFF] Get flow stats failed';
+  GET_INSTALLATIONS: '[TFF] Get installations';
+  GET_INSTALLATIONS_COMPLETE: '[TFF] Get installations complete';
+  GET_INSTALLATIONS_FAILED: '[TFF] Get installations failed';
+  GET_INSTALLATION: '[TFF] Get installation';
+  GET_INSTALLATION_COMPLETE: '[TFF] Get installation complete';
+  GET_INSTALLATION_FAILED: '[TFF] Get installation failed';
+  GET_INSTALLATION_LOGS: '[TFF] Get installation logs';
+  GET_INSTALLATION_LOGS_COMPLETE: '[TFF] Get installation logs complete';
+  GET_INSTALLATION_LOGS_FAILED: '[TFF] Get installation logs failed';
 }
 
 export const TffActionTypes: ITffActionTypes = {
@@ -173,6 +205,27 @@ export const TffActionTypes: ITffActionTypes = {
   GET_KYC_CHECKS: type('[TFF] Get KYC checks'),
   GET_KYC_CHECKS_COMPLETE: type('[TFF] Get KYC checks complete'),
   GET_KYC_CHECKS_FAILED: type('[TFF] Get KYC checks failed'),
+  GET_FLOW_RUN_FLOWS: type('[TFF] Get flow run flows'),
+  GET_FLOW_RUN_FLOWS_COMPLETE: type('[TFF] Get flow run flows complete'),
+  GET_FLOW_RUN_FLOWS_FAILED: type('[TFF] Get flow run flows failed'),
+  GET_FLOW_RUNS: type('[TFF] Get flow runs'),
+  GET_FLOW_RUNS_COMPLETE: type('[TFF] Get flow runs complete'),
+  GET_FLOW_RUNS_FAILED: type('[TFF] Get flow runs failed'),
+  GET_FLOW_RUN: type('[TFF] Get flow run'),
+  GET_FLOW_RUN_COMPLETE: type('[TFF] Get flow run complete'),
+  GET_FLOW_RUN_FAILED: type('[TFF] Get flow run failed'),
+  GET_FLOW_STATS: type('[TFF] Get flow stats'),
+  GET_FLOW_STATS_COMPLETE: type('[TFF] Get flow stats complete'),
+  GET_FLOW_STATS_FAILED: type('[TFF] Get flow stats failed'),
+  GET_INSTALLATIONS: type('[TFF] Get installations'),
+  GET_INSTALLATIONS_COMPLETE: type('[TFF] Get installations complete'),
+  GET_INSTALLATIONS_FAILED: type('[TFF] Get installations failed'),
+  GET_INSTALLATION: type('[TFF] Get installation'),
+  GET_INSTALLATION_COMPLETE: type('[TFF] Get installation complete'),
+  GET_INSTALLATION_FAILED: type('[TFF] Get installation failed'),
+  GET_INSTALLATION_LOGS: type('[TFF] Get installation logs'),
+  GET_INSTALLATION_LOGS_COMPLETE: type('[TFF] Get installation logs complete'),
+  GET_INSTALLATION_LOGS_FAILED: type('[TFF] Get installation logs failed'),
 };
 
 export class GetOrdersAction implements Action {
@@ -678,6 +731,153 @@ export class GetKYCChecksFailedAction implements Action {
   }
 }
 
+export class GetFlowRunFlowsAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUN_FLOWS;
+}
+
+export class GetFlowRunFlowsCompleteAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUN_FLOWS_COMPLETE;
+
+  constructor(public payload: string[]) {
+  }
+}
+
+export class GetFlowRunFlowsFailedAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUN_FLOWS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetFlowRunsAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUNS;
+
+  constructor(public payload: FlowRunQuery) {
+
+  }
+}
+
+export class GetFlowRunsCompleteAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUNS_COMPLETE;
+
+  constructor(public payload: FlowRunList) {
+  }
+}
+
+export class GetFlowRunsFailedAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUNS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetFlowRunAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUN;
+
+  constructor(public payload: string) {
+
+  }
+}
+
+export class GetFlowRunCompleteAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUN_COMPLETE;
+
+  constructor(public payload: FlowRun) {
+  }
+}
+
+export class GetFlowRunFailedAction implements Action {
+  type = TffActionTypes.GET_FLOW_RUN_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetFlowStatsAction implements Action {
+  type = TffActionTypes.GET_FLOW_STATS;
+
+  constructor(public payload: string) {
+
+  }
+}
+
+export class GetFlowStatsCompleteAction implements Action {
+  type = TffActionTypes.GET_FLOW_STATS_COMPLETE;
+
+  constructor(public payload: FlowStats[]) {
+  }
+}
+
+export class GetFlowStatsFailedAction implements Action {
+  type = TffActionTypes.GET_FLOW_STATS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetInstallationsAction implements Action {
+  type = TffActionTypes.GET_INSTALLATIONS;
+
+  constructor(public payload: GetInstallationsQuery) {
+  }
+}
+
+export class GetInstallationsCompleteAction implements Action {
+  type = TffActionTypes.GET_INSTALLATIONS_COMPLETE;
+
+  constructor(public payload: InstallationsList) {
+  }
+}
+
+export class GetInstallationsFailedAction implements Action {
+  type = TffActionTypes.GET_INSTALLATIONS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetInstallationAction implements Action {
+  type = TffActionTypes.GET_INSTALLATION;
+
+  constructor(public payload: string) {
+  }
+}
+
+export class GetInstallationCompleteAction implements Action {
+  type = TffActionTypes.GET_INSTALLATION_COMPLETE;
+
+  constructor(public payload: Installation) {
+  }
+}
+
+export class GetInstallationFailedAction implements Action {
+  type = TffActionTypes.GET_INSTALLATION_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetInstallationLogsAction implements Action {
+  type = TffActionTypes.GET_INSTALLATION_LOGS;
+
+  constructor(public payload: string) {
+  }
+}
+
+export class GetInstallationLogsCompleteAction implements Action {
+  type = TffActionTypes.GET_INSTALLATION_LOGS_COMPLETE;
+
+  constructor(public payload: InstallationLog[]) {
+  }
+}
+
+export class GetInstallationLogsFailedAction implements Action {
+  type = TffActionTypes.GET_INSTALLATION_LOGS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type TffActions
   = GetOrdersAction
   | GetOrdersCompleteAction
@@ -752,4 +952,26 @@ export type TffActions
   | GetEventParticipantsFailedAction
   | GetKYCChecksAction
   | GetKYCChecksCompleteAction
-  | GetKYCChecksFailedAction;
+  | GetKYCChecksFailedAction
+  | GetFlowRunFlowsAction
+  | GetFlowRunFlowsCompleteAction
+  | GetFlowRunFlowsFailedAction
+  | GetFlowRunsAction
+  | GetFlowRunsCompleteAction
+  | GetFlowRunsFailedAction
+  | GetFlowRunAction
+  | GetFlowRunCompleteAction
+  | GetFlowRunFailedAction
+  | GetFlowStatsAction
+  | GetFlowStatsCompleteAction
+  | GetFlowStatsFailedAction
+  | GetKYCChecksFailedAction
+  | GetInstallationsAction
+  | GetInstallationsCompleteAction
+  | GetInstallationsFailedAction
+  | GetInstallationAction
+  | GetInstallationCompleteAction
+  | GetInstallationFailedAction
+  | GetInstallationLogsAction
+  | GetInstallationLogsCompleteAction
+  | GetInstallationLogsFailedAction;

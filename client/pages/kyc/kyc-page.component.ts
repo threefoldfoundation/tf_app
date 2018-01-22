@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
-import { filter } from 'rxjs/operators/filter';
 import { map } from 'rxjs/operators/map';
 import { take } from 'rxjs/operators/take';
 import { Subscription } from 'rxjs/Subscription';
+import { filterNull } from '../../../../framework/client/ngrx';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import { GetKYCChecksAction, SetKYCStatusAction } from '../../actions/threefold.action';
@@ -42,9 +42,9 @@ export class KycPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.tffProfile$ = <Observable<TffProfile>>this.store.select(getTffProfile).pipe(
-      filter(p => p !== null),
-      map((profile: TffProfile) => ({
+    this.tffProfile$ = this.store.select(getTffProfile).pipe(
+      filterNull<TffProfile>(),
+      map(profile => ({
         ...profile, kyc: {
           ...profile.kyc,
           updates: profile.kyc.updates.concat().reverse()

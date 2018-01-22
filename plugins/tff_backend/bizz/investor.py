@@ -21,26 +21,28 @@ import json
 import logging
 from types import NoneType
 
-from google.appengine.api import users, mail
-from google.appengine.ext import deferred, ndb, db
+from google.appengine.api import users
+from google.appengine.ext import deferred, ndb
 
 from babel.numbers import get_currency_name
 from framework.consts import get_base_url
+from framework.i18n_utils import translate, DEFAULT_LANGUAGE
 from framework.plugin_loader import get_config
-from framework.utils import now, azzert
+from framework.utils import now
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.rogerthat_api.api import messaging
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
-from plugins.rogerthat_api.to.messaging import Message, AttachmentTO, AnswerTO
-from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
+from plugins.rogerthat_api.to.messaging import Message, AttachmentTO
+from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING, FormFlowStepTO
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
-from plugins.rogerthat_api.to.messaging.service_callback_results import FormAcknowledgedCallbackResultTO, \
-    MessageCallbackResultTypeTO, TYPE_MESSAGE, FlowMemberResultCallbackResultTO
+from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
+    FlowCallbackResultTypeTO, TYPE_FLOW
 from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
+from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.bizz.hoster import get_publickey_label
@@ -65,11 +67,11 @@ from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.models.user import KYCStatus
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
-    BUY_TOKENS_FLOW_V3_KYC_MENTION
+    BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO, \
     CreateInvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
-from plugins.tff_backend.utils import get_step_value, round_currency_amount
+from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from requests.exceptions import HTTPError
 
@@ -110,7 +112,7 @@ def invest_itft(message_flow_run_id, member, steps, end_id, end_message_flow_id,
            flow_params=unicode, token=unicode)
 def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
            flush_id, flush_message_flow_id, service_identity, user_details, flow_params, token):
-    if flush_id == 'flush_kyc':
+    if flush_id == 'flush_kyc' or flush_id == 'flush_corporation':
         # KYC flow started from within the invest flow
         return kyc_part_1(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                           result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params)
@@ -119,7 +121,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         app_id = user_details[0].app_id
         app_user = create_app_user_by_email(email, app_id)
         logging.info('User %s wants to invest', email)
-        version = db.Key(steps[0].message_flow_id).name()
+        version = get_key_name_from_key_string(steps[0].message_flow_id)
         currency = get_step_value(steps, 'message_get_currency').replace('_cur', '')
         if version.startswith(BUY_TOKENS_FLOW_V3):
             amount = float(get_step_value(steps, 'message_get_order_size_ITO').replace(',', '.'))
@@ -135,12 +137,23 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         if version == BUY_TOKENS_FLOW_V3_PAUSED:
             return None
 
-        result = FlowMemberResultCallbackResultTO(type=TYPE_MESSAGE)
-        result.value = create_agreement_confirmation_message(agreement)
-        return result
+        tag = {
+            '__rt__.tag': 'invest_complete',
+            'investment_id': agreement.id
+        }
+        flow_params = {
+            'token': agreement.token,
+            'amount': agreement.amount,
+            'currency': agreement.currency
+        }
+        result = FlowCallbackResultTypeTO(flow=FLOW_CONFIRM_INVESTMENT,
+                                          tag=json.dumps(tag).decode('utf-8'),
+                                          force_language=None,
+                                          flow_params=json.dumps(flow_params))
+        return FlowMemberResultCallbackResultTO(type=TYPE_FLOW, value=result)
     except Exception as e:
         logging.exception(e)
-        return create_error_message(FlowMemberResultCallbackResultTO())
+        return create_error_message()
 
 
 def _create_investment_agreement(amount, currency, token, token_count_float, username, version, app_user, **kwargs):
@@ -192,55 +205,6 @@ def create_investment_agreement(agreement):
     return agreement_model
 
 
-@returns(MessageCallbackResultTypeTO)
-@arguments(agreement=InvestmentAgreement)
-def create_agreement_confirmation_message(agreement):
-    answer_yes = AnswerTO(type=u'button', action=None, id=u'confirm', caption=u'Confirm', ui_flags=0, color=None)
-    answer_no = AnswerTO(type=u'button', action=None, id=u'cancel', caption=u'Cancel', ui_flags=0, color=None)
-    answers = [answer_yes, answer_no]
-
-    params = {
-        'token': agreement.token,
-        'amount': agreement.amount,
-        'currency': agreement.currency
-    }
-    msg = u'We are ready to process your purchase. Is the following information correct?\n\n' \
-          u'You would like to buy %(token)s for a total amount of' \
-          u' **%(amount)s %(currency)s**.\n\n' \
-          u'After confirming, you will receive your personalised purchase agreement.' % params
-    tag = json.dumps({'__rt__.tag': 'invest_complete', 'investment_id': agreement.id}).decode('utf-8')
-    message = MessageCallbackResultTypeTO(alert_flags=Message.ALERT_FLAG_SILENT,
-                                          answers=answers,
-                                          branding=get_main_branding_hash(),
-                                          dismiss_button_ui_flags=0,
-                                          flags=Message.FLAG_AUTO_LOCK,
-                                          step_id=u'confirm_investment',
-                                          message=msg,
-                                          tag=tag)
-    return message
-
-
-def resume_paused_agreement(agreement):
-    azzert(agreement.status == InvestmentAgreement.STATUS_CREATED)
-    message = create_agreement_confirmation_message(agreement)
-    params = {
-        'token': agreement.token,
-        'amount': agreement.amount,
-        'currency': agreement.currency
-    }
-    msg = u'''We are ready to process your purchase. Is the following information correct?
-
-You would like to buy %(token)s for a total amount of **%(amount)s %(currency)s**.
-
-If you have not done so already, please go through the KYC procedure, which you can find in the service menu.
-After confirming and going through the KYC procedure, you will receive your personalised purchase agreement.''' % params
-    parent_message_key = None
-    member_user, app_id = get_app_user_tuple(agreement.app_user)
-    member = MemberTO(app_id=app_id, member=member_user.email(), alert_flags=Message.ALERT_FLAG_VIBRATE)
-    messaging.send(get_rogerthat_api_key(), parent_message_key, msg, message.answers, message.flags,
-                   [member], message.branding, message.tag, step_id=message.step_id)
-
-
 def get_currency_rate(currency):
     global_stats = GlobalStats.create_key(TOKEN_TFT).get()  # type: GlobalStats
     if currency == 'USD':
@@ -288,14 +252,15 @@ def _get_conversion_rates():
     return result
 
 
-@returns()
-@arguments(status=int, answer_id=unicode, received_timestamp=int, member=unicode, message_key=unicode, tag=unicode,
-           acked_timestamp=int, parent_message_key=unicode, service_identity=unicode, user_details=[UserDetailsTO])
-def invest_complete(status, answer_id, received_timestamp, member, message_key, tag, acked_timestamp,
-                    parent_message_key, service_identity, user_details):
+@arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
+           end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flow_params=unicode)
+def invest_complete(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
+                    result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     email = user_details[0].email
     app_id = user_details[0].app_id
-    if answer_id == u'confirm':
+    if 'confirm' in end_id:
         agreement_key = InvestmentAgreement.create_key(json.loads(tag)['investment_id'])
         deferred.defer(_invest, agreement_key, email, app_id, 0)
 
@@ -345,12 +310,13 @@ def _invest(agreement_key, email, app_id, retry_count):
                                               agreement.currency, agreement.token)
     pdf_url = upload_to_gcs(pdf_name, pdf_contents, 'application/pdf')
     logging.debug('Storing Investment Agreement in the datastore')
-    deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, pdf_url)
+    pdf_size = len(pdf_contents)
+    deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, pdf_url, pdf_size=pdf_size)
     deferred.defer(update_investor_progress, email, app_id, INVESTMENT_TODO_MAPPING[agreement.status])
 
 
 def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url, content_type='application/pdf',
-                                             send_sign_message=True):
+                                             send_sign_message=True, pdf_size=0):
     # type: (ndb.Key, users.User, unicode) -> None
     iyo_username = get_iyo_username(app_user)
     doc_id = u'Internal Token Offering %s' % agreement_key.id()
@@ -378,46 +344,36 @@ def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url, c
         if send_sign_message:
             attachment_name = u' - '.join([doc_id, doc_category])
             deferred.defer(_send_ito_agreement_sign_message, agreement.key, app_user, pdf_url, attachment_name,
-                           _transactional=True)
+                           pdf_size, _transactional=True)
 
     ndb.transaction(trans)
 
 
-def _send_ito_agreement_sign_message(agreement_key, app_user, pdf_url, attachment_name):
+def _send_ito_agreement_sign_message(agreement_key, app_user, pdf_url, attachment_name, pdf_size):
     logging.debug('Sending SIGN widget to app user')
-    widget = SignTO()
-    widget.algorithm = KEY_ALGORITHM
-    widget.caption = u'Please enter your PIN code to digitally sign the purchase agreement'
-    widget.key_name = KEY_NAME
-    widget.payload = base64.b64encode(pdf_url).decode('utf-8')
 
-    form = SignFormTO()
-    form.negative_button = u'Abort'
-    form.negative_button_ui_flags = 0
-    form.positive_button = u'Accept'
-    form.positive_button_ui_flags = Message.UI_FLAG_EXPECT_NEXT_WAIT_5
-    form.type = SignTO.TYPE
-    form.widget = widget
+    form = SignFormTO(positive_button_ui_flags=Message.UI_FLAG_EXPECT_NEXT_WAIT_5,
+                      widget=SignTO(algorithm=KEY_ALGORITHM,
+                                    key_name=KEY_NAME,
+                                    payload=base64.b64encode(pdf_url).decode('utf-8')))
 
-    attachment = AttachmentTO()
-    attachment.content_type = u'application/pdf'
-    attachment.download_url = pdf_url
-    attachment.name = attachment_name
+    attachment = AttachmentTO(content_type=u'application/pdf',
+                              download_url=pdf_url,
+                              name=attachment_name,
+                              size=pdf_size)
 
-    member_user, app_id = get_app_user_tuple(app_user)
-    messaging.send_form(api_key=get_rogerthat_api_key(),
-                        parent_message_key=None,
-                        member=member_user.email(),
-                        message=u'Please review the purchase agreement and press the "Sign" button to accept.',
-                        form=form,
-                        flags=0,
-                        alert_flags=Message.ALERT_FLAG_VIBRATE,
-                        branding=get_main_branding_hash(),
-                        tag=json.dumps({u'__rt__.tag': u'sign_investment_agreement',
-                                        u'agreement_id': agreement_key.id()}).decode('utf-8'),
-                        attachments=[attachment],
-                        app_id=app_id,
-                        step_id=u'sign_investment_agreement')
+    tag = json.dumps({
+        u'__rt__.tag': u'sign_investment_agreement',
+        u'agreement_id': agreement_key.id()
+    }).decode('utf-8')
+    flow_params = json.dumps({
+        'form': form.to_dict(),
+        'attachments': [attachment.to_dict()]
+    })
+    email, app_id = get_app_user_tuple(app_user)
+    members = [MemberTO(member=email.email(), app_id=app_id, alert_flags=0)]
+    messaging.start_local_flow(get_rogerthat_api_key(), None, members, None, tag=tag,
+                               context=None, flow=FLOW_SIGN_INVESTMENT, flow_params=flow_params)
 
 
 def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
@@ -466,36 +422,22 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
                         step_id=u'sign_investment_agreement_admin')
 
 
-@returns(FormAcknowledgedCallbackResultTO)
-@arguments(status=int, form_result=FormResultTO, answer_id=unicode, member=unicode, message_key=unicode, tag=unicode,
-           received_timestamp=int, acked_timestamp=int, parent_message_key=unicode, result_key=unicode,
-           service_identity=unicode, user_details=[UserDetailsTO])
-def investment_agreement_signed(status, form_result, answer_id, member, message_key, tag, received_timestamp,
-                                acked_timestamp, parent_message_key, result_key, service_identity, user_details):
-    """
-    Args:
-        status (int)
-        form_result (FormResultTO)
-        answer_id (unicode)
-        member (unicode)
-        message_key (unicode)
-        tag (unicode)
-        received_timestamp (int)
-        acked_timestamp (int)
-        parent_message_key (unicode)
-        result_key (unicode)
-        service_identity (unicode)
-        user_details(list[UserDetailsTO])
-
-    Returns:
-        FormAcknowledgedCallbackResultTO
-    """
+@returns(FlowMemberResultCallbackResultTO)
+@arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
+           end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flow_params=unicode)
+def investment_agreement_signed(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key,
+                                tag, result_key, flush_id, flush_message_flow_id, service_identity, user_details,
+                                flow_params):
     try:
         user_detail = user_details[0]
         tag_dict = json.loads(tag)
         agreement = InvestmentAgreement.create_key(tag_dict['agreement_id']).get()  # type: InvestmentAgreement
 
-        if answer_id != FormTO.POSITIVE:
+        last_step = steps[-1]
+        assert isinstance(last_step, FormFlowStepTO)
+        if last_step.answer_id != FormTO.POSITIVE:
             logging.info('Investment agreement was canceled')
             agreement.status = InvestmentAgreement.STATUS_CANCELED
             agreement.cancel_time = now()
@@ -504,7 +446,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
 
         logging.info('Received signature for Investment Agreement')
 
-        sign_result = form_result.result.get_value()
+        sign_result = last_step.form_result.result.get_value()
         assert isinstance(sign_result, SignWidgetResultTO)
         payload_signature = sign_result.payload_signature
 
@@ -520,7 +462,7 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
         doc_view.signature = payload_signature
         keystore_label = get_publickey_label(sign_result.public_key.public_key, user_detail)
         if not keystore_label:
-            return create_error_message(FormAcknowledgedCallbackResultTO())
+            return create_error_message()
         doc_view.keystore_label = keystore_label
         logging.debug('Signing IYO SEE document')
         sign_see_document(iyo_organization_id, iyo_username, doc_view)
@@ -540,34 +482,16 @@ def investment_agreement_signed(status, form_result, answer_id, member, message_
                        INVESTMENT_TODO_MAPPING[agreement.status])
         deferred.defer(_inform_support_of_new_investment, iyo_username, agreement.id, agreement.token_count_float)
         logging.debug('Sending confirmation message')
-        prefix_message = u'Thank you. We successfully received your digital signature.' \
-                         u' We have stored a copy of this agreement in your ThreeFold Documents.' \
-                         u' We will contact you again when we have received your payment.' \
-                         u' Thanks again for your purchase and your support of the ThreeFold Foundation!' \
-                         u'\n\nWe would like to take this opportunity to remind you once again to keep a back-up of' \
-                         u' your wallet in a safe place, by writing down the 29 words that can be used to restore it' \
-                         u' to a different device.' \
-                         u' As usual, if you have any questions, don\'t hesitate to contact us.\n\n'
-        msg = u'%sReference: %s' % (prefix_message, agreement.reference)
+        prefix_message = translate(DEFAULT_LANGUAGE, 'tff', 'thanks_we_received_your_investment_signature')
         deferred.defer(send_payment_instructions, agreement.app_user, agreement.id, prefix_message)
-
-        message = MessageCallbackResultTypeTO()
-        message.alert_flags = Message.ALERT_FLAG_VIBRATE
-        message.answers = []
-        message.branding = get_main_branding_hash()
-        message.dismiss_button_ui_flags = 0
-        message.flags = Message.FLAG_ALLOW_DISMISS | Message.FLAG_AUTO_LOCK
-        message.message = msg
-        message.step_id = u'investment_agreement_accepted'
-        message.tag = None
-
-        result = FormAcknowledgedCallbackResultTO()
-        result.type = TYPE_MESSAGE
-        result.value = message
-        return result
+        result = FlowCallbackResultTypeTO(flow=FLOW_INVESTMENT_CONFIRMED,
+                                          tag=None,
+                                          force_language=None,
+                                          flow_params=json.dumps({'reference': agreement.reference}))
+        return FlowMemberResultCallbackResultTO(type=TYPE_FLOW, value=result)
     except:
         logging.exception('An unexpected error occurred')
-        return create_error_message(FormAcknowledgedCallbackResultTO())
+        return create_error_message()
 
 
 @returns(NoneType)
@@ -640,8 +564,6 @@ def put_investment_agreement(agreement_id, agreement, admin_user):
 
 
 def _inform_support_of_new_investment(iyo_username, agreement_id, token_count):
-    cfg = get_config(NAMESPACE)
-
     subject = "New purchase agreement signed"
     body = """Hello,
 
@@ -652,12 +574,7 @@ Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more de
        "agreement_id": agreement_id,
        'base_url': get_base_url(),
        "token_count_float": token_count}  # noQA
-
-    for email in cfg.investor.support_emails:
-        mail.send_mail(sender="no-reply@tff-backend.appspotmail.com",
-                       to=email,
-                       subject=subject,
-                       body=body)
+    send_emails_to_support(subject, body)
 
 
 @returns()

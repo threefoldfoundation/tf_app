@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { catchError } from 'rxjs/operators/catchError';
+import { debounceTime } from 'rxjs/operators/debounceTime';
 import { map } from 'rxjs/operators/map';
 import { switchMap } from 'rxjs/operators/switchMap';
 import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
@@ -11,11 +12,14 @@ import * as actions from '../actions/threefold.action';
 import { TffService } from '../services/tff.service';
 import { getGlobalStatsList } from '../tff.state';
 
+const SEARCH_DEBOUNCE_TIME = 400;
+
 @Injectable()
 export class TffEffects {
 
   @Effect() getNodeOrders$ = this.actions$
     .ofType<actions.GetOrdersAction>(actions.TffActionTypes.GET_ORDERS).pipe(
+      debounceTime(SEARCH_DEBOUNCE_TIME),
       switchMap(action => this.tffService.getNodeOrders(action.payload).pipe(
         map(payload => new actions.GetOrdersCompleteAction(payload)),
         catchError(err => handleApiError(actions.GetOrdersFailedAction, err)),
@@ -37,6 +41,7 @@ export class TffEffects {
 
   @Effect() getInvestmentAgreements$ = this.actions$
     .ofType<actions.GetInvestmentAgreementsAction>(actions.TffActionTypes.GET_INVESTMENT_AGREEMENTS).pipe(
+      debounceTime(SEARCH_DEBOUNCE_TIME),
       switchMap(action => this.tffService.getInvestmentAgreements(action.payload).pipe(
         map(payload => new actions.GetInvestmentAgreementsCompleteAction(payload)),
         catchError(err => handleApiError(actions.GetInvestmentAgreementsFailedAction, err)),
@@ -87,6 +92,7 @@ export class TffEffects {
 
   @Effect() searchUsers$ = this.actions$
     .ofType<actions.SearchUsersAction>(actions.TffActionTypes.SEARCH_USERS).pipe(
+      debounceTime(SEARCH_DEBOUNCE_TIME),
       switchMap(action => this.tffService.searchUsers(action.payload).pipe(
         map(payload => new actions.SearchUsersCompleteAction(payload)),
         catchError(err => handleApiError(actions.SearchUsersFailedAction, err)),
@@ -174,6 +180,55 @@ export class TffEffects {
       switchMap(action => this.tffService.getKYCChecks(action.payload).pipe(
         map(result => new actions.GetKYCChecksCompleteAction(result)),
         catchError(err => handleApiError(actions.GetKYCChecksFailedAction, err)),
+      )));
+
+  @Effect() getDistinctFlows$ = this.actions$
+    .ofType<actions.GetFlowRunFlowsAction>(actions.TffActionTypes.GET_FLOW_RUN_FLOWS).pipe(
+      switchMap(() => this.tffService.getDistinctFlows().pipe(
+        map(result => new actions.GetFlowRunFlowsCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetFlowRunFlowsFailedAction, err)),
+      )));
+
+  @Effect() getFlowRuns$ = this.actions$
+    .ofType<actions.GetFlowRunsAction>(actions.TffActionTypes.GET_FLOW_RUNS).pipe(
+      switchMap(action => this.tffService.getFlowRuns(action.payload).pipe(
+        map(result => new actions.GetFlowRunsCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetFlowRunsFailedAction, err)),
+      )));
+
+  @Effect() getFlowRun$ = this.actions$
+    .ofType<actions.GetFlowRunAction>(actions.TffActionTypes.GET_FLOW_RUN).pipe(
+      switchMap(action => this.tffService.getFlowRun(action.payload).pipe(
+        map(result => new actions.GetFlowRunCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetFlowRunFailedAction, err)),
+      )));
+
+  @Effect() getFlowStats$ = this.actions$
+    .ofType<actions.GetFlowStatsAction>(actions.TffActionTypes.GET_FLOW_STATS).pipe(
+      switchMap(action => this.tffService.getFlowStats(action.payload).pipe(
+        map(result => new actions.GetFlowStatsCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetFlowStatsFailedAction, err)),
+      )));
+
+  @Effect() getInstallations$ = this.actions$
+    .ofType<actions.GetInstallationsAction>(actions.TffActionTypes.GET_INSTALLATIONS).pipe(
+      switchMap(action => this.tffService.getInstallations(action.payload).pipe(
+        map(result => new actions.GetInstallationsCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetInstallationsFailedAction, err)),
+      )));
+
+  @Effect() getInstallation$ = this.actions$
+    .ofType<actions.GetInstallationAction>(actions.TffActionTypes.GET_INSTALLATION).pipe(
+      switchMap(action => this.tffService.getInstallation(action.payload).pipe(
+        map(result => new actions.GetInstallationCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetInstallationFailedAction, err)),
+      )));
+
+  @Effect() getInstallationLogs$ = this.actions$
+    .ofType<actions.GetInstallationLogsAction>(actions.TffActionTypes.GET_INSTALLATION_LOGS).pipe(
+      switchMap(action => this.tffService.getInstallationLogs(action.payload).pipe(
+        map(result => new actions.GetInstallationLogsCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetInstallationLogsFailedAction, err)),
       )));
 
   constructor(private actions$: Actions<actions.TffActions>,
