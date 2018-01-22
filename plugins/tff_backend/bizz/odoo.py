@@ -16,15 +16,17 @@
 # @@license_version:1.3@@
 
 import datetime
+from dateutil import relativedelta
 import logging
 import xmlrpclib
 
-from google.appengine.api import urlfetch
+from enum import Enum
 
 import erppeek
-from dateutil import relativedelta
-from enum import Enum
 from framework.plugin_loader import get_config
+from google.appengine.api import urlfetch
+from mcfw.cache import cached
+from mcfw.rpc import returns, arguments
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -191,6 +193,9 @@ def confirm_odoo_quotation(order_id):
     return result
 
 
+@cached(version=1, lifetime=86400, request=True, memcache=True)
+@returns(unicode)
+@arguments(order_id=long)
 def get_node_id_from_odoo(order_id):
     cfg = get_config(NAMESPACE)
     erp_client = _get_erp_client(cfg)

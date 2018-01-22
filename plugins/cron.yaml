@@ -19,6 +19,10 @@ cron:
   url: /admin/cron/tff_backend/check_nodes_online
   schedule: every day 10:00
 
+- description: Check nodes statuses
+  url: /admin/cron/tff_backend/check_nodes_statuses
+  schedule: every 5 minutes
+
 - description: Process expired events
   url: /admin/cron/tff_backend/events/expired
   schedule: every day 00:00

@@ -16,11 +16,10 @@
 # @@license_version:1.3@@
 import logging
 
-from google.appengine.api import search
-
 from framework.bizz.authentication import get_current_session
 from framework.plugin_loader import get_plugin, BrandingPlugin
 from framework.utils.plugins import Handler, Module
+from google.appengine.api import search
 from mcfw.consts import AUTHENTICATED, NOT_AUTHENTICATED
 from mcfw.restapi import rest_functions
 from mcfw.rpc import parse_complex_value
@@ -31,7 +30,7 @@ from plugins.tff_backend.api import investor, payment, nodes, global_stats, user
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings, Roles
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler, \
-    BackupHandler, CheckNodesOnlineHandler, ExpiredEventsHandler
+    BackupHandler, CheckNodesOnlineHandler, CheckNodesStatusesHandler, ExpiredEventsHandler
 from plugins.tff_backend.handlers.flow_statistics import CheckStuckFlowsHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
@@ -81,6 +80,7 @@ class TffBackendPlugin(BrandingPlugin):
             yield Handler(url='/admin/cron/tff_backend/rebuild_synced_roles', handler=RebuildSyncedRolesHandler)
             yield Handler(url='/admin/cron/tff_backend/global_stats', handler=UpdateGlobalStatsHandler)
             yield Handler(url='/admin/cron/tff_backend/check_nodes_online', handler=CheckNodesOnlineHandler)
+            yield Handler(url='/admin/cron/tff_backend/check_nodes_statuses', handler=CheckNodesStatusesHandler)
             yield Handler(url='/admin/cron/tff_backend/events/expired', handler=ExpiredEventsHandler)
             yield Handler(url='/admin/cron/tff_backend/check_stuck_flows', handler=CheckStuckFlowsHandler)
 

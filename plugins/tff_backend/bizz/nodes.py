@@ -14,17 +14,16 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+from collections import defaultdict
 import json
 import logging
-from collections import defaultdict
-
-from google.appengine.api import urlfetch, apiproxy_stub_map
-from google.appengine.ext import ndb
-from google.appengine.ext.deferred import deferred
 
 from framework.bizz.job import run_job
 from framework.plugin_loader import get_config
 from framework.utils import now
+from google.appengine.api import urlfetch, apiproxy_stub_map
+from google.appengine.ext import ndb
+from google.appengine.ext.deferred import deferred
 from mcfw.cache import cached
 from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
@@ -119,9 +118,8 @@ def set_node_id_on_profile(app_user, node_id):
     profile.put()
 
 
-def get_node_stats(node_id):
+def get_node_stats(node_id, profile=None):
     data = {
-        'status': None,
         'info': None,
         'stats': None,
     }
@@ -131,16 +129,21 @@ def get_node_stats(node_id):
     if node_id:
         # Start 3 api calls at the same time and wait for all of them to finish afterwards
         rpcs = [
-            _orc_call('/nodes/%s' % node_id),
             _orc_call('/nodes/%s/info' % node_id),
             _orc_call('/nodes/%s/stats' % node_id),
         ]
+
+        if not profile:
+            profile = TffProfile.query().filter(TffProfile.node_id == node_id).get()
+        data['status'] = profile and profile.node_status
+
         results = [rpc.get_result() for rpc in rpcs]
         for i, key in enumerate(data):
             if results[i].status_code == 200:
                 data[key] = json.loads(results[i].content)
             else:
                 logging.warn('Response from orchestrator: %s %s' % (results[i].status_code, results[i].content))
+
     return _get_stats(data)
 
 
@@ -194,3 +197,35 @@ def _get_cpu_stats(data):
             if k != 'start':
                 total_cpu[timestamp][k] = total_cpu[timestamp][k] / cpu_count
     return {'utilisation': sorted(total_cpu.values(), key=lambda v: v['start'])}
+
+
+def check_node_statuses():
+    result = _orc_call('/nodes').get_result()
+    if result.status_code != 200:
+        if 400 <= result.status_code < 500:
+            exception_class = deferred.PermanentTaskFailure
+        else:
+            exception_class = Exception
+        msg = 'check_node_statuses returned status code %s\nContent: %s' % (result.status_code, result.content)
+        raise exception_class(msg)
+
+    statuses = {r['id']: r['status'] for r in json.loads(result.content)}
+
+    run_job(_get_profiles_with_node, [], _check_node_status, [statuses])
+
+
+def _get_profiles_with_node():
+    return TffProfile.query().filter(TffProfile.node_id != None)
+
+
+def _check_node_status(tff_profile_key, statuses):
+    tff_profile = tff_profile_key.get()
+    status = statuses.get(tff_profile.node_id)
+    if not status:
+        return logging.warn('Expected to find node %s in the ORC response', tff_profile.node_id)
+
+    if tff_profile.node_status != status:
+        logging.info('Node %s of user %s changed from status "%s" to "%s"',
+                     tff_profile.username, tff_profile.node_id, tff_profile.node_status, status)
+        tff_profile.node_status = status
+        tff_profile.put()
