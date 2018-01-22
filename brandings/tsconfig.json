@@ -42,6 +42,7 @@
   },
   "angularCompilerOptions": {
     "viewEncapsulation": "None",
-    "preserveWhitespaces": false
+    "preserveWhitespaces": false,
+    "fullTemplateTypeCheck": true
   }
 }
