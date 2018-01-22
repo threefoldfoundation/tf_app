@@ -213,17 +213,15 @@ def check_node_statuses():
 
     statuses = {r['id']: r['status'] for r in json.loads(result.content)}
 
-    run_job(_get_profiles_with_node, [], _check_node_status, [statuses])
+    run_job(_get_profiles_with_node, [], _check_node_status, [statuses], keys_only=False)
 
 
 def _get_profiles_with_node():
-    return TffProfile.query()
+    return TffProfile.query().filter(TffProfile.node_id > '')
 
 
-def _check_node_status(tff_profile_key, statuses):
-    tff_profile = tff_profile_key.get()
-    if not tff_profile.node_id:
-        return
+def _check_node_status(tff_profile, statuses):
+    tff_profile = tff_profile.key.get()
     status = statuses.get(tff_profile.node_id)
     if not status:
         return logging.warn('Expected to find node %s in the ORC response', tff_profile.node_id)
