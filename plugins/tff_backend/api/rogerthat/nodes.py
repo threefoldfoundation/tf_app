@@ -34,8 +34,8 @@ def api_get_node_status(params, user_detail):
     # type: (dict, UserDetailsTO) -> dict
     try:
         node_id = None
+        profile = TffProfile.create_key(get_iyo_username(user_detail)).get()  # type: TffProfile
         if not DEBUG:
-            profile = TffProfile.create_key(get_iyo_username(user_detail)).get()  # type: TffProfile
             node_id = profile.node_id
             if not node_id:
                 # fallback, should only happen when user checks his node status before our cron job has ran.
@@ -48,7 +48,7 @@ def api_get_node_status(params, user_detail):
                 else:
                     raise ApiCallException(
                         u'It looks like you either do not have a node yet or it has never been online yet.')
-        return get_node_stats(node_id)
+        return get_node_stats(node_id, profile)
     except ApiCallException:
         raise
     except Exception as e:
