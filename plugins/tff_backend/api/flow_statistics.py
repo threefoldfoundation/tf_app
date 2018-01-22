@@ -50,5 +50,5 @@ def api_get_flow_run(flow_run_id):
 @rest('/flow-statistics/stats', 'get', Scopes.BACKEND_READONLY, silent_result=True)
 @returns([dict])
 @arguments(start_date=unicode)
-def api_get_flow_run(start_date):
+def api_list_flow_stats(start_date):
     return flow_run_stats(start_date)
