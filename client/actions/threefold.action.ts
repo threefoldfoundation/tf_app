@@ -12,6 +12,7 @@ import {
   FlowRun,
   FlowRunList,
   FlowRunQuery,
+  FlowStats,
   GetEventParticipantsPayload,
   GetInstallationsQuery,
   GlobalStats,
@@ -116,6 +117,9 @@ export interface ITffActionTypes {
   GET_FLOW_RUN: '[TFF] Get flow run';
   GET_FLOW_RUN_COMPLETE: '[TFF] Get flow run complete';
   GET_FLOW_RUN_FAILED: '[TFF] Get flow run failed';
+  GET_FLOW_STATS: '[TFF] Get flow stats';
+  GET_FLOW_STATS_COMPLETE: '[TFF] Get flow stats complete';
+  GET_FLOW_STATS_FAILED: '[TFF] Get flow stats failed';
   GET_INSTALLATIONS: '[TFF] Get installations';
   GET_INSTALLATIONS_COMPLETE: '[TFF] Get installations complete';
   GET_INSTALLATIONS_FAILED: '[TFF] Get installations failed';
@@ -210,6 +214,9 @@ export const TffActionTypes: ITffActionTypes = {
   GET_FLOW_RUN: type('[TFF] Get flow run'),
   GET_FLOW_RUN_COMPLETE: type('[TFF] Get flow run complete'),
   GET_FLOW_RUN_FAILED: type('[TFF] Get flow run failed'),
+  GET_FLOW_STATS: type('[TFF] Get flow stats'),
+  GET_FLOW_STATS_COMPLETE: type('[TFF] Get flow stats complete'),
+  GET_FLOW_STATS_FAILED: type('[TFF] Get flow stats failed'),
   GET_INSTALLATIONS: type('[TFF] Get installations'),
   GET_INSTALLATIONS_COMPLETE: type('[TFF] Get installations complete'),
   GET_INSTALLATIONS_FAILED: type('[TFF] Get installations failed'),
@@ -786,6 +793,28 @@ export class GetFlowRunFailedAction implements Action {
   }
 }
 
+export class GetFlowStatsAction implements Action {
+  type = TffActionTypes.GET_FLOW_STATS;
+
+  constructor(public payload: string) {
+
+  }
+}
+
+export class GetFlowStatsCompleteAction implements Action {
+  type = TffActionTypes.GET_FLOW_STATS_COMPLETE;
+
+  constructor(public payload: FlowStats[]) {
+  }
+}
+
+export class GetFlowStatsFailedAction implements Action {
+  type = TffActionTypes.GET_FLOW_STATS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export class GetInstallationsAction implements Action {
   type = TffActionTypes.GET_INSTALLATIONS;
 
@@ -933,6 +962,9 @@ export type TffActions
   | GetFlowRunAction
   | GetFlowRunCompleteAction
   | GetFlowRunFailedAction
+  | GetFlowStatsAction
+  | GetFlowStatsCompleteAction
+  | GetFlowStatsFailedAction
   | GetKYCChecksFailedAction
   | GetInstallationsAction
   | GetInstallationsCompleteAction

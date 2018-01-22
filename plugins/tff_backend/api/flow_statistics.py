@@ -14,10 +14,11 @@
 # limitations under the License.
 #
 # @@license_version:1.4@@
+
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.authentication import Scopes
-from plugins.tff_backend.bizz.flow_statistics import list_flow_runs, list_distinct_flows, get_flow_run
+from plugins.tff_backend.bizz.flow_statistics import list_flow_runs, list_distinct_flows, get_flow_run, flow_run_stats
 
 
 @rest('/flow-statistics/flows', 'get', Scopes.BACKEND_READONLY, silent_result=True)
@@ -29,9 +30,9 @@ def api_list_distinct_flows():
 
 @rest('/flow-statistics', 'get', Scopes.BACKEND_READONLY, silent_result=True)
 @returns(dict)
-@arguments(flow_name=unicode, max_date=unicode, page_size=(int, long), cursor=unicode)
-def api_list_flow_runs(flow_name=None, max_date=None, cursor=None, page_size=50):
-    results, cursor, more = list_flow_runs(cursor, page_size, flow_name, max_date)
+@arguments(flow_name=unicode, min_date=unicode, page_size=(int, long), cursor=unicode)
+def api_list_flow_runs(flow_name=None, min_date=None, cursor=None, page_size=50):
+    results, cursor, more = list_flow_runs(cursor, page_size, flow_name, min_date)
     return {
         'cursor': cursor and cursor.to_websafe_string(),
         'more': more,
@@ -44,3 +45,10 @@ def api_list_flow_runs(flow_name=None, max_date=None, cursor=None, page_size=50)
 @arguments(flow_run_id=unicode)
 def api_get_flow_run(flow_run_id):
     return get_flow_run(flow_run_id).to_dict()
+
+
+@rest('/flow-statistics/stats', 'get', Scopes.BACKEND_READONLY, silent_result=True)
+@returns([dict])
+@arguments(start_date=unicode)
+def api_get_flow_run(start_date):
+    return flow_run_stats(start_date)

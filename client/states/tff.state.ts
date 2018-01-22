@@ -5,7 +5,7 @@ import { InstallationLog, InstallationsList } from '../../../rogerthat_api/clien
 import { AgendaEvent, EventParticipant } from '../interfaces/agenda-events.interfaces';
 import {
   FlowRun,
-  FlowRunList,
+  FlowRunList, FlowStats,
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
@@ -68,6 +68,8 @@ export interface ITffState {
   flowRunsStatus: ApiRequestStatus;
   flowRun: FlowRun | null;
   flowRunStatus: ApiRequestStatus;
+  flowStats: FlowStats[],
+  flowStatsStatus: ApiRequestStatus,
   installations: InstallationsList;
   installationsStatus: ApiRequestStatus;
   installation: Installation | null;
@@ -140,6 +142,8 @@ export const initialTffState: ITffState = {
   flowRunsStatus: apiRequestInitial,
   flowRun: null,
   flowRunStatus: apiRequestInitial,
+  flowStats: [],
+  flowStatsStatus: apiRequestInitial,
   installations: emptyPaginatedResult,
   installationsStatus: apiRequestInitial,
   installation: null,

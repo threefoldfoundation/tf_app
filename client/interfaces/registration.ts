@@ -1,4 +1,4 @@
 export interface GetInstallationsQuery {
-  cursor?: string;
+  cursor?: string | null;
   per_page?: number;
 }

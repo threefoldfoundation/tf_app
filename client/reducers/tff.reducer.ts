@@ -495,6 +495,22 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         flowRunStatus: action.payload,
       };
+    case actions.TffActionTypes.GET_FLOW_STATS:
+      return {
+        ...state,
+        flowStatsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_FLOW_STATS_COMPLETE:
+      return {
+        ...state,
+        flowStats: action.payload,
+        flowStatsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_FLOW_STATS_FAILED:
+      return {
+        ...state,
+        flowStatsStatus: action.payload,
+      };
     case actions.TffActionTypes.GET_INSTALLATIONS:
       return {
         ...state,

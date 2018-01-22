@@ -7,6 +7,7 @@ import {
   CreateAgendaEventPageComponent,
   CreateTransactionComponent,
   CreateTransactionPageComponent,
+  DashboardComponent,
   EventParticipantsComponent,
   EventParticipantsPageComponent,
   FlowRunDetailComponent,
@@ -39,6 +40,7 @@ import {
 } from '../components';
 import {
   CreateInvestmentAgreementPageComponent,
+  DashboardPageComponent,
   FlowStatisticsDetailPageComponent,
   FlowStatisticsOverviewPageComponent,
   FlowStatisticsPageComponent,
@@ -64,6 +66,7 @@ export const TFF_PROVIDERS: any[] = [
 
 export const TFF_PAGES = [
   CreateInvestmentAgreementPageComponent,
+  DashboardPageComponent,
   FlowStatisticsDetailPageComponent,
   FlowStatisticsOverviewPageComponent,
   FlowStatisticsPageComponent,
@@ -87,6 +90,7 @@ export const TFF_COMPONENTS: any[] = [
   CreateAgendaEventPageComponent,
   CreateTransactionComponent,
   CreateTransactionPageComponent,
+  DashboardComponent,
   EventParticipantsComponent,
   EventParticipantsPageComponent,
   FlowRunDetailComponent,

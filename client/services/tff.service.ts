@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators/map';
+import { ChannelService } from '../../../framework/client/channel/services/channel.service';
 import { Profile } from '../../../its_you_online_auth/client/interfaces';
 import { Installation, InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces';
 import {
@@ -10,9 +11,11 @@ import {
   CreateInvestmentAgreementPayload,
   CreateTransactionPayload,
   EventParticipant,
+  FirebaseFlowRun,
   FlowRun,
   FlowRunList,
   FlowRunQuery,
+  FlowStats,
   GetEventParticipantsPayload,
   GetInstallationsQuery,
   GlobalStats,
@@ -155,6 +158,11 @@ export class TffService {
     return this.http.get<FlowRun<string>>(`${TffConfig.API_URL}/flow-statistics/details/${id}`).pipe(
       map(result => this.convertFlowRun(result)),
     );
+  }
+
+  getFlowStats(startDate: string) {
+    const params = this._getQueryParams({ start_date: startDate });
+    return this.http.get<FlowStats[]>(`${TffConfig.API_URL}/flow-statistics/stats`, { params });
   }
 
   getInstallations(query: GetInstallationsQuery) {

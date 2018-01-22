@@ -4,6 +4,7 @@ import {
   FlowStatisticsOverviewPageComponent,
   FlowStatisticsPageComponent,
 } from '../pages/flow-statistics';
+import { DashboardPageComponent } from '../pages/monitoring';
 
 export const FLOW_STATISTICS_ROUTES = [
   {
@@ -29,5 +30,15 @@ export const FLOW_STATISTICS_ROUTES = [
     canActivate: [ MetaGuard ],
     data: { meta: { title: 'tff.flow_statistics' } },
     component: FlowStatisticsDetailPageComponent,
+  },
+  {
+    path: 'dashboard',
+    canActivate: [ MetaGuard ],
+    data: {
+      meta: { title: 'tff.dashboard' },
+      id: 'tff_dashboard',
+      icon: 'dashboard',
+    },
+    component: DashboardPageComponent,
   },
 ];

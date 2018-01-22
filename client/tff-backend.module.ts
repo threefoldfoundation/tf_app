@@ -22,6 +22,7 @@ import {
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
 import { Store, StoreModule } from '@ngrx/store';
+import { ChannelModule } from '../../framework/client/channel/channel.module';
 import { MultilingualModule } from '../../framework/client/i18n/multilingual.module';
 import { SetThemeAction } from '../../framework/client/identity/actions';
 import { AuthenticationService } from '../../framework/client/identity/services';
@@ -78,6 +79,7 @@ const PIPES = [
     EffectsModule.forFeature([ TffEffects ]),
     MATERIAL_IMPORTS,
     FlexLayoutModule,
+    ChannelModule,
   ],
   declarations: [
     TFF_COMPONENTS,
