@@ -215,11 +215,13 @@ def check_node_statuses():
 
 
 def _get_profiles_with_node():
-    return TffProfile.query().filter(TffProfile.node_id != None)
+    return TffProfile.query()
 
 
 def _check_node_status(tff_profile_key, statuses):
     tff_profile = tff_profile_key.get()
+    if not tff_profile.node_id:
+        return
     status = statuses.get(tff_profile.node_id)
     if not status:
         return logging.warn('Expected to find node %s in the ORC response', tff_profile.node_id)
