@@ -17,6 +17,7 @@
 import json
 import logging
 
+from google.appengine.api import users
 from mcfw.rpc import arguments, returns
 from plugins.rogerthat_api.api import system, messaging
 from plugins.rogerthat_api.to import MemberTO
@@ -52,6 +53,19 @@ def send_rogerthat_message(member, message, answers=None, flags=None):
                           alert_flags=Message.ALERT_FLAG_VIBRATE,
                           branding=get_main_branding_hash(),
                           tag=None)
+
+
+@returns(unicode)
+@arguments(member=(MemberTO, users.User), flow=unicode)
+def send_rogerthat_flow(member, flow):
+    if isinstance(member, users.User):
+        human_user, app_id = get_app_user_tuple(member)
+        member = MemberTO(member=human_user.email(), app_id=app_id, alert_flags=Message.ALERT_FLAG_VIBRATE)
+
+    messaging.start_local_flow(api_key=get_rogerthat_api_key(),
+                               xml=None,
+                               members=[member],
+                               flow=flow)
 
 
 def create_error_message(message=None):

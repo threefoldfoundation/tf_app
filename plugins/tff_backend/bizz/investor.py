@@ -16,19 +16,18 @@
 # @@license_version:1.3@@
 
 import base64
+from collections import defaultdict
 import httplib
 import json
 import logging
 from types import NoneType
 
-from google.appengine.api import users
-from google.appengine.ext import deferred, ndb
-
 from babel.numbers import get_currency_name
 from framework.consts import get_base_url
-from framework.i18n_utils import translate, DEFAULT_LANGUAGE
 from framework.plugin_loader import get_config
 from framework.utils import now
+from google.appengine.api import users
+from google.appengine.ext import deferred, ndb
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -53,7 +52,7 @@ from plugins.tff_backend.bizz.kyc.onfido_bizz import get_applicant
 from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
-from plugins.tff_backend.bizz.rogerthat import create_error_message
+from plugins.tff_backend.bizz.rogerthat import create_error_message, send_rogerthat_flow
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
@@ -67,13 +66,15 @@ from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.models.user import KYCStatus
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
-    BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT
+    BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT,\
+    FLOW_HOSTER_REMINDER
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO, \
     CreateInvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from requests.exceptions import HTTPError
+
 
 INVESTMENT_TODO_MAPPING = {
     InvestmentAgreement.STATUS_CANCELED: None,
@@ -482,8 +483,8 @@ def investment_agreement_signed(message_flow_run_id, member, steps, end_id, end_
                        INVESTMENT_TODO_MAPPING[agreement.status])
         deferred.defer(_inform_support_of_new_investment, iyo_username, agreement.id, agreement.token_count_float)
         logging.debug('Sending confirmation message')
-        prefix_message = translate(DEFAULT_LANGUAGE, 'tff', 'thanks_we_received_your_investment_signature')
-        deferred.defer(send_payment_instructions, agreement.app_user, agreement.id, prefix_message)
+        deferred.defer(send_payment_instructions, agreement.app_user, agreement.id, '')
+        deferred.defer(_send_hoster_reminder, agreement.app_user, _countdown=1)
         result = FlowCallbackResultTypeTO(flow=FLOW_INVESTMENT_CONFIRMED,
                                           tag=None,
                                           force_language=None,
@@ -577,6 +578,28 @@ Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more de
     send_emails_to_support(subject, body)
 
 
+def _get_total_investment_value(app_user):
+    total_token_count = defaultdict(lambda: 0)
+    for agreement in InvestmentAgreement.list_by_status_and_user(app_user, InvestmentAgreement.STATUS_PAID):
+        total_token_count[agreement.token] += agreement.token_count_float
+    logging.debug('%s has the following tokens: %s', app_user, dict(total_token_count))
+
+    tokens = total_token_count.keys()
+    stats = dict(zip(tokens, ndb.get_multi([GlobalStats.create_key(token) for token in tokens])))
+    total_usd = 0
+    for token, token_count in total_token_count.iteritems():
+        total_usd += token_count * stats[token].value
+    logging.debug('These tokens are worth $%s', total_usd)
+    return total_usd
+
+
+@returns()
+@arguments(app_user=users.User)
+def _send_hoster_reminder(app_user):
+    if _get_total_investment_value(app_user) >= 600:
+        send_rogerthat_flow(app_user, FLOW_HOSTER_REMINDER)
+
+
 @returns()
 @arguments(app_user=users.User, agreement_id=(int, long), message_prefix=unicode)
 def send_payment_instructions(app_user, agreement_id, message_prefix):
@@ -590,7 +613,10 @@ def send_payment_instructions(app_user, agreement_id, message_prefix):
     }
     if agreement.currency == "BTC":
         params['amount'] = '{:.8f}'.format(agreement.amount)
-        message = u"""%(message_prefix)sPlease use the following transfer details
+        message = u"""%(message_prefix)sHere are your payment instructions for the purchase of your ThreeFold Tokens.
+
+Please use the following transfer details
+
 Amount: %(currency)s %(amount)s - wallet 3GTf7gWhvWqfsurxXpEj6DU7SVoLM3wC6A
 
 Please inform us by email at payments@threefoldtoken.com when you have made payment.
@@ -599,7 +625,10 @@ Reference: %(reference)s"""
 
     else:
         params['amount'] = '{:.2f}'.format(agreement.amount)
-        message = u"""%(message_prefix)sPlease use the following transfer details
+        message = u"""%(message_prefix)sHere are your payment instructions for the purchase of your ThreeFold Tokens.
+
+Please use the following transfer details
+
 Amount: %(currency)s %(amount)s
 
 Bank: Mashreq Bank
