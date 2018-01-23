@@ -6,8 +6,11 @@ export interface StatisticValue {
   total: number;
 }
 
-export interface NodeStatus {
+export interface BaseNodeStatus {
   status: 'running' | 'halted';
+}
+
+export interface NodeStatusStats extends BaseNodeStatus {
   bootTime: number | null;
   network: {
     incoming: StatisticValue[];
@@ -17,3 +20,5 @@ export interface NodeStatus {
     utilisation: StatisticValue[]
   };
 }
+
+export type NodeStatus = BaseNodeStatus | NodeStatusStats;
