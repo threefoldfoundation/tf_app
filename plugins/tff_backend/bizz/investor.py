@@ -203,7 +203,7 @@ def create_investment_agreement(agreement):
     pdf_name = InvestmentAgreement.filename(agreement_model.id)
     pdf_url = upload_to_gcs(pdf_name, doc_content, content_type)
     deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_model.key, app_user, pdf_url,
-                   content_type, send_sign_message=False)
+                   content_type, send_sign_message=False, pdf_size=len(doc_content))
     return agreement_model
 
 

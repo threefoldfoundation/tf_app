@@ -6,7 +6,7 @@ import { Installation, InstallationLog, InstallationsList } from '../../../roger
 import {
   AgendaEvent,
   Check,
-  CreateInvestmentAgreementPayload,
+  CreateInvestmentAgreementPayload, CreateOrderPayload,
   CreateTransactionPayload,
   EventParticipant,
   FlowRun,
@@ -42,6 +42,9 @@ export interface ITffActionTypes {
   GET_ORDER: '[TFF] Get order';
   GET_ORDER_COMPLETE: '[TFF] Get order success';
   GET_ORDER_FAILED: '[TFF] Get order failed';
+  CREATE_ORDER: '[TFF] Create order';
+  CREATE_ORDER_COMPLETE: '[TFF] Create order success';
+  CREATE_ORDER_FAILED: '[TFF] Create order failed';
   UPDATE_ORDER: '[TFF] Update order';
   UPDATE_ORDER_COMPLETE: '[TFF] Update order success';
   UPDATE_ORDER_FAILED: '[TFF] Update order failed';
@@ -139,6 +142,9 @@ export const TffActionTypes: ITffActionTypes = {
   GET_ORDER: type('[TFF] Get order'),
   GET_ORDER_COMPLETE: type('[TFF] Get order success'),
   GET_ORDER_FAILED: type('[TFF] Get order failed'),
+  CREATE_ORDER: type('[TFF] Create order'),
+  CREATE_ORDER_COMPLETE: type('[TFF] Create order success'),
+  CREATE_ORDER_FAILED: type('[TFF] Create order failed'),
   UPDATE_ORDER: type('[TFF] Update order'),
   UPDATE_ORDER_COMPLETE: type('[TFF] Update order success'),
   UPDATE_ORDER_FAILED: type('[TFF] Update order failed'),
@@ -269,6 +275,27 @@ export class GetOrderCompleteAction implements Action {
 
 export class GetOrderFailedAction implements Action {
   type = TffActionTypes.GET_ORDER_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class CreateOrderAction implements Action {
+  type = TffActionTypes.CREATE_ORDER;
+
+  constructor(public payload: CreateOrderPayload) {
+  }
+}
+
+export class CreateOrderCompleteAction implements Action {
+  type = TffActionTypes.CREATE_ORDER_COMPLETE;
+
+  constructor(public payload: NodeOrder) {
+  }
+}
+
+export class CreateOrderFailedAction implements Action {
+  type = TffActionTypes.CREATE_ORDER_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
@@ -886,6 +913,9 @@ export type TffActions
   | GetOrderAction
   | GetOrderCompleteAction
   | GetOrderFailedAction
+  | CreateOrderAction
+  | CreateOrderCompleteAction
+  | CreateOrderFailedAction
   | UpdateOrderAction
   | UpdateOrderCompleteAction
   | UpdateOrderFailedAction

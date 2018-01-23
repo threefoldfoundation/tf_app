@@ -16,16 +16,15 @@
 # @@license_version:1.3@@
 
 import datetime
-from dateutil import relativedelta
 import logging
 import xmlrpclib
 
-from enum import Enum
+from google.appengine.api import urlfetch
 
 import erppeek
+from dateutil import relativedelta
+from enum import Enum
 from framework.plugin_loader import get_config
-from google.appengine.api import urlfetch
-from mcfw.cache import cached
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
@@ -193,10 +192,9 @@ def confirm_odoo_quotation(order_id):
     return result
 
 
-@cached(version=1, lifetime=86400, request=True, memcache=True)
-@returns(unicode)
+@returns([dict])
 @arguments(order_id=long)
-def get_node_id_from_odoo(order_id):
+def get_nodes_from_odoo(order_id):
     cfg = get_config(NAMESPACE)
     erp_client = _get_erp_client(cfg)
 
@@ -204,14 +202,15 @@ def get_node_id_from_odoo(order_id):
     stock_picking_model = erp_client.model('stock.picking')
     stock_move_model = erp_client.model('stock.move')
     stock_production_lot_model = erp_client.model('stock.production.lot')
-
     sale_order = sale_order_model.browse(order_id)
+    nodes = []
     for picking_id in sale_order.picking_ids.id:
         stock_picking = stock_picking_model.browse(picking_id)
         for move_line in stock_picking.move_lines.id:
             stock_move = stock_move_model.browse(move_line)
-            for lot_id in stock_move.lot_ids.id:
-                stock_production_lot = stock_production_lot_model.browse(lot_id)
-                if stock_production_lot.product_id.id in cfg.odoo.product_ids.values():
-                    return stock_production_lot.ref
-    return None
+            for lot in stock_move.lot_ids:
+                serial_number = lot.name
+                stock_production_lot = stock_production_lot_model.browse(lot.id)
+                if stock_production_lot.product_id.id in cfg.odoo.product_ids.values() and stock_production_lot.ref:
+                    nodes.append({'id': stock_production_lot.ref, 'serial_number': serial_number})
+    return nodes
