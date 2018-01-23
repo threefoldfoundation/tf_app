@@ -61,6 +61,9 @@ def save_flow_statistics(parent_message_key, steps, end_id, tag, flush_id, flush
     flow_run_key = FlowRun.create_key(parent_message_key)
     flow_run = flow_run_key.get()  # type: FlowRun
     if not flow_run:
+        if not message_flow_name:
+            logging.warn('Ignoring callback since we could not determine the message flow name')
+            return
         flow_run_status = FlowRunStatus.STARTED
         flow_run = _create_flow_run(flow_run_key, tag, message_flow_name, user_details, timestamp)
     else:

@@ -159,8 +159,6 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
 
 def _create_investment_agreement(amount, currency, token, token_count_float, username, version, app_user, **kwargs):
     tff_profile = get_tff_profile(username)
-    if tff_profile.kyc.status != KYCStatus.VERIFIED:
-        raise HttpBadRequestException('cannot_invest_not_kyc_verified')
     applicant = get_applicant(tff_profile.kyc.applicant_id)
     name = '%s %s ' % (applicant.first_name, applicant.last_name)
     address = '%s %s' % (applicant.addresses[0].street, applicant.addresses[0].building_number)
@@ -190,6 +188,10 @@ def create_investment_agreement(agreement):
     # type: (CreateInvestmentAgreementTO) -> InvestmentAgreement
     app_user = users.User(agreement.app_user)
     username = get_iyo_username(app_user)
+    tff_profile = get_tff_profile(username)
+    if tff_profile.kyc.status != KYCStatus.VERIFIED:
+        raise HttpBadRequestException('cannot_invest_not_kyc_verified')
+
     token_count_float = get_token_count(agreement.currency, agreement.amount)
     agreement_model = _create_investment_agreement(agreement.amount, agreement.currency, agreement.token,
                                                    token_count_float, username, 'manually_created', app_user,

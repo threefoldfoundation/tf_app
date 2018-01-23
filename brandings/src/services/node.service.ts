@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { of as observableOf } from 'rxjs/observable/of';
+import { merge } from 'rxjs/operators/merge';
 import { NodeStatus } from '../interfaces/node-status.interfaces';
-import { SeeDocument, SeeDocumentDetails } from '../interfaces/see.interfaces';
 import { RogerthatService } from './rogerthat.service';
 
 @Injectable()
@@ -11,6 +11,13 @@ export class NodeService {
   }
 
   getStatus() {
-    return this.rogerthatService.apiCall<NodeStatus>('node.status');
+    const userDataObservable = observableOf({
+      status: rogerthat.user.data.node_status || 'halted',
+    });
+    if (rogerthat.user.data.node_status === 'running') {
+      return userDataObservable.pipe(merge(this.rogerthatService.apiCall<NodeStatus>('node.status')));
+    } else {
+      return userDataObservable;
+    }
   }
 }

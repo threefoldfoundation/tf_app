@@ -1,7 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { NodeStatus, StatisticValue } from '../../interfaces/node-status.interfaces';
+import { NodeStatus, NodeStatusStats, StatisticValue } from '../../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 
 export interface LineChart {
@@ -35,13 +35,13 @@ export class NodeStatusComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.nodeStatus && changes.nodeStatus.currentValue) {
-      const status: NodeStatus = changes.nodeStatus.currentValue;
+    if (changes.nodeStatus && changes.nodeStatus.currentValue && (<NodeStatusStats>this.nodeStatus).cpu) {
+      const status: NodeStatusStats = changes.nodeStatus.currentValue;
       this.charts = this.getCharts(status).filter(c => c.data.labels.length > 0);
     }
   }
 
-  getCharts(status: NodeStatus) {
+  getCharts(status: NodeStatusStats) {
     const options: LineChartOptions | any = {
       responsive: true,
       elements: { line: { tension: 0 } },
@@ -110,6 +110,6 @@ export class NodeStatusComponent implements OnChanges {
   }
 
   getUptime() {
-    return this.translate.instant('online_since_x', { bootTime: this.datePipe.transform(this.nodeStatus.bootTime! * 1000, 'medium') });
+    return this.translate.instant('online_since_x', { bootTime: this.datePipe.transform((<NodeStatusStats>this.nodeStatus).bootTime! * 1000, 'medium') });
   }
 }
