@@ -43,6 +43,7 @@ def get_ticker_entry_for_installation(installation, new_logs):
         id='installation-%s' % installation.id,
         date=datetime.utcfromtimestamp(timestamp).isoformat().decode('utf-8') + u'Z',
         data={
+            'id': installation.id,
             'status': installation.status,
             'platform': installation.platform,
             'name': installation.user_details.name if installation.user_details else None

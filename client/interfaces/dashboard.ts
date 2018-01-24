@@ -16,8 +16,10 @@ export interface TickerEntryFlow<T = Date> extends BaseTickerEntry {
 }
 
 export interface FirebaseInstallation {
+  id: string;
   platform: MobileType;
   status: InstallationStatus;
+  name: string | null;
 }
 
 export interface TickerEntryInstallation<T = Date> extends BaseTickerEntry {

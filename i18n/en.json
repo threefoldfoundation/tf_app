@@ -209,6 +209,7 @@
     "user_details": "User details",
     "user_has_no_wallet_yet": "User does not have a wallet yet.",
     "user_x": "User: {{ user }}",
+    "user_x_installed_on_platform": "{{ name }} installed on an {{ platform }} device",
     "users": "Users",
     "value": "Value",
     "value_in_dollars": "Value in dollars",

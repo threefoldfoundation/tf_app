@@ -12,14 +12,15 @@
     </mat-grid-list>
     <p>{{ 'tff.stats_for_last_x' | translate : { time: timeDuration | timeDuration } }}</p>
   </div>
-  <div fxFlex="40" fxFlex.lt-md="100">
-    <div *ngFor="let entry of tickerEntries; trackBy: trackTickerEntries" fxLayout="row" class="ticker-line">
+  <mat-nav-list fxFlex="40" fxFlex.lt-md="100">
+    <a mat-list-item *ngFor="let entry of tickerEntries; trackBy: trackTickerEntries" fxLayout="row" class="ticker-line"
+       [routerLink]="getTickerEntryUrl(entry)" target="_blank">
       <tff-flow-run-status [status]="entry.data.status"
                            *ngIf="entry.type === TickerEntryType.FLOW"></tff-flow-run-status>
       <tff-installation-status [status]="entry.data.status"
                                *ngIf="entry.type == TickerEntryType.INSTALLATION"></tff-installation-status>
       <p class="date">{{ entry.date | time }}</p>
       <p class="message">{{ getTickerText(entry) }}</p>
-    </div>
-  </div>
+    </a>
+  </mat-nav-list>
 </div>

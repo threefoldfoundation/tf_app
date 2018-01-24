@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { INSTALLATION_STATUSES, MOBILE_TYPES } from '../../../../rogerthat_api/client/interfaces';
+import { MOBILE_TYPES } from '../../../../rogerthat_api/client/interfaces';
 import { FirebaseFlowRun, FlowRunStatus, TickerEntryType } from '../../interfaces';
 import { TickerEntry } from '../../interfaces/dashboard';
 import { AggregatedFlowRunStats, AggregatedInstallationStats } from '../../interfaces/flow-statistics.interfaces';
@@ -145,7 +145,11 @@ export class DashboardComponent implements OnChanges {
         return flowName;
       }
     } else if (entry.type === TickerEntryType.INSTALLATION) {
-      return `${this.translate.instant(MOBILE_TYPES[ entry.data.platform ])} installation`;
+      const platform = this.translate.instant(MOBILE_TYPES[ entry.data.platform ]);
+      if (entry.data.name) {
+        return this.translate.instant('tff.user_x_installed_on_platform', { name: entry.data.name, platform: platform });
+      }
+      return `${platform} installation`;
     } else {
       return JSON.stringify(entry);
     }
@@ -158,6 +162,14 @@ export class DashboardComponent implements OnChanges {
 
   trackTickerEntries(index: number, flowRun: FirebaseFlowRun) {
     return flowRun.id;
+  }
+
+  getTickerEntryUrl(tickerEntry: TickerEntry) {
+    if (tickerEntry.type === TickerEntryType.FLOW) {
+      return `/flow-statistics/${tickerEntry.data.flow_name}/${tickerEntry.data.id}`;
+    } else {
+      return `/installations/${tickerEntry.data.id}`;
+    }
   }
 
   private getFlowName(flowName: string): string {
