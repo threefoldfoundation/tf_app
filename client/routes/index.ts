@@ -8,6 +8,7 @@ import { NODE_ORDER_ROUTES } from './node-order-routes';
 import { USERS_ROUTES } from './users-routes';
 
 export const TffRoutes: Route[] = [
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   ...NODE_ORDER_ROUTES,
   ...INVESTMENT_AGREEMENT_ROUTES,
   ...GLOBAL_STATS_ROUTES,

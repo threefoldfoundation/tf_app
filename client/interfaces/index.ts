@@ -1,4 +1,5 @@
 export * from './agenda-events.interfaces';
+export * from './dashboard';
 export * from './flow-statistics.interfaces';
 export * from './global-stats.interfaces';
 export * from './investment-agreements.interfaces';

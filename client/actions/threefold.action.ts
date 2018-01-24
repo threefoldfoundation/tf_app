@@ -12,7 +12,7 @@ import {
   FlowRun,
   FlowRunList,
   FlowRunQuery,
-  FlowStats,
+  FirebaseFlowStats,
   GetEventParticipantsPayload,
   GetInstallationsQuery,
   GlobalStats,
@@ -831,7 +831,7 @@ export class GetFlowStatsAction implements Action {
 export class GetFlowStatsCompleteAction implements Action {
   type = TffActionTypes.GET_FLOW_STATS_COMPLETE;
 
-  constructor(public payload: FlowStats[]) {
+  constructor(public payload: FirebaseFlowStats[]) {
   }
 }
 

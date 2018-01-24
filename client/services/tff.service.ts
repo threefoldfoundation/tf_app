@@ -14,7 +14,7 @@ import {
   FlowRun,
   FlowRunList,
   FlowRunQuery,
-  FlowStats,
+  FirebaseFlowStats,
   GetEventParticipantsPayload,
   GetInstallationsQuery,
   GlobalStats,
@@ -165,7 +165,7 @@ export class TffService {
 
   getFlowStats(startDate: string) {
     const params = this._getQueryParams({ start_date: startDate });
-    return this.http.get<FlowStats[]>(`${TffConfig.API_URL}/flow-statistics/stats`, { params });
+    return this.http.get<FirebaseFlowStats[]>(`${TffConfig.API_URL}/flow-statistics/stats`, { params });
   }
 
   getInstallations(query: GetInstallationsQuery) {

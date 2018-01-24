@@ -9,6 +9,7 @@ import {
   MatCardModule,
   MatChipsModule,
   MatDatepickerModule,
+  MatGridListModule,
   MatIconModule,
   MatInputModule,
   MatListModule,
@@ -22,6 +23,9 @@ import {
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
 import { Store, StoreModule } from '@ngrx/store';
+// noinspection ES6UnusedImports
+import {} from '@types/google.visualization';
+import { Ng2GoogleChartsModule } from 'ng2-google-charts';
 import { ChannelModule } from '../../framework/client/channel/channel.module';
 import { MultilingualModule } from '../../framework/client/i18n/multilingual.module';
 import { SetThemeAction } from '../../framework/client/identity/actions';
@@ -46,6 +50,7 @@ const MATERIAL_IMPORTS = [
   MatCardModule,
   MatChipsModule,
   MatDatepickerModule,
+  MatGridListModule,
   MatIconModule,
   MatInputModule,
   MatListModule,
@@ -80,6 +85,7 @@ const PIPES = [
     MATERIAL_IMPORTS,
     FlexLayoutModule,
     ChannelModule,
+    Ng2GoogleChartsModule,
   ],
   declarations: [
     TFF_COMPONENTS,

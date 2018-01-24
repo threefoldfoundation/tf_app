@@ -5,7 +5,7 @@ import { InstallationLog, InstallationsList } from '../../../rogerthat_api/clien
 import { AgendaEvent, EventParticipant } from '../interfaces/agenda-events.interfaces';
 import {
   FlowRun,
-  FlowRunList, FlowStats,
+  FlowRunList, FirebaseFlowStats,
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
@@ -69,7 +69,7 @@ export interface ITffState {
   flowRunsStatus: ApiRequestStatus;
   flowRun: FlowRun | null;
   flowRunStatus: ApiRequestStatus;
-  flowStats: FlowStats[],
+  flowStats: FirebaseFlowStats[],
   flowStatsStatus: ApiRequestStatus,
   installations: InstallationsList;
   installationsStatus: ApiRequestStatus;
