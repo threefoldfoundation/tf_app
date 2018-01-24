@@ -30,7 +30,7 @@ from plugins.tff_backend.utils.app import create_app_user
 
 @arguments(params=dict, user_detail=UserDetailsTO)
 def api_get_node_status(params, user_detail):
-    # type: (dict, UserDetailsTO) -> dict
+    # type: (dict, UserDetailsTO) -> list[dict]
     try:
         profile = TffProfile.create_key(get_iyo_username(user_detail)).get()  # type: TffProfile
         if not DEBUG:
@@ -46,9 +46,7 @@ def api_get_node_status(params, user_detail):
                 else:
                     raise ApiCallException(
                         u'It looks like you either do not have a node yet or it has never been online yet.')
-        # todo multiple nodes and add serial number to response
-        stats = get_nodes_stats(profile.nodes[0] if profile.nodes else None)
-        return stats
+        return get_nodes_stats(profile.nodes)
     except ApiCallException:
         raise
     except Exception as e:

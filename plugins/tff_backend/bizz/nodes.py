@@ -138,30 +138,35 @@ def add_nodes_to_profile(iyo_username, nodes):
     return profile
 
 
-def get_nodes_stats(node):
-    # TODO lucas handle multiple nodes
-    data = {
-        'info': None,
-        'stats': None,
-    }
+def get_nodes_stats(nodes):
+    # type: (list[NodeInfo]) -> list[dict]
     if DEBUG:
-        # return _get_stats({'status': {'status': 'halted'}, 'stats': None, 'info': None})
-        return _get_stats(DEBUG_NODE_DATA)
-    # Start 2 api calls at the same time and wait for all of them to finish afterwards
-    if node:
-        rpcs = {
-            'info': _orc_call('/nodes/%s/info' % node.id),
-            'stats': _orc_call('/nodes/%s/stats' % node.id),
-        }
-
-        for key, rpc in rpcs.iteritems():
-            result = rpc.get_result()
-            if result.status_code == 200:
-                data[key] = json.loads(result.content)
-            else:
-                logging.warn('Response from orchestrator: %s %s' % (result.status_code, result.content))
-    data['status'] = {'status': node and node.status or 'halted'}
-    return _get_stats(data)
+        return [_get_stats(DEBUG_NODE_DATA)]
+    rpcs = []
+    # Start all api calls at the same time and wait for all of them to finish afterwards
+    for node in nodes:
+        if node.status != 'halted':
+            logging.info('Getting stats for node %s', node)
+            rpcs.extend([
+                ('info', node.id, _orc_call('/nodes/%s/info' % node.id)),
+                ('stats', node.id, _orc_call('/nodes/%s/stats' % node.id)),
+            ])
+    results_per_node = {node.id: {'id': node.id,
+                                  'status': node.status,
+                                  'serial_number': node.serial_number,
+                                  'info': None,
+                                  'stats': None}
+                        for node in nodes}
+    for key, node_id, rpc in rpcs:
+        result = rpc.get_result()
+        if result.status_code == 200:
+            results_per_node[node_id][key] = json.loads(result.content)
+        else:
+            logging.warn('Response from orchestrator: %s %s' % (result.status_code, result.content))
+    all_stats = []
+    for stats in results_per_node.itervalues():
+        all_stats.append(_get_stats(stats))
+    return all_stats
 
 
 def get_nodes_for_user(app_user):
@@ -173,17 +178,20 @@ def get_nodes_for_user(app_user):
 
 
 def _get_stats(data):
-    stats = {
-        'status': 'halted',
-        'bootTime': None,
-        'network': {'incoming': [], 'outgoing': []},
-        'cpu': {'utilisation': []}
+    node_info = {
+        'id': data['id'],
+        'serial_number': data['serial_number'],
+        'status': data['status'],
+        'stats': {
+            'bootTime': None,
+            'network': {'incoming': [], 'outgoing': []},
+            'cpu': {'utilisation': []}
+        }
     }
     for key, values in data.iteritems():
         if values:
-            if key == 'status':
-                stats['status'] = values['status']
-            elif key == 'info' and values['bootTime']:
+            stats = node_info['stats']
+            if key == 'info' and values['bootTime']:
                 stats['bootTime'] = values['bootTime']
             elif key == 'stats':
                 stats['network'] = {
@@ -191,7 +199,7 @@ def _get_stats(data):
                     'outgoing': values[u'network.throughput.outgoing/enp1s0']['history'].get('3600', [])
                 }
                 stats['cpu'] = _get_cpu_stats(values)
-    return stats
+    return node_info
 
 
 def _get_cpu_stats(data):
