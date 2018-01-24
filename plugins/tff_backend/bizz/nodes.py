@@ -15,22 +15,26 @@
 #
 # @@license_version:1.3@@
 from collections import defaultdict
+import datetime
 import json
 import logging
+
+from google.appengine.api import urlfetch, apiproxy_stub_map
+from google.appengine.ext import ndb
+from google.appengine.ext.deferred import deferred
 
 from framework.bizz.job import run_job
 from framework.plugin_loader import get_config
 from framework.utils import now
-from google.appengine.api import urlfetch, apiproxy_stub_map
-from google.appengine.ext import ndb
-from google.appengine.ext.deferred import deferred
 from mcfw.cache import cached
 from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import refresh_jwt
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.exceptions import BusinessException
+from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.odoo import get_node_id_from_odoo
 from plugins.tff_backend.bizz.todo import HosterSteps, update_hoster_progress
 from plugins.tff_backend.consts.hoster import DEBUG_NODE_DATA
@@ -38,7 +42,6 @@ from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.utils.app import get_app_user_tuple
-from plugins.tff_backend.bizz import get_rogerthat_api_key
 
 
 @returns(apiproxy_stub_map.UserRPC)
@@ -213,24 +216,48 @@ def check_node_statuses():
 
     statuses = {r['id']: r['status'] for r in json.loads(result.content)}
 
-    run_job(_get_profiles_with_node, [], _check_node_status, [statuses], keys_only=False)
+    run_job(_get_profiles_with_node, [], _check_node_status, [statuses])
 
 
 def _get_profiles_with_node():
     return TffProfile.query().filter(TffProfile.node_id > '')
 
 
-def _check_node_status(tff_profile, statuses):
-    tff_profile = tff_profile.key.get()
+def _check_node_status(tff_profile_key, statuses):
+    tff_profile = tff_profile_key.get()
     status = statuses.get(tff_profile.node_id)
     if not status:
         return logging.warn('Expected to find node %s in the ORC response', tff_profile.node_id)
 
     if tff_profile.node_status != status:
+        from_status = tff_profile.node_status
         logging.info('Node %s of user %s changed from status "%s" to "%s"',
-                     tff_profile.username, tff_profile.node_id, tff_profile.node_status, status)
+                     tff_profile.username, tff_profile.node_id, from_status, status)
         tff_profile.node_status = status
         tff_profile.put()
 
         user, app_id = get_app_user_tuple(tff_profile.app_user)
         system.put_user_data(get_rogerthat_api_key(), user.email(), app_id, {'node_status': status})
+
+        now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+        deferred.defer(_send_node_status_update_message, tff_profile.app_user, from_status, status, now)
+
+
+def _send_node_status_update_message(app_user, from_status, to_status, now):
+    if from_status == u'running':
+        subject = u'Connection to your node has been lost since %s' % now
+        msg = u'Dear ThreeFold Member,\n\n' \
+              u'Connection to your node has been lost since %s. Please check the network connection of your node.\n' \
+              u'Kind regards,\n' \
+              u'The ThreeFold Team' % (now)
+    elif to_status == u'running':
+        subject = u'Connection to your node has been resumed since %s' % now
+        msg = u'Dear ThreeFold Member,\n\n' \
+              u'Congratulations! Your node is now successfully connected to our system, and has been resumed since %s.\n' \
+              u'Kind regards,\n' \
+              u'The ThreeFold Team' % (now)
+    else:
+        logging.debug("_send_node_status_update_message not sending message for status ''%s' => '%s'", from_status, to_status)
+        return
+
+    send_message_and_email(app_user, msg, subject)
