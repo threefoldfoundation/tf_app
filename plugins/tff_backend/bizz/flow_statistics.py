@@ -202,7 +202,7 @@ def list_distinct_flows():
 
 
 def check_stuck_flows():
-    fifteen_minutes_ago = datetime.now() - relativedelta.relativedelta(minutes=15 * 0)
+    fifteen_minutes_ago = datetime.now() - relativedelta.relativedelta(minutes=15)
     run_job(_get_stalled_flows, [fifteen_minutes_ago], _set_flow_run_as_stalled, [])
 
 

@@ -78,7 +78,7 @@ class NodeOrder(NdbModel):
     order_time = ndb.IntegerProperty()
     sign_time = ndb.IntegerProperty()
     send_time = ndb.IntegerProperty()
-    arrival_time = ndb.IntegerProperty()
+    arrival_time = ndb.IntegerProperty()  # time the node first came online
     cancel_time = ndb.IntegerProperty()
     modification_time = ndb.IntegerProperty()
     odoo_sale_order_id = ndb.IntegerProperty()
@@ -155,6 +155,10 @@ class NodeOrder(NdbModel):
     def list_check_online(cls):
         two_weeks_ago = now() - (WEEK * 2)
         return cls.list_by_status(NodeOrderStatus.SENT).filter(cls.send_time < two_weeks_ago)
+
+    @classmethod
+    def list_by_so(cls, odoo_sale_order_id):
+        return cls.query().filter(cls.odoo_sale_order_id == odoo_sale_order_id)
 
     def to_dict(self, extra_properties=None):
         return super(NodeOrder, self).to_dict(['document_url'])

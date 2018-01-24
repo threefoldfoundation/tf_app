@@ -1,7 +1,7 @@
 import { Action } from '@ngrx/store';
 import { AgendaEvent, EventPresence, UpdatePresenceData } from '../interfaces/agenda.interfaces';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
-import { NodeStatus } from '../interfaces/node-status.interfaces';
+import { NodeInfo } from '../interfaces/node-status.interfaces';
 import { SetReferralResult } from '../interfaces/referrals.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
@@ -199,7 +199,7 @@ export class GetNodeStatusAction implements Action {
 export class GetNodeStatusCompleteAction implements Action {
   type = BrandingActionTypes.GET_NODE_STATUS_COMPLETE;
 
-  constructor(public payload: NodeStatus) {
+  constructor(public payload: NodeInfo[]) {
   }
 }
 

@@ -16,10 +16,11 @@
 # @@license_version:1.3@@
 import logging
 
+from google.appengine.api import search
+
 from framework.bizz.authentication import get_current_session
 from framework.plugin_loader import get_plugin, BrandingPlugin
 from framework.utils.plugins import Handler, Module
-from google.appengine.api import search
 from mcfw.consts import AUTHENTICATED, NOT_AUTHENTICATED
 from mcfw.restapi import rest_functions
 from mcfw.rpc import parse_complex_value

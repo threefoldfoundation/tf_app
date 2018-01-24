@@ -21,11 +21,12 @@ import logging
 
 from google.appengine.api import users
 from google.appengine.ext import ndb, deferred
+from google.appengine.ext.deferred import deferred
 
 from framework.consts import get_base_url
 from framework.plugin_loader import get_config
 from framework.utils import now
-from mcfw.consts import DEBUG
+from mcfw.consts import DEBUG, MISSING
 from mcfw.exceptions import HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -46,8 +47,9 @@ from plugins.tff_backend.bizz.iyo.keystore import get_keystore
 from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.messages import send_message_and_email
+from plugins.tff_backend.bizz.nodes import add_nodes_to_profile
 from plugins.tff_backend.bizz.odoo import create_odoo_quotation, update_odoo_quotation, QuotationState, \
-    confirm_odoo_quotation, get_node_id_from_odoo
+    confirm_odoo_quotation, get_nodes_from_odoo
 from plugins.tff_backend.bizz.rogerthat import put_user_data, create_error_message
 from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
@@ -55,12 +57,13 @@ from plugins.tff_backend.bizz.todo.hoster import HosterSteps
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.consts.hoster import REQUIRED_TOKEN_COUNT_TO_HOST
 from plugins.tff_backend.dal.node_orders import get_node_order
+from plugins.tff_backend.exceptions.hoster import OrderAlreadyExistsException, InvalidContentTypeException
 from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping, NodeOrderStatus, ContactInfo
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE, FLOW_HOSTER_SIGNATURE_RECEIVED, \
     FLOW_SIGN_HOSTING_AGREEMENT
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
-from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderDetailsTO
+from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderDetailsTO, CreateNodeOrderTO
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 
@@ -192,7 +195,7 @@ def _create_node_order_pdf(node_order_id):
     deferred.defer(update_hoster_progress, user_email.email(), app_id, HosterSteps.FLOW_ADDRESS)
 
 
-def _order_node_iyo_see(app_user, node_order_id, pdf_url, pdf_size):
+def _order_node_iyo_see(app_user, node_order_id, pdf_url, pdf_size, create_quotation=True):
     iyo_username = get_iyo_username(app_user)
     organization_id = get_iyo_organization_id()
 
@@ -214,8 +217,9 @@ def _order_node_iyo_see(app_user, node_order_id, pdf_url, pdf_size):
         order = get_node_order(node_order_id)
         order.tos_iyo_see_id = iyo_see_doc.uniqueid
         order.put()
-        deferred.defer(_create_quotation, app_user, node_order_id, pdf_url, attachment_name, pdf_size,
-                       _transactional=True)
+        if create_quotation:
+            deferred.defer(_create_quotation, app_user, node_order_id, pdf_url, attachment_name, pdf_size,
+                           _transactional=True)
 
     ndb.transaction(trans)
 
@@ -426,8 +430,8 @@ def put_node_order(order_id, order):
                            HosterSteps.NODE_POWERED)  # nuke todo list
             deferred.defer(set_hoster_status_in_user_data, order_model.app_user)
         elif order_model.status == NodeOrderStatus.SENT:
-            if not order_model.odoo_sale_order_id or not get_node_id_from_odoo(order_model.odoo_sale_order_id):
-                raise HttpBadRequestException('no_serial_number_configured_yet',
+            if not order_model.odoo_sale_order_id or not get_nodes_from_odoo(order_model.odoo_sale_order_id):
+                raise HttpBadRequestException('cannot_mark_sent_no_serial_number_configured_yet',
                                               {'sale_order': order_model.odoo_sale_order_id})
             order_model.send_time = now()
             deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_SENT)
@@ -496,3 +500,46 @@ def set_hoster_status_in_user_data(app_user, can_order=None):
     current_user_data = system.get_user_data(api_key, email.email(), app_id, ['hoster'])
     if current_user_data != user_data:
         system.put_user_data(api_key, email.email(), app_id, user_data)
+
+
+@returns(NodeOrder)
+@arguments(data=CreateNodeOrderTO)
+def create_node_order(data):
+    # type: (CreateNodeOrderTO) -> NodeOrder
+    if data.status not in (NodeOrderStatus.SIGNED, NodeOrderStatus.SENT, NodeOrderStatus.ARRIVED, NodeOrderStatus.PAID):
+        data.sign_time = MISSING
+    if data.status not in (NodeOrderStatus.SENT, NodeOrderStatus.ARRIVED):
+        data.send_time = MISSING
+    app_user = users.User(data.app_user)
+    order_count = NodeOrder.list_by_so(data.odoo_sale_order_id).count()
+    if order_count > 0:
+        raise OrderAlreadyExistsException(data.odoo_sale_order_id)
+    try:
+        nodes = get_nodes_from_odoo(data.odoo_sale_order_id)
+    except (IndexError, TypeError):
+        logging.warn('Could not get nodes from odoo for order id %s' % data.odoo_sale_order_id, exc_info=True)
+        raise HttpBadRequestException('cannot_find_so_x', {'id': data.odoo_sale_order_id})
+    if not nodes:
+        raise HttpBadRequestException('no_serial_number_configured_yet',
+                                      {'sale_order': data.odoo_sale_order_id})
+    prefix, doc_content_base64 = data.document.split(',')
+    content_type = prefix.split(';')[0].replace('data:', '')
+    if content_type != 'application/pdf':
+        raise InvalidContentTypeException(content_type, ['application/pdf'])
+
+    doc_content = base64.b64decode(doc_content_base64)
+    order_key = NodeOrder.create_key()
+    pdf_name = NodeOrder.filename(order_key.id())
+    pdf_url = upload_to_gcs(pdf_name, doc_content, content_type)
+    order = NodeOrder(key=order_key,
+                      app_user=app_user,
+                      **data.to_dict(exclude=['document', 'app_user']))
+    order.put()
+    iyo_username = get_iyo_username(app_user)
+    email, app_id = get_app_user_tuple(app_user)
+    deferred.defer(add_nodes_to_profile, iyo_username, nodes)
+    deferred.defer(set_hoster_status_in_user_data, order.app_user, False)
+    deferred.defer(add_user_to_role, UserDetailsTO(email=email.email(), app_id=app_id), RogerthatRoles.HOSTERS)
+    deferred.defer(tag_intercom_users, IntercomTags.HOSTER, [iyo_username])
+    deferred.defer(_order_node_iyo_see, order.app_user, order.id, pdf_url, len(doc_content), create_quotation=False)
+    return order

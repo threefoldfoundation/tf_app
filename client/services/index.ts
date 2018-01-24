@@ -40,6 +40,7 @@ import {
 } from '../components';
 import {
   CreateInvestmentAgreementPageComponent,
+  CreateOrderPageComponent,
   DashboardPageComponent,
   FlowStatisticsDetailPageComponent,
   FlowStatisticsOverviewPageComponent,
@@ -66,6 +67,7 @@ export const TFF_PROVIDERS: any[] = [
 
 export const TFF_PAGES = [
   CreateInvestmentAgreementPageComponent,
+  CreateOrderPageComponent,
   DashboardPageComponent,
   FlowStatisticsDetailPageComponent,
   FlowStatisticsOverviewPageComponent,

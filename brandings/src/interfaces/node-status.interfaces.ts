@@ -6,11 +6,19 @@ export interface StatisticValue {
   total: number;
 }
 
-export interface BaseNodeStatus {
-  status: 'running' | 'halted';
+export enum NodeStatus {
+  RUNNING = 'running',
+  HALTED = 'halted',
 }
 
-export interface NodeStatusStats extends BaseNodeStatus {
+export interface NodeInfo {
+  status: NodeStatus;
+  id: string;
+  serial_number: string;
+  stats?: NodeStatusStats;
+}
+
+export interface NodeStatusStats {
   bootTime: number | null;
   network: {
     incoming: StatisticValue[];
@@ -20,5 +28,3 @@ export interface NodeStatusStats extends BaseNodeStatus {
     utilisation: StatisticValue[]
   };
 }
-
-export type NodeStatus = BaseNodeStatus | NodeStatusStats;

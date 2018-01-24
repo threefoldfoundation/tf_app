@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { first } from 'rxjs/operators/first';
@@ -20,7 +20,13 @@ import { getNodeOrdersQuery, getOrders, getOrdersStatus } from '../../tff.state'
       <tff-order-list [orders]="orders$ | async"
                       [status]="listStatus$ | async"
                       (loadMore)="onLoadMore()"></tff-order-list>
-    </div>`
+    </div>
+    <div class="fab-bottom-right">
+      <a mat-fab [routerLink]="['create']">
+        <mat-icon>add</mat-icon>
+      </a>
+    </div>
+  `
 })
 export class OrderListPageComponent implements OnInit, OnDestroy {
   orders$: Observable<NodeOrderList>;

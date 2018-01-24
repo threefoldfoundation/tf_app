@@ -36,6 +36,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       return {
         ...state,
         order: initialTffState.order,
+        createOrderStatus: initialTffState.updateOrderStatus,
         updateOrderStatus: initialTffState.updateOrderStatus,
       };
     case actions.TffActionTypes.GET_ORDER:
@@ -54,6 +55,22 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       return {
         ...state,
         orderStatus: action.payload,
+      };
+    case actions.TffActionTypes.CREATE_ORDER:
+      return {
+        ...state,
+        createOrderStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.CREATE_ORDER_COMPLETE:
+      return {
+        ...state,
+        order: action.payload,
+        createOrderStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.CREATE_ORDER_FAILED:
+      return {
+        ...state,
+        createOrderStatus: action.payload,
       };
     case actions.TffActionTypes.UPDATE_ORDER:
       return {

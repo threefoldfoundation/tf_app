@@ -26,6 +26,7 @@ export interface ITffState {
   order: NodeOrder | null;
   ordersQuery: NodeOrdersQuery;
   orderStatus: ApiRequestStatus;
+  createOrderStatus: ApiRequestStatus;
   updateOrderStatus: ApiRequestStatus;
   investmentAgreements: InvestmentAgreementList;
   investmentAgreementsQuery: InvestmentAgreementsQuery;
@@ -94,6 +95,7 @@ export const initialTffState: ITffState = {
     query: null,
   },
   orderStatus: apiRequestInitial,
+  createOrderStatus: apiRequestInitial,
   updateOrderStatus: apiRequestInitial,
   investmentAgreements: emptyPaginatedResult,
   investmentAgreementsStatus: apiRequestInitial,

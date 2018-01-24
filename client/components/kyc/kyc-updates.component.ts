@@ -3,8 +3,7 @@ import { KYCStatus, KYCStatuses, KYCStatusUpdate } from '../../interfaces/profil
 
 @Component({
   selector: 'tff-kyc-updates',
-  encapsulation: ViewEncapsulation.None,
-  preserveWhitespaces: false,
+  encapsulation: ViewEncapsulation.Emulated,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'kyc-updates.component.html',
   styles: [ `.mat-card.kyc-card {

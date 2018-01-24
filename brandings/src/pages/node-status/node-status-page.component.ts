@@ -2,12 +2,11 @@ import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Platform } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
-import { filter } from 'rxjs/operators/filter';
 import { GetNodeStatusAction } from '../../actions/branding.actions';
 import { IAppState } from '../../app/app.state';
-import { NodeStatus } from '../../interfaces/node-status.interfaces';
+import { NodeInfo } from '../../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
-import { getNodeStatus, getNodeStatusStatus } from '../../state/app.state';
+import { getNodes, getNodesStatus } from '../../state/app.state';
 
 @Component({
   selector: 'node-status-page',
@@ -15,7 +14,7 @@ import { getNodeStatus, getNodeStatusStatus } from '../../state/app.state';
   templateUrl: 'node-status-page.component.html',
 })
 export class NodeStatusPageComponent implements OnInit {
-  nodeStatus$: Observable<NodeStatus>;
+  nodes$: Observable<NodeInfo[]>;
   status$: Observable<ApiRequestStatus>;
 
   constructor(private platform: Platform,
@@ -24,8 +23,8 @@ export class NodeStatusPageComponent implements OnInit {
 
   ngOnInit() {
     this.store.dispatch(new GetNodeStatusAction());
-    this.nodeStatus$ = <Observable<NodeStatus>>this.store.select(getNodeStatus).pipe(filter(p => p !== null));
-    this.status$ = this.store.select(getNodeStatusStatus);
+    this.nodes$ = this.store.select(getNodes);
+    this.status$ = this.store.select(getNodesStatus);
   }
 
   close() {

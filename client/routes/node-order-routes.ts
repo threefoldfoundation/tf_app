@@ -1,5 +1,6 @@
 import { MetaGuard } from '@ngx-meta/core';
 import { OrderDetailPageComponent, OrderListPageComponent } from '../components/orders';
+import { CreateOrderPageComponent } from '../pages/orders';
 
 export const NODE_ORDER_ROUTES = [
   { path: '', redirectTo: 'node-orders', pathMatch: 'full' },
@@ -17,6 +18,12 @@ export const NODE_ORDER_ROUTES = [
     component: OrderListPageComponent,
   },
   { path: 'orders/:orderId', redirectTo: 'node-orders/:orderId', pathMatch: 'full' },
+  {
+    path: 'node-orders/create',
+    canActivate: [ MetaGuard ],
+    data: { meta: { title: 'tff.create_node_order' } },
+    component: CreateOrderPageComponent,
+  },
   {
     path: 'node-orders/:orderId',
     canActivate: [ MetaGuard ],
