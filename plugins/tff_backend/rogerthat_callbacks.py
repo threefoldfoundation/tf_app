@@ -21,6 +21,7 @@ from google.appengine.ext import deferred
 
 from framework.models.session import Session
 from framework.plugin_loader import get_config
+from framework.utils import try_or_defer
 from mcfw.properties import object_factory
 from mcfw.rpc import parse_complex_value, serialize_complex_value, returns, arguments
 from plugins.rogerthat_api.models.settings import RogerthatSettings
@@ -230,4 +231,4 @@ def system_api_call(rt_settings, request_id, method, params, user_details, **kwa
 def installation_progress(rt_settings, request_id, installation, logs, **kwargs):
     installation = InstallationTO.from_dict(installation)
     logs = InstallationLogTO.from_list(logs)
-    update_firebase_installation(installation, logs)
+    try_or_defer(update_firebase_installation, installation, logs)

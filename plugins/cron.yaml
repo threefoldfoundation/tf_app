@@ -31,10 +31,6 @@ cron:
   url: /admin/cron/tff_backend/check_stuck_flows
   schedule: every 10 minutes
 
-- description: Dashboard stats
-  url: /admin/cron/tff_backend/dashboard
-  schedule: every 5 minutes
-
 - description: Rebuild firebase data
   url: /admin/cron/tff_backend/rebuild_firebase
   schedule: 1 of month 00:00
