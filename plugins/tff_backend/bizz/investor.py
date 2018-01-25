@@ -663,7 +663,7 @@ def _send_sign_investment_reminder(agreement_id, message_type):
                   'You can find your created %s Purchase Agreement in your ThreeFold messages.' % (agreement.token)
     elif message_type == u'short':
         message = 'Dear ThreeFold Member,\n\n' \
-                  'It appears that your created iTFT Purchase Agreement has not been signed yet.'
+                  'It appears that your created %s Purchase Agreement has not been signed yet.' % (agreement.token)
     else:
         return
     subject = u'Your Purchase Agreement is ready to be signed'
