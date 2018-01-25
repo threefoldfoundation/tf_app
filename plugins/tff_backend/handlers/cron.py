@@ -107,7 +107,9 @@ class CheckNodesOnlineHandler(webapp2.RequestHandler):
 class CheckNodesStatusesHandler(webapp2.RequestHandler):
 
     def get(self):
-        deferred.defer(check_node_statuses)
+        cfg = get_config(NAMESPACE)
+        if cfg.orchestator and cfg.orchestator.jwt:
+            deferred.defer(check_node_statuses)
 
 
 class ExpiredEventsHandler(webapp2.RequestHandler):
