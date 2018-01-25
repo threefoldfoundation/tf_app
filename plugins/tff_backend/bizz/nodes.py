@@ -14,9 +14,9 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+from collections import defaultdict
 import json
 import logging
-from collections import defaultdict
 
 from google.appengine.api import urlfetch, apiproxy_stub_map
 from google.appengine.ext import ndb
@@ -209,7 +209,7 @@ def _get_cpu_stats(data):
     for key in data:
         cpu_count += 1
         if key.startswith('machine.CPU.percent'):
-            cpu_stats = data[key]['history']['3600']
+            cpu_stats = data[key]['history'].get('3600', [])
             for stat_obj in cpu_stats:
                 timestamp = stat_obj['start']
                 for k in total_cpu[timestamp]:
