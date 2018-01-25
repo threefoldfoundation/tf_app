@@ -3,7 +3,6 @@ import { OrderDetailPageComponent, OrderListPageComponent } from '../components/
 import { CreateOrderPageComponent } from '../pages/orders';
 
 export const NODE_ORDER_ROUTES = [
-  { path: '', redirectTo: 'node-orders', pathMatch: 'full' },
   { path: 'orders', redirectTo: 'node-orders', pathMatch: 'full' },
   {
     path: 'node-orders',

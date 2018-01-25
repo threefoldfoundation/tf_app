@@ -31,7 +31,7 @@ from plugins.tff_backend.api import investor, payment, nodes, global_stats, user
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings, Roles
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler, \
-    BackupHandler, CheckNodesOnlineHandler, CheckNodesStatusesHandler, ExpiredEventsHandler
+    BackupHandler, CheckNodesOnlineHandler, CheckNodesStatusesHandler, ExpiredEventsHandler, RebuildFirebaseHandler
 from plugins.tff_backend.handlers.flow_statistics import CheckStuckFlowsHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
@@ -49,6 +49,7 @@ class TffBackendPlugin(BrandingPlugin):
 
         rogerthat_api_plugin = get_plugin('rogerthat_api')
         assert (isinstance(rogerthat_api_plugin, RogerthatApiPlugin))
+        rogerthat_api_plugin.subscribe('app.installation_progress', rogerthat_callbacks.installation_progress)
         rogerthat_api_plugin.subscribe('messaging.flow_member_result', rogerthat_callbacks.flow_member_result)
         rogerthat_api_plugin.subscribe('messaging.form_update', rogerthat_callbacks.form_update)
         rogerthat_api_plugin.subscribe('messaging.update', rogerthat_callbacks.messaging_update)
@@ -84,6 +85,7 @@ class TffBackendPlugin(BrandingPlugin):
             yield Handler(url='/admin/cron/tff_backend/check_nodes_statuses', handler=CheckNodesStatusesHandler)
             yield Handler(url='/admin/cron/tff_backend/events/expired', handler=ExpiredEventsHandler)
             yield Handler(url='/admin/cron/tff_backend/check_stuck_flows', handler=CheckStuckFlowsHandler)
+            yield Handler(url='/admin/cron/tff_backend/rebuild_firebase', handler=RebuildFirebaseHandler)
 
     def get_client_routes(self):
         return ['/orders<route:.*>', '/node-orders<route:.*>', '/investment-agreements<route:.*>',

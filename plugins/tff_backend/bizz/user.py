@@ -95,25 +95,10 @@ def user_registered(user_detail, origin, data):
             return
 
         jwt = qr_content
-        decoded_jwt = decode_jwt_cached(jwt)
-        username = decoded_jwt.get('username', None)
-        if not username:
-            logging.warn('Could not find username in jwt.')
-            return
-
-        missing_scopes = [s for s in required_scopes if s and s not in decoded_jwt['scope']]
-        if missing_scopes:
-            logging.warn('Access token is missing required scopes %s', missing_scopes)
 
     elif origin == REGISTRATION_ORIGIN_OAUTH:
         access_token_data = data.get('result', {})
         access_token = access_token_data.get('access_token')
-        username = access_token_data.get('info', {}).get('username')
-
-        if not access_token or not username:
-            logging.warn('No access_token/username in %s', data)
-            return
-
         scopes = [s for s in access_token_data.get('scope', '').split(',') if s]
         missing_scopes = [s for s in required_scopes if s and s not in scopes]
         if missing_scopes:
@@ -121,10 +106,19 @@ def user_registered(user_detail, origin, data):
         scopes.append('offline_access')
         logging.debug('Creating JWT with scopes %s', scopes)
         jwt = create_jwt(access_token, scope=','.join(scopes))
-        decoded_jwt = decode_jwt_cached(jwt)
 
     else:
         return
+
+    decoded_jwt = decode_jwt_cached(jwt)
+    username = decoded_jwt.get('username', None)
+    if not username:
+        logging.warn('Could not find username in jwt.')
+        return
+
+    missing_scopes = [s for s in required_scopes if s and s not in decoded_jwt['scope']]
+    if missing_scopes:
+        logging.warn('Access token is missing required scopes %s', missing_scopes)
 
     logging.debug('Decoded JWT: %s', decoded_jwt)
     scopes = decoded_jwt['scope']
