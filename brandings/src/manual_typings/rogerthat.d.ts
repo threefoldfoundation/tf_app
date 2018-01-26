@@ -114,22 +114,11 @@ export interface NewsItem {
   sortKey: number;
 }
 
-export interface CountNewsItemsParams {
-  /**
-   * Email of the service you want to count news items for
-   */
-  service?: string;
-}
-
 export interface CountNewsItemsResult {
   count: number;
 }
 
 export interface ListNewsItemsParams {
-  /**
-   * Email of the service you want to list news items for
-   */
-  service?: number;
   cursor?: string;
   /**
    * Amount of news items that will be returned
@@ -144,11 +133,10 @@ export interface ListNewsItemsResult {
 
 export interface RogerthatNews {
   /**
-   * Count news items for all or 1 service.
+   * Count news items
    */
   count: (successCallback: (result: CountNewsItemsResult) => void,
-          errorCallback: (result: RogerthatError) => void,
-          params?: CountNewsItemsParams) => void;
+          errorCallback: (result: RogerthatError) => void) => void;
   /**
    * Get the details of a news item.
    */
