@@ -15,6 +15,7 @@
 #
 # @@license_version:1.3@@
 from collections import defaultdict
+import datetime
 import json
 import logging
 
@@ -33,6 +34,7 @@ from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo
 from plugins.tff_backend.bizz.todo import HosterSteps, update_hoster_progress
 from plugins.tff_backend.consts.hoster import DEBUG_NODE_DATA
@@ -236,15 +238,15 @@ def check_node_statuses():
 
     statuses = {r['id']: r['status'] for r in json.loads(result.content)}
 
-    run_job(_get_profiles_with_node, [], _check_node_status, [statuses], keys_only=False)
+    run_job(_get_profiles_with_node, [], _check_node_status, [statuses])
 
 
 def _get_profiles_with_node():
     return TffProfile.list_with_node()
 
 
-def _check_node_status(tff_profile, statuses):
-    tff_profile = tff_profile.key.get()  # type: TffProfile
+def _check_node_status(tff_profile_key, statuses):
+    tff_profile = tff_profile_key.get()  # type: TffProfile
     should_update = False
     for node in tff_profile.nodes:
         status = statuses.get(node.id)
@@ -255,10 +257,35 @@ def _check_node_status(tff_profile, statuses):
             logging.info('Node %s of user %s changed from status "%s" to "%s"',
                          tff_profile.username, node.id, node.status, status)
             should_update = True
+            from_status = node.status
             node.status = status
+
+            now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+            _send_node_status_update_message(tff_profile.app_user, from_status, status, now)
 
     if should_update:
         tff_profile.put()
         user, app_id = get_app_user_tuple(tff_profile.app_user)
         data = {'nodes': [n.to_dict() for n in tff_profile.nodes]}
         system.put_user_data(get_rogerthat_api_key(), user.email(), app_id, data)
+
+
+def _send_node_status_update_message(app_user, from_status, to_status, now):
+    if from_status == u'running':
+        subject = u'Connection to your node has been lost since %s' % now
+        msg = u'Dear ThreeFold Member,\n\n' \
+              u'Connection to your node has been lost since %s. Please check the network connection of your node.\n' \
+              u'Kind regards,\n' \
+              u'The ThreeFold Team' % (now)
+    elif to_status == u'running':
+        subject = u'Connection to your node has been resumed since %s' % now
+        msg = u'Dear ThreeFold Member,\n\n' \
+              u'Congratulations! Your node is now successfully connected to our system, and has been resumed since %s.\n' \
+              u'Kind regards,\n' \
+              u'The ThreeFold Team' % (now)
+    else:
+        logging.debug(
+            "_send_node_status_update_message not sending message for status ''%s' => '%s'", from_status, to_status)
+        return
+
+    send_message_and_email(app_user, msg, subject)
