@@ -10,7 +10,6 @@ import { getUser, getUserStatus } from '../../tff.state';
 @Component({
   selector: 'tff-user-details-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  preserveWhitespaces: false,
   template: `
     <div class="default-component-padding" *ngIf="(status$ | async)?.success">
       <pre>{{ user$ | async | json }}</pre>

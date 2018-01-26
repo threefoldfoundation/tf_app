@@ -15,17 +15,17 @@ export class SearchInvestmentAgreementsComponent {
   @Output() search = new EventEmitter<InvestmentAgreementsQuery>();
 
   searchString: string | null;
-  private _query: InvestmentAgreementsQuery;
+  _query: InvestmentAgreementsQuery;
 
   get query() {
     return { ...this._query, query: this.searchString };
   }
 
   @Input() set query(value: InvestmentAgreementsQuery) {
-    this._query = { ...value, query: this.searchString || value.query };
     if (!this.searchString) {
       this.searchString = value.query;
     }
+    this._query = { ...value, query: this.searchString };
   }
 
   submit() {

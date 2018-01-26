@@ -9,6 +9,7 @@ import { NodeOrdersQuery, ORDER_STATUSES } from '../../interfaces';
 export class SearchNodeOrdersComponent {
   statuses = ORDER_STATUSES;
   searchString: string | null;
+  _query: NodeOrdersQuery;
   @Output() search = new EventEmitter();
 
   get query() {
@@ -16,13 +17,12 @@ export class SearchNodeOrdersComponent {
   }
 
   @Input() set query(value: NodeOrdersQuery) {
-    this._query = { ...value, query: this.searchString || value.query };
     if (!this.searchString) {
       this.searchString = value.query;
     }
+    this._query = { ...value, query: this.searchString };
   }
 
-  private _query: NodeOrdersQuery;
 
   submit() {
     this.query = { ...this.query, cursor: null };

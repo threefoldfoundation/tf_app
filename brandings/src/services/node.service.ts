@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
+import { merge } from 'rxjs/observable/merge';
 import { of as observableOf } from 'rxjs/observable/of';
-import { merge } from 'rxjs/operators/merge';
-import { NodeStatus } from '../interfaces/node-status.interfaces';
+import { map } from 'rxjs/operators';
+import { NodeInfo, NodeStatus } from '../interfaces/node-status.interfaces';
 import { RogerthatService } from './rogerthat.service';
 
 @Injectable()
@@ -11,13 +13,15 @@ export class NodeService {
   }
 
   getStatus() {
-    const userDataObservable = observableOf({
-      status: rogerthat.user.data.node_status || 'halted',
-    });
-    if (rogerthat.user.data.node_status === 'running') {
-      return userDataObservable.pipe(merge(this.rogerthatService.apiCall<NodeStatus>('node.status')));
+    const userDataNodes: NodeInfo[] = rogerthat.user.data.nodes || [];
+    let resultObservable: Observable<NodeInfo[]>;
+    const hasRunningNodes = userDataNodes.some(node => node.status === NodeStatus.RUNNING);
+    const userDataObservable = observableOf(userDataNodes);
+    if (hasRunningNodes) {
+      resultObservable = merge(userDataObservable, this.rogerthatService.apiCall<NodeInfo[]>('node.status'));
     } else {
-      return userDataObservable;
+      resultObservable = userDataObservable;
     }
+    return resultObservable.pipe(map(nodes => nodes.map(node => ({ ...node, status: node.status || NodeStatus.HALTED }))));
   }
 }

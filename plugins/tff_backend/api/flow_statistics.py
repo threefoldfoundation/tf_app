@@ -14,11 +14,10 @@
 # limitations under the License.
 #
 # @@license_version:1.4@@
-
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.authentication import Scopes
-from plugins.tff_backend.bizz.flow_statistics import list_flow_runs, list_distinct_flows, get_flow_run, flow_run_stats
+from plugins.tff_backend.bizz.flow_statistics import list_flow_runs, list_distinct_flows, get_flow_run
 
 
 @rest('/flow-statistics/flows', 'get', Scopes.BACKEND_READONLY, silent_result=True)
@@ -46,9 +45,3 @@ def api_list_flow_runs(flow_name=None, min_date=None, cursor=None, page_size=50)
 def api_get_flow_run(flow_run_id):
     return get_flow_run(flow_run_id).to_dict()
 
-
-@rest('/flow-statistics/stats', 'get', Scopes.BACKEND_READONLY, silent_result=True)
-@returns([dict])
-@arguments(start_date=unicode)
-def api_list_flow_stats(start_date):
-    return flow_run_stats(start_date)

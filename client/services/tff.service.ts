@@ -2,20 +2,19 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators/map';
-import { ChannelService } from '../../../framework/client/channel/services/channel.service';
 import { Profile } from '../../../its_you_online_auth/client/interfaces';
 import { Installation, InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces';
 import {
   AgendaEvent,
   Check,
   CreateInvestmentAgreementPayload,
+  CreateOrderPayload,
   CreateTransactionPayload,
   EventParticipant,
-  FirebaseFlowRun,
   FlowRun,
   FlowRunList,
   FlowRunQuery,
-  FlowStats,
+  FirebaseFlowStats,
   GetEventParticipantsPayload,
   GetInstallationsQuery,
   GlobalStats,
@@ -49,6 +48,10 @@ export class TffService {
 
   getNodeOrder(orderId: string) {
     return this.http.get<NodeOrder>(`${TffConfig.API_URL}/orders/${orderId}`);
+  }
+
+  createNodeOrder(nodeOrder: CreateOrderPayload) {
+    return this.http.post<NodeOrder>(`${TffConfig.API_URL}/orders`, nodeOrder);
   }
 
   updateNodeOrder(nodeOrder: NodeOrder) {
@@ -162,7 +165,7 @@ export class TffService {
 
   getFlowStats(startDate: string) {
     const params = this._getQueryParams({ start_date: startDate });
-    return this.http.get<FlowStats[]>(`${TffConfig.API_URL}/flow-statistics/stats`, { params });
+    return this.http.get<FirebaseFlowStats[]>(`${TffConfig.API_URL}/flow-statistics/stats`, { params });
   }
 
   getInstallations(query: GetInstallationsQuery) {

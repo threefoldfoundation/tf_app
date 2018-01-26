@@ -16,10 +16,11 @@
 # @@license_version:1.3@@
 import logging
 
+from google.appengine.api import search
+
 from framework.bizz.authentication import get_current_session
 from framework.plugin_loader import get_plugin, BrandingPlugin
 from framework.utils.plugins import Handler, Module
-from google.appengine.api import search
 from mcfw.consts import AUTHENTICATED, NOT_AUTHENTICATED
 from mcfw.restapi import rest_functions
 from mcfw.rpc import parse_complex_value
@@ -30,7 +31,7 @@ from plugins.tff_backend.api import investor, payment, nodes, global_stats, user
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings, Roles
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler, \
-    BackupHandler, CheckNodesOnlineHandler, CheckNodesStatusesHandler, ExpiredEventsHandler
+    BackupHandler, CheckNodesOnlineHandler, CheckNodesStatusesHandler, ExpiredEventsHandler, RebuildFirebaseHandler
 from plugins.tff_backend.handlers.flow_statistics import CheckStuckFlowsHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
@@ -48,6 +49,7 @@ class TffBackendPlugin(BrandingPlugin):
 
         rogerthat_api_plugin = get_plugin('rogerthat_api')
         assert (isinstance(rogerthat_api_plugin, RogerthatApiPlugin))
+        rogerthat_api_plugin.subscribe('app.installation_progress', rogerthat_callbacks.installation_progress)
         rogerthat_api_plugin.subscribe('messaging.flow_member_result', rogerthat_callbacks.flow_member_result)
         rogerthat_api_plugin.subscribe('messaging.form_update', rogerthat_callbacks.form_update)
         rogerthat_api_plugin.subscribe('messaging.update', rogerthat_callbacks.messaging_update)
@@ -83,6 +85,7 @@ class TffBackendPlugin(BrandingPlugin):
             yield Handler(url='/admin/cron/tff_backend/check_nodes_statuses', handler=CheckNodesStatusesHandler)
             yield Handler(url='/admin/cron/tff_backend/events/expired', handler=ExpiredEventsHandler)
             yield Handler(url='/admin/cron/tff_backend/check_stuck_flows', handler=CheckStuckFlowsHandler)
+            yield Handler(url='/admin/cron/tff_backend/rebuild_firebase', handler=RebuildFirebaseHandler)
 
     def get_client_routes(self):
         return ['/orders<route:.*>', '/node-orders<route:.*>', '/investment-agreements<route:.*>',
@@ -109,7 +112,7 @@ class TffBackendPlugin(BrandingPlugin):
     def get_extra_profile_fields(self, profile):
         tff_profile = TffProfile.create_key(profile.username).get()  # type: TffProfile
         if not tff_profile:
-            logging.error('No TffProfile found for profile %s', profile)
+            logging.debug('No TffProfile found for profile %s', profile)
             return []
         kyc_status = (tff_profile.kyc and tff_profile.kyc.status) or KYCStatus.UNVERIFIED.value
         return [search.NumberField('kyc_status', kyc_status),

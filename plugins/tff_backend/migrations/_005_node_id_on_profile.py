@@ -18,9 +18,10 @@ import logging
 
 from framework.bizz.job import run_job
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-from plugins.tff_backend.bizz.odoo import get_node_id_from_odoo
+from plugins.tff_backend.bizz.nodes import add_nodes_to_profile
+from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo
 from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
-from plugins.tff_backend.models.user import TffProfile
+from plugins.tff_backend.models.user import TffProfile, NodeInfo
 
 
 def migrate(dry_run=False):
@@ -35,10 +36,8 @@ def _get_orders(status):
 
 def _set_node_id(order_key):
     order = order_key.get()  # type: NodeOrder
-    node_id = get_node_id_from_odoo(order.odoo_sale_order_id)
-    if node_id:
+    nodes = get_nodes_from_odoo(order.odoo_sale_order_id)
+    if nodes:
         username = get_iyo_username(order.app_user)
-        profile = TffProfile.create_key(username).get()  # type: TffProfile
-        profile.node_id = node_id
-        profile.put()
-        logging.info('Saved node_id %s for user %s', node_id, username)
+        add_nodes_to_profile(username, nodes)
+        logging.info('Saved node_id %s for user %s', nodes, username)

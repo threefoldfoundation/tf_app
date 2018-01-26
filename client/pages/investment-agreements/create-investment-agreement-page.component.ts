@@ -112,7 +112,6 @@ export class CreateInvestmentAgreementPageComponent implements OnInit, OnDestroy
         }
       };
     }
-
   }
 
   getCurrencies() {
@@ -121,13 +120,10 @@ export class CreateInvestmentAgreementPageComponent implements OnInit, OnDestroy
 
   setSelectedUser(event: MatAutocompleteSelectedEvent) {
     this.selectedUser = event.option.value;
-    console.log(this.userSearchInput, 'sd');
-
     this.userSearchInput.nativeElement.value = '';
   }
 
   submit() {
-    console.log(this.agreement.document);
     if (this.form.form.valid && this.selectedUser) {
       const agreement = {
         ...this.agreement,

@@ -1,4 +1,4 @@
-import { FlowStep } from '../../../rogerthat_api/client/interfaces/forms';
+import { FlowStep, InstallationStatus } from '../../../rogerthat_api/client/interfaces';
 import { PaginatedResult } from './shared.interfaces';
 
 export enum FlowRunStatus {
@@ -7,6 +7,15 @@ export enum FlowRunStatus {
   STALLED = 20,
   CANCELED = 30,
   FINISHED = 40
+}
+
+// Translation keys
+export enum FlowRunStatusStr {
+  STARTED = 'started',
+  IN_PROGRESS = 'in_progress',
+  STALLED = 'stalled',
+  CANCELED = 'canceled',
+  FINISHED = 'finished',
 }
 
 export interface FlowRun<DateType = Date> {
@@ -26,13 +35,27 @@ export interface FirebaseFlowStep {
   button: string;
 }
 
-export interface FirebaseFlowRun<DateType = Date> {
+export interface FirebaseFlowRun {
   id: string;
-  last_step_date: DateType;
   last_step: FirebaseFlowStep;
   flow_name: string;
   status: FlowRunStatus;
 }
+
+export interface InstallationStats {
+  [ key: string ]: InstallationStatus;
+}
+
+export type AggregatedInstallationStats = {[key in InstallationStatus]: number};
+
+export interface AggregatedFlowRunStats {
+  flowName: string;
+  stats: {
+    // Key = one of FlowRunStatus
+    [ key: string ]: number;
+  };
+}
+
 
 export type FlowRunList<DateType = Date> = PaginatedResult<FlowRun<DateType>>;
 
@@ -40,10 +63,11 @@ export interface StepStatistics {
   time_taken: number;
 }
 
-export interface FlowStats {
-  flow_name: string;
-  stats: {
-    [ key: string]: number,
+export interface FirebaseFlowStats {
+  // Flow name
+  [ key: string ]: {
+    // flow run key
+    [ key: string ]: FlowRunStatus;
   };
 }
 

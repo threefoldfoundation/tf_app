@@ -8,6 +8,7 @@ export const getNodeOrdersQuery = createSelector(getTffState, s => s.ordersQuery
 export const getOrdersStatus = createSelector(getTffState, s => s.ordersStatus);
 export const getOrder = createSelector(getTffState, s => s.order);
 export const getOrderStatus = createSelector(getTffState, s => s.orderStatus);
+export const createOrderStatus = createSelector(getTffState, s => s.createOrderStatus);
 export const updateOrderStatus = createSelector(getTffState, s => s.updateOrderStatus);
 export const getInvestmentAgreements = createSelector(getTffState, s => s.investmentAgreements);
 export const getInvestmentAgreementsQuery = createSelector(getTffState, s => s.investmentAgreementsQuery);

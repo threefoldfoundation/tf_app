@@ -78,7 +78,7 @@ class NodeOrder(NdbModel):
     order_time = ndb.IntegerProperty()
     sign_time = ndb.IntegerProperty()
     send_time = ndb.IntegerProperty()
-    arrival_time = ndb.IntegerProperty()
+    arrival_time = ndb.IntegerProperty()  # time the node first came online
     cancel_time = ndb.IntegerProperty()
     modification_time = ndb.IntegerProperty()
     odoo_sale_order_id = ndb.IntegerProperty()
@@ -147,14 +147,19 @@ class NodeOrder(NdbModel):
 
     @classmethod
     def has_order_for_user_or_location(cls, app_user, address):
-        user_qry = cls.list_by_user(app_user).fetch_async()
-        address_qry = cls.query().filter(cls.address_hash == normalize_address(address)).fetch_async()
+        user_qry = cls.list_by_user(app_user).filter(cls.status > NodeOrderStatus.CANCELED).fetch_async()
+        address_qry = cls.query().filter(cls.status > NodeOrderStatus.CANCELED).filter(
+            cls.address_hash == normalize_address(address)).fetch_async()
         return any(user_qry.get_result()) or any(address_qry.get_result())
 
     @classmethod
     def list_check_online(cls):
         two_weeks_ago = now() - (WEEK * 2)
         return cls.list_by_status(NodeOrderStatus.SENT).filter(cls.send_time < two_weeks_ago)
+
+    @classmethod
+    def list_by_so(cls, odoo_sale_order_id):
+        return cls.query().filter(cls.odoo_sale_order_id == odoo_sale_order_id)
 
     def to_dict(self, extra_properties=None):
         return super(NodeOrder, self).to_dict(['document_url'])
