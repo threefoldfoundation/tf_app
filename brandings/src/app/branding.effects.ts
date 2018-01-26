@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect } from '@ngrx/effects';
 import { Observable } from 'rxjs/Observable';
+import { map, switchMap } from 'rxjs/operators';
 import { catchError } from 'rxjs/operators/catchError';
-import { map } from 'rxjs/operators/map';
-import { switchMap } from 'rxjs/operators/switchMap';
 import * as actions from '../actions/branding.actions';
 import { AgendaService } from '../services/agenda.service';
 import { GlobalStatsService } from '../services/global-stats.service';

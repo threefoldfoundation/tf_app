@@ -6,7 +6,7 @@ import { RogerthatError, RogerthatMessageOpenError, StartScanningQrCodeError, St
 export * from './rogerthat-errors';
 
 export interface AnyKeyValue {
-  [key: string]: any;
+  [ key: string ]: any;
 }
 
 export interface RogerthatUserInfo {
@@ -64,6 +64,103 @@ export interface RogerthatCamera {
   stopScanningQrCode: (cameraType: CameraType,
                        successCallback: () => void,
                        errorCallback: (error: StopScanningQrCodeError) => void) => void;
+}
+
+export enum NewsItemType {
+  /**
+   * application/service to person
+   */
+  NORMAL = 1,
+  QR_CODE = 2
+}
+
+export interface NewsActionButton {
+  action: string;
+  caption: string;
+  flow_params: string;
+  id: string;
+}
+
+export interface NewsSender {
+  avatar_id: number;
+  email: string;
+  name: string;
+}
+
+export interface NewsItem {
+  buttons: NewsActionButton[];
+  sender: NewsSender;
+  broadcast_type: string;
+  flags: number;
+  id: number;
+  image_url: string;
+  message: string;
+  qr_code_caption: string;
+  qr_code_content: string;
+  reach: number;
+  sort_priority: number;
+  sort_timestamp: number;
+  timestamp: number;
+  title: string;
+  type: NewsItemType;
+  users_that_rogered: string[];
+  version: number;
+  partial: number;
+  read: boolean;
+  pinned: boolean;
+  rogered: boolean;
+  disabled: boolean;
+  isPartial: boolean;
+  sortKey: number;
+}
+
+export interface CountNewsItemsParams {
+  /**
+   * Email of the service you want to count news items for
+   */
+  service?: string;
+}
+
+export interface CountNewsItemsResult {
+  count: number;
+}
+
+export interface ListNewsItemsParams {
+  /**
+   * Email of the service you want to list news items for
+   */
+  service?: number;
+  cursor?: string;
+  /**
+   * Amount of news items that will be returned
+   */
+  limit?: number;
+}
+
+export interface ListNewsItemsResult {
+  items: NewsItem[];
+  cursor: string;
+}
+
+export interface RogerthatNews {
+  /**
+   * Count news items for all or 1 service.
+   */
+  count: (successCallback: (result: CountNewsItemsResult) => void,
+          errorCallback: (result: RogerthatError) => void,
+          params?: CountNewsItemsParams) => void;
+  /**
+   * Get the details of a news item.
+   */
+  get: (successCallback: (result: NewsItem) => void,
+        errorCallback: (result: RogerthatError) => void,
+        params: { news_id: number }) => void;
+  /**
+   *  List news items for all or 1 service.
+   */
+  list: (successCallback: (result: ListNewsItemsResult) => void,
+         errorCallback: (result: RogerthatError) => void,
+         params: ListNewsItemsParams) => void;
 }
 
 export interface PublicKey {
@@ -208,7 +305,7 @@ interface Translations {
   /**
    * Example: { 'name': {'nl': 'Naam', 'en': 'Name'} }
    */
-  [key: string]: { [key: string]: string };
+  [ key: string ]: { [ key: string ]: string };
 }
 
 export interface RogerthatUtil {
@@ -246,6 +343,11 @@ export interface QrCodeScannedContent {
    */
   content: string;
   userDetails?: UserDetails;
+}
+
+export interface BadgeUpdated {
+  key: string;
+  count: number;
 }
 
 export interface RogerthatCallbacks {
@@ -292,6 +394,15 @@ export interface RogerthatCallbacks {
    * The 'userDetails' property will only be available in the second callback.
    */
   qrCodeScanned: (callback: (result: QrCodeScannedContent) => void) => void;
+  /**
+   * The app received a new news item or has received the full news item
+   * Returned result is an array of id's of news items
+   */
+  newsReceived: (callback: (result: number[]) => void) => void;
+  /**
+   * The count of unread news/messages/… has changed
+   */
+  badgeUpdated: (callback: (result: BadgeUpdated) => void) => void;
 }
 
 export interface RogerthatApiCallbacks {
@@ -320,8 +431,9 @@ export interface Rogerthat {
   /**
    * The menu item that was pressed to open the html app.
    */
-  menuItem: RogerthatMenuItem;
+  menuItem: RogerthatMenuItem | null;
   message: RogerthatMessage;
+  news: RogerthatNews;
   service: RogerthatService;
   security: RogerthatSecurity;
   system: RogerthatSystem;

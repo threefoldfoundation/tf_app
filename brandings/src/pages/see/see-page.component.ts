@@ -2,8 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@
 import { Store } from '@ngrx/store';
 import { Platform } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
-import { map } from 'rxjs/operators/map';
-import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
+import { map, withLatestFrom } from 'rxjs/operators';
 import { GetSeeDocumentsAction } from '../../actions/branding.actions';
 import { IAppState } from '../../app/app.state';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';

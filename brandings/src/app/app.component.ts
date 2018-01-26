@@ -5,10 +5,12 @@ import { Actions } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
-import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
+import { withLatestFrom } from 'rxjs/operators';
+import { RogerthatMenuItem } from '../manual_typings/rogerthat';
 import { AgendaPageComponent } from '../pages/agenda/agenda-page.component';
 import { ErrorService } from '../pages/error.service';
 import { GlobalStatsPageComponent } from '../pages/global-stats/global-stats-page.component';
+import { HomePageComponent } from '../pages/home/home-page.component';
 import { NodeStatusPageComponent } from '../pages/node-status/node-status-page.component';
 import { InvitePageComponent } from '../pages/referrals/invite-page.component';
 import { SetReferrerPageComponent } from '../pages/referrals/set-referrer-page.component';
@@ -49,37 +51,46 @@ export class AppComponent implements OnInit {
         }
         splashScreen.hide();
         this.rogerthatService.initialize();
-        if (!rogerthat.menuItem) {
-          // old iOS app doesn't support this yet
+        if (!this.rogerthatService.isVersionSupported({ major: 2, minor: 1, patch: 1 }, { major: 2, minor: 1, patch: 2549 })) {
+          // old iOS app doesn't support rogerthat.menuItem
           this.errorService.showVersionNotSupported(this.translate.instant('not_supported_pls_update'));
           return;
         }
-        let todoComp: typeof TodoListOverviewPageComponent | typeof TodoListPageComponent = TodoListOverviewPageComponent;
-        const todoLists = this.todoListService.getTodoLists();
-        if (todoLists.length === 1) {
-          todoComp = TodoListPageComponent;
-        }
-        const pages = [
-          { tag: 'todo_list', page: todoComp },
-          { tag: 'global_stats', page: GlobalStatsPageComponent },
-          { tag: 'iyo_see', page: SeePageComponent },
-          { tag: 'referrals_invite', page: InvitePageComponent },
-          { tag: 'set_referrer', page: SetReferrerPageComponent },
-          { tag: 'agenda', page: AgendaPageComponent },
-          { tag: 'node_status', page: NodeStatusPageComponent },
-        ];
-        // the or is for debugging
-        const page = pages.find(p => sha256(p.tag) === rogerthat.menuItem.hashedTag || p.tag === rogerthat.menuItem.hashedTag);
-        if (page) {
-          this.rootPage = page.page;
+        if (rogerthat.menuItem && rogerthat.menuItem.label) {
+          this.setPage(rogerthat.menuItem);
         } else {
-          console.error('Cannot find page for menu item', JSON.stringify(rogerthat.menuItem));
+          this.rootPage = HomePageComponent;
         }
         this.platformReady = true;
         this.cdRef.detectChanges();
       });
     });
   }
+
+  private setPage = (menuItem: RogerthatMenuItem) => {
+    let todoPage;
+    if (this.todoListService.getTodoLists().length === 1) {
+      todoPage = TodoListPageComponent;
+    } else {
+      todoPage = TodoListOverviewPageComponent;
+    }
+    const pages = [
+      { tag: 'todo_list', page: todoPage },
+      { tag: 'global_stats', page: GlobalStatsPageComponent },
+      { tag: 'iyo_see', page: SeePageComponent },
+      { tag: 'referrals_invite', page: InvitePageComponent },
+      { tag: 'set_referrer', page: SetReferrerPageComponent },
+      { tag: 'agenda', page: AgendaPageComponent },
+      { tag: 'node_status', page: NodeStatusPageComponent },
+    ];
+    // the or is for debugging
+    const page = pages.find(p => sha256(p.tag) === menuItem.hashedTag || p.tag === menuItem.hashedTag);
+    if (page) {
+      this.rootPage = page.page;
+    } else {
+      console.error('Cannot find page for menu item', JSON.stringify(menuItem));
+    }
+  };
 
   ngOnInit() {
     this.actions$.pipe(withLatestFrom(this.store)).subscribe(([ action, store ]) => {

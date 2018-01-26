@@ -4,7 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { AlertController, LoadingController, NavParams } from 'ionic-angular';
 import { Loading } from 'ionic-angular/components/loading/loading';
 import { Observable } from 'rxjs/Observable';
-import { filter } from 'rxjs/operators/filter';
+import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import { GetEventPresenceAction, UpdateEventPresenceAction } from '../../actions/branding.actions';
 import { AgendaEventDetail, EventPresence, UpdatePresenceData } from '../../interfaces/agenda.interfaces';

@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@
 import { Store } from '@ngrx/store';
 import { NavController, Platform } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
-import { map } from 'rxjs/operators/map';
+import { map } from 'rxjs/operators';
 import { GetEventsAction } from '../../actions/branding.actions';
 import { IAppState } from '../../app/app.state';
 import { AgendaEvent, AgendaEventDetail } from '../../interfaces/agenda.interfaces';

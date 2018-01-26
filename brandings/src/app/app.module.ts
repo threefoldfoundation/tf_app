@@ -11,10 +11,11 @@ import { MissingTranslationHandler, TranslateLoader, TranslateModule } from '@ng
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { ChartModule } from 'angular2-chartjs';
 import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
-import { COMPONENTS } from '../components/index';
-import { PAGES } from '../pages/index';
+import 'zone.js/dist/zone-patch-cordova';
+import { COMPONENTS } from '../components';
+import { PAGES } from '../pages';
 import { MarkdownPipe } from '../pipes/markdown.pipe';
-import { SERVICES } from '../services/index';
+import { SERVICES } from '../services';
 import { MissingTranslationWarnHandler } from '../util/missing-translation-handler';
 import { AppComponent } from './app.component';
 import { REDUCER_INJECTION_TOKEN, reducerProvider } from './app.state';

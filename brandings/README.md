@@ -30,6 +30,7 @@ To test it, either upload it as a branding on your rogerthat server or add this 
         }
       },
       callbacks: {
+        _ready: null,
         ready: function (callback) {
           this._ready = callback;
         },
@@ -69,7 +70,8 @@ To test it, either upload it as a branding on your rogerthat server or add this 
         }
       },
       system: {
-        appId: 'em-be-threefold-token'
+        appId: 'em-be-threefold-token',
+        appVersion: '2.1.9999'
       },
       service: {
         data: {
@@ -85,10 +87,7 @@ To test it, either upload it as a branding on your rogerthat server or add this 
           }]
         }
       },
-      menuItem: {
-        hashedTag: 'agenda',
-        label: 'Agenda'
-      },
+      menuItem: null,
       util: {
         uuid: () => {
           return '4';
