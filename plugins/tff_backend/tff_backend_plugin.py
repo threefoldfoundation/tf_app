@@ -110,7 +110,7 @@ class TffBackendPlugin(BrandingPlugin):
     def get_extra_profile_fields(self, profile):
         tff_profile = TffProfile.create_key(profile.username).get()  # type: TffProfile
         if not tff_profile:
-            logging.error('No TffProfile found for profile %s', profile)
+            logging.debug('No TffProfile found for profile %s', profile)
             return []
         kyc_status = (tff_profile.kyc and tff_profile.kyc.status) or KYCStatus.UNVERIFIED.value
         return [search.NumberField('kyc_status', kyc_status),

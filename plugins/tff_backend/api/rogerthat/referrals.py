@@ -32,7 +32,7 @@ from plugins.tff_backend.models.user import TffProfile, ProfilePointer
 @arguments(params=dict, user_detail=UserDetailsTO)
 def api_set_referral(params, user_detail):
     def trans():
-        code = params.get("code")
+        code = params.get("code").lower()
         pp = ProfilePointer.get_by_user_code(code)
         if not code or not pp:
             raise ApiCallException(u'Unknown invitation code received')
