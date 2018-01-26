@@ -24,7 +24,6 @@ from types import NoneType
 
 from babel.numbers import get_currency_name
 from framework.consts import get_base_url, DAY
-from framework.i18n_utils import translate, DEFAULT_LANGUAGE
 from framework.plugin_loader import get_config
 from framework.utils import now
 from google.appengine.api import users
@@ -140,10 +139,10 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
             return None
 
         deferred.defer(_send_sign_investment_reminder, agreement.id, u'long', _countdown=3600, _queue=SCHEDULED_QUEUE)
-        deferred.defer(_send_sign_investment_reminder, agreement.id,
-                       u'short', _countdown=3 * DAY, _queue=SCHEDULED_QUEUE)
-        deferred.defer(_send_sign_investment_reminder, agreement.id,
-                       u'short', _countdown=10 * DAY, _queue=SCHEDULED_QUEUE)
+        deferred.defer(_send_sign_investment_reminder, agreement.id, u'short', _countdown=3 * DAY,
+                       _queue=SCHEDULED_QUEUE)
+        deferred.defer(_send_sign_investment_reminder, agreement.id, u'short', _countdown=10 * DAY,
+                       _queue=SCHEDULED_QUEUE)
 
         tag = {
             '__rt__.tag': 'invest_complete',
@@ -589,7 +588,8 @@ Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more de
 
 def _get_total_investment_value(app_user):
     total_token_count = defaultdict(lambda: 0)
-    for agreement in InvestmentAgreement.list_by_status_and_user(app_user, InvestmentAgreement.STATUS_PAID):
+    statuses = (InvestmentAgreement.STATUS_PAID, InvestmentAgreement.STATUS_SIGNED)
+    for agreement in InvestmentAgreement.list_by_status_and_user(app_user, statuses):
         total_token_count[agreement.token] += agreement.token_count_float
     logging.debug('%s has the following tokens: %s', app_user, dict(total_token_count))
 
