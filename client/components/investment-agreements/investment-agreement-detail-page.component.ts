@@ -3,33 +3,38 @@ import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs/Observable';
+import { filter } from 'rxjs/operators/filter';
+import { map } from 'rxjs/operators/map';
 import { Subscription } from 'rxjs/Subscription';
 import { DialogService } from '../../../../framework/client/dialog/services/dialog.service';
-import { getIdentity, Identity } from '../../../../framework/client/identity/index';
+import { getIdentity } from '../../../../framework/client/identity/index';
+import { Identity } from '../../../../framework/client/identity/interfaces';
+import { filterNull } from '../../../../framework/client/ngrx';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import {
   GetGlobalStatsAction,
   GetInvestmentAgreementAction,
   ResetInvestmentAgreementAction,
-  UpdateInvestmentAgreementAction
+  UpdateInvestmentAgreementAction,
 } from '../../actions/threefold.action';
+import { TffPermission } from '../../interfaces';
 import { GlobalStats } from '../../interfaces/global-stats.interfaces';
 import { InvestmentAgreement, InvestmentAgreementsStatuses } from '../../interfaces/investment-agreements.interfaces';
 import { TffPermissions } from '../../interfaces/permissions.interfaces';
+import { ApiErrorService } from '../../services/api-error.service';
 import { getGlobalStats, getInvestmentAgreement, getInvestmentAgreementStatus, updateInvestmentAgreementStatus } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   template: `
-    <investment-agreement [investmentAgreement]="investmentAgreement$ | async"
-                          [status]="status$ | async"
-                          [globalStats]="globalStats$ | async"
-                          [updateStatus]="updateStatus$ | async"
-                          [canUpdate]="canUpdate$ | async"
-                          (onUpdate)="onUpdate($event)"></investment-agreement>`
+    <tff-investment-agreement [investmentAgreement]="investmentAgreement$ | async"
+                              [status]="status$ | async"
+                              [globalStats]="globalStats$ | async"
+                              [updateStatus]="updateStatus$ | async"
+                              [canUpdate]="canUpdate$ | async"
+                              (onUpdate)="onUpdate($event)"></tff-investment-agreement>`
 })
 
 export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy {
@@ -40,30 +45,38 @@ export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy
   canUpdate$: Observable<boolean>;
 
   private _investmentSub: Subscription;
+  private _errorSub: Subscription;
 
   constructor(private store: Store<IAppState>,
               private route: ActivatedRoute,
               private translate: TranslateService,
-              private dialogService: DialogService) {
+              private dialogService: DialogService,
+              private apiErrorService: ApiErrorService) {
   }
 
   ngOnInit() {
     const agreementId = this.route.snapshot.params.investmentAgreementId;
     this.store.dispatch(new ResetInvestmentAgreementAction());
     this.store.dispatch(new GetInvestmentAgreementAction(agreementId));
-    this.investmentAgreement$ = this.store.let(getInvestmentAgreement);
-    this.status$ = this.store.let(getInvestmentAgreementStatus);
-    this.updateStatus$ = this.store.let(updateInvestmentAgreementStatus);
-    this.canUpdate$ = this.store.let(getIdentity).filter(i => i !== null)
-      .map((identity: Identity) => identity.permissions.includes(TffPermissions.ADMINS));
-    this.globalStats$ = this.store.let(getGlobalStats);
-    this._investmentSub = this.investmentAgreement$.filter(i => i !== null && i.token !== null).subscribe(investment => {
+    this.investmentAgreement$ = <Observable<InvestmentAgreement>>this.store.select(getInvestmentAgreement).pipe(
+      filter(s => s !== null));
+    this.status$ = this.store.select(getInvestmentAgreementStatus);
+    this.updateStatus$ = this.store.select(updateInvestmentAgreementStatus);
+    this.canUpdate$ = this.store.select(getIdentity).pipe(
+      filterNull<Identity>(),
+      map(identity => (<TffPermission[]>identity.permissions).some(p => TffPermissions.BACKEND_ADMIN.includes(p))),
+    );
+    this.globalStats$ = <Observable<GlobalStats>>this.store.select(getGlobalStats).pipe(filter(s => s !== null));
+    this._investmentSub = this.investmentAgreement$.pipe(filter(i => i.token !== null)).subscribe(investment => {
       this.store.dispatch(new GetGlobalStatsAction(investment.token));
     });
+    this._errorSub = this.updateStatus$.pipe(filter(status => !status.success && !status.loading && status.error !== null))
+      .subscribe(status => this.apiErrorService.showErrorDialog(status.error));
   }
 
   ngOnDestroy() {
     this._investmentSub.unsubscribe();
+    this._errorSub.unsubscribe();
   }
 
   onUpdate(agreement: InvestmentAgreement) {

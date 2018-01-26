@@ -1,5 +1,5 @@
-import { Pipe, PipeTransform } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Pipe, PipeTransform } from '@angular/core';
 
 /**
  * Transforms an epoch timestamp to human readable format
@@ -9,7 +9,7 @@ export class TimestampPipe implements PipeTransform {
   constructor(private datePipe: DatePipe) {
   }
 
-  public transform(value: number, pattern: string = 'medium'): any {
+  public transform(value: number | null, pattern: string = 'medium'): any {
     return value ? (this.datePipe.transform(value * 1000, pattern)) : '';
   }
 

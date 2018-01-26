@@ -3,3 +3,4 @@ export * from './investment-agreement-detail-page.component';
 export * from './investment-agreement-list.component';
 export * from './investment-agreement-list-page.component';
 export * from './investment-agreement-amount.component';
+export * from './search-investment-agreements.component';

@@ -1,7 +1,11 @@
-import { Observable } from 'rxjs/Observable';
 import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
-import { Profile, SearchUsersQuery, UserList } from '../../../its_you_online_auth/client/interfaces/index';
+import { Profile } from '../../../its_you_online_auth/client/interfaces/index';
+import { Installation } from '../../../rogerthat_api/client/interfaces';
+import { InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces/app';
+import { AgendaEvent, EventParticipant } from '../interfaces/agenda-events.interfaces';
 import {
+  FlowRun,
+  FlowRunList, FirebaseFlowStats,
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
@@ -11,8 +15,10 @@ import {
   NodeOrdersQuery,
   PaginatedResult,
   TransactionList,
-  WalletBalance
+  WalletBalance,
 } from '../interfaces/index';
+import { Check } from '../interfaces/onfido.interfaces';
+import { SearchUsersQuery, TffProfile, UserList } from '../interfaces/profile.interfaces';
 
 export interface ITffState {
   orders: NodeOrderList;
@@ -20,6 +26,7 @@ export interface ITffState {
   order: NodeOrder | null;
   ordersQuery: NodeOrdersQuery;
   orderStatus: ApiRequestStatus;
+  createOrderStatus: ApiRequestStatus;
   updateOrderStatus: ApiRequestStatus;
   investmentAgreements: InvestmentAgreementList;
   investmentAgreementsQuery: InvestmentAgreementsQuery;
@@ -27,6 +34,7 @@ export interface ITffState {
   investmentAgreement: InvestmentAgreement | null;
   investmentAgreementStatus: ApiRequestStatus;
   updateInvestmentAgreementStatus: ApiRequestStatus;
+  createInvestmentAgreementStatus: ApiRequestStatus;
   globalStatsList: GlobalStats[];
   globalStatsListStatus: ApiRequestStatus;
   globalStats: GlobalStats | null;
@@ -42,6 +50,33 @@ export interface ITffState {
   createTransactionStatus: ApiRequestStatus;
   balance: WalletBalance[];
   balanceStatus: ApiRequestStatus;
+  tffProfile: TffProfile | null;
+  tffProfileStatus: ApiRequestStatus;
+  setKYCStatus: ApiRequestStatus;
+  agendaEvents: AgendaEvent[];
+  agendaEventsStatus: ApiRequestStatus;
+  agendaEvent: AgendaEvent | null;
+  agendaEventStatus: ApiRequestStatus;
+  createAgendaEventStatus: ApiRequestStatus;
+  updateAgendaEventStatus: ApiRequestStatus;
+  eventParticipants: PaginatedResult<EventParticipant>;
+  eventParticipantsStatus: ApiRequestStatus;
+  kycChecks: Check[];
+  kycChecksStatus: ApiRequestStatus;
+  distinctFlows: string[];
+  distinctFlowsStatus: ApiRequestStatus;
+  flowRuns: FlowRunList;
+  flowRunsStatus: ApiRequestStatus;
+  flowRun: FlowRun | null;
+  flowRunStatus: ApiRequestStatus;
+  flowStats: FirebaseFlowStats[],
+  flowStatsStatus: ApiRequestStatus,
+  installations: InstallationsList;
+  installationsStatus: ApiRequestStatus;
+  installation: Installation | null;
+  installationStatus: ApiRequestStatus;
+  installationLogs: InstallationLog[];
+  installationLogsStatus: ApiRequestStatus;
 }
 
 export const emptyPaginatedResult: PaginatedResult<any> = {
@@ -60,6 +95,7 @@ export const initialTffState: ITffState = {
     query: null,
   },
   orderStatus: apiRequestInitial,
+  createOrderStatus: apiRequestInitial,
   updateOrderStatus: apiRequestInitial,
   investmentAgreements: emptyPaginatedResult,
   investmentAgreementsStatus: apiRequestInitial,
@@ -71,13 +107,13 @@ export const initialTffState: ITffState = {
   },
   investmentAgreementStatus: apiRequestInitial,
   updateInvestmentAgreementStatus: apiRequestInitial,
+  createInvestmentAgreementStatus: apiRequestInitial,
   globalStatsList: [],
   globalStatsListStatus: apiRequestInitial,
   globalStats: null,
   globalStatsStatus: apiRequestInitial,
   updateGlobalStatsStatus: apiRequestInitial,
   userListQuery: {
-    query: null,
     cursor: null,
   },
   userList: emptyPaginatedResult,
@@ -89,112 +125,31 @@ export const initialTffState: ITffState = {
   createTransactionStatus: apiRequestInitial,
   balance: [],
   balanceStatus: apiRequestInitial,
+  tffProfile: null,
+  tffProfileStatus: apiRequestInitial,
+  setKYCStatus: apiRequestInitial,
+  agendaEvents: [],
+  agendaEventsStatus: apiRequestInitial,
+  agendaEvent: null,
+  agendaEventStatus: apiRequestInitial,
+  createAgendaEventStatus: apiRequestInitial,
+  updateAgendaEventStatus: apiRequestInitial,
+  eventParticipants: emptyPaginatedResult,
+  eventParticipantsStatus: apiRequestInitial,
+  kycChecks: [],
+  kycChecksStatus: apiRequestInitial,
+  distinctFlows: [],
+  distinctFlowsStatus: apiRequestInitial,
+  flowRuns: emptyPaginatedResult,
+  flowRunsStatus: apiRequestInitial,
+  flowRun: null,
+  flowRunStatus: apiRequestInitial,
+  flowStats: [],
+  flowStatsStatus: apiRequestInitial,
+  installations: emptyPaginatedResult,
+  installationsStatus: apiRequestInitial,
+  installation: null,
+  installationStatus: apiRequestInitial,
+  installationLogs: [],
+  installationLogsStatus: apiRequestInitial,
 };
-
-export function _getOrders(state$: Observable<ITffState>) {
-  return state$.select(state => state.orders);
-}
-
-export function _getNodeOrdersQuery(state$: Observable<ITffState>) {
-  return state$.select(state => state.ordersQuery);
-}
-
-export function _getOrdersStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.ordersStatus);
-}
-
-export function _getOrder(state$: Observable<ITffState>) {
-  return state$.select(state => state.order);
-}
-
-export function _getOrderStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.orderStatus);
-}
-
-export function _updateOrderStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.updateOrderStatus);
-}
-
-export function _getInvestmentAgreements(state$: Observable<ITffState>) {
-  return state$.select(state => state.investmentAgreements);
-}
-
-export function _getInvestmentAgreementsQuery(state$: Observable<ITffState>) {
-  return state$.select(state => state.investmentAgreementsQuery);
-}
-
-export function _getInvestmentAgreementsStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.investmentAgreementsStatus);
-}
-
-export function _getInvestmentAgreement(state$: Observable<ITffState>) {
-  return state$.select(state => state.investmentAgreement);
-}
-
-export function _getInvestmentAgreementStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.investmentAgreementStatus);
-}
-
-export function _updateInvestmentAgreementStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.updateInvestmentAgreementStatus);
-}
-
-export function _getGlobalStatsList(state$: Observable<ITffState>) {
-  return state$.select(state => state.globalStatsList);
-}
-
-export function _getGlobalStatsListStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.globalStatsListStatus);
-}
-
-export function _getGlobalStats(state$: Observable<ITffState>) {
-  return state$.select(state => state.globalStats);
-}
-
-export function _getGlobalStatsStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.globalStatsStatus);
-}
-
-export function _updateGlobalStatsStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.updateGlobalStatsStatus);
-}
-
-export function _getUserList(state$: Observable<ITffState>) {
-  return state$.select(state => state.userList);
-}
-
-export function _getUserListQuery(state$: Observable<ITffState>) {
-  return state$.select(state => state.userListQuery);
-}
-
-export function _getUserListStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.userListStatus);
-}
-
-export function _getUser(state$: Observable<ITffState>) {
-  return state$.select(state => state.user);
-}
-
-export function _getUserStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.userStatus);
-}
-
-export function _getBalance(state$: Observable<ITffState>) {
-  return state$.select(state => state.balance);
-}
-
-export function _getBalanceStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.balanceStatus);
-}
-
-export function _getUserTransactions(state$: Observable<ITffState>) {
-  return state$.select(state => state.userTransactions);
-}
-
-export function _getUserTransactionsStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.userTransactionsStatus);
-}
-
-export function _createTransactionStatus(state$: Observable<ITffState>) {
-  return state$.select(state => state.createTransactionStatus);
-}

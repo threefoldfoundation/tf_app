@@ -14,6 +14,12 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+import logging
+
+from google.appengine.api import search
+
+from framework.utils import chunks
+from plugins.its_you_online_auth.bizz.profile import normalize_search_string
 
 
 def sanitise_search_query(query, filters):
@@ -34,8 +40,23 @@ def sanitise_search_query(query, filters):
             res = s.split(':')
             filters[res[0]] = res[1]
             query = query.replace(s, '')
-    filtered_query = query
+    filtered_query = normalize_search_string(query)
     for key, value in filters.iteritems():
         if value is not None and key:
             filtered_query += ' %s:%s' % (key, value)
     return filtered_query.strip()
+
+
+def remove_all_from_index(index):
+    # type: (search.Index) -> long
+    total = 0
+    while True:
+        result = index.search(search.Query(u'', options=search.QueryOptions(ids_only=True, limit=1000)))
+        if not result.results:
+            break
+        logging.debug('Deleting %d documents from %s' % (len(result.results), index))
+        total += len(result.results)
+        for rpc in [index.delete_async([r.doc_id for r in chunk]) for chunk in chunks(result.results, 200)]:
+            rpc.get_result()
+    logging.info('Deleted %d documents from %s', total, index)
+    return total

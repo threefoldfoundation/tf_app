@@ -39,5 +39,10 @@
   "compileOnSave": false,
   "atom": {
     "rewriteTsconfig": false
+  },
+  "angularCompilerOptions": {
+    "viewEncapsulation": "None",
+    "preserveWhitespaces": false,
+    "fullTemplateTypeCheck": true
   }
 }

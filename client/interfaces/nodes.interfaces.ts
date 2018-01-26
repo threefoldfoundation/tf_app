@@ -1,4 +1,3 @@
-import { SeeDocumentDetails } from './iyo-see.interfaces';
 import { PaginatedResult } from './shared.interfaces';
 
 export enum NodeOrderStatuses {
@@ -45,10 +44,19 @@ export interface NodeOrder {
   arrival_time: number | null;
   cancel_time: number | null;
   socket: string;
+  document_url: string | null;
 }
 
-export interface NodeOrderDetail extends NodeOrder {
-  see_document: SeeDocumentDetails;
+export interface CreateOrderPayload<DateType = number> {
+  app_user: string;
+  billing_info: ContactInfo;
+  shipping_info: ContactInfo;
+  status: NodeOrderStatuses;
+  order_time: DateType;
+  sign_time: DateType;
+  send_time: DateType;
+  odoo_sale_order_id: number;
+  document: string;
 }
 
 export interface NodeOrdersQuery {

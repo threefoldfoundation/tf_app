@@ -24,9 +24,11 @@ from google.appengine.ext import ndb
 from framework.bizz.job import run_job, MODE_BATCH
 from mcfw.exceptions import HttpNotFoundException
 from mcfw.rpc import returns, arguments
+from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_usernames
 from plugins.tff_backend.consts.hoster import NODE_ORDER_SEARCH_INDEX
 from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.plugin_consts import NAMESPACE
+from plugins.tff_backend.utils.search import remove_all_from_index
 
 NODE_ORDER_INDEX = search.Index(NODE_ORDER_SEARCH_INDEX, namespace=NAMESPACE)
 
@@ -42,6 +44,7 @@ def get_node_order(order_id):
 
 
 def index_all_node_orders():
+    remove_all_from_index(NODE_ORDER_INDEX)
     run_job(_get_all_node_orders, [], multi_index_node_order, [], mode=MODE_BATCH, batch_size=200)
 
 
@@ -52,17 +55,18 @@ def _get_all_node_orders():
 def index_node_order(order):
     # type: (NodeOrder) -> list[search.PutResult]
     logging.info('Indexing node order %s', order.id)
-    document = create_node_order_document(order)
+    document = create_node_order_document(order, get_iyo_username(order.app_user))
     return NODE_ORDER_INDEX.put(document)
 
 
 def multi_index_node_order(order_keys):
     logging.info('Indexing %s node orders', len(order_keys))
-    orders = ndb.get_multi(order_keys)
-    return NODE_ORDER_INDEX.put([create_node_order_document(order) for order in orders])
+    orders = ndb.get_multi(order_keys)  # type: list[NodeOrder]
+    usernames = get_iyo_usernames([order.app_email for order in orders])
+    return NODE_ORDER_INDEX.put([create_node_order_document(order, usernames.get(order.app_email)) for order in orders])
 
 
-def create_node_order_document(order):
+def create_node_order_document(order, iyo_username):
     order_id_str = '%s' % order.id
     fields = [
         search.AtomField(name='id', value=order_id_str),
@@ -70,7 +74,7 @@ def create_node_order_document(order):
         search.NumberField(name='so', value=order.odoo_sale_order_id or -1),
         search.NumberField(name='status', value=order.status),
         search.DateField(name='order_time', value=datetime.utcfromtimestamp(order.order_time)),
-        search.TextField(name='username', value=order.iyo_username),
+        search.TextField(name='username', value=iyo_username),
     ]
     if order.shipping_info:
         fields.extend([search.TextField(name='shipping_name', value=order.shipping_info.name),

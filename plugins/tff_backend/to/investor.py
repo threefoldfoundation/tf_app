@@ -48,6 +48,18 @@ class InvestmentAgreementTO(TO):
     cancel_time = long_property('cancel_time')
     modification_time = long_property('modification_time')
     reference = unicode_property('reference')
+    document_url = unicode_property('document_url')
+
+
+class CreateInvestmentAgreementTO(TO):
+    app_user = unicode_property('app_user')
+    amount = float_property('amount')
+    currency = unicode_property('currency')
+    document = unicode_property('document')
+    token = unicode_property('token')
+    status = long_property('status')
+    sign_time = long_property('sign_time')
+    paid_time = long_property('paid_time')
 
 
 class InvestmentAgreementDetailsTO(InvestmentAgreementTO):

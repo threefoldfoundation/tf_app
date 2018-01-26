@@ -1,4 +1,3 @@
-import { SeeDocumentDetails } from './iyo-see.interfaces';
 import { PaginatedResult } from './shared.interfaces';
 
 export enum InvestmentAgreementsStatuses {
@@ -10,7 +9,7 @@ export enum InvestmentAgreementsStatuses {
 
 export interface InvestmentAgreementsQuery {
   cursor: string | null;
-  status: InvestmentAgreementsStatuses;
+  status: InvestmentAgreementsStatuses | null;
   query: string | null;
 }
 
@@ -51,11 +50,18 @@ export interface InvestmentAgreement {
   paid_time: number | null;
   cancel_time: number | null;
   modification_time: number;
+  document_url: string | null;
 }
 
-
-export interface InvestmentAgreementDetail extends InvestmentAgreement {
-  see_document: SeeDocumentDetails | null;
+export interface CreateInvestmentAgreementPayload {
+  app_user: string;
+  amount: number;
+  token: string;
+  currency: string;
+  status: InvestmentAgreementsStatuses;
+  sign_time: number | null;
+  paid_time: number | null;
+  document: string;
 }
 
 export interface InvestmentAgreementList extends PaginatedResult<InvestmentAgreement> {

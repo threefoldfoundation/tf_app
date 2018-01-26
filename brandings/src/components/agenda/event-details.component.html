@@ -1,0 +1,48 @@
+<ion-card>
+  <ion-toolbar color="primary" class="agenda-toolbar" text-wrap>
+    <h2>{{ agendaEvent.title }}</h2>
+    <p>{{ 'from_x' | translate : { timestamp: getFormattedDate(agendaEvent.start_timestamp) } }}</p>
+    <p *ngIf="agendaEvent.end_timestamp">
+      {{ 'till_x' | translate : { timestamp: getFormattedDate(agendaEvent.end_timestamp) } }}
+    </p>
+  </ion-toolbar>
+  <ion-card-content>
+    <ion-grid>
+      <ion-row>
+        <ion-col col-auto>
+          <ion-icon name="chatboxes" class="agenda-icon" color="primary"></ion-icon>
+        </ion-col>
+        <ion-col>
+          <p [innerHTML]="agendaEvent.description | markdown"></p>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col col-auto>
+          <ion-icon name="pin" class="agenda-icon" color="primary"></ion-icon>
+        </ion-col>
+        <ion-col>
+          <p [innerHTML]="agendaEvent.location| markdown"></p>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <api-request-status [status]="status"></api-request-status>
+      </ion-row>
+    </ion-grid>
+    <ion-row align-items-center justify-content-between>
+      <button ion-button icon-left clear (click)="update(statuses.PRESENT)"
+              [color]="isPresent() ? 'warn' : 'primary'"
+              [disabled]="isPresent() && !status.loading || agendaEvent.is_in_past">
+        <ion-icon name="checkmark" [isActive]="isPresent()"></ion-icon>
+        <ion-grid>
+          <ion-row>{{ 'attending' | translate }}</ion-row>
+          <ion-row>{{ getAttendeesText() }}</ion-row>
+        </ion-grid>
+      </button>
+      <button ion-button icon-left clear (click)="update(statuses.ABSENT)"
+              [disabled]="isAbsent() && !status.loading || agendaEvent.is_in_past">
+        <ion-icon name="close-circle" [isActive]="isAbsent()"></ion-icon>
+        <div>{{ 'not_attending' | translate }}</div>
+      </button>
+    </ion-row>
+  </ion-card-content>
+</ion-card>

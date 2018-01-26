@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { Platform } from 'ionic-angular';
-import { SeeDocument } from '../../interfaces/see.interfaces';
 import { Store } from '@ngrx/store';
-import { IAppState } from '../../app/app.state';
-import { getSeeDocuments, getSeeDocumentsStatus } from '../../state/app.state';
-import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
+import { Platform } from 'ionic-angular';
+import { Observable } from 'rxjs/Observable';
+import { map } from 'rxjs/operators/map';
+import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
 import { GetSeeDocumentsAction } from '../../actions/branding.actions';
+import { IAppState } from '../../app/app.state';
+import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
+import { SeeDocument } from '../../interfaces/see.interfaces';
+import { getSeeDocuments, getSeeDocumentsStatus } from '../../state/app.state';
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -16,15 +18,20 @@ import { GetSeeDocumentsAction } from '../../actions/branding.actions';
 export class SeePageComponent implements OnInit {
   documents$: Observable<SeeDocument[]>;
   status$: Observable<ApiRequestStatus>;
+  hasNoDocuments$: Observable<boolean>;
 
   constructor(private platform: Platform,
               private store: Store<IAppState>) {
   }
 
   ngOnInit() {
-    this.documents$ = this.store.let(getSeeDocuments);
-    this.status$ = this.store.let(getSeeDocumentsStatus);
+    this.documents$ = this.store.select(getSeeDocuments);
+    this.status$ = this.store.select(getSeeDocumentsStatus);
     this.store.dispatch(new GetSeeDocumentsAction());
+    this.hasNoDocuments$ = this.status$.pipe(
+      withLatestFrom(this.documents$),
+      map(([ status, docs ]) => status.success && docs.length === 0),
+    );
   }
 
   close() {

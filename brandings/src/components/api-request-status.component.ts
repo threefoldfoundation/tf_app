@@ -7,12 +7,13 @@ import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ion-row justify-content-center *ngIf="status.loading">
-      <ion-spinner style="width: 36px; height: 36px;"></ion-spinner>
+      <ion-spinner [style.width]="size" [style.height]="size"></ion-spinner>
     </ion-row>
     <div *ngIf="status.error && !status.success">
-      <p class="error-message" [innerText]="status.error.error"></p>
+      <p class="error-message" [innerText]="status.error?.error"></p>
     </div>`,
 })
 export class ApiRequestStatusComponent {
   @Input() status: ApiRequestStatus;
+  @Input() size = '36px';
 }

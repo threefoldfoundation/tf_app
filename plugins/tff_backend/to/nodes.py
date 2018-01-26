@@ -21,6 +21,7 @@ from google.appengine.ext import ndb
 
 from framework.to import TO
 from mcfw.properties import long_property, unicode_property, typed_property
+from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.to import PaginatedResultTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocument
 
@@ -49,10 +50,23 @@ class NodeOrderTO(TO):
     modification_time = long_property('modification_time')
     odoo_sale_order_id = long_property('odoo_sale_order_id')
     socket = unicode_property('socket')
+    document_url = unicode_property('document_url')
+
+
+class CreateNodeOrderTO(TO):
+    app_user = unicode_property('app_user')
+    billing_info = typed_property('billing_info', ContactInfoTO)  # type: ContactInfoTO
+    shipping_info = typed_property('shipping_info', ContactInfoTO)  # type: ContactInfoTO
+    status = long_property('status')
+    order_time = long_property('order_time')
+    sign_time = long_property('sign_time')
+    send_time = long_property('send_time')
+    odoo_sale_order_id = long_property('odoo_sale_order_id')
+    document = unicode_property('document')
 
 
 class NodeOrderDetailsTO(NodeOrderTO):
-    see_document = typed_property('see_document', IYOSeeDocument)
+    see_document = typed_property('see_document', IYOSeeDocument)  # type: IYOSeeDocument
 
     @classmethod
     def from_model(cls, model, see_document):

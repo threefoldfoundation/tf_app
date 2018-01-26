@@ -5,14 +5,14 @@ import { SeeDocument } from '../../interfaces/see.interfaces';
   selector: 'see-document',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'see-document.component.html'
+  templateUrl: 'see-document.component.html',
 })
 
 export class SeeDocumentComponent {
   @Input() document: SeeDocument;
 
   dateFormat = 'd MMM y H:mm';
-  showFull: boolean = false;
+  showFull = false;
 
   constructor(private cdRef: ChangeDetectorRef) {
   }

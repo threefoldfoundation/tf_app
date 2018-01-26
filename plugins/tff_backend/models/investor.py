@@ -2,7 +2,7 @@ from google.appengine.ext import ndb
 
 from framework.models.common import NdbModel
 from framework.utils import now
-from framework.utils.transactions import on_trans_committed
+from plugins.tff_backend.bizz.gcs import get_serving_url, encrypt_filename
 from plugins.tff_backend.consts.payment import TOKEN_TFT
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
@@ -52,13 +52,21 @@ class InvestmentAgreement(NdbModel):
             index_investment_agreement(self)
 
     @property
-    def iyo_username(self):
-        from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-        return get_iyo_username(self.app_user)
+    def app_email(self):
+        # type: () -> unicode
+        return self.app_user.email()
 
     @property
     def id(self):
         return self.key.id()
+
+    @property
+    def document_url(self):
+        return get_serving_url(self.filename(self.id)) if self.iyo_see_id else None
+
+    @classmethod
+    def filename(cls, agreement_id):
+        return u'purchase-agreements/%s.pdf' % encrypt_filename(agreement_id)
 
     @classmethod
     def create_key(cls, subscription_id):
@@ -78,3 +86,6 @@ class InvestmentAgreement(NdbModel):
         # type: (users.User, int) -> list[InvestmentAgreement]
         statuses = [statuses] if isinstance(statuses, int) else statuses
         return [investment for investment in cls.list_by_user(app_user) if investment.status in statuses]
+
+    def to_dict(self, extra_properties=None, include=None, exclude=None):
+        return super(InvestmentAgreement, self).to_dict(extra_properties or ['document_url'], include, exclude)

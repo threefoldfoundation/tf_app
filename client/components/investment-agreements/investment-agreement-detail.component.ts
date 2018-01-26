@@ -5,13 +5,11 @@ import { GlobalStats } from '../../interfaces/global-stats.interfaces';
 import {
   INVESTMENT_AGREEMENT_STATUSES,
   InvestmentAgreement,
-  InvestmentAgreementDetail,
   InvestmentAgreementsStatuses
 } from '../../interfaces/investment-agreements.interfaces';
 
 @Component({
-  moduleId: module.id,
-  selector: 'investment-agreement',
+  selector: 'tff-investment-agreement',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'investment-agreement-detail.component.html',
   styles: [ `.investment-agreement-content {
@@ -20,11 +18,11 @@ import {
 })
 export class InvestmentAgreementDetailComponent {
   statuses = InvestmentAgreementsStatuses;
-  @Input() investmentAgreement: InvestmentAgreementDetail;
+  @Input() investmentAgreement: InvestmentAgreement;
   @Input() globalStats: GlobalStats;
   @Input() status: ApiRequestStatus;
   @Input() updateStatus: ApiRequestStatus;
-  @Input() canUpdate: boolean = false;
+  @Input() canUpdate = false;
   @Output() onUpdate = new EventEmitter<InvestmentAgreement>();
 
   private _btcPrice: number;
@@ -66,14 +64,14 @@ export class InvestmentAgreementDetailComponent {
   markAsPaid() {
     // Mark as signed, a message will be sent to the current user his account in the threefold app.
     // When the admin user has signed that message, only then it will be marked as paid
-    let updatedProperties = {
+    const updatedProperties = {
       status: InvestmentAgreementsStatuses.SIGNED,
       token_count_float: this.getTokenCount()
     };
-    this.onUpdate.emit(<InvestmentAgreement>{ ...this.investmentAgreement, ...updatedProperties });
+    this.onUpdate.emit({ ...this.investmentAgreement, ...updatedProperties });
   }
 
   cancelInvestment() {
-    this.onUpdate.emit(<InvestmentAgreement>{ ...this.investmentAgreement, status: InvestmentAgreementsStatuses.CANCELED });
+    this.onUpdate.emit({ ...this.investmentAgreement, status: InvestmentAgreementsStatuses.CANCELED });
   }
 }

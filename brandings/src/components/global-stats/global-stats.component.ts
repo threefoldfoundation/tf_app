@@ -1,13 +1,13 @@
-import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
-import { GlobalStats } from '../../interfaces/global-stats.interfaces';
+import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 import { CurrencyValue } from '../../../../client/interfaces/global-stats.interfaces';
+import { GlobalStats } from '../../interfaces/global-stats.interfaces';
 
 @Component({
   selector: 'global-stats',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'global-stats.component.html'
+  templateUrl: 'global-stats.component.html',
 })
 
 export class GlobalStatsComponent {
@@ -18,7 +18,7 @@ export class GlobalStatsComponent {
   }
 
   getDollarValue(value: number) {
-    return this.currencyPipe.transform(value, 'USD', true);
+    return this.currencyPipe.transform(value, 'USD', 'symbol');
   }
 
   getValue(currency: CurrencyValue) {

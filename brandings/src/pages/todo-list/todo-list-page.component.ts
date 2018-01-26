@@ -7,12 +7,12 @@ import { TodoListService } from '../../services/todo-list.service';
   selector: 'todo-list-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  templateUrl: 'todo-list-page.component.html'
+  templateUrl: 'todo-list-page.component.html',
 })
 
 export class TodoListPageComponent implements OnInit {
   todoList: TodoList;
-  isRoot: boolean = false;
+  isRoot = false;
 
   constructor(private navParams: NavParams, private platform: Platform, private todoListService: TodoListService) {
   }

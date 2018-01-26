@@ -1,6 +1,6 @@
-<md-nav-list>
-  <md-list-item *ngFor="let stats of globalStats$ | async" [routerLink]="stats.id">
-    <h4 mdLine>{{ stats.id }} - {{ stats.name }}</h4>
-    <p mdLine>{{ 'tff.x_tokens' | translate : { count: stats.token_count } }}</p>
-  </md-list-item>
-</md-nav-list>
+<mat-nav-list>
+  <mat-list-item *ngFor="let stats of globalStats$ | async" [routerLink]="stats.id">
+    <h4 matLine>{{ stats.id }} - {{ stats.name }}</h4>
+    <p matLine>{{ 'tff.x_tokens' | translate : { count: stats.token_count } }}</p>
+  </mat-list-item>
+</mat-nav-list>

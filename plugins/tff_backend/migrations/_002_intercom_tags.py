@@ -24,6 +24,7 @@ from framework.bizz.job import run_job, MODE_BATCH
 from plugins.tff_backend.bizz.hoster import get_intercom_tags_for_node_order
 from plugins.tff_backend.bizz.intercom_helpers import tag_intercom_users
 from plugins.tff_backend.bizz.investor import get_intercom_tags_for_investment
+from plugins.tff_backend.bizz.iyo.utils import get_iyo_usernames
 from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.models.investor import InvestmentAgreement
 
@@ -44,24 +45,28 @@ def _get_investment_agreements():
 
 def _set_intercom_tags_node_orders(node_order_keys, dry_run):
     node_orders = ndb.get_multi(node_order_keys)  # type: list[NodeOrder]
+    usernames = get_iyo_usernames([order.app_email for order in node_orders])
     tags = defaultdict(list)
     for order in node_orders:
         order_tags = get_intercom_tags_for_node_order(order)
         for tag in order_tags:
-            if order.iyo_username not in tags[tag]:
-                tags[tag].append(order.iyo_username)
+            iyo_username = usernames.get(order.app_email)
+            if iyo_username not in tags[tag]:
+                tags[tag].append(iyo_username)
     _set_tags(tags, dry_run)
 
 
 def _set_intercom_tags_investment_agreements(agreement_keys, dry_run):
-    investment_agreements = ndb.get_multi(agreement_keys)  # type: list[InvestmentAgreement]
+    investments = ndb.get_multi(agreement_keys)  # type: list[InvestmentAgreement]
+    usernames = get_iyo_usernames([i.app_email for i in investments])
     tags = defaultdict(list)
-    for investment in investment_agreements:
+    for investment in investments:
         investment_tags = get_intercom_tags_for_investment(investment)
         if investment_tags:
             for tag in investment_tags:
-                if investment.iyo_username not in tags[tag]:
-                    tags[tag].append(investment.iyo_username)
+                iyo_username = usernames.get(investment.app_email)
+                if iyo_username not in tags[tag]:
+                    tags[tag].append(iyo_username)
     _set_tags(tags, dry_run)
 
 

@@ -1,18 +1,12 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
-import { SeeDocumentDetails } from '../interfaces/iyo-see.interfaces';
 
 @Component({
-  moduleId: module.id,
-  selector: 'iyo-see',
+  selector: 'tff-document-url',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<p *ngIf="document">{{ 'tff.document_url' | translate }}: <a [href]="getUrl()" target="_blank">{{ getUrl() }}</a></p>`,
+  template: `<p *ngIf="url">{{ 'tff.document_url' | translate }}: <a [href]="url" target="_blank"  rel="noopener">{{ url }}</a></p>`,
 })
 
 export class IyoSeeComponent {
-  @Input() document: SeeDocumentDetails;
-
-  getUrl() {
-    return this.document.versions[ 0 ].link;
-  }
+  @Input() url: string | null;
 }

@@ -1,6 +1,5 @@
-import { updateItem } from '../../../framework/client/ngrx/redux-utils';
+import { insertItem, updateItem } from '../../../framework/client/ngrx/redux-utils';
 import { apiRequestLoading, apiRequestSuccess } from '../../../framework/client/rpc/rpc.interfaces';
-import { UserList } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
 import * as actions from '../actions/threefold.action';
 import { TffActions } from '../actions/threefold.action';
 import { initialTffState, ITffState } from '../states/index';
@@ -24,7 +23,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         },
         ordersQuery: {
           ...state.ordersQuery,
-          cursor: action.payload.cursor
+          cursor: action.payload.cursor,
         },
         ordersStatus: apiRequestSuccess,
       };
@@ -37,6 +36,8 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       return {
         ...state,
         order: initialTffState.order,
+        createOrderStatus: initialTffState.updateOrderStatus,
+        updateOrderStatus: initialTffState.updateOrderStatus,
       };
     case actions.TffActionTypes.GET_ORDER:
       return {
@@ -55,10 +56,26 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         orderStatus: action.payload,
       };
+    case actions.TffActionTypes.CREATE_ORDER:
+      return {
+        ...state,
+        createOrderStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.CREATE_ORDER_COMPLETE:
+      return {
+        ...state,
+        order: action.payload,
+        createOrderStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.CREATE_ORDER_FAILED:
+      return {
+        ...state,
+        createOrderStatus: action.payload,
+      };
     case actions.TffActionTypes.UPDATE_ORDER:
       return {
         ...state,
-        updateOrderStatus: apiRequestLoading
+        updateOrderStatus: apiRequestLoading,
       };
     case actions.TffActionTypes.UPDATE_ORDER_COMPLETE:
       return {
@@ -66,7 +83,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         order: action.payload,
         orders: {
           ...state.orders,
-          results: updateItem(state.orders.results, action.payload, 'id')
+          results: updateItem(state.orders.results, action.payload, 'id'),
         },
         updateOrderStatus: apiRequestSuccess,
       };
@@ -89,13 +106,13 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         investmentAgreements: {
           cursor: action.payload.cursor,
           more: action.payload.more,
-          results: [ ...state.investmentAgreements.results, ...action.payload.results ]
+          results: [ ...state.investmentAgreements.results, ...action.payload.results ],
         },
         investmentAgreementsStatus: apiRequestSuccess,
         investmentAgreementsQuery: {
           ...state.investmentAgreementsQuery,
-          cursor: action.payload.cursor
-        }
+          cursor: action.payload.cursor,
+        },
       };
     case actions.TffActionTypes.GET_INVESTMENT_AGREEMENTS_FAILED:
       return {
@@ -135,7 +152,7 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         investmentAgreement: action.payload,
         investmentAgreements: {
           ...state.investmentAgreements,
-          results: updateItem(state.investmentAgreements.results, action.payload, 'id')
+          results: updateItem(state.investmentAgreements.results, action.payload, 'id'),
         },
         updateInvestmentAgreementStatus: apiRequestSuccess,
       };
@@ -143,6 +160,23 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       return {
         ...state,
         updateInvestmentAgreementStatus: action.payload,
+      };
+    case actions.TffActionTypes.CREATE_INVESTMENT_AGREEMENT:
+      return {
+        ...state,
+        createInvestmentAgreementStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.CREATE_INVESTMENT_AGREEMENT_COMPLETE:
+      return {
+        ...state,
+        investmentAgreement: action.payload,
+        investmentAgreements: initialTffState.investmentAgreements,
+        createInvestmentAgreementStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.CREATE_INVESTMENT_AGREEMENT_FAILED:
+      return {
+        ...state,
+        createInvestmentAgreementStatus: action.payload,
       };
     case actions.TffActionTypes.GET_GLOBAL_STATS_LIST:
       return {
@@ -207,12 +241,12 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         userListQuery: {
           ...state.userListQuery,
-          cursor: action.payload.cursor
+          cursor: action.payload.cursor,
         },
         userList: {
           cursor: action.payload.cursor,
           more: action.payload.more,
-          results: [ ...state.userList.results, ...(<UserList>action.payload).results ],
+          results: [ ...state.userList.results, ...action.payload.results ],
         },
         userListStatus: apiRequestSuccess,
       };
@@ -237,6 +271,23 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       return {
         ...state,
         userStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_TFF_PROFILE:
+      return {
+        ...state,
+        tffProfile: null,
+        tffProfileStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_TFF_PROFILE_COMPLETE:
+      return {
+        ...state,
+        tffProfile: action.payload,
+        tffProfileStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_TFF_PROFILE_FAILED:
+      return {
+        ...state,
+        tffProfileStatus: action.payload,
       };
     case actions.TffActionTypes.GET_BALANCE:
       return {
@@ -288,13 +339,245 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         createTransactionStatus: apiRequestSuccess,
         userTransactions: {
           ...state.userTransactions,
-          results: [ ...state.userTransactions.results, action.payload ]
+          results: [ ...state.userTransactions.results, action.payload ],
         },
       };
     case actions.TffActionTypes.CREATE_TRANSACTION_FAILED:
       return {
         ...state,
         createTransactionStatus: action.payload,
+      };
+    case actions.TffActionTypes.SET_KYC_STATUS:
+      return { ...state, setKYCStatus: apiRequestLoading };
+    case actions.TffActionTypes.SET_KYC_STATUS_COMPLETE:
+      return {
+        ...state,
+        setKYCStatus: apiRequestSuccess,
+        tffProfile: action.payload,
+      };
+    case actions.TffActionTypes.SET_KYC_STATUS_FAILED:
+      return { ...state, setKYCStatus: action.payload };
+    case actions.TffActionTypes.GET_AGENDA_EVENTS:
+      return {
+        ...state,
+        agendaEventsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_AGENDA_EVENTS_COMPLETE:
+      return {
+        ...state,
+        agendaEvents: action.payload,
+        agendaEventsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_AGENDA_EVENTS_FAILED:
+      return {
+        ...state,
+        agendaEventsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_AGENDA_EVENT:
+      return {
+        ...state,
+        agendaEventStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_AGENDA_EVENT_COMPLETE:
+      return {
+        ...state,
+        agendaEvent: action.payload,
+        agendaEventStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_AGENDA_EVENT_FAILED:
+      return {
+        ...state,
+        agendaEventStatus: action.payload,
+      };
+    case actions.TffActionTypes.RESET_AGENDA_EVENT:
+      return {
+        ...state,
+        createAgendaEventStatus: initialTffState.createAgendaEventStatus,
+      };
+    case actions.TffActionTypes.CREATE_AGENDA_EVENT:
+      return {
+        ...state,
+        createAgendaEventStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.CREATE_AGENDA_EVENT_COMPLETE:
+      return {
+        ...state,
+        agendaEvent: action.payload,
+        agendaEvents: insertItem(state.agendaEvents, action.payload),
+        createAgendaEventStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.CREATE_AGENDA_EVENT_FAILED:
+      return {
+        ...state,
+        createAgendaEventStatus: action.payload,
+      };
+    case actions.TffActionTypes.UPDATE_AGENDA_EVENT:
+      return {
+        ...state,
+        updateAgendaEventStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.UPDATE_AGENDA_EVENT_COMPLETE:
+      return {
+        ...state,
+        agendaEvent: action.payload,
+        updateAgendaEventStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.UPDATE_AGENDA_EVENT_FAILED:
+      return {
+        ...state,
+        updateAgendaEventStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_EVENT_PARTICIPANTS:
+      return {
+        ...state,
+        eventParticipants: initialTffState.eventParticipants,
+        eventParticipantsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_EVENT_PARTICIPANTS_COMPLETE:
+      return {
+        ...state,
+        eventParticipants: action.payload,
+        eventParticipantsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_EVENT_PARTICIPANTS_FAILED:
+      return {
+        ...state,
+        eventParticipantsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_KYC_CHECKS:
+      return {
+        ...state,
+        kycChecksStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_KYC_CHECKS_COMPLETE:
+      return {
+        ...state,
+        kycChecks: action.payload,
+        kycChecksStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_KYC_CHECKS_FAILED:
+      return {
+        ...state,
+        kycChecksStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN_FLOWS:
+      return {
+        ...state,
+        distinctFlowsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN_FLOWS_COMPLETE:
+      return {
+        ...state,
+        distinctFlows: action.payload,
+        distinctFlowsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN_FLOWS_FAILED:
+      return {
+        ...state,
+        distinctFlowsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUNS:
+      return {
+        ...state,
+        flowRuns: action.payload.cursor ? state.flowRuns : initialTffState.flowRuns,
+        flowRunsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUNS_COMPLETE:
+      return {
+        ...state,
+        flowRuns: {
+          ...action.payload,
+          results: [ ...state.flowRuns.results, ...action.payload.results ],
+        },
+        flowRunsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUNS_FAILED:
+      return {
+        ...state,
+        flowRunsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN:
+      return {
+        ...state,
+        flowRunStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN_COMPLETE:
+      return {
+        ...state,
+        flowRun: action.payload,
+        flowRunStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_FLOW_RUN_FAILED:
+      return {
+        ...state,
+        flowRunStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_FLOW_STATS:
+      return {
+        ...state,
+        flowStatsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_FLOW_STATS_COMPLETE:
+      return {
+        ...state,
+        flowStats: action.payload,
+        flowStatsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_FLOW_STATS_FAILED:
+      return {
+        ...state,
+        flowStatsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_INSTALLATIONS:
+      return {
+        ...state,
+        installations: action.payload.cursor ? state.installations : initialTffState.installations,
+        installationsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_INSTALLATIONS_COMPLETE:
+      return {
+        ...state,
+        installations: { ...action.payload, results: [ ...state.installations.results, ...action.payload.results ] },
+        installationsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_INSTALLATIONS_FAILED:
+      return {
+        ...state,
+        installationsStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION:
+      return {
+        ...state,
+        installation: initialTffState.installation,
+        installationStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_COMPLETE:
+      return {
+        ...state,
+        installation: action.payload,
+        installationStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_FAILED:
+      return {
+        ...state,
+        installationStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_LOGS:
+      return {
+        ...state,
+        installationLogs: initialTffState.installationLogs,
+        installationLogsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_LOGS_COMPLETE:
+      return {
+        ...state,
+        installationLogs: action.payload,
+        installationLogsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_INSTALLATION_LOGS_FAILED:
+      return {
+        ...state,
+        installationLogsStatus: action.payload,
       };
     default:
       return state;

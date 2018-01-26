@@ -18,6 +18,8 @@
 import json
 import re
 
+from google.appengine.ext import db
+
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.to.messaging.flow import BaseFlowStepTO
 
@@ -78,13 +80,20 @@ def round_currency_amount(currency, amount):
     return round(amount, decimals_after_comma)
 
 
-def _convert_to_str(data):
+def convert_to_str(data):
     if isinstance(data, unicode):
         return data.encode('utf-8')
     elif isinstance(data, list):
         for i, list_item in enumerate(data):
-            data[i] = _convert_to_str(list_item)
+            data[i] = convert_to_str(list_item)
     elif isinstance(data, dict):
         for key, val in data.iteritems():
-            data[key] = _convert_to_str(val)
+            data[key] = convert_to_str(val)
     return data
+
+
+def get_key_name_from_key_string(key_string):
+    try:
+        return db.Key(key_string).name()
+    except db.BadArgumentError:
+        return key_string

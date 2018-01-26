@@ -1,20 +1,14 @@
-<form (submit)="submit()">
-  <md-form-field>
-    <input type="search" name="search_users" [(ngModel)]="query.query" mdInput
-           [placeholder]="'tff.search' | translate" (ngModelChange)="submit()">
-  </md-form-field>
-</form>
-<md-nav-list>
-  <a *ngFor="let user of userList.results" [routerLink]="[user.username, 'transactions']" md-list-item>
-    <h4 mdLine>{{ getUserName(user) }}</h4>
-    <p mdLine *ngIf="getUserName(user) != user.username">
+<mat-nav-list>
+  <a *ngFor="let user of userList.results" [routerLink]="[user.username]" mat-list-item>
+    <h4 matLine>{{ user | profileName }}</h4>
+    <p matLine *ngIf="(user | profileName) != user.username">
       {{ user.username }}
     </p>
-    <p mdLine *ngIf="user.info?.validatedemailaddresses.length">
-      {{ user.info.validatedemailaddresses[0].emailaddress }}
+    <p matLine *ngIf="user.info?.validatedemailaddresses.length">
+      {{ user.info?.validatedemailaddresses[0].emailaddress }}
     </p>
   </a>
-  <button md-button *ngIf="userList.more" (click)="loadMore()">
+  <button mat-button *ngIf="userList.more" (click)="loadMore.emit()">
     {{ 'tff.load_more' | translate }}
   </button>
-</md-nav-list>
+</mat-nav-list>

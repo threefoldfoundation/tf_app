@@ -23,7 +23,7 @@ from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_cli
 from plugins.its_you_online_auth.libs.itsyouonline.AddOrganizationMemberReqBody import AddOrganizationMemberReqBody
 from plugins.its_you_online_auth.libs.itsyouonline.userview import userview
 from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username
-from plugins.tff_backend.utils import _convert_to_str
+from plugins.tff_backend.utils import convert_to_str
 from requests.exceptions import HTTPError
 
 
@@ -32,9 +32,8 @@ def get_user(username, jwt=None):
         client = get_itsyouonline_client_from_jwt(jwt)
     else:
         client = get_itsyouonline_client_from_username(username)
-    result = client.api.users.GetUserInformation(username)
-    logging.debug('get_user %s %s', result.status_code, result.text)
-    return userview(_convert_to_str(result.json()))
+    result = client.api.users.GetUserInformation(convert_to_str(username))
+    return userview(convert_to_str(result.json()))
 
 
 @returns()
@@ -43,8 +42,8 @@ def invite_user_to_organization(username, organization_id):
     logging.info('Inviting user %s to IYO organization %s', username, organization_id)
     client = get_itsyouonline_client()
     try:
-        client.api.organizations.AddOrganizationMember(AddOrganizationMemberReqBody.create(username),
-                                                       organization_id)
+        data = AddOrganizationMemberReqBody(searchstring=convert_to_str(username))
+        client.api.organizations.AddOrganizationMember(data=data, globalid=organization_id)
     except HTTPError as e:
         if e.response.status_code != httplib.CONFLICT:
             raise e
@@ -55,4 +54,4 @@ def invite_user_to_organization(username, organization_id):
 def remove_user_from_organization(username, organization_id):
     logging.info('Removing user %s from IYO organization %s', username, organization_id)
     client = get_itsyouonline_client()
-    client.api.organizations.RemoveOrganizationMember(username, organization_id)
+    client.api.organizations.RemoveOrganizationMember(convert_to_str(username), organization_id)

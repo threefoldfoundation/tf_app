@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { GlobalStats } from '../../interfaces/global-stats.interfaces';
-import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { Store } from '@ngrx/store';
-import { getGlobalStatsList } from '../../tff.state';
+import { Observable } from 'rxjs/Observable';
+import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { GetGlobalStatsListAction } from '../../actions/threefold.action';
+import { GlobalStats } from '../../interfaces/global-stats.interfaces';
+import { getGlobalStatsList } from '../../tff.state';
 
 @Component({
-  moduleId: module.id,
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'global-stats-list-page.component.html'
@@ -20,7 +19,7 @@ export class GlobalStatsListPageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.globalStats$ = this.store.let(getGlobalStatsList);
+    this.globalStats$ = this.store.select(getGlobalStatsList);
     this.store.dispatch(new GetGlobalStatsListAction());
   }
 }

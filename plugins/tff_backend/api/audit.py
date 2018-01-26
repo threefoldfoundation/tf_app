@@ -25,7 +25,7 @@ from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.to.audit import AuditLogDetailsListTO
 
 
-@rest('/audit-logs', 'get', Scopes.ADMINS)
+@rest('/audit-logs', 'get', Scopes.BACKEND_ADMIN)
 @returns(AuditLogDetailsListTO)
 @arguments(page_size=(int, long), cursor=unicode, type=unicode, user_id=unicode, include_reference=bool)
 def api_list_audit_logs(page_size=100, cursor=None, type=None, user_id=None, include_reference=True):

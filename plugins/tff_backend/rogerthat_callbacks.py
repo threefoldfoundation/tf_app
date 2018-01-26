@@ -19,12 +19,15 @@ import logging
 
 from google.appengine.ext import deferred
 
+from framework.models.session import Session
 from framework.plugin_loader import get_config
+from framework.utils import try_or_defer
 from mcfw.properties import object_factory
 from mcfw.rpc import parse_complex_value, serialize_complex_value, returns, arguments
 from plugins.rogerthat_api.models.settings import RogerthatSettings
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.friends import ACCEPT_ID, DECLINE_ID
+from plugins.rogerthat_api.to.installation import InstallationTO, InstallationLogTO
 from plugins.rogerthat_api.to.messaging import Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import FormResultTO
@@ -32,20 +35,27 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemb
     FormAcknowledgedCallbackResultTO, SendApiCallCallbackResultTO, MessageAcknowledgedCallbackResultTO, \
     PokeCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
+from plugins.tff_backend.api.rogerthat.agenda import get_presence, update_presence
 from plugins.tff_backend.api.rogerthat.global_stats import api_list_global_stats
 from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, api_iyo_see_detail
+from plugins.tff_backend.api.rogerthat.nodes import api_get_node_status
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
+from plugins.tff_backend.bizz.authentication import Organization
+from plugins.tff_backend.bizz.dashboard import update_firebase_installation
+from plugins.tff_backend.bizz.flow_statistics import save_flow_statistics
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed
 from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \
     investment_agreement_signed_by_admin, invest_complete, start_invest
+from plugins.tff_backend.bizz.iyo.user import invite_user_to_organization
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1, kyc_part_2
 from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_info_in_userdata, \
-    is_user_in_roles
-from plugins.tff_backend.plugin_consts import NAMESPACE, BUY_TOKENS_TAG
+    is_user_in_roles, populate_intercom_user, add_user_to_public_role
+from plugins.tff_backend.plugin_consts import NAMESPACE, BUY_TOKENS_TAG, KYC_FLOW_PART_1_TAG, KYC_FLOW_PART_2_TAG
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 
-TAG_MAPPING = {
+FMR_TAG_MAPPING = {
     'order_node': order_node,
     'sign_order_node_tos': order_node_signed,
     'invest': invest_tft,
@@ -53,6 +63,8 @@ TAG_MAPPING = {
     'invest_complete': invest_complete,
     'sign_investment_agreement': investment_agreement_signed,
     'sign_investment_agreement_admin': investment_agreement_signed_by_admin,
+    KYC_FLOW_PART_1_TAG: kyc_part_1,
+    KYC_FLOW_PART_2_TAG: kyc_part_2,
 }
 
 POKE_TAG_MAPPING = {
@@ -60,10 +72,13 @@ POKE_TAG_MAPPING = {
 }
 
 API_METHOD_MAPPING = {
+    'agenda.update_presence': update_presence,
+    'agenda.get_presence': get_presence,
     'referrals.set': api_set_referral,
     'global_stats.list': api_list_global_stats,
     'iyo.see.list': api_iyo_see_list,
-    'iyo.see.detail': api_iyo_see_detail
+    'iyo.see.detail': api_iyo_see_detail,
+    'node.status': api_get_node_status
 }
 
 
@@ -77,18 +92,26 @@ def log_and_parse_user_details(user_details):
 
 def flow_member_result(rt_settings, request_id, message_flow_run_id, member, steps, end_id, end_message_flow_id,
                        parent_message_key, tag, result_key, flush_id, flush_message_flow_id, service_identity,
-                       user_details, flow_params, **kwargs):
+                       user_details, flow_params, timestamp, **kwargs):
     user_details = log_and_parse_user_details(user_details)
     steps = parse_complex_value(object_factory("step_type", FLOW_STEP_MAPPING), steps, True)
 
-    f = TAG_MAPPING.get(parse_to_human_readable_tag(tag))
-    if not f:
-        return None
+    f = FMR_TAG_MAPPING.get(parse_to_human_readable_tag(tag))
+    should_process_flush = f and not flush_id.startswith('flush_monitoring')
 
-    result = f(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
-               flush_id, flush_message_flow_id, service_identity, user_details, flow_params)
-
-    return result and serialize_complex_value(result, FlowMemberResultCallbackResultTO, False, skip_missing=True)
+    result = None
+    try:
+        if should_process_flush:
+            logging.info('Processing flow_member_result with tag %s and flush_id %s', tag, flush_id)
+            result = f(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
+                       result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params)
+            return result and serialize_complex_value(result, FlowMemberResultCallbackResultTO, False,
+                                                      skip_missing=True)
+        else:
+            logging.info('[tff] Ignoring flow_member_result with tag %s and flush_id %s', tag, flush_id)
+    finally:
+        deferred.defer(save_flow_statistics, parent_message_key, steps, end_id, tag, flush_id, flush_message_flow_id,
+                       user_details[0], timestamp, result)
 
 
 def form_update(rt_settings, request_id, status, form_result, answer_id, member, message_key, tag, received_timestamp,
@@ -99,7 +122,7 @@ def form_update(rt_settings, request_id, status, form_result, answer_id, member,
     user_details = log_and_parse_user_details(user_details)
     form_result = parse_complex_value(FormResultTO, form_result, False)
 
-    f = TAG_MAPPING.get(parse_to_human_readable_tag(tag))
+    f = FMR_TAG_MAPPING.get(parse_to_human_readable_tag(tag))
     if not f:
         return None
 
@@ -114,7 +137,7 @@ def messaging_update(rt_settings, request_id, status, answer_id, received_timest
         return None
 
     user_details = log_and_parse_user_details(user_details)
-    f = TAG_MAPPING.get(parse_to_human_readable_tag(tag))
+    f = FMR_TAG_MAPPING.get(parse_to_human_readable_tag(tag))
     if not f:
         return None
 
@@ -165,6 +188,9 @@ def friend_invite_result(rt_settings, request_id, params, response):
     if user_detail.public_keys:
         deferred.defer(store_public_key, user_detail)
     deferred.defer(store_info_in_userdata, username, user_detail)
+    deferred.defer(invite_user_to_organization, username, Organization.PUBLIC)
+    deferred.defer(add_user_to_public_role, user_detail)
+    deferred.defer(populate_intercom_user, Session.create_key(username), user_detail)
 
 
 def friend_is_in_roles(rt_settings, request_id, service_identity, user_details, roles, **kwargs):
@@ -200,3 +226,9 @@ def system_api_call(rt_settings, request_id, method, params, user_details, **kwa
         logging.exception('Unhandled API call exception')
         response.error = u'An unknown error has occurred. Please try again later.'
     return serialize_complex_value(response, SendApiCallCallbackResultTO, False)
+
+
+def installation_progress(rt_settings, request_id, installation, logs, **kwargs):
+    installation = InstallationTO.from_dict(installation)
+    logs = InstallationLogTO.from_list(logs)
+    try_or_defer(update_firebase_installation, installation, logs)

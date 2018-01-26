@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { Platform } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
+import { SetReferrerAction } from '../../actions/branding.actions';
+import { IAppState } from '../../app/app.state';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 import { getSetReferrerResult, getSetReferrerStatus } from '../../state/app.state';
-import { Store } from '@ngrx/store';
-import { IAppState } from '../../app/app.state';
-import { SetReferrerAction } from '../../actions/branding.actions';
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -21,8 +21,8 @@ export class SetReferrerPageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.status$ = this.store.let(getSetReferrerStatus);
-    this.setReferrerResult$ = this.store.let(getSetReferrerResult);
+    this.status$ = this.store.select(getSetReferrerStatus);
+    this.setReferrerResult$ = this.store.select(getSetReferrerResult);
   }
 
   submit(code: string) {

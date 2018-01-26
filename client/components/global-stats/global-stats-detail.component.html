@@ -1,55 +1,55 @@
 <div class="default-component-padding">
-  <button md-button [routerLink]="['..']">
-    <md-icon>arrow_back</md-icon>
+  <button mat-button [routerLink]="['..']">
+    <mat-icon>arrow_back</mat-icon>
     {{ 'tff.back' | translate }}
   </button>
   <tff-api-request-status [status]="status"></tff-api-request-status>
   <div *ngIf="status.success" style="padding-top: 16px;">
-    <form fxLayout="column" (submit)="save(form)" #form="ngForm">
-      <md-form-field>
-        <input mdInput [(ngModel)]="globalStats.name" [placeholder]="'tff.name' | translate" name="name" required>
-      </md-form-field>
-      <md-form-field>
-        <input mdInput [(ngModel)]="globalStats.token_count" [placeholder]="'tff.total_tokens' | translate"
+    <form fxLayout="column" (ngSubmit)="save(form)" #form="ngForm">
+      <mat-form-field>
+        <input matInput [(ngModel)]="globalStats.name" [placeholder]="'tff.name' | translate" name="name" required>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput [(ngModel)]="globalStats.token_count" [placeholder]="'tff.total_tokens' | translate"
                name="token_count" type="number" required>
-      </md-form-field>
-      <md-form-field>
-        <input mdInput [(ngModel)]="globalStats.unlocked_count" [placeholder]="'tff.unlocked_tokens' | translate"
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput [(ngModel)]="globalStats.unlocked_count" [placeholder]="'tff.unlocked_tokens' | translate"
                name="unlocked_tokens" type="number" required>
-      </md-form-field>
-      <md-form-field>
-        <input mdInput [(ngModel)]="globalStats.value" [placeholder]="'tff.value_in_dollars' | translate" name="value"
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput [(ngModel)]="globalStats.value" [placeholder]="'tff.value_in_dollars' | translate" name="value"
                type="number" required>
-        <md-icon mdSuffix>attach_money</md-icon>
-      </md-form-field>
+        <mat-icon matSuffix>attach_money</mat-icon>
+      </mat-form-field>
       <div *ngFor="let currency of globalStats.currencies">
-        <md-form-field class="xs-input">
-          <input mdInput [(ngModel)]="currency.currency" [ngModelOptions]="{ standalone: true }"
+        <mat-form-field class="xs-input">
+          <input matInput [(ngModel)]="currency.currency" [ngModelOptions]="{ standalone: true }"
                  [placeholder]="'tff.symbol' | translate">
-        </md-form-field>
-        <md-form-field class="s-input" style="margin-left: 16px;">
-          <input mdInput [(ngModel)]="currency.value" [ngModelOptions]="{ standalone: true }" type="number"
+        </mat-form-field>
+        <mat-form-field class="s-input" style="margin-left: 16px;">
+          <input matInput [(ngModel)]="currency.value" [ngModelOptions]="{ standalone: true }" type="number"
                  [placeholder]="'tff.value' | translate">
-        </md-form-field>
-        <button type="button" md-icon-button (click)="removeCurrency(currency)">
-          <md-icon>delete</md-icon>
+        </mat-form-field>
+        <button type="button" mat-icon-button (click)="removeCurrency(currency)">
+          <mat-icon>delete</mat-icon>
         </button>
-        <md-slide-toggle [(ngModel)]="currency.auto_update" [ngModelOptions]="{ standalone: true }">
+        <mat-slide-toggle [(ngModel)]="currency.auto_update" [ngModelOptions]="{ standalone: true }">
           {{ 'tff.auto_update' | translate }}
-        </md-slide-toggle>
+        </mat-slide-toggle>
       </div>
       <div *ngIf="globalStats.currencies.length">
         <p>{{ 'tff.auto_update_explanation' | translate }}</p>
       </div>
       <div>
-        <md-form-field>
-          <input mdInput [placeholder]="'tff.currency' | translate" [(ngModel)]="newCurrency" name="new_currency">
-        </md-form-field>
-        <button type="button" md-button (click)="addCurrency()">{{ 'tff.add_currency' | translate }}</button>
+        <mat-form-field>
+          <input matInput [placeholder]="'tff.currency' | translate" [(ngModel)]="newCurrency" name="new_currency">
+        </mat-form-field>
+        <button type="button" mat-button (click)="addCurrency()">{{ 'tff.add_currency' | translate }}</button>
       </div>
       <tff-api-request-status [status]="updateStatus"></tff-api-request-status>
       <div>
-        <button color="primary" md-raised-button [disabled]="!form.form.valid || updateStatus.loading">
+        <button color="primary" mat-raised-button [disabled]="!form.form.valid || updateStatus.loading">
           {{ 'tff.save' | translate }}
         </button>
       </div>

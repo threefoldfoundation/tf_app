@@ -20,6 +20,7 @@ from functools import wraps
 from google.appengine.ext import ndb
 from six import string_types
 
+from enum import Enum
 from framework.bizz.authentication import get_current_session
 from framework.to import TO
 from plugins.tff_backend.bizz.audit import mapping
@@ -82,6 +83,8 @@ def audit_log(audit_type, key_args, data, user_id=None):
     else:
         assert isinstance(key_args, ndb.Key)
         reference = key_args
+    if isinstance(audit_type, Enum):
+        audit_type = audit_type.value
     data_ = {k: data[k].to_dict() if isinstance(data[k], TO) else data[k] for k in data}
     return AuditLog(audit_type=audit_type, reference=reference, user_id=user_id, data=data_).put_async()
 

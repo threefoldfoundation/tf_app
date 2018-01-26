@@ -1,8 +1,20 @@
+# ======================================================= ORDERS =======================================================
+
 indexes:
 - kind: NodeOrder
   properties:
   - name: status
   - name: send_time
+  
+- kind: NodeOrder
+  properties:
+  - name: app_user
+  - name: status
+  
+- kind: NodeOrder
+  properties:
+  - name: address_hash
+  - name: status
 
 # ======================================================= PAYMENT ======================================================
 
@@ -81,4 +93,37 @@ indexes:
   properties:
   - name: user_id
   - name: timestamp
+    direction: desc
+
+
+# ======================================================= Agenda =======================================================
+
+- kind: EventParticipant
+  properties:
+  - name: event_id
+  - name: username
+
+- kind: Event
+  properties:
+  - name: past
+  - name: start_timestamp
+
+# ===================================================== Flow stats =====================================================
+
+- kind: FlowRun
+  properties:
+  - name: flow_name
+  - name: start_date
+    direction: desc
+
+- kind: FlowRun
+  properties:
+  - name: status
+  - name: statistics.last_step_date
+
+- kind: FlowRun
+  properties:
+  - name: flow_name
+  - name: user
+  - name: start_date
     direction: desc

@@ -1,0 +1,15 @@
+<form (ngSubmit)="submit()" fxLayout="row" fxLayout.sm="column">
+  <mat-form-field fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%">
+    <mat-select name="kyc_status" [(ngModel)]="_query.kyc_status" (ngModelChange)="submit()"
+                [placeholder]="'tff.kyc_status' | translate">
+      <mat-option [value]="null">{{ 'tff.all' | translate }}</mat-option>
+      <mat-option *ngFor="let status of statuses" [value]="status.value">
+        {{ status.label | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%" fxFlexOffset="5%" fxFlexOffset.sm="0">
+    <input type="search" name="search_users" [(ngModel)]="searchString" matInput
+           [placeholder]="'tff.search' | translate" (ngModelChange)="submit()">
+  </mat-form-field>
+</form>

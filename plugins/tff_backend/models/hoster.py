@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+import re
 
 from google.appengine.api import datastore_errors
 from google.appengine.ext import ndb
@@ -22,7 +23,7 @@ from framework.consts import WEEK
 from framework.models.common import NdbModel
 from framework.plugin_loader import get_config
 from framework.utils import chunks, now
-from framework.utils.transactions import on_trans_committed
+from plugins.tff_backend.bizz.gcs import get_serving_url, encrypt_filename
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -53,8 +54,19 @@ def _validate_socket(prop, value):
         raise datastore_errors.BadValueError('Value %r for property %s is not an allowed choice' % (value, prop._name))
 
 
+def normalize_address(address):
+    if not address:
+        return None
+    without_duplicate_spaces = re.sub('\s\s+', '', address).strip()
+    # Remove everything that isn't alphanumerical
+    return re.sub('[^0-9a-zA-Z]+', '', without_duplicate_spaces)
+
+
 class NodeOrder(NdbModel):
     NAMESPACE = NAMESPACE
+
+    def _normalize_address(self):
+        return normalize_address(self.billing_info and self.billing_info.address)
 
     app_user = ndb.UserProperty()
     billing_info = ndb.LocalStructuredProperty(ContactInfo)  # type: ContactInfo
@@ -66,11 +78,12 @@ class NodeOrder(NdbModel):
     order_time = ndb.IntegerProperty()
     sign_time = ndb.IntegerProperty()
     send_time = ndb.IntegerProperty()
-    arrival_time = ndb.IntegerProperty()
+    arrival_time = ndb.IntegerProperty()  # time the node first came online
     cancel_time = ndb.IntegerProperty()
     modification_time = ndb.IntegerProperty()
     odoo_sale_order_id = ndb.IntegerProperty()
     socket = ndb.StringProperty(indexed=False, validator=_validate_socket)
+    address_hash = ndb.ComputedProperty(_normalize_address)
 
     def _pre_put_hook(self):
         self.modification_time = now()
@@ -84,9 +97,9 @@ class NodeOrder(NdbModel):
             index_node_order(self)
 
     @property
-    def iyo_username(self):
-        from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-        return get_iyo_username(self.app_user)
+    def app_email(self):
+        # type: () -> unicode
+        return self.app_user.email()
 
     @property
     def id(self):
@@ -95,6 +108,15 @@ class NodeOrder(NdbModel):
     @property
     def human_readable_id(self):
         return NodeOrder.create_human_readable_id(self.id)
+
+    @property
+    def document_url(self):
+        has_doc = self.tos_iyo_see_id is not None or self.status in (NodeOrderStatus.ARRIVED, NodeOrderStatus.SENT)
+        return get_serving_url(self.filename(self.id)) if has_doc else None
+
+    @classmethod
+    def filename(cls, node_order_id):
+        return u'node-orders/%s.pdf' % encrypt_filename(node_order_id)
 
     @classmethod
     def create_key(cls, order_id=None):
@@ -124,9 +146,23 @@ class NodeOrder(NdbModel):
             .filter(cls.app_user == app_user)
 
     @classmethod
+    def has_order_for_user_or_location(cls, app_user, address):
+        user_qry = cls.list_by_user(app_user).filter(cls.status > NodeOrderStatus.CANCELED).fetch_async()
+        address_qry = cls.query().filter(cls.status > NodeOrderStatus.CANCELED).filter(
+            cls.address_hash == normalize_address(address)).fetch_async()
+        return any(user_qry.get_result()) or any(address_qry.get_result())
+
+    @classmethod
     def list_check_online(cls):
         two_weeks_ago = now() - (WEEK * 2)
         return cls.list_by_status(NodeOrderStatus.SENT).filter(cls.send_time < two_weeks_ago)
+
+    @classmethod
+    def list_by_so(cls, odoo_sale_order_id):
+        return cls.query().filter(cls.odoo_sale_order_id == odoo_sale_order_id)
+
+    def to_dict(self, extra_properties=None):
+        return super(NodeOrder, self).to_dict(['document_url'])
 
 
 class PublicKeyMapping(NdbModel):

@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
-import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 import { NgForm } from '@angular/forms';
+import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 
 @Component({
   selector: 'set-referrer-form',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'set-referrer-form.component.html'
+  templateUrl: 'set-referrer-form.component.html',
 })
 
 export class SetReferrerFormComponent {

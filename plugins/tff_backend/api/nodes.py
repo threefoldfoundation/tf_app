@@ -21,13 +21,13 @@ from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.audit.audit import audit
 from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
-from plugins.tff_backend.bizz.hoster import put_node_order, get_node_order_details
-from plugins.tff_backend.dal.node_orders import search_node_orders
-from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO, NodeOrderDetailsTO
+from plugins.tff_backend.bizz.hoster import put_node_order, create_node_order
+from plugins.tff_backend.dal.node_orders import search_node_orders, get_node_order
+from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO, CreateNodeOrderTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
-@rest('/orders', 'get', Scopes.TEAM)
+@rest('/orders', 'get', Scopes.BACKEND_READONLY, silent_result=True)
 @returns(NodeOrderListTO)
 @arguments(page_size=(int, long), cursor=unicode, query=unicode, status=(int, long))
 def api_get_node_orders(page_size=20, cursor=None, query=None, status=None):
@@ -36,15 +36,22 @@ def api_get_node_orders(page_size=20, cursor=None, query=None, status=None):
     return NodeOrderListTO.from_search(*search_node_orders(sanitise_search_query(query, filters), page_size, cursor))
 
 
-@rest('/orders/<order_id:[^/]+>', 'get', Scopes.TEAM)
-@returns(NodeOrderDetailsTO)
+@rest('/orders/<order_id:[^/]+>', 'get', Scopes.BACKEND_READONLY)
+@returns(NodeOrderTO)
 @arguments(order_id=(int, long))
 def api_get_node_order(order_id):
-    return get_node_order_details(order_id)
+    return NodeOrderTO.from_model(get_node_order(order_id))
+
+
+@rest('/orders', 'post', Scopes.BACKEND_ADMIN)
+@returns(NodeOrderTO)
+@arguments(data=CreateNodeOrderTO)
+def api_create_node_order(data):
+    return NodeOrderTO.from_model(create_node_order(data))
 
 
 @audit(AuditLogType.UPDATE_NODE_ORDER, 'order_id')
-@rest('/orders/<order_id:[^/]+>', 'put', Scopes.ADMINS)
+@rest('/orders/<order_id:[^/]+>', 'put', Scopes.BACKEND_ADMIN)
 @returns(NodeOrderTO)
 @arguments(order_id=(int, long), data=NodeOrderTO)
 def api_put_node_order(order_id, data):

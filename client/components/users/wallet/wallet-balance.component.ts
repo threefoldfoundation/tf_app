@@ -3,9 +3,8 @@ import { ApiRequestStatus } from '../../../../../framework/client/rpc/rpc.interf
 import { WalletBalance } from '../../../interfaces/transactions.interfaces';
 
 @Component({
-  moduleId: module.id,
-  selector: 'wallet-balance',
-  encapsulation: ViewEncapsulation.None,
+  selector: 'tff-wallet-balance',
+  encapsulation: ViewEncapsulation.Emulated,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'wallet-balance.component.html',
   styles: [ `.wallet-balance-card {

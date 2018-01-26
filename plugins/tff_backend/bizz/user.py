@@ -15,38 +15,64 @@
 #
 # @@license_version:1.3@@
 
+import datetime
 import hashlib
 import json
 import logging
+import os
+import time
 
+import jinja2
+from google.appengine.api import users, urlfetch
 from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
 from framework.bizz.session import create_session
+from framework.i18n_utils import DEFAULT_LANGUAGE, translate
 from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
+from framework.utils.jinja_extensions import TranslateExtension
 from mcfw.consts import MISSING
+from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
+from onfido import Applicant
 from plugins.intercom_support.intercom_support_plugin import IntercomSupportPlugin
+from plugins.intercom_support.rogerthat_callbacks import start_or_get_chat
 from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
     has_access_to_organization
+from plugins.its_you_online_auth.bizz.profile import get_profile, index_profile
+from plugins.its_you_online_auth.models import Profile
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
-from plugins.rogerthat_api.api import system
-from plugins.rogerthat_api.to import UserDetailsTO
+from plugins.rogerthat_api.api import system, messaging
+from plugins.rogerthat_api.exceptions import BusinessException
+from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
 from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_QR, REGISTRATION_ORIGIN_OAUTH
+from plugins.rogerthat_api.to.messaging import AnswerTO, Message
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.authentication import Organization, Roles
+from plugins.tff_backend.bizz.authentication import Organization, Roles, RogerthatRoles
 from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user, tag_intercom_users, IntercomTags
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
-from plugins.tff_backend.bizz.iyo.user import get_user, invite_user_to_organization
+from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
-from plugins.tff_backend.bizz.service import add_user_to_role
+from plugins.tff_backend.bizz.kyc.onfido_bizz import create_check, update_applicant, deserialize, list_checks, serialize
+from plugins.tff_backend.bizz.rogerthat import create_error_message, send_rogerthat_message
+from plugins.tff_backend.bizz.service import add_user_to_role, get_main_branding_hash
+from plugins.tff_backend.consts.kyc import kyc_steps, DEFAULT_KYC_STEPS, REQUIRED_DOCUMENT_TYPES
 from plugins.tff_backend.models.hoster import PublicKeyMapping
-from plugins.tff_backend.models.user import ProfilePointer, TffProfile
-from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM
+from plugins.tff_backend.models.user import ProfilePointer, TffProfile, KYCInformation, KYCStatus
+from plugins.tff_backend.plugin_consts import NAMESPACE, KEY_NAME, KEY_ALGORITHM, KYC_FLOW_PART_1, KYC_FLOW_PART_1_TAG, \
+    BUY_TOKENS_TAG
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
-from plugins.tff_backend.utils.app import create_app_user_by_email
+from plugins.tff_backend.to.user import SetKYCPayloadTO
+from plugins.tff_backend.utils import convert_to_str
+from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+
+FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
+    trim_blocks=True,
+    extensions=['jinja2.ext.autoescape', TranslateExtension],
+    autoescape=True,
+    loader=jinja2.FileSystemLoader([os.path.join(os.path.dirname(__file__), 'flows')]))
 
 
 @returns()
@@ -69,25 +95,10 @@ def user_registered(user_detail, origin, data):
             return
 
         jwt = qr_content
-        decoded_jwt = decode_jwt_cached(jwt)
-        username = decoded_jwt.get('username', None)
-        if not username:
-            logging.warn('Could not find username in jwt.')
-            return
-
-        missing_scopes = [s for s in required_scopes if s and s not in decoded_jwt['scope']]
-        if missing_scopes:
-            logging.warn('Access token is missing required scopes %s', missing_scopes)
 
     elif origin == REGISTRATION_ORIGIN_OAUTH:
         access_token_data = data.get('result', {})
         access_token = access_token_data.get('access_token')
-        username = access_token_data.get('info', {}).get('username')
-
-        if not access_token or not username:
-            logging.warn('No access_token/username in %s', data)
-            return
-
         scopes = [s for s in access_token_data.get('scope', '').split(',') if s]
         missing_scopes = [s for s in required_scopes if s and s not in scopes]
         if missing_scopes:
@@ -95,26 +106,32 @@ def user_registered(user_detail, origin, data):
         scopes.append('offline_access')
         logging.debug('Creating JWT with scopes %s', scopes)
         jwt = create_jwt(access_token, scope=','.join(scopes))
-        decoded_jwt = decode_jwt_cached(jwt)
 
     else:
         return
+
+    decoded_jwt = decode_jwt_cached(jwt)
+    username = decoded_jwt.get('username', None)
+    if not username:
+        logging.warn('Could not find username in jwt.')
+        return
+
+    missing_scopes = [s for s in required_scopes if s and s not in decoded_jwt['scope']]
+    if missing_scopes:
+        logging.warn('Access token is missing required scopes %s', missing_scopes)
 
     logging.debug('Decoded JWT: %s', decoded_jwt)
     scopes = decoded_jwt['scope']
     # Creation session such that the JWT is automatically up to date
     _, session = create_session(username, scopes, jwt, secret=username)
 
-    deferred.defer(invite_user_to_organization, username, Organization.PUBLIC)
-    deferred.defer(add_user_to_public_role, user_detail)
-    deferred.defer(popuplate_intercom_user, session.key)
 
-
-def popuplate_intercom_user(session_key):
+def populate_intercom_user(session_key, user_detail=None):
     """
     Creates or updates an intercom user with information from itsyou.online
     Args:
         session_key (ndb.Key): key of the Session for this user
+        user_detail (UserDetailsTO): key of the Session for this user
     """
     intercom_plugin = get_plugin('intercom_support')
     if intercom_plugin:
@@ -124,15 +141,37 @@ def popuplate_intercom_user(session_key):
         assert isinstance(session, Session)
         assert isinstance(intercom_plugin, IntercomSupportPlugin)
         data = get_user(session.user_id, session.jwt)
-        upsert_intercom_user(session.user_id, data)
-        tag_intercom_users(IntercomTags.APP_REGISTER, [session.user_id])
+        intercom_user = upsert_intercom_user(data.username, data)
+        tag_intercom_users(IntercomTags.APP_REGISTER, [data.username])
+        if user_detail:
+            message = """Welcome to the ThreeFold Foundation app.
+If you have questions you can get in touch with us through this chat.
+Our team is at your service during these hours:
+
+Sunday: 07:00 - 15:00 GMT +1
+Monday - Friday: 09:00 - 17:00 GMT +1
+
+Of course you can always ask your questions outside these hours, we will then get back to you the next business day."""
+            chat_id = start_or_get_chat(get_config(NAMESPACE).rogerthat.api_key, '+default+', user_detail.email,
+                                        user_detail.app_id, intercom_user, message)
+            deferred.defer(store_chat_id_in_user_data, chat_id, user_detail)
+
+
+@arguments(rogerthat_chat_id=unicode, user_detail=UserDetailsTO)
+def store_chat_id_in_user_data(rogerthat_chat_id, user_detail):
+    user_data = {
+        'support_chat_id': rogerthat_chat_id
+    }
+
+    api_key = get_rogerthat_api_key()
+    system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
 
 
 @returns(unicode)
 @arguments(username=unicode)
 def user_code(username):
     digester = hashlib.sha256()
-    digester.update(str(username))
+    digester.update(convert_to_str(username))
     key = digester.hexdigest()
     return unicode(key[:5])
 
@@ -192,7 +231,7 @@ def store_iyo_info_in_userdata(username, user_detail):
 
     user_data = dict()
     if not current_user_data.get('name') and iyo_user.firstname and iyo_user.lastname:
-        user_data['name'] = u'%s %s' % (iyo_user.firstname, iyo_user.lastname)
+        user_data['name'] = '%s %s' % (iyo_user.firstname, iyo_user.lastname)
 
     if not current_user_data.get('email') and iyo_user.validatedemailaddresses:
         user_data['email'] = iyo_user.validatedemailaddresses[0].emailaddress
@@ -201,14 +240,24 @@ def store_iyo_info_in_userdata(username, user_detail):
         user_data['phone'] = iyo_user.validatedphonenumbers[0].phonenumber
 
     if not current_user_data.get('address') and iyo_user.addresses:
-        user_data['address'] = u'%s %s' % (iyo_user.addresses[0].street, iyo_user.addresses[0].nr)
-        user_data['address'] += u'\n%s %s' % (iyo_user.addresses[0].postalcode, iyo_user.addresses[0].city)
-        user_data['address'] += u'\n%s' % iyo_user.addresses[0].country
+        user_data['address'] = '%s %s' % (iyo_user.addresses[0].street, iyo_user.addresses[0].nr)
+        user_data['address'] += '\n%s %s' % (iyo_user.addresses[0].postalcode, iyo_user.addresses[0].city)
+        user_data['address'] += '\n%s' % iyo_user.addresses[0].country
         if iyo_user.addresses[0].other:
-            user_data['address'] += u'\n\n%s' % iyo_user.addresses[0].other
+            user_data['address'] += '\n\n%s' % iyo_user.addresses[0].other
 
     if user_data:
         system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
+
+
+def store_referral_in_user_data(profile_key):
+    profile = profile_key.get()
+    user_data = {
+        'has_referrer': profile.referrer_user is not None
+    }
+    email, app_id = get_app_user_tuple(profile.app_user)
+    api_key = get_rogerthat_api_key()
+    system.put_user_data(api_key, email.email(), app_id, user_data)
 
 
 @returns()
@@ -238,15 +287,9 @@ def store_public_key(user_detail):
         label = u'%s %d' % (KEY_NAME, suffix)
         suffix += 1
     organization_id = get_iyo_organization_id()
-    key = IYOKeyStoreKey()
-    key.key = rt_key.public_key
-    key.globalid = organization_id
-    key.username = username
-    key.label = label
-    key.keydata = IYOKeyStoreKeyData()
-    key.keydata.timestamp = MISSING
-    key.keydata.comment = u'ThreeFold app'
-    key.keydata.algorithm = rt_key.algorithm
+    key = IYOKeyStoreKey(key=rt_key.public_key, username=username, globalid=organization_id, label=label)
+    key.keydata = IYOKeyStoreKeyData(comment=u'ThreeFold app', algorithm=rt_key.algorithm)
+    key.keydata.timestamp = MISSING  # Must be missing, else we get bad request since it can't be null
     result = create_keystore_key(username, key)
     # We cache the public key - label mapping here so we don't have to go to itsyou.online every time
     mapping_key = PublicKeyMapping.create_key(result.key, user_detail.email)
@@ -279,4 +322,208 @@ def add_user_to_public_role(user_detail):
     if has_access_to_organization(client, organization_id, username):
         logging.info('User is already in members role, not adding to public role')
     else:
-        add_user_to_role(user_detail, Roles.PUBLIC)
+        add_user_to_role(user_detail, RogerthatRoles.PUBLIC)
+
+
+def get_tff_profile(username):
+    # type: (unicode) -> TffProfile
+    profile = TffProfile.create_key(username).get()
+    if not profile:
+        raise HttpNotFoundException('tff_profile_not_found', {'username': username})
+    if not profile.kyc:
+        profile.kyc = KYCInformation(status=KYCStatus.UNVERIFIED.value,
+                                     updates=[],
+                                     applicant_id=None)
+    return profile
+
+
+def can_change_kyc_status(current_status, new_status):
+    statuses = {
+        KYCStatus.DENIED: [],
+        KYCStatus.UNVERIFIED: [KYCStatus.PENDING_SUBMIT],
+        KYCStatus.PENDING_SUBMIT: [KYCStatus.PENDING_SUBMIT],
+        KYCStatus.SUBMITTED: [KYCStatus.PENDING_APPROVAL],
+        # KYCStatus.SUBMITTED: [KYCStatus.INFO_SET],
+        # KYCStatus.INFO_SET: [KYCStatus.PENDING_APPROVAL],
+        KYCStatus.PENDING_APPROVAL: [KYCStatus.VERIFIED, KYCStatus.DENIED, KYCStatus.PENDING_SUBMIT],
+        KYCStatus.VERIFIED: [],
+    }
+    return new_status in statuses.get(current_status)
+
+
+@returns(TffProfile)
+@arguments(username=unicode, payload=SetKYCPayloadTO, current_user_id=unicode)
+def set_kyc_status(username, payload, current_user_id):
+    # type: (unicode, SetKYCPayloadTO, unicode) -> TffProfile
+    logging.debug('Updating KYC status to %s', KYCStatus(payload.status))
+    profile = get_tff_profile(username)
+    if not can_change_kyc_status(profile.kyc.status, payload.status):
+        raise HttpBadRequestException('invalid_status')
+    comment = payload.comment if payload.comment is not MISSING else None
+    profile.kyc.set_status(payload.status, current_user_id, comment=comment)
+    if payload.status == KYCStatus.PENDING_SUBMIT:
+        deferred.defer(send_kyc_flow, profile.app_user, payload.comment)
+    if payload.status == KYCStatus.INFO_SET:
+        update_applicant(profile.kyc.applicant_id, deserialize(payload.data, Applicant))
+    elif payload.status == KYCStatus.PENDING_APPROVAL:
+        deferred.defer(_create_check, profile.kyc.applicant_id)
+    elif payload.status == KYCStatus.VERIFIED:
+        deferred.defer(_send_kyc_approved_message, profile.key)
+    profile.put()
+    deferred.defer(store_kyc_in_user_data, profile.app_user, _countdown=2)
+    deferred.defer(index_profile, Profile.create_key(username), _countdown=2)
+    return profile
+
+
+def _create_check(applicant_id):
+    # This can take a bit of time
+    urlfetch.set_default_fetch_deadline(300)
+    try:
+        create_check(applicant_id)
+    except Exception as e:
+        logging.exception(e.message)
+        raise PermanentTaskFailure(e)
+
+
+def send_kyc_flow(app_user, message=None):
+    email, app_id = get_app_user_tuple(app_user)
+    member = MemberTO(member=email.email(), app_id=app_id, alert_flags=0)
+    push_message = u'KYC procedure has been initiated'  # for iOS only
+    messaging.start_local_flow(get_rogerthat_api_key(), None, [member], tag=KYC_FLOW_PART_1_TAG, flow=KYC_FLOW_PART_1,
+                               push_message=push_message, flow_params=json.dumps({'message': message}))
+
+
+def generate_kyc_flow(country_code, iyo_username):
+    logging.info('Generating KYC flow for user %s and country %s', iyo_username, country_code)
+    flow_params = {'nationality': country_code}
+    properties = DEFAULT_KYC_STEPS.union(_get_extra_properties(country_code))
+    try:
+        known_information = _get_known_information(iyo_username)
+        known_information['address_country'] = country_code
+    except HttpNotFoundException:
+        logging.error('No profile found for user %s!', iyo_username)
+        return create_error_message()
+
+    steps = []
+    branding_key = get_main_branding_hash()
+    for prop in properties:
+        step_info = _get_step_info(prop)
+        if not step_info:
+            raise BusinessException('Unsupported step type: %s' % prop)
+        value = known_information.get(prop)
+        steps.append({
+            'reference': 'message_%s' % prop,
+            'positive_reference': None,
+            'positive_caption': step_info.get('positive_caption', 'Continue'),
+            'negative_reference': 'flush_monitoring_end_canceled',
+            'negative_caption': step_info.get('negative_caption', 'Cancel'),
+            'keyboard_type': step_info.get('keyboard_type', 'DEFAULT'),
+            'type': step_info.get('widget', 'TextLineWidget'),
+            'value': value or step_info.get('value') or '',
+            'choices': step_info.get('choices', []),
+            'message': step_info['message'],
+            'branding_key': branding_key,
+            'order': step_info['order']
+        })
+    sorted_steps = sorted(steps, key=lambda k: k['order'])
+    for i, step in enumerate(sorted_steps):
+        if len(sorted_steps) > i + 1:
+            step['positive_reference'] = sorted_steps[i + 1]['reference']
+        else:
+            step['positive_reference'] = 'flush_results'
+    template_params = {
+        'start_reference': sorted_steps[0]['reference'],
+        'steps': sorted_steps,
+        'language': DEFAULT_LANGUAGE,
+        'branding_key': branding_key
+    }
+    return FLOWS_JINJA_ENVIRONMENT.get_template('kyc_part_2.xml').render(template_params), flow_params
+
+
+def _get_extra_properties(country_code):
+    return REQUIRED_DOCUMENT_TYPES[country_code]
+
+
+def _get_step_info(property):
+    results = filter(lambda step: step['type'] == property, kyc_steps)
+    return results[0] if results else None
+
+
+def _get_known_information(username):
+    date_of_birth = datetime.datetime.now()
+    date_of_birth = date_of_birth.replace(year=date_of_birth.year - 18, hour=0, minute=0, second=0, microsecond=0)
+    known_information = {
+        'first_name': None,
+        'last_name': None,
+        'email': None,
+        'telephone': None,
+        'address_building_number': None,
+        'address_street': None,
+        'address_town': None,
+        'address_postcode': None,
+        'dob': long(time.mktime(date_of_birth.timetuple())),
+    }
+    profile = get_profile(username)
+    if profile.info:
+        if profile.info.firstname:
+            known_information['first_name'] = profile.info.firstname
+        if profile.info.lastname:
+            known_information['last_name'] = profile.info.lastname
+        if profile.info.validatedphonenumbers:
+            known_information['telephone'] = profile.info.validatedphonenumbers[0].phonenumber
+        elif profile.info.phonenumbers:
+            known_information['telephone'] = profile.info.phonenumbers[0].phonenumber
+        if profile.info.validatedemailaddresses:
+            known_information['email'] = profile.info.validatedemailaddresses[0].emailaddress
+        elif profile.info.emailaddresses:
+            known_information['email'] = profile.info.emailaddresses[0].emailaddress
+        if profile.info.addresses:
+            known_information['address_street'] = profile.info.addresses[0].street
+            known_information['address_building_number'] = profile.info.addresses[0].nr
+            known_information['address_town'] = profile.info.addresses[0].city
+            known_information['address_postcode'] = profile.info.addresses[0].postalcode
+    return known_information
+
+
+@arguments(app_user=users.User)
+def store_kyc_in_user_data(app_user):
+    username = get_iyo_username(app_user)
+    profile = get_tff_profile(username)
+    user_data = {
+        'kyc': {
+            'status': profile.kyc.status,
+            'verified': profile.kyc.status == KYCStatus.VERIFIED
+        }
+    }
+    email, app_id = get_app_user_tuple(app_user)
+    api_key = get_rogerthat_api_key()
+    return system.put_user_data(api_key, email.email(), app_id, user_data)
+
+
+@returns([dict])
+@arguments(username=unicode)
+def list_kyc_checks(username):
+    profile = get_tff_profile(username)
+    if not profile.kyc.applicant_id:
+        return []
+    return serialize(list_checks(profile.kyc.applicant_id))
+
+
+def _send_kyc_approved_message(profile_key):
+    profile = profile_key.get()  # type: TffProfile
+    email, app_id = get_app_user_tuple(profile.app_user)
+    message = translate(DEFAULT_LANGUAGE, 'tff', 'you_have_been_kyc_approved')
+    answers = [AnswerTO(type=u'button',
+                        action='smi://%s' % BUY_TOKENS_TAG,
+                        id=u'purchase',
+                        caption=translate(DEFAULT_LANGUAGE, 'tff', 'purchase_itokens'),
+                        ui_flags=0,
+                        color=None),
+               AnswerTO(type=u'button',
+                        action=None,
+                        id=u'close',
+                        caption=translate(DEFAULT_LANGUAGE, 'tff', 'close'),
+                        ui_flags=0,
+                        color=None)]
+    send_rogerthat_message(MemberTO(member=email.email(), app_id=app_id, alert_flags=Message.ALERT_FLAG_VIBRATE),
+                           message, answers, 0)

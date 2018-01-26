@@ -67,6 +67,9 @@ export interface RogerthatCamera {
 }
 
 export interface PublicKey {
+  algorithm: string;
+  name: string;
+  index: string;
   public_key: string;
 }
 
@@ -233,6 +236,7 @@ export interface UserDetails {
   language: string; // 'en_US'
   name: string; // 'test user'
   public_key: string | null;
+  public_keys: PublicKey[];
 }
 
 export interface QrCodeScannedContent {

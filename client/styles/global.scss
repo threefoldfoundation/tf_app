@@ -1,0 +1,33 @@
+@import '~@angular/material/theming';
+@import 'theme';
+
+.default-component-padding {
+  padding: 16px;
+}
+
+.mat-form-field {
+  padding: 8px 0;
+}
+
+.mat-form-field.s-input {
+  width: 120px;
+}
+
+.mat-form-field.xs-input {
+  width: 60px;
+}
+
+.error-message {
+  color: mat-color($app-warn);
+}
+
+.fab-bottom-right {
+  display: inline-block;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+
+.full-width {
+  width: 100% !important;
+}

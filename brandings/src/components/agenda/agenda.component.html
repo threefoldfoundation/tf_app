@@ -1,0 +1,24 @@
+<ion-card *ngFor="let agendaEvent of events" (click)="showDetails(agendaEvent)">
+  <ion-toolbar color="primary" class="agenda-toolbar">
+    <h2>{{ agendaEvent.title }}</h2>
+    <p>{{ 'from_x' | translate : { timestamp: getFormattedDate(agendaEvent.start_timestamp) } }}</p>
+  </ion-toolbar>
+  <ion-card-content>
+    <ion-grid>
+      <ion-row>
+        <ion-col col-auto>
+          <ion-icon name="chatboxes" class="agenda-icon" color="primary"></ion-icon>
+        </ion-col>
+        <ion-col>
+          <p class="limited-description" [innerHTML]="agendaEvent.description | markdown"></p>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-card-content>
+  <ion-row justify-content-center>
+    <button ion-button right clear (click)="$event.stopPropagation(); showDetails(agendaEvent)">
+      <p>{{ 'details' | translate }}</p>
+    </button>
+  </ion-row>
+</ion-card>
+<p *ngIf="events.length === 0"><i>{{ 'there_are_currently_no_events' | translate }}</i></p>

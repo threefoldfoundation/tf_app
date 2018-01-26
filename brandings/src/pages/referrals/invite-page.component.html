@@ -14,10 +14,10 @@
       <p>{{ 'your_invitation_code_is' | translate : { code: code } }}</p>
     </ion-row>
     <ion-row justify-content-center>
-      <a ion-button [href]="smsLink">{{ 'invite_via_sms' | translate }}</a>
+      <a ion-button [href]="smsLink" rel="noopener">{{ 'invite_via_sms' | translate }}</a>
     </ion-row>
     <ion-row justify-content-center>
-      <a ion-button [href]="emailLink">{{ 'invite_via_email' | translate }}</a>
+      <a ion-button [href]="emailLink" rel="noopener">{{ 'invite_via_email' | translate }}</a>
     </ion-row>
   </ion-grid>
 </ion-content>

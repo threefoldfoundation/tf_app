@@ -1,0 +1,16 @@
+.flow-card {
+  width: 220px;
+  margin: 8px;
+}
+
+.ticker-line p {
+  margin: 8px;
+}
+
+.ticker-line .date {
+  font-size: 0.8em;
+}
+
+.ticker-line .message {
+  font-size: 0.9em;
+}
