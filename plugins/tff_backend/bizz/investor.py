@@ -25,7 +25,7 @@ from google.appengine.api import users
 from google.appengine.ext import deferred, ndb
 
 from babel.numbers import get_currency_name
-from framework.consts import get_base_url
+from framework.consts import get_base_url, DAY
 from framework.i18n_utils import translate, DEFAULT_LANGUAGE
 from framework.plugin_loader import get_config
 from framework.utils import now
@@ -136,6 +136,10 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
 
         if version == BUY_TOKENS_FLOW_V3_PAUSED:
             return None
+
+        deferred.defer(_send_sign_investment_reminder, agreement.id, u'long', _countdown=3600)
+        deferred.defer(_send_sign_investment_reminder, agreement.id, u'short', _countdown=3 * DAY)
+        deferred.defer(_send_sign_investment_reminder, agreement.id, u'short', _countdown=10 * DAY)
 
         tag = {
             '__rt__.tag': 'invest_complete',
@@ -635,3 +639,25 @@ def get_intercom_tags_for_investment(agreement):
     else:
         logging.warn('Unknown token %s, not tagging intercom user %s', agreement.token, agreement.app_user)
         return []
+
+
+@returns()
+@arguments(agreement_id=(int, long), message_type=unicode)
+def _send_sign_investment_reminder(agreement_id, message_type):
+    agreement = get_investment_agreement(agreement_id)
+    if agreement.status != InvestmentAgreement.STATUS_CREATED:
+        return
+
+    if message_type == u'long':
+        message = 'Dear ThreeFold Member,\n\n' \
+                  'Thank you for joining the ThreeFold Foundation! Your contract has been created and is ready to be signed and processed.\n' \
+                  'You can find your created %s Purchase Agreement in your ThreeFold messages.' % (agreement.token)
+    elif message_type == u'short':
+        message = 'Dear ThreeFold Member,\n\n' \
+                  'It appears that your created %s Purchase Agreement has not been signed yet.' % (agreement.token)
+    else:
+        return
+    subject = u'Your Purchase Agreement is ready to be signed'
+
+    send_message_and_email(agreement.app_user, message, subject)
+

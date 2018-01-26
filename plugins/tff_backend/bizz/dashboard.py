@@ -71,7 +71,7 @@ def rebuild_installation_stats(date):
 def update_firebase_installation(installation, logs):
     # type: (InstallationTO, list[InstallationLogTO]) -> None
     ticker_entry = get_ticker_entry_for_installation(installation, logs)
-    put_firebase_data('/dashboard/installations.json', {installation.id: installation.status})
+    put_firebase_data('/dashboard/installations.json', {installation.id, installation.status})
     put_firebase_data('/dashboard/ticker/%s.json' % ticker_entry.id, ticker_entry.to_dict())
 
 
