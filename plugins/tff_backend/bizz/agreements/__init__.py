@@ -14,17 +14,19 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+import codecs
 import os
 import time
 
-import jinja2
-
 from babel.numbers import get_currency_name
+import jinja2
+import markdown
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
 from plugins.tff_backend.utils import round_currency_amount
 from xhtml2pdf import pisa
+
 
 try:
     from cStringIO import StringIO
@@ -57,47 +59,60 @@ def create_hosting_agreement_pdf(full_name, address):
     return pdf_contents
 
 
+def get_bank_account_info(currency_short):
+    bank_file = os.path.join(ASSETS_FOLDER, 'bank_%s.md' % currency_short)
+    if not os.path.exists(bank_file):
+        bank_file = os.path.join(ASSETS_FOLDER, 'bank_USD.md')
+    with codecs.open(bank_file, 'r', encoding='utf-8') as f:
+        return f.read()
+
+
 def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short, token=TOKEN_TFT):
     # don't forget to update intercom tags when adding new contracts / tokens
-
-    if token == TOKEN_ITFT:
-        html_file = 'token_itft.html'
-    elif currency_short == 'BTC':
-        html_file = 'token_tft_btc.html'
-    else:
-        html_file = 'token_tft.html'
-
     if currency_short == 'BTC':
         amount_formatted = '{:.8f}'.format(amount)
     else:
         amount_formatted = '{:.2f}'.format(amount)
     conversion = {}
     if token:
-        stats = get_global_stats(TOKEN_TFT)
+        stats = get_global_stats(token)
         conversion = {currency.currency: round_currency_amount(currency.currency, currency.value / stats.value) for
                       currency in stats.currencies}
-    currency_messages = []
-    for currency in BANK_ACCOUNTS:
-        account = BANK_ACCOUNTS[currency]
-        if currency == 'BTC':
-            currency_messages.append(
-                u'when using Bitcoin: to the Company’s BitCoin wallet hosted by BitOasis Technologies FZE, at the'
-                u' following digital address: <b>%s</b> (the “<b>Wallet</b>”)' % account)
-        else:
-            currency_messages.append(
-                u'when using %s: to the Company’s bank account at Mashreq Bank, IBAN: <b>%s</b> SWIFT/BIC:'
-                u' <b>BOMLAEAD</b>' % (get_currency_name(currency, locale='en_GB'), account))
+
     template_variables = {
         'logo_path': 'assets/logo.jpg',
         'effective_date': _get_effective_date(),
         'full_name': full_name,
-        'address': address,
+        'address': address.replace('\n', ', '),
         'amount': amount_formatted,
         'currency_full': currency_full,
         'currency_short': currency_short,
-        'currency_messages': currency_messages,
         'conversion': conversion
     }
+
+    if token == TOKEN_ITFT:
+        html_file = 'token_itft.html'
+        bank_account = get_bank_account_info(currency_short)
+        context = {'bank_account': bank_account}
+        context.update(template_variables)
+        md = JINJA_ENVIRONMENT.get_template('token_itft.md').render(context)
+        markdown_to_html = markdown.markdown(md, extensions=['markdown.extensions.tables'])
+        template_variables['markdown_to_html'] = markdown_to_html.replace('<th', '<td')
+    else:
+        currency_messages = []
+        for currency in BANK_ACCOUNTS:
+            account = BANK_ACCOUNTS[currency]
+            if currency == 'BTC':
+                currency_messages.append(
+                    u'when using Bitcoin: to the Company’s BitCoin wallet hosted by BitOasis Technologies FZE, at the'
+                    u' following digital address: <b>%s</b> (the “<b>Wallet</b>”)' % account)
+            else:
+                currency_messages.append(
+                    u'when using %s: to the Company’s bank account at Mashreq Bank, IBAN: <b>%s</b> SWIFT/BIC:'
+                    u' <b>BOMLAEAD</b>' % (get_currency_name(currency, locale='en_GB'), account))
+
+        template_variables['currency_messages'] = currency_messages
+        html_file = 'token_tft_btc.html' if currency_short == 'BTC' else 'token_tft.html'
 
     source_html = JINJA_ENVIRONMENT.get_template(html_file).render(template_variables)
 
