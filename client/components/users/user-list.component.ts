@@ -10,8 +10,4 @@ import { UserList } from '../../interfaces';
 export class UserListComponent {
   @Input() userList: UserList;
   @Output() loadMore = new EventEmitter();
-
-  getUserName(user: Profile) {
-    return user.info && user.info.firstname ? `${user.info.firstname} ${user.info.lastname}` : user.username;
-  }
 }

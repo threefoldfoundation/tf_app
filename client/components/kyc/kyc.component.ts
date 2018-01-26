@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
+import { MonoTypeOperatorFunction } from 'rxjs/interfaces';
 import { filter } from 'rxjs/operators/filter';
 import { DialogService, PromptDialogResult } from '../../../../framework/client/dialog';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
@@ -71,7 +72,7 @@ export class KycComponent implements OnChanges {
       cancel: this.translate.instant('tff.cancel'),
       required: false,
       inputType: 'textarea',
-    }).afterClosed().pipe(filter((data?: PromptDialogResult) => !!data && data.submitted))
+    }).afterClosed().pipe(<MonoTypeOperatorFunction<PromptDialogResult>>filter((data?: PromptDialogResult) => !!data && data.submitted))
       .subscribe((data: PromptDialogResult) => this.setStatus.emit({
         status,
         comment: data.value,

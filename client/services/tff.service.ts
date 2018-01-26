@@ -1,10 +1,22 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Profile } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
-import { AgendaEvent, EventParticipant, GetEventParticipantsPayload } from '../interfaces/agenda-events.interfaces';
+import { Observable } from 'rxjs/Observable';
+import { map } from 'rxjs/operators/map';
+import { Profile } from '../../../its_you_online_auth/client/interfaces';
+import { Installation, InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces';
 import {
+  AgendaEvent,
+  Check,
   CreateInvestmentAgreementPayload,
+  CreateOrderPayload,
   CreateTransactionPayload,
+  EventParticipant,
+  FlowRun,
+  FlowRunList,
+  FlowRunQuery,
+  FirebaseFlowStats,
+  GetEventParticipantsPayload,
+  GetInstallationsQuery,
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
@@ -12,13 +24,15 @@ import {
   NodeOrder,
   NodeOrderList,
   NodeOrdersQuery,
+  PaginatedResult,
+  SearchUsersQuery,
+  SetKYCStatusPayload,
+  TffProfile,
   Transaction,
   TransactionList,
+  UserList,
   WalletBalance,
-} from '../interfaces/index';
-import { Check } from '../interfaces/onfido.interfaces';
-import { SearchUsersQuery, SetKYCStatusPayload, TffProfile, UserList } from '../interfaces/profile.interfaces';
-import { PaginatedResult } from '../interfaces/shared.interfaces';
+} from '../interfaces';
 import { TffConfig } from './tff-config.service';
 
 @Injectable()
@@ -34,6 +48,10 @@ export class TffService {
 
   getNodeOrder(orderId: string) {
     return this.http.get<NodeOrder>(`${TffConfig.API_URL}/orders/${orderId}`);
+  }
+
+  createNodeOrder(nodeOrder: CreateOrderPayload) {
+    return this.http.post<NodeOrder>(`${TffConfig.API_URL}/orders`, nodeOrder);
   }
 
   updateNodeOrder(nodeOrder: NodeOrder) {
@@ -128,6 +146,41 @@ export class TffService {
     return this.http.get<Check[]>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/kyc/checks`);
   }
 
+  getDistinctFlows() {
+    return this.http.get<string[]>(`${TffConfig.API_URL}/flow-statistics/flows`);
+  }
+
+  getFlowRuns(query: FlowRunQuery): Observable<FlowRunList> {
+    const params = this._getQueryParams(query);
+    return this.http.get<FlowRunList<string>>(`${TffConfig.API_URL}/flow-statistics`, { params }).pipe(
+      map(result => ({ ...result, results: result.results.map(flowRun => this.convertFlowRun(flowRun)) })),
+    );
+  }
+
+  getFlowRun(id: string): Observable<FlowRun> {
+    return this.http.get<FlowRun<string>>(`${TffConfig.API_URL}/flow-statistics/details/${id}`).pipe(
+      map(result => this.convertFlowRun(result)),
+    );
+  }
+
+  getFlowStats(startDate: string) {
+    const params = this._getQueryParams({ start_date: startDate });
+    return this.http.get<FirebaseFlowStats[]>(`${TffConfig.API_URL}/flow-statistics/stats`, { params });
+  }
+
+  getInstallations(query: GetInstallationsQuery) {
+    const params = this._getQueryParams(query);
+    return this.http.get<InstallationsList>(`${TffConfig.API_URL}/installations`, { params });
+  }
+
+  getInstallation(installationId: string) {
+    return this.http.get<Installation>(`${TffConfig.API_URL}/installations/${installationId}`);
+  }
+
+  getInstallationLogs(installationId: string) {
+    return this.http.get<InstallationLog[]>(`${TffConfig.API_URL}/installations/${installationId}/logs`);
+  }
+
   private _getQueryParams<T>(queryObject: T): HttpParams {
     let params = new HttpParams();
     const q = <[ keyof T ]>Object.keys(queryObject);
@@ -137,6 +190,17 @@ export class TffService {
       }
     }
     return params;
+  }
+
+  /**
+   * Converts string dates in the FlowRun object to Date objects
+   */
+  private convertFlowRun(flowRun: FlowRun<string>): FlowRun<Date> {
+    return {
+      ...flowRun,
+      start_date: new Date(flowRun.start_date),
+      statistics: { ...flowRun.statistics, last_step_date: new Date(flowRun.statistics.last_step_date) },
+    };
   }
 
 }

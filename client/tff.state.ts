@@ -8,6 +8,7 @@ export const getNodeOrdersQuery = createSelector(getTffState, s => s.ordersQuery
 export const getOrdersStatus = createSelector(getTffState, s => s.ordersStatus);
 export const getOrder = createSelector(getTffState, s => s.order);
 export const getOrderStatus = createSelector(getTffState, s => s.orderStatus);
+export const createOrderStatus = createSelector(getTffState, s => s.createOrderStatus);
 export const updateOrderStatus = createSelector(getTffState, s => s.updateOrderStatus);
 export const getInvestmentAgreements = createSelector(getTffState, s => s.investmentAgreements);
 export const getInvestmentAgreementsQuery = createSelector(getTffState, s => s.investmentAgreementsQuery);
@@ -48,3 +49,19 @@ export const getEventParticipantsStatus = createSelector(getTffState, s => s.eve
 
 export const getKYCChecks = createSelector(getTffState, s => s.kycChecks);
 export const getKYCChecksStatus = createSelector(getTffState, s => s.kycChecksStatus);
+
+export const getDistinctFlows = createSelector(getTffState, s => s.distinctFlows);
+export const getDistinctFlowsStatus = createSelector(getTffState, s => s.distinctFlowsStatus);
+export const getFlowRuns = createSelector(getTffState, s => s.flowRuns);
+export const getFlowRunsStatus = createSelector(getTffState, s => s.flowRunsStatus);
+export const getFlowRun = createSelector(getTffState, s => s.flowRun);
+export const getFlowRunStatus = createSelector(getTffState, s => s.flowRunStatus);
+export const getFlowStats = createSelector(getTffState, s => s.flowStats);
+export const getFlowStatsStatus = createSelector(getTffState, s => s.flowStatsStatus);
+
+export const getInstallations = createSelector(getTffState, s => s.installations);
+export const getInstallationsStatus = createSelector(getTffState, s => s.installationsStatus);
+export const getInstallation = createSelector(getTffState, s => s.installation);
+export const getInstallationStatus = createSelector(getTffState, s => s.installationStatus);
+export const getInstallationLogs = createSelector(getTffState, s => s.installationLogs);
+export const getInstallationLogsStatus = createSelector(getTffState, s => s.installationLogsStatus);

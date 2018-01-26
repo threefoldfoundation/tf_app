@@ -64,13 +64,20 @@ class KYCInformation(NdbModel):
         self.status = new_status
 
 
+class NodeInfo(NdbModel):
+    id = ndb.StringProperty()
+    serial_number = ndb.StringProperty()
+    status = ndb.StringProperty()
+
+
 class TffProfile(NdbModel):
     NAMESPACE = NAMESPACE
     app_user = ndb.UserProperty()
-
     referrer_user = ndb.UserProperty()
     referrer_username = ndb.StringProperty()
-    node_id = ndb.StringProperty()
+    node_id = ndb.StringProperty()  # todo Remove after migration to property `nodes`
+    node_status = ndb.StringProperty()   # todo Remove after migration to property `nodes`
+    nodes = ndb.StructuredProperty(NodeInfo, repeated=True)  # type: list[NodeInfo]
     kyc = ndb.StructuredProperty(KYCInformation)  # type: KYCInformation
 
     @classmethod
@@ -83,6 +90,10 @@ class TffProfile(NdbModel):
 
     def to_dict(self, extra_properties=None):
         return super(TffProfile, self).to_dict(['username'])
+
+    @classmethod
+    def list_with_node(cls):
+        return cls.query().filter(cls.nodes.id > '')
 
 
 class ProfilePointer(NdbModel):

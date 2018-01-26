@@ -17,38 +17,36 @@
 import logging
 
 from google.appengine.api import users
-from google.appengine.ext.deferred import deferred
 
 from mcfw.consts import DEBUG
 from mcfw.rpc import arguments
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-from plugins.tff_backend.bizz.nodes import get_node_stats, get_node_id_for_user, set_node_id_on_profile
+from plugins.tff_backend.bizz.nodes import get_nodes_stats, get_nodes_for_user, add_nodes_to_profile
 from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.utils.app import create_app_user
 
 
 @arguments(params=dict, user_detail=UserDetailsTO)
 def api_get_node_status(params, user_detail):
-    # type: (dict, UserDetailsTO) -> dict
+    # type: (dict, UserDetailsTO) -> list[dict]
     try:
-        node_id = None
+        profile = TffProfile.create_key(get_iyo_username(user_detail)).get()  # type: TffProfile
         if not DEBUG:
-            profile = TffProfile.create_key(get_iyo_username(user_detail)).get()  # type: TffProfile
-            node_id = profile.node_id
-            if not node_id:
+            if not profile.nodes:
                 # fallback, should only happen when user checks his node status before our cron job has ran.
                 logging.warn('Fetching node serial number from odoo since it was not set on TffProfile for user %s',
                              user_detail.email)
                 app_user = create_app_user(users.User(user_detail.email), user_detail.app_id)
-                node_id = get_node_id_for_user(app_user)
-                if node_id:
-                    deferred.defer(set_node_id_on_profile, app_user, node_id)
+                nodes = get_nodes_for_user(app_user)
+                if nodes:
+                    username = get_iyo_username(app_user)
+                    profile = add_nodes_to_profile(username, nodes)
                 else:
                     raise ApiCallException(
                         u'It looks like you either do not have a node yet or it has never been online yet.')
-        return get_node_stats(node_id)
+        return get_nodes_stats(profile.nodes)
     except ApiCallException:
         raise
     except Exception as e:

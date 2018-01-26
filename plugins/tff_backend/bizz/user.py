@@ -48,7 +48,6 @@ from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
 from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_QR, REGISTRATION_ORIGIN_OAUTH
 from plugins.rogerthat_api.to.messaging import AnswerTO, Message
-from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Organization, Roles, RogerthatRoles
@@ -96,25 +95,10 @@ def user_registered(user_detail, origin, data):
             return
 
         jwt = qr_content
-        decoded_jwt = decode_jwt_cached(jwt)
-        username = decoded_jwt.get('username', None)
-        if not username:
-            logging.warn('Could not find username in jwt.')
-            return
-
-        missing_scopes = [s for s in required_scopes if s and s not in decoded_jwt['scope']]
-        if missing_scopes:
-            logging.warn('Access token is missing required scopes %s', missing_scopes)
 
     elif origin == REGISTRATION_ORIGIN_OAUTH:
         access_token_data = data.get('result', {})
         access_token = access_token_data.get('access_token')
-        username = access_token_data.get('info', {}).get('username')
-
-        if not access_token or not username:
-            logging.warn('No access_token/username in %s', data)
-            return
-
         scopes = [s for s in access_token_data.get('scope', '').split(',') if s]
         missing_scopes = [s for s in required_scopes if s and s not in scopes]
         if missing_scopes:
@@ -122,15 +106,25 @@ def user_registered(user_detail, origin, data):
         scopes.append('offline_access')
         logging.debug('Creating JWT with scopes %s', scopes)
         jwt = create_jwt(access_token, scope=','.join(scopes))
-        decoded_jwt = decode_jwt_cached(jwt)
 
     else:
         return
+
+    decoded_jwt = decode_jwt_cached(jwt)
+    username = decoded_jwt.get('username', None)
+    if not username:
+        logging.warn('Could not find username in jwt.')
+        return
+
+    missing_scopes = [s for s in required_scopes if s and s not in decoded_jwt['scope']]
+    if missing_scopes:
+        logging.warn('Access token is missing required scopes %s', missing_scopes)
 
     logging.debug('Decoded JWT: %s', decoded_jwt)
     scopes = decoded_jwt['scope']
     # Creation session such that the JWT is automatically up to date
     _, session = create_session(username, scopes, jwt, secret=username)
+
 
 def populate_intercom_user(session_key, user_detail=None):
     """
@@ -408,7 +402,7 @@ def generate_kyc_flow(country_code, iyo_username):
         known_information['address_country'] = country_code
     except HttpNotFoundException:
         logging.error('No profile found for user %s!', iyo_username)
-        return create_error_message(FlowMemberResultCallbackResultTO())
+        return create_error_message()
 
     steps = []
     branding_key = get_main_branding_hash()
@@ -421,7 +415,7 @@ def generate_kyc_flow(country_code, iyo_username):
             'reference': 'message_%s' % prop,
             'positive_reference': None,
             'positive_caption': step_info.get('positive_caption', 'Continue'),
-            'negative_reference': 'end_premature_end',
+            'negative_reference': 'flush_monitoring_end_canceled',
             'negative_caption': step_info.get('negative_caption', 'Cancel'),
             'keyboard_type': step_info.get('keyboard_type', 'DEFAULT'),
             'type': step_info.get('widget', 'TextLineWidget'),

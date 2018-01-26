@@ -1,16 +1,18 @@
+<div *ngFor="let node of nodes">
+  <ion-card>
+    <ion-item>
+      <ion-avatar item-start>
+        <ion-icon [name]="getIcon(node)" [color]="getIconColor(node)" style="font-size: 40px;"></ion-icon>
+      </ion-avatar>
+      <h2>{{ node.serial_number}} - {{ ('node_' + node.status ) | translate }}</h2>
+      <p *ngIf="getUptime(node) as uptime">{{ uptime }}</p>
+    </ion-item>
+  </ion-card>
+  <ion-card *ngFor="let chart of charts[node.id]">
+    <ion-card-header>{{ chart.data.datasets[0].label }}</ion-card-header>
+    <ion-card-content>
+      <chart type="line" [data]="chart.data" [options]="chart.options"></chart>
+    </ion-card-content>
+  </ion-card>
+</div>
 <api-request-status [status]="status"></api-request-status>
-<ion-card *ngIf="status.success">
-  <ion-item>
-    <ion-avatar item-start>
-      <ion-icon [name]="getIcon()" [color]="getIconColor()" style="font-size: 40px;"></ion-icon>
-    </ion-avatar>
-    <h2>{{ ('node_' + nodeStatus.status) | translate }}</h2>
-    <p *ngIf="nodeStatus.bootTime">{{ getUptime() }}</p>
-  </ion-item>
-</ion-card>
-<ion-card *ngFor="let chart of charts">
-  <ion-card-header>{{ chart.data.datasets[0].label }}</ion-card-header>
-  <ion-card-content>
-    <chart type="line" [data]="chart.data" [options]="chart.options"></chart>
-  </ion-card-content>
-</ion-card>

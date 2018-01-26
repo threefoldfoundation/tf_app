@@ -1,0 +1,8 @@
+<mat-list>
+  <mat-list-item *ngFor="let log of logs">
+    <h3 matLine>{{ log.description }}</h3>
+    <p matLine>{{ log.timestamp | timestamp : 'dd/MM/yyyy HH:mm:ss' }}</p>
+    <p matLine *ngIf="log.pin">{{ 'tff.pin_x' | translate : { pin : log.pin } }}</p>
+  </mat-list-item>
+</mat-list>
+<tff-api-request-status [status]="status"></tff-api-request-status>

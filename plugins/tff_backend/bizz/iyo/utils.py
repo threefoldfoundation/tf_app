@@ -16,6 +16,7 @@
 # @@license_version:1.3@@
 
 from google.appengine.api import users
+from google.appengine.ext import ndb
 
 from framework.bizz.authentication import get_current_session
 from framework.models.session import Session
@@ -35,6 +36,7 @@ def get_iyo_organization_id():
     return config.root_organization.name
 
 
+@ndb.non_transactional()
 @returns(unicode)
 @arguments(app_user_or_user_details=(users.User, UserDetailsTO))
 def get_iyo_username(app_user_or_user_details):

@@ -1,7 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { NodeStatus, StatisticValue } from '../../interfaces/node-status.interfaces';
+import { NodeInfo, NodeStatusStats, StatisticValue } from '../../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 
 export interface LineChart {
@@ -25,9 +25,9 @@ enum Colors {
   templateUrl: 'node-status.component.html',
 })
 export class NodeStatusComponent implements OnChanges {
-  @Input() nodeStatus: NodeStatus;
+  @Input() nodes: NodeInfo[];
   @Input() status: ApiRequestStatus;
-  charts: LineChart[] = [];
+  charts: { [ key: string ]: LineChart[] } = {};
 
   constructor(private translate: TranslateService,
               private datePipe: DatePipe,
@@ -35,13 +35,32 @@ export class NodeStatusComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.nodeStatus && changes.nodeStatus.currentValue) {
-      const status: NodeStatus = changes.nodeStatus.currentValue;
-      this.charts = this.getCharts(status).filter(c => c.data.labels.length > 0);
+    if (changes.nodes && changes.nodes.currentValue.length) {
+      const nodes: NodeInfo[] = changes.nodes.currentValue;
+      for (const node of nodes) {
+        if (node.stats && !this.charts[ node.id ]) {
+          this.charts[ node.id ] = this.getCharts(node.stats).filter(c => c.data.labels.length > 0);
+        }
+      }
     }
   }
 
-  getCharts(status: NodeStatus) {
+  getIcon(node: NodeInfo) {
+    return node.status === 'running' ? 'checkmark' : 'close';
+  }
+
+  getIconColor(node: NodeInfo) {
+    return node.status === 'running' ? 'primary' : 'danger';
+  }
+
+  getUptime(node: NodeInfo) {
+    if (!node.stats || !node.stats.bootTime) {
+      return null;
+    }
+    return this.translate.instant('online_since_x', { bootTime: this.datePipe.transform(node.stats.bootTime * 1000, 'medium') });
+  }
+
+  private getCharts(status: NodeStatusStats) {
     const options: LineChartOptions | any = {
       responsive: true,
       elements: { line: { tension: 0 } },
@@ -99,17 +118,5 @@ export class NodeStatusComponent implements OnChanges {
       }
     });
     return [ cpuUtilisation, networkIncoming, networkOutgoing ];
-  }
-
-  getIcon() {
-    return this.nodeStatus.status === 'running' ? 'checkmark' : 'close';
-  }
-
-  getIconColor() {
-    return this.nodeStatus.status === 'running' ? 'primary' : 'danger';
-  }
-
-  getUptime() {
-    return this.translate.instant('online_since_x', { bootTime: this.datePipe.transform(this.nodeStatus.bootTime! * 1000, 'medium') });
   }
 }

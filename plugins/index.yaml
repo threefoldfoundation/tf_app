@@ -95,3 +95,23 @@ indexes:
   properties:
   - name: past
   - name: start_timestamp
+
+# ===================================================== Flow stats =====================================================
+
+- kind: FlowRun
+  properties:
+  - name: flow_name
+  - name: start_date
+    direction: desc
+
+- kind: FlowRun
+  properties:
+  - name: status
+  - name: statistics.last_step_date
+
+- kind: FlowRun
+  properties:
+  - name: flow_name
+  - name: user
+  - name: start_date
+    direction: desc

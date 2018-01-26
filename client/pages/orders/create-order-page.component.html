@@ -1,0 +1,116 @@
+<form (ngSubmit)="submit(form)" #form="ngForm" fxLayout="column" fxFlex="40" fxFlex.md="60" fxFlex.xs="100"
+      class="default-component-padding">
+  <!--TODO generic user search component -->
+  <mat-form-field>
+    <mat-chip-list #chipList>
+      <mat-chip *ngIf="selectedUser" (remove)="selectedUser = null">
+        {{ getUserInfoLine(selectedUser) }}
+        <mat-icon matChipRemove>cancel</mat-icon>
+      </mat-chip>
+      <input [placeholder]="'tff.user' | translate"
+             [formControl]="userSearchControl"
+             [matAutocomplete]="userAutoComplete"
+             [matChipInputFor]="chipList" #userSearchInput>
+    </mat-chip-list>
+    <mat-autocomplete #userAutoComplete="matAutocomplete" (optionSelected)="setSelectedUser($event)">
+      <mat-option *ngFor="let user of userList$ | async" [value]="user">
+        {{ getUserInfoLine(user) }}
+      </mat-option>
+    </mat-autocomplete>
+    <mat-error>{{ 'tff.this_field_is_required' | translate }}</mat-error>
+  </mat-form-field>
+  <mat-form-field>
+    <input type="number" name="odoo_sale_order_id" matInput [(ngModel)]="order.odoo_sale_order_id"
+           [placeholder]="'tff.odoo_sale_order_id' | translate" required>
+  </mat-form-field>
+
+  <h3>{{ 'tff.billing_info' | translate }}</h3>
+  <mat-form-field>
+    <input name="billing_name" matInput [(ngModel)]="order.billing_info.name"
+           [placeholder]="'tff.name' | translate" required>
+  </mat-form-field>
+  <mat-form-field>
+    <input type="email" name="billing_email" matInput [(ngModel)]="order.billing_info.email"
+           [placeholder]="'tff.email' | translate" required>
+  </mat-form-field>
+  <mat-form-field>
+    <input type="tel" name="billing_phone" matInput [(ngModel)]="order.billing_info.phone"
+           [placeholder]="'tff.phone' | translate" required>
+  </mat-form-field>
+  <mat-form-field>
+    <textarea name="billing_address" matInput [(ngModel)]="order.billing_info.address"
+              [placeholder]="'tff.address' | translate" matTextareaAutosize required></textarea>
+  </mat-form-field>
+  <h3>{{ 'tff.shipping_information' | translate }}</h3>
+  <mat-form-field>
+    <input name="shipping_name" matInput [(ngModel)]="order.shipping_info.name"
+           [placeholder]="'tff.name' | translate" required>
+  </mat-form-field>
+  <mat-form-field>
+    <input type="email" name="shipping_email" matInput [(ngModel)]="order.shipping_info.email"
+           [placeholder]="'tff.email' | translate" required>
+  </mat-form-field>
+  <mat-form-field>
+    <input type="tel" name="shipping_phone" matInput [(ngModel)]="order.shipping_info.phone"
+           [placeholder]="'tff.phone' | translate" required>
+  </mat-form-field>
+  <mat-form-field>
+    <textarea name="shipping_address" matInput [(ngModel)]="order.shipping_info.address"
+              [placeholder]="'tff.address' | translate" matTextareaAutosize required></textarea>
+  </mat-form-field>
+  <mat-form-field>
+    <mat-select name="status" [(ngModel)]="order.status"
+                [placeholder]="'tff.status' | translate">
+      <mat-option *ngFor="let status of statuses" [value]="status.value">
+        {{ status.label | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field >
+    <input matInput
+           required
+           name="order_time"
+           [matDatepicker]="pickerorderTime"
+           [max]="maxDate"
+           [placeholder]="'tff.order_time' |  translate"
+           [(ngModel)]="order.order_time">
+    <mat-datepicker-toggle matSuffix [for]="pickerorderTime"></mat-datepicker-toggle>
+    <mat-datepicker #pickerorderTime></mat-datepicker>
+  </mat-form-field>
+  <mat-form-field *ngIf="shouldShowSignTime()">
+    <input matInput
+           required
+           name="sign_time"
+           [matDatepicker]="pickerSignTime"
+           [min]="order.order_time"
+           [max]="maxDate"
+           [placeholder]="'tff.sign_time' |  translate"
+           [(ngModel)]="order.sign_time">
+    <mat-datepicker-toggle matSuffix [for]="pickerSignTime"></mat-datepicker-toggle>
+    <mat-datepicker #pickerSignTime></mat-datepicker>
+  </mat-form-field>
+  <mat-form-field *ngIf="shouldShowSentTime()">
+    <input matInput
+           required
+           name="send_time"
+           [matDatepicker]="pickersendTime"
+           [min]="order.sign_time"
+           [max]="maxDate"
+           [placeholder]="'tff.send_time' |  translate"
+           [(ngModel)]="order.send_time">
+    <mat-datepicker-toggle matSuffix [for]="pickersendTime"></mat-datepicker-toggle>
+    <mat-datepicker #pickersendTime></mat-datepicker>
+  </mat-form-field>
+  <div class="default-component-padding">
+    <button type="button" mat-raised-button (click)="fileInput.click()">{{ 'tff.select_document' | translate }}</button>
+    <input hidden type="file" accept="application/pdf,image/*" #fileInput (change)="setDocument($event)" required/>
+    <span
+      *ngIf="selectedDocument"> {{ 'tff.selected_document' | translate : { document: selectedDocument.name } }}</span>
+  </div>
+  <div>
+    <tff-api-request-status [status]="createStatus$ | async"></tff-api-request-status>
+    <button mat-raised-button [disabled]="!form.form.valid || !selectedDocument || (createStatus$ | async)?.loading">
+      {{ 'tff.submit' | translate }}
+    </button>
+  </div>
+</form>

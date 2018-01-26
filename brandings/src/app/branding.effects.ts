@@ -51,7 +51,7 @@ export class BrandingEffects {
 
   @Effect() getNodeStatus$: Observable<actions.BrandingActions> = this.actions$
     .ofType<actions.GetNodeStatusAction>(actions.BrandingActionTypes.GET_NODE_STATUS)
-    .pipe(switchMap(action => this.nodeService.getStatus().pipe(
+    .pipe(switchMap(() => this.nodeService.getStatus().pipe(
       map(result => new actions.GetNodeStatusCompleteAction(result)),
       catchError(err => handleApiError(actions.GetNodeStatusFailedAction, err)))));
 

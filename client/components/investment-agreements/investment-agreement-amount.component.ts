@@ -1,10 +1,8 @@
 import { CurrencyPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
 @Component({
   selector: 'tff-investment-agreement-amount',
-  preserveWhitespaces: false,
-  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<span *ngIf="amount">{{ 'tff.amount' | translate }}: {{ getAmount() }}</span>
   &ngsp;<span *ngIf="tokenCount">({{ 'tff.x_tokens' | translate: {count: tokenCount} }})</span>`,

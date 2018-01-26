@@ -21,11 +21,13 @@ from google.appengine.ext import deferred
 
 from framework.models.session import Session
 from framework.plugin_loader import get_config
+from framework.utils import try_or_defer
 from mcfw.properties import object_factory
 from mcfw.rpc import parse_complex_value, serialize_complex_value, returns, arguments
 from plugins.rogerthat_api.models.settings import RogerthatSettings
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.friends import ACCEPT_ID, DECLINE_ID
+from plugins.rogerthat_api.to.installation import InstallationTO, InstallationLogTO
 from plugins.rogerthat_api.to.messaging import Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import FormResultTO
@@ -39,6 +41,8 @@ from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, a
 from plugins.tff_backend.api.rogerthat.nodes import api_get_node_status
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
 from plugins.tff_backend.bizz.authentication import Organization
+from plugins.tff_backend.bizz.dashboard import update_firebase_installation
+from plugins.tff_backend.bizz.flow_statistics import save_flow_statistics
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed
 from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \
@@ -88,19 +92,26 @@ def log_and_parse_user_details(user_details):
 
 def flow_member_result(rt_settings, request_id, message_flow_run_id, member, steps, end_id, end_message_flow_id,
                        parent_message_key, tag, result_key, flush_id, flush_message_flow_id, service_identity,
-                       user_details, flow_params, **kwargs):
+                       user_details, flow_params, timestamp, **kwargs):
     user_details = log_and_parse_user_details(user_details)
     steps = parse_complex_value(object_factory("step_type", FLOW_STEP_MAPPING), steps, True)
 
     f = FMR_TAG_MAPPING.get(parse_to_human_readable_tag(tag))
-    if not f:
-        logging.info('[tff] Ignoring flow_member_result with tag %s', tag)
-        return None
+    should_process_flush = f and not flush_id.startswith('flush_monitoring')
 
-    result = f(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
-               flush_id, flush_message_flow_id, service_identity, user_details, flow_params)
-
-    return result and serialize_complex_value(result, FlowMemberResultCallbackResultTO, False, skip_missing=True)
+    result = None
+    try:
+        if should_process_flush:
+            logging.info('Processing flow_member_result with tag %s and flush_id %s', tag, flush_id)
+            result = f(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
+                       result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params)
+            return result and serialize_complex_value(result, FlowMemberResultCallbackResultTO, False,
+                                                      skip_missing=True)
+        else:
+            logging.info('[tff] Ignoring flow_member_result with tag %s and flush_id %s', tag, flush_id)
+    finally:
+        deferred.defer(save_flow_statistics, parent_message_key, steps, end_id, tag, flush_id, flush_message_flow_id,
+                       user_details[0], timestamp, result)
 
 
 def form_update(rt_settings, request_id, status, form_result, answer_id, member, message_key, tag, received_timestamp,
@@ -215,3 +226,9 @@ def system_api_call(rt_settings, request_id, method, params, user_details, **kwa
         logging.exception('Unhandled API call exception')
         response.error = u'An unknown error has occurred. Please try again later.'
     return serialize_complex_value(response, SendApiCallCallbackResultTO, False)
+
+
+def installation_progress(rt_settings, request_id, installation, logs, **kwargs):
+    installation = InstallationTO.from_dict(installation)
+    logs = InstallationLogTO.from_list(logs)
+    try_or_defer(update_firebase_installation, installation, logs)

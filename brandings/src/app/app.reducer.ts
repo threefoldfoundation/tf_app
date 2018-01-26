@@ -117,18 +117,18 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
     case BrandingActionTypes.GET_NODE_STATUS:
       return {
         ...state,
-        nodeStatusStatus: apiRequestLoading,
+        nodesStatus: apiRequestLoading,
       };
     case BrandingActionTypes.GET_NODE_STATUS_COMPLETE:
       return {
         ...state,
-        nodeStatus: action.payload,
-        nodeStatusStatus: apiRequestSuccess,
+        nodes: action.payload,
+        nodesStatus: action.payload.some(node => !node.stats) ? apiRequestLoading : apiRequestSuccess,
       };
     case BrandingActionTypes.GET_NODE_STATUS_FAILED:
       return {
         ...state,
-        nodeStatusStatus: action.payload,
+        nodesStatus: action.payload,
       };
   }
   return state;
