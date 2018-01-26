@@ -2,3 +2,5 @@ queue:
 - name: data-backup
   rate: 1/s
   target: ah-builtin-python-bundle
+- name: scheduled-queue
+  rate: 20/s

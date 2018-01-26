@@ -22,16 +22,15 @@ import logging
 import os
 import time
 
-import jinja2
-from google.appengine.api import users, urlfetch
-from google.appengine.ext import deferred, ndb
-from google.appengine.ext.deferred.deferred import PermanentTaskFailure
-
 from framework.bizz.session import create_session
 from framework.i18n_utils import DEFAULT_LANGUAGE, translate
 from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
 from framework.utils.jinja_extensions import TranslateExtension
+from google.appengine.api import users, urlfetch
+from google.appengine.ext import deferred, ndb
+from google.appengine.ext.deferred.deferred import PermanentTaskFailure
+import jinja2
 from mcfw.consts import MISSING
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
@@ -62,11 +61,12 @@ from plugins.tff_backend.consts.kyc import kyc_steps, DEFAULT_KYC_STEPS, REQUIRE
 from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.models.user import ProfilePointer, TffProfile, KYCInformation, KYCStatus
 from plugins.tff_backend.plugin_consts import NAMESPACE, KEY_NAME, KEY_ALGORITHM, KYC_FLOW_PART_1, KYC_FLOW_PART_1_TAG, \
-    BUY_TOKENS_TAG
+    BUY_TOKENS_TAG, SCHEDULED_QUEUE
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
 from plugins.tff_backend.to.user import SetKYCPayloadTO
 from plugins.tff_backend.utils import convert_to_str
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+
 
 FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     trim_blocks=True,
@@ -198,7 +198,7 @@ def store_invitation_code_in_userdata(username, user_detail):
             if pp:
                 logging.error("Failed to save invitation code of user '%s', we have a duplicate", user_detail.email)
                 deferred.defer(store_invitation_code_in_userdata, username,
-                               user_detail, _countdown=10 * 60, _transactional=True)
+                               user_detail, _countdown=10 * 60, _queue=SCHEDULED_QUEUE, _transactional=True)
                 return False
 
             profile.put()
