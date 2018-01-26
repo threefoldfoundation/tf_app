@@ -584,9 +584,15 @@ Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more de
 
 
 @returns()
-@arguments(app_user=users.User, agreement_id=(int, long), message_prefix=unicode)
-def send_payment_instructions(app_user, agreement_id, message_prefix):
+@arguments(app_user=users.User, agreement_id=(int, long), message_prefix=unicode, reminder=bool)
+def send_payment_instructions(app_user, agreement_id, message_prefix, reminder=False):
     agreement = get_investment_agreement(agreement_id)
+    if reminder and agreement.status != InvestmentAgreement.STATUS_SIGNED:
+        return
+    elif not reminder:
+        deferred.defer(send_payment_instructions, app_user, agreement_id, message_prefix, True,
+                       _countdown=14 * DAY)
+
     params = {
         'currency': agreement.currency,
         'reference': agreement.reference,
