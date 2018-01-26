@@ -52,6 +52,7 @@ except ImportError:
 
 
 class InvalidKYCStatusException(Exception):
+
     def __init__(self, status):
         self.status = status
         msg = 'Invalid KYC status %s' % status
