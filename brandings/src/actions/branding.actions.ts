@@ -1,15 +1,12 @@
 import { Action } from '@ngrx/store';
-import { AgendaEvent, EventPresence, UpdatePresenceData } from '../interfaces/agenda.interfaces';
+import { EventPresence, UpdatePresenceData } from '../interfaces/agenda.interfaces';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { NodeInfo } from '../interfaces/node-status.interfaces';
 import { SetReferralResult } from '../interfaces/referrals.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
-import { ApiCallResult } from '../services/rogerthat.service';
 
 interface IBrandingActionTypes {
-  API_CALL: 'Api call';
-  API_CALL_COMPLETE: 'Api call complete';
   GET_GLOBAL_STATS: 'Get global stats';
   GET_GLOBAL_STATS_COMPLETE: 'Get global stats complete';
   GET_GLOBAL_STATS_FAILED: 'Get global stats failed';
@@ -19,9 +16,6 @@ interface IBrandingActionTypes {
   SET_REFERRER: 'Set referrer';
   SET_REFERRER_COMPLETE: 'Set referrer complete';
   SET_REFERRER_FAILED: 'Set referrer failed';
-  GET_EVENTS: 'Get events';
-  GET_EVENTS_COMPLETE: 'Get events complete';
-  GET_EVENTS_FAILED: 'Get events failed';
   GET_EVENT_PRESENCE: 'Get event presence';
   GET_EVENT_PRESENCE_COMPLETE: 'Get events presence complete';
   GET_EVENT_PRESENCE_FAILED: 'Get events presence failed';
@@ -34,8 +28,6 @@ interface IBrandingActionTypes {
 }
 
 export const BrandingActionTypes: IBrandingActionTypes = {
-  API_CALL: 'Api call',
-  API_CALL_COMPLETE: 'Api call complete',
   GET_GLOBAL_STATS: 'Get global stats',
   GET_GLOBAL_STATS_COMPLETE: 'Get global stats complete',
   GET_GLOBAL_STATS_FAILED: 'Get global stats failed',
@@ -45,9 +37,6 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   SET_REFERRER: 'Set referrer',
   SET_REFERRER_COMPLETE: 'Set referrer complete',
   SET_REFERRER_FAILED: 'Set referrer failed',
-  GET_EVENTS: 'Get events',
-  GET_EVENTS_COMPLETE: 'Get events complete',
-  GET_EVENTS_FAILED: 'Get events failed',
   GET_EVENT_PRESENCE: 'Get event presence',
   GET_EVENT_PRESENCE_COMPLETE: 'Get events presence complete',
   GET_EVENT_PRESENCE_FAILED: 'Get events presence failed',
@@ -59,19 +48,6 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   GET_NODE_STATUS_FAILED: 'Get node status failed',
 };
 
-export class ApiCallAction implements Action {
-  type = BrandingActionTypes.API_CALL;
-
-  constructor(public method: string, public data?: any, public tag?: string | null) {
-  }
-}
-
-export class ApiCallCompleteAction implements Action {
-  type = BrandingActionTypes.API_CALL_COMPLETE;
-
-  constructor(public payload: ApiCallResult) {
-  }
-}
 
 export class GetGlobalStatsAction implements Action {
   type = BrandingActionTypes.GET_GLOBAL_STATS;
@@ -127,24 +103,6 @@ export class SetReferrerCompleteAction implements Action {
 
 export class SetReferrerFailedAction implements Action {
   type = BrandingActionTypes.SET_REFERRER_FAILED;
-
-  constructor(public payload: ApiRequestStatus) {
-  }
-}
-
-export class GetEventsAction implements Action {
-  type = BrandingActionTypes.GET_EVENTS;
-}
-
-export class GetEventsCompleteAction implements Action {
-  type = BrandingActionTypes.GET_EVENTS_COMPLETE;
-
-  constructor(public payload: AgendaEvent[]) {
-  }
-}
-
-export class GetEventsFailedAction implements Action {
-  type = BrandingActionTypes.GET_EVENTS_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
@@ -210,10 +168,8 @@ export class GetNodeStatusFailedAction implements Action {
   }
 }
 
-export type BrandingActions
-  = ApiCallAction
-  | ApiCallCompleteAction
-  | GetGlobalStatsAction
+export type BrandingActions =
+  GetGlobalStatsAction
   | GetGlobalStatsCompleteAction
   | GetGlobalStatsFailedAction
   | GetSeeDocumentsAction
@@ -222,9 +178,6 @@ export type BrandingActions
   | SetReferrerAction
   | SetReferrerCompleteAction
   | SetReferrerFailedAction
-  | GetEventsAction
-  | GetEventsCompleteAction
-  | GetEventsFailedAction
   | GetEventPresenceAction
   | GetEventPresenceCompleteAction
   | GetEventPresenceFailedAction
@@ -234,3 +187,4 @@ export type BrandingActions
   | GetNodeStatusAction
   | GetNodeStatusCompleteAction
   | GetNodeStatusFailedAction;
+

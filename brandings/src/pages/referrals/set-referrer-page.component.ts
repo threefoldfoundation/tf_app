@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { Platform } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
-import { SetReferrerAction } from '../../actions/branding.actions';
+import { SetReferrerAction } from '../../actions';
 import { IAppState } from '../../app/app.state';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 import { getSetReferrerResult, getSetReferrerStatus } from '../../state/app.state';
@@ -21,8 +21,8 @@ export class SetReferrerPageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.status$ = this.store.select(getSetReferrerStatus);
-    this.setReferrerResult$ = this.store.select(getSetReferrerResult);
+    this.status$ = this.store.pipe(select(getSetReferrerStatus));
+    this.setReferrerResult$ = this.store.pipe(select(getSetReferrerResult));
   }
 
   submit(code: string) {

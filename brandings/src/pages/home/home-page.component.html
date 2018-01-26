@@ -1,4 +1,7 @@
 <ion-content padding>
-  <h2>fancy home page goes here</h2>
-  <p></p>
+  <home [newsItems]="(newsList$ | async).items"
+        [supportStatus]="supportStatus$ | async"
+        [kycStatus]="kycStatus$ | async"
+        [hasReferrer]="hasReferrer$ | async"
+        [nodes]="nodes$ | async"></home>
 </ion-content>

@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { Platform } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { map, withLatestFrom } from 'rxjs/operators';
-import { GetSeeDocumentsAction } from '../../actions/branding.actions';
+import { GetSeeDocumentsAction } from '../../actions';
 import { IAppState } from '../../app/app.state';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 import { SeeDocument } from '../../interfaces/see.interfaces';
@@ -24,8 +24,8 @@ export class SeePageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.documents$ = this.store.select(getSeeDocuments);
-    this.status$ = this.store.select(getSeeDocumentsStatus);
+    this.documents$ = this.store.pipe(select(getSeeDocuments));
+    this.status$ = this.store.pipe(select(getSeeDocumentsStatus));
     this.store.dispatch(new GetSeeDocumentsAction());
     this.hasNoDocuments$ = this.status$.pipe(
       withLatestFrom(this.documents$),

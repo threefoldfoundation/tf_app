@@ -1,15 +1,16 @@
-import { createFeatureSelector, createSelector } from '@ngrx/store';
+import { createSelector } from '@ngrx/store';
+import { IAppState } from '../app/app.state';
 import { AgendaEvent, EventPresence } from '../interfaces/agenda.interfaces';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { NodeInfo } from '../interfaces/node-status.interfaces';
+import { KYCStatus } from '../interfaces/rogerthat';
 import { apiRequestInitial, ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
 import { TodoList } from '../interfaces/todo-list.interfaces';
-import { ApiCallResult } from '../services/rogerthat.service';
+import { getServiceData, getUserData } from './rogerthat.state';
 
 
 export interface IBrandingState {
-  apiCallResult: ApiCallResult | null;
   globalStats: GlobalStats[];
   globalStatsStatus: ApiRequestStatus;
   todoLists: TodoList[];
@@ -22,13 +23,13 @@ export interface IBrandingState {
   eventPresenceStatus: ApiRequestStatus;
   updateEventPresenceStatus: ApiRequestStatus;
   nodes: NodeInfo[];
-  nodesStatus: ApiRequestStatus;
+  nodesStats: NodeInfo[];
+  nodesStatsStatus: ApiRequestStatus;
 }
 
-export const getAppState = createFeatureSelector<IBrandingState>('app');
+export const getAppState = (state: IAppState) => state.app;
 
 export const initialState: IBrandingState = {
-  apiCallResult: null,
   globalStats: [],
   globalStatsStatus: apiRequestInitial,
   todoLists: [],
@@ -41,10 +42,9 @@ export const initialState: IBrandingState = {
   eventPresenceStatus: apiRequestInitial,
   updateEventPresenceStatus: apiRequestInitial,
   nodes: [],
-  nodesStatus: apiRequestInitial,
+  nodesStats: [],
+  nodesStatsStatus: apiRequestInitial,
 };
-
-export const getApicallResult = createSelector(getAppState, s => s.apiCallResult);
 
 export const getGlobalStats = createSelector(getAppState, s => s.globalStats);
 export const getGlobalStatsStatus = createSelector(getAppState, s => s.globalStatsStatus);
@@ -57,10 +57,17 @@ export const getSeeDocumentsStatus = createSelector(getAppState, s => s.seeDocum
 export const getSetReferrerResult = createSelector(getAppState, s => s.setReferrerResult);
 export const getSetReferrerStatus = createSelector(getAppState, s => s.setReferrerStatus);
 
-export const getEvents = createSelector(getAppState, s => s.events);
 export const getEventPresence = createSelector(getAppState, s => s.eventPresence);
 export const getEventPresenceStatus = createSelector(getAppState, s => s.eventPresenceStatus);
 export const updateEventPresenceStatus = createSelector(getAppState, s => s.updateEventPresenceStatus);
 
-export const getNodes = createSelector(getAppState, s => s.nodes);
-export const getNodesStatus = createSelector(getAppState, s => s.nodesStatus);
+export const getNodes = createSelector(getUserData, s => s.nodes || []);
+export const getNodesStats = createSelector(getAppState, s => s.nodesStats);
+export const getNodesStatsStatus = createSelector(getAppState, s => s.nodesStatsStatus);
+
+export const getEvents = createSelector(getServiceData, data => data.agenda_events || []);
+export const hasReferrer = createSelector(getUserData, data => data.has_referrer || false);
+export const getKYC = createSelector(getUserData, data => data.kyc || { status: KYCStatus.UNVERIFIED, verified: false });
+export const isKYCVerified = createSelector(getKYC, kyc => kyc.verified);
+export const getReferrals = createSelector(getUserData, data => data.referrals);
+

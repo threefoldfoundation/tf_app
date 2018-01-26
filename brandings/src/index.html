@@ -16,6 +16,127 @@
 <ion-app></ion-app>
 <script>console.time('loaded');</script>
 <script src="cordova.js"></script>
+
+<script>
+  if (typeof rogerthat === 'undefined') {
+    const now = new Date().getTime() / 1000;
+    const fakeNewsItems = [{
+      buttons: [],
+      sender: {avatar_id: 1, email: 'test@exmaple.com', name: 'Test name'},
+      broadcast_type: 'whatever',
+      flags: 0,
+      id: 1,
+      image_url: null,
+      message: 'Sample message',
+      qr_code_caption: null,
+      qr_code_content: null,
+      reach: 123,
+      sort_priority: 1,
+      sort_timestamp: now,
+      timestamp: now,
+      title: 'Sample title',
+      type: 1,
+      users_that_rogered: [],
+      version: 1,
+      read: true,
+      pinned: false,
+      rogered: false,
+      disabled: false,
+      isPartial: false,
+      sortKey: 0,
+    }];
+    rogerthat = {
+      api: {
+        call: () => {
+        },
+        callbacks: {
+          resultReceived: () => {
+          }
+        }
+      },
+      callbacks: {
+        _ready: null,
+        ready: function (callback) {
+          this._ready = callback;
+        },
+        newsReceived: () => {
+        },
+        serviceDataUpdated: () => {
+        },
+        userDataUpdated: () => {
+        }
+      },
+      user: {
+        language: 'en',
+        data: {
+          todo_lists: ['list1', 'list2'],
+          todo_list1: {
+            id: 'list1',
+            name: 'ITO todos',
+            items: [{
+              id: 'item1',
+              name: 'Check out the todo list',
+              checked: true
+            }, {
+              id: 'item2',
+              name: 'Some other thing',
+              checked: false
+            }]
+          },
+          todo_list2: {
+            id: 'list2',
+            name: 'Second list',
+            items: [{
+              id: 'item1',
+              name: 'This is the second list',
+              checked: false
+            }, {
+              id: 'item2',
+              name: 'Second item of the second list',
+              checked: false
+            }]
+          },
+          has_referrer: true,
+        }
+      },
+      system: {
+        appId: 'em-be-threefold-token',
+        appVersion: '2.1.9999'
+      },
+      service: {
+        data: {
+          agenda_events: [{
+            creation_timestamp: new Date('2017-11-17T12:15:56Z').toISOString(),
+            description: 'We want outline in more detail our technical roadmap around PTO related technology as well as the technology we will use to create the new neutral internet.',
+            end_timestamp: new Date('2017-11-18T11:00:00Z').toISOString(),
+            type: 2,
+            id: 1,
+            title: 'TF technical roadmap/ Future of Blockchain',
+            start_timestamp: new Date('2017-11-18T09:00:00Z').toISOString(),
+            location: 'zoom'
+          }]
+        }
+      },
+      menuItem: null,
+      news: {
+        list: (cb) => {
+          cb({items: fakeNewsItems});
+        },
+        count: (cb) => {
+          cb({count: fakeNewsItems.length});
+        }
+      },
+      util: {
+        uuid: () => {
+          return '4';
+        }
+      }
+    };
+  }
+  sha256 = () => {
+  };
+  setTimeout(() => rogerthat.callbacks._ready(), 350);
+</script>
 <script src="build/polyfills.js"></script>
 <script src="build/vendor.js"></script>
 <script src="build/main.js"></script>

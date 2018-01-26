@@ -57,7 +57,7 @@ export class AppComponent implements OnInit {
           return;
         }
         if (rogerthat.menuItem && rogerthat.menuItem.label) {
-          this.setPage(rogerthat.menuItem);
+          this.setPage.bind(this)(rogerthat.menuItem);
         } else {
           this.rootPage = HomePageComponent;
         }
@@ -67,7 +67,14 @@ export class AppComponent implements OnInit {
     });
   }
 
-  private setPage = (menuItem: RogerthatMenuItem) => {
+  ngOnInit() {
+    this.actions$.pipe(withLatestFrom(this.store)).subscribe(([ action, store ]) => {
+      // Useful for debugging
+      console.log('Dispatching action', action, store);
+    });
+  }
+
+  private setPage(menuItem: RogerthatMenuItem) {
     let todoPage;
     if (this.todoListService.getTodoLists().length === 1) {
       todoPage = TodoListPageComponent;
@@ -90,12 +97,5 @@ export class AppComponent implements OnInit {
     } else {
       console.error('Cannot find page for menu item', JSON.stringify(menuItem));
     }
-  };
-
-  ngOnInit() {
-    this.actions$.pipe(withLatestFrom(this.store)).subscribe(([ action, store ]) => {
-      // Useful for debugging
-      console.log('Dispatching action', action, store);
-    });
   }
 }

@@ -11,15 +11,14 @@ import { MissingTranslationHandler, TranslateLoader, TranslateModule } from '@ng
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { ChartModule } from 'angular2-chartjs';
 import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
-import 'zone.js/dist/zone-patch-cordova';
 import { COMPONENTS } from '../components';
+import { BrandingEffects, RogerthatEffects } from '../effects';
 import { PAGES } from '../pages';
 import { MarkdownPipe } from '../pipes/markdown.pipe';
 import { SERVICES } from '../services';
 import { MissingTranslationWarnHandler } from '../util/missing-translation-handler';
 import { AppComponent } from './app.component';
-import { REDUCER_INJECTION_TOKEN, reducerProvider } from './app.state';
-import { BrandingEffects } from './branding.effects';
+import { reducers } from './app.state';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, 'assets/i18n/');
@@ -45,8 +44,8 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
         deps: [ HttpClient ],
       },
     }),
-    StoreModule.forRoot(REDUCER_INJECTION_TOKEN),
-    EffectsModule.forRoot([ BrandingEffects ]),
+    StoreModule.forRoot(reducers),
+    EffectsModule.forRoot([ BrandingEffects, RogerthatEffects ]),
     ChartModule,
   ],
   bootstrap: [ IonicApp ],
@@ -61,7 +60,6 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
     I18nPluralPipe,
     SERVICES,
     IONIC_NATIVE_PLUGINS,
-    reducerProvider,
     { provide: ErrorHandler, useClass: IonicErrorHandler },
     { provide: MissingTranslationHandler, useClass: MissingTranslationWarnHandler },
   ],

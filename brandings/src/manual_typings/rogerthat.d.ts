@@ -105,7 +105,6 @@ export interface NewsItem {
   type: NewsItemType;
   users_that_rogered: string[];
   version: number;
-  partial: number;
   read: boolean;
   pinned: boolean;
   rogered: boolean;
@@ -296,6 +295,23 @@ interface Translations {
   [ key: string ]: { [ key: string ]: string };
 }
 
+export interface RogerthatOpenParams {
+  /**
+   * null means opening an activity
+   * action means listing all services with that action and opening that action when clicked
+   * click means clicking on a service menu item (linked to service_email).
+   * If service_email is None -> the main service email is used
+   * (action and click should be the hashed tag of the service menu item)
+   */
+  action_type: null | 'action' | 'click' | 'cordova';
+  /**
+   * news, messages, ...
+   */
+  action: string;
+  title?: string;
+  // todo possibly missing params
+}
+
 export interface RogerthatUtil {
   _translateHTML: () => void;
   _translations: { defaultLanguage: string; values: Translations };
@@ -308,7 +324,7 @@ export interface RogerthatUtil {
    */
   playAudio: (path: string, callback: () => void) => void;
   isConnectedToInternet: (callback: (connectionStatus: InternetConnectionStatus) => void) => void;
-  open: (params: AnyKeyValue, successCallback: () => void, errorCallback: () => void) => void;
+  open: (params: RogerthatOpenParams, successCallback: () => void, errorCallback: (error: RogerthatError) => void) => void;
   translate: (key: string, parameters: AnyKeyValue) => string;
   embeddedAppTranslations: (successCallback: (translations: { translations: AnyKeyValue }) => void,
                             errorCallback: (error: RogerthatError) => void) => void;

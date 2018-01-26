@@ -1,18 +1,20 @@
 import { Injectable, NgZone } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { filter, map, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs/Subject';
-import { ApiCallAction, ApiCallCompleteAction, GetEventsAction } from '../actions/branding.actions';
+import { ApiCallAction, ApiCallCompleteAction, SetServiceDataAction, SetUserDataAction } from '../actions';
+import { IAppState } from '../app/app.state';
 import {
-  CountNewsItemsParams,
   CountNewsItemsResult,
   ListNewsItemsParams,
   ListNewsItemsResult,
   NewsItem,
+  RogerthatCallbacks,
+  RogerthatOpenParams,
 } from '../manual_typings/rogerthat';
 import { RogerthatError } from '../manual_typings/rogerthat-errors';
-import { getApicallResult, IBrandingState } from '../state/app.state';
+import { getApicallResult } from '../state/rogerthat.state';
 import { I18nService } from './i18n.service';
 
 export interface ApiCallResult {
@@ -28,8 +30,6 @@ export interface AppVersion {
   patch: number;
 }
 
-declare var Zone: any;
-
 export class ApiCallError extends Error {
   constructor(public message: string, public apiCallResult: ApiCallResult) {
     super(message);
@@ -39,21 +39,24 @@ export class ApiCallError extends Error {
 @Injectable()
 export class RogerthatService {
   private _version: AppVersion;
+
   constructor(private i18nService: I18nService,
               private ngZone: NgZone,
-              private store: Store<IBrandingState>) {
+              private store: Store<IAppState>) {
   }
 
   initialize() {
-    console.log(<any>Zone.current.name);
-
+    this.store.dispatch(new SetUserDataAction(rogerthat.user.data));
+    this.store.dispatch(new SetServiceDataAction(rogerthat.service.data));
     this.i18nService.use(rogerthat.user.language);
     rogerthat.api.callbacks.resultReceived((method: string, result: any, error: string | null, tag: string) => {
       this.ngZone.run(() => this.store.dispatch(new ApiCallCompleteAction({ method, result, error, tag })));
     });
-    rogerthat.callbacks.serviceDataUpdated(() => {
-      this.ngZone.run(() => this.store.dispatch(new GetEventsAction()));
-    });
+    const cb = <RogerthatCallbacks>rogerthat.callbacks;
+    cb.userDataUpdated(() => this.ngZone.run(() => this.store.dispatch(new SetUserDataAction(rogerthat.user.data))));
+    cb.serviceDataUpdated(() => this.ngZone.run(() => {
+      this.store.dispatch(new SetServiceDataAction(rogerthat.service.data));
+    }));
     const [ major, minor, patch ] = rogerthat.system.appVersion.split('.').slice(0, 3).map(s => parseInt(s));
     this._version = { major, minor, patch };
   }
@@ -70,18 +73,31 @@ export class RogerthatService {
       || currentVersion.patch > checkVersion.patch;
   }
 
-  getContext(): Observable<any> {
-    return Observable.create((emitter: Subject<any>) => {
-      rogerthat.context(success.bind(this), error.bind(this));
+  getContext<T>(): Observable<T> {
+    return Observable.create((emitter: Subject<T>) => {
 
-      function success(context: any) {
-        emitter.next(context);
-        emitter.complete();
-      }
+      const success = (context: T) => {
+        this.ngZone.run(() => {
+          emitter.next(context);
+          emitter.complete();
+        });
+      };
 
-      function error(err: RogerthatError) {
-        emitter.error(err);
-      }
+      const error = (err: RogerthatError) => this.ngZone.run(() => emitter.error(err));
+      rogerthat.context(success, error);
+    });
+  }
+
+  open(params: RogerthatOpenParams): Observable<null> {
+    return Observable.create((emitter: Subject<null>) => {
+      const success = () => {
+        this.ngZone.run(() => {
+          emitter.next(null);
+          emitter.complete();
+        });
+      };
+      const error = (err: RogerthatError) => this.ngZone.run(() => emitter.error(err));
+      rogerthat.util.open(params, success, error);
     });
   }
 
@@ -94,7 +110,8 @@ export class RogerthatService {
     }
     this.store.dispatch(new ApiCallAction(method, data, tag));
     rogerthat.api.call(method, data, tag);
-    return this.store.select(getApicallResult).pipe(
+    return this.store.pipe(
+      select(getApicallResult),
       filter(result => result !== null && result.method === method && result.tag === tag),
       tap(s => {
         if (s && s.error) {
@@ -105,41 +122,41 @@ export class RogerthatService {
     );
   }
 
-  countNews(params?: CountNewsItemsParams): Observable<CountNewsItemsResult> {
-    console.log(<any>Zone.current.name);
+  countNews(): Observable<CountNewsItemsResult> {
     return Observable.create((emitter: Subject<CountNewsItemsResult>) => {
       const success = (result: CountNewsItemsResult) => {
-        console.log(<any>Zone.current.name);
-        emitter.next(result);
-        emitter.complete();
+        this.ngZone.run(() => {
+          emitter.next(result);
+          emitter.complete();
+        });
       };
-      const error = (err: RogerthatError) => emitter.error(err);
-      rogerthat.news.count(success, error, params);
+      const error = (err: RogerthatError) => this.ngZone.run(() => emitter.error(err));
+      rogerthat.news.count(success, error);
     });
   }
 
   getNews(newsId: number): Observable<NewsItem> {
-    console.log(<any>Zone.current.name);
     return Observable.create((emitter: Subject<NewsItem>) => {
       const success = (result: NewsItem) => {
-        console.log(<any>Zone.current.name);
-        emitter.next(result);
-        emitter.complete();
+        this.ngZone.run(() => {
+          emitter.next(result);
+          emitter.complete();
+        });
       };
-      const error = (err: RogerthatError) => emitter.error(err);
+      const error = (err: RogerthatError) => this.ngZone.run(() => emitter.error(err));
       rogerthat.news.get(success, error, { news_id: newsId });
     });
   }
 
   listNews(params: ListNewsItemsParams): Observable<ListNewsItemsResult> {
-    console.log(<any>Zone.current.name);
     return Observable.create((emitter: Subject<ListNewsItemsResult>) => {
       const success = (result: ListNewsItemsResult) => {
-        console.log(<any>Zone.current.name);
-        emitter.next(result);
-        emitter.complete();
+        this.ngZone.run(() => {
+          emitter.next(result);
+          emitter.complete();
+        });
       };
-      const error = (err: RogerthatError) => emitter.error(err);
+      const error = (err: RogerthatError) => this.ngZone.run(() => emitter.error(err));
       rogerthat.news.list(success, error, params);
     });
   }

@@ -13,7 +13,6 @@ export interface UserDataInternal {
   hoster: UserDataHoster;
   todo_lists: string[];
   invitation_code: string;
-  has_referrer: boolean;
   name: string;
   email: string;
   phone: string;
@@ -63,6 +62,8 @@ export enum KYCStatus {
   VERIFIED = 50,
 }
 
-export interface ServiceData {
+export type ServiceData = Readonly<Partial<ServiceDataInternal>>;
+
+export interface ServiceDataInternal {
   agenda_events: AgendaEvent[];
 }

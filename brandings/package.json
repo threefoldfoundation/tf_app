@@ -14,7 +14,8 @@
     "ionic:build": "ionic-app-scripts build",
     "ionic:serve": "ionic-app-scripts serve",
     "start": "npm run ionic:serve",
-    "sort_translations": "node tools/sort_i18n.js"
+    "sort_translations": "node tools/sort_i18n.js",
+    "replace_branding": "npm run build:zip-only && python tools/replace_branding.py --api_key ak864e7a94905a8d39bdd00d68db0ff9987f438fbf72b793a4d533258dab9c2d38 --description \"all threefold things\" --server_url http://192.168.1.138:8080/api/1 --branding /mnt/c/Users/lucas/git/gae-plugin-framework/src/tff_backend/brandings/threefold.zip"
   },
   "dependencies": {
     "@angular/common": "^5.2.2",
