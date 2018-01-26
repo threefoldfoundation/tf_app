@@ -207,10 +207,12 @@ def create_investment_agreement(agreement):
     content_type = prefix.split(';')[0].replace('data:', '')
     doc_content = base64.b64decode(doc_content_base64)
     agreement_model.put()
+
     pdf_name = InvestmentAgreement.filename(agreement_model.id)
     pdf_url = upload_to_gcs(pdf_name, doc_content, content_type)
     deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_model.key, app_user, pdf_url,
                    content_type, send_sign_message=False, pdf_size=len(doc_content))
+
     return agreement_model
 
 
@@ -408,7 +410,7 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
 - from: %(user)s\n
 - amount: %(amount)s %(currency)s
 - %(token_count_float)s %(token_type)s tokens
-""" % {'investment': agreement.reference,
+""" % {'investment': agreement.id,
        'user': get_iyo_username(agreement.app_user),
        'amount': agreement.amount,
        'currency': agreement.currency,
