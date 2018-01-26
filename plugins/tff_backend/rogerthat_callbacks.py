@@ -21,11 +21,13 @@ from google.appengine.ext import deferred
 
 from framework.models.session import Session
 from framework.plugin_loader import get_config
+from framework.utils import try_or_defer
 from mcfw.properties import object_factory
 from mcfw.rpc import parse_complex_value, serialize_complex_value, returns, arguments
 from plugins.rogerthat_api.models.settings import RogerthatSettings
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.friends import ACCEPT_ID, DECLINE_ID
+from plugins.rogerthat_api.to.installation import InstallationTO, InstallationLogTO
 from plugins.rogerthat_api.to.messaging import Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import FormResultTO
@@ -39,6 +41,7 @@ from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, a
 from plugins.tff_backend.api.rogerthat.nodes import api_get_node_status
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
 from plugins.tff_backend.bizz.authentication import Organization
+from plugins.tff_backend.bizz.dashboard import update_firebase_installation
 from plugins.tff_backend.bizz.flow_statistics import save_flow_statistics
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed
@@ -223,3 +226,9 @@ def system_api_call(rt_settings, request_id, method, params, user_details, **kwa
         logging.exception('Unhandled API call exception')
         response.error = u'An unknown error has occurred. Please try again later.'
     return serialize_complex_value(response, SendApiCallCallbackResultTO, False)
+
+
+def installation_progress(rt_settings, request_id, installation, logs, **kwargs):
+    installation = InstallationTO.from_dict(installation)
+    logs = InstallationLogTO.from_list(logs)
+    try_or_defer(update_firebase_installation, installation, logs)

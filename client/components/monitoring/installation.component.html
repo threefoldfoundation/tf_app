@@ -6,8 +6,12 @@
     <h3>{{ 'tff.mobile' | translate }}</h3>
     <p>{{ installation.mobile.description }}</p>
     <p>{{ getMobileType(installation.mobile) | translate }}</p>
-    <p>{{ 'tff.hardware_model_x' | translate : { model: installation.mobile.hardware_model } }}</p>
-    <p>{{ 'tff.operating_system_version_x' | translate : { version: installation.mobile.os_version } }}</p>
+    <p *ngIf="installation.mobile.hardware_model">
+      {{ 'tff.hardware_model_x' | translate : { model: installation.mobile.hardware_model } }}
+    </p>
+    <p *ngIf="installation.mobile.os_version">
+      {{ 'tff.operating_system_version_x' | translate : { version: installation.mobile.os_version } }}
+    </p>
   </div>
   <div *ngIf="installation.user_details">
     <h3>{{ 'tff.profile' | translate }}</h3>

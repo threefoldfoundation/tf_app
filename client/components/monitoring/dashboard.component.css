@@ -1,15 +1,6 @@
 .flow-card {
-  width: 200px;
-  display: inline-block;
-  margin: 16px;
-}
-
-.flow-card .mat-card-header .mat-card-title {
-  font-size: 1.6em;
-}
-
-.flow-card .mat-card-content {
-  font-size: 1.4em;
+  width: 220px;
+  margin: 8px;
 }
 
 .ticker-line p {

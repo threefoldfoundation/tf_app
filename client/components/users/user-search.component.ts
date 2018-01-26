@@ -10,6 +10,7 @@ import { SearchUsersQuery } from '../../interfaces/profile.interfaces';
 export class UserSearchComponent {
   statuses = KYCStatuses;
   searchString: string;
+  _query: SearchUsersQuery;
   @Output() search = new EventEmitter<SearchUsersQuery>();
 
   get query(): SearchUsersQuery {
@@ -17,13 +18,12 @@ export class UserSearchComponent {
   }
 
   @Input() set query(value: SearchUsersQuery) {
-    this._query = { ...value, query: this.searchString || value.query };
     if (!this.searchString) {
       this.searchString = value.query || '';
     }
+    this._query = { ...value, query: this.searchString };
   }
 
-  private _query: SearchUsersQuery;
 
   submit() {
     this.query = { ...this.query, cursor: null };

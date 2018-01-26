@@ -15,18 +15,15 @@
 #
 # @@license_version:1.4@@
 import logging
-from collections import defaultdict
 from datetime import datetime
 
 from google.appengine.ext import ndb, deferred
 
 import dateutil
 from dateutil import relativedelta
-from framework.bizz.firebase import set_firebase_data
 from framework.bizz.job import run_job
 from framework.consts import get_base_url
 from framework.utils import try_or_defer
-from mcfw.consts import DEBUG
 from mcfw.exceptions import HttpNotFoundException
 from mcfw.properties import object_factory
 from mcfw.rpc import arguments, parse_complex_value
@@ -37,7 +34,9 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemb
     FlowCallbackResultTypeTO, FormCallbackResultTypeTO, MessageCallbackResultTypeTO
 from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.firebase import put_firebase_data
 from plugins.tff_backend.models.statistics import FlowRun, FlowRunStatus, FlowRunStatistics, StepStatistics
+from plugins.tff_backend.to.dashboard import TickerEntryTO, TickerEntryType
 from plugins.tff_backend.utils import get_key_name_from_key_string
 
 
@@ -96,33 +95,31 @@ def save_flow_statistics(parent_message_key, steps, end_id, tag, flush_id, flush
     try_or_defer(save_flow_run_status_to_firebase, flow_run.key)
 
 
-# TODO replace with firestore
-# TODO cron job to remove flows older than a month
 def save_flow_run_status_to_firebase(flow_run_key):
     flow_run = flow_run_key.get()  # type: FlowRun
-    data = flow_run.to_dict(include=['flow_name', 'status'])
+    ticker_entry = get_flow_run_ticker_entry(flow_run)
+    put_firebase_data('/dashboard/flows/%s.json' % flow_run.flow_name, {flow_run.id: flow_run.status})
+    put_firebase_data('/dashboard/ticker/%s.json' % ticker_entry.id, ticker_entry.to_dict())
 
-    def _get_step():
-        if flow_run.steps:
-            step = flow_run.steps[-1]
-            # Don't return sensitive data such as the form value
-            return {
-                'step_id': step['step_id'],
-                'answer_id': step['answer_id'],
-                'button': step['button']
-            }
+
+def get_flow_run_ticker_entry(flow_run):
+    # type: (FlowRun) -> TickerEntryTO
+    data = flow_run.to_dict(include=['flow_name', 'status'])
+    last_step = None
+    if flow_run.steps:
+        step = flow_run.steps[-1]
+        # Don't return sensitive data such as the form value
+        last_step = {
+            'step_id': step['step_id'],
+            'answer_id': step['answer_id'],
+            'button': step['button']
+        }
 
     data.update({
-        'last_step_date': flow_run.statistics.last_step_date.isoformat().decode('utf-8') + u'Z',
-        'last_step': _get_step(),
+        'last_step': last_step,
     })
-    prefix = '/dev' if DEBUG else ''
-    set_firebase_data('%s/dashboard/flow_steps/%s.json' % (prefix, flow_run.id), data)
-
-
-def migrate():
-    for flow_run in FlowRun.query().fetch(None, keys_only=True):
-        save_flow_run_status_to_firebase(flow_run)
+    date = flow_run.statistics.last_step_date.isoformat().decode('utf-8') + u'Z'
+    return TickerEntryTO(id='flow-%s' % flow_run.id, date=date, data=data, type=TickerEntryType.FLOW.value)
 
 
 def merge_steps(flow_run, new_steps):
@@ -168,27 +165,6 @@ def list_flow_runs(cursor, page_size, flow_name, start_date):
     return qry.fetch_page(page_size, start_cursor=ndb.Cursor(urlsafe=cursor))
 
 
-# TODO replace by cron job that runs every 5 min that saves data to firebase
-def flow_run_stats(start_date):
-    # type: (unicode) -> list[dict]
-    start_date = start_date and dateutil.parser.parse(start_date.replace('Z', ''))
-    stats_per_flow_name = defaultdict(dict)
-    for flow_run in FlowRun.list_by_start_date(start_date):  # type: FlowRun
-        if not stats_per_flow_name[flow_run.flow_name]:
-            stats_per_flow_name[flow_run.flow_name] = {
-                'flow_name': flow_run.flow_name,
-                'stats': {
-                    FlowRunStatus.STARTED.value: 0,
-                    FlowRunStatus.IN_PROGRESS.value: 0,
-                    FlowRunStatus.STALLED.value: 0,
-                    FlowRunStatus.FINISHED.value: 0,
-                    FlowRunStatus.CANCELED.value: 0,
-                }
-            }
-        stats_per_flow_name[flow_run.flow_name]['stats'][flow_run.status] += 1
-    return [s for s in stats_per_flow_name.itervalues()]
-
-
 def get_flow_run(flow_run_id):
     # type: (unicode) -> FlowRun
     flow_run = FlowRun.create_key(flow_run_id).get()
@@ -202,7 +178,7 @@ def list_distinct_flows():
 
 
 def check_stuck_flows():
-    fifteen_minutes_ago = datetime.now() - relativedelta.relativedelta(minutes=15 * 0)
+    fifteen_minutes_ago = datetime.now() - relativedelta.relativedelta(minutes=15)
     run_job(_get_stalled_flows, [fifteen_minutes_ago], _set_flow_run_as_stalled, [])
 
 

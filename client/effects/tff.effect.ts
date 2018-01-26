@@ -32,6 +32,13 @@ export class TffEffects {
         catchError(err => handleApiError(actions.GetOrderFailedAction, err)),
       )));
 
+  @Effect() createOrder$ = this.actions$
+    .ofType<actions.CreateOrderAction>(actions.TffActionTypes.CREATE_ORDER).pipe(
+      switchMap(action => this.tffService.createNodeOrder(action.payload).pipe(
+        map(payload => new actions.CreateOrderCompleteAction(payload)),
+        catchError(err => handleApiError(actions.CreateOrderFailedAction, err)),
+      )));
+
   @Effect() updateNodeOrdes$ = this.actions$
     .ofType<actions.UpdateOrderAction>(actions.TffActionTypes.UPDATE_ORDER).pipe(
       switchMap(action => this.tffService.updateNodeOrder(action.payload).pipe(
