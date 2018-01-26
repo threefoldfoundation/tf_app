@@ -6,16 +6,6 @@ indexes:
   - name: status
   - name: send_time
   
-- kind: NodeOrder
-  properties:
-  - name: app_user
-  - name: status
-  
-- kind: NodeOrder
-  properties:
-  - name: address_hash
-  - name: status
-
 # ======================================================= PAYMENT ======================================================
 
 - kind: ThreeFoldTransaction

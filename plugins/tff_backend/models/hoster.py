@@ -147,10 +147,10 @@ class NodeOrder(NdbModel):
 
     @classmethod
     def has_order_for_user_or_location(cls, app_user, address):
-        user_qry = cls.list_by_user(app_user).filter(cls.status > NodeOrderStatus.CANCELED).fetch_async()
-        address_qry = cls.query().filter(cls.status > NodeOrderStatus.CANCELED).filter(
-            cls.address_hash == normalize_address(address)).fetch_async()
-        return any(user_qry.get_result()) or any(address_qry.get_result())
+        user_qry = cls.list_by_user(app_user).fetch_async()
+        address_qry = cls.query().filter(cls.address_hash == normalize_address(address)).fetch_async()
+        results = user_qry.get_result() + address_qry.get_result()
+        return any(n for n in results if n.status != NodeOrderStatus.CANCELED)
 
     @classmethod
     def list_check_online(cls):

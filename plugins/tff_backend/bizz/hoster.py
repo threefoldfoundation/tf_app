@@ -19,13 +19,11 @@ import base64
 import json
 import logging
 
-from google.appengine.api import users
-from google.appengine.ext import ndb, deferred
-from google.appengine.ext.deferred import deferred
-
 from framework.consts import get_base_url
 from framework.plugin_loader import get_config
 from framework.utils import now
+from google.appengine.api import users
+from google.appengine.ext import ndb, deferred
 from mcfw.consts import DEBUG, MISSING
 from mcfw.exceptions import HttpBadRequestException
 from mcfw.properties import object_factory
