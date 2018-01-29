@@ -7,7 +7,7 @@ import { map } from 'rxjs/operators';
 import { IAppState } from '../../app/app.state';
 import { AgendaEvent, AgendaEventDetail } from '../../interfaces/agenda.interfaces';
 import { AgendaService } from '../../services/agenda.service';
-import { getEvents } from '../../state/app.state';
+import { getAgendaEvents } from '../../state/app.state';
 import { EventDetailsPageComponent } from './event-details-page.component';
 
 @Component({
@@ -27,7 +27,7 @@ export class AgendaPageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.events$ = this.store.pipe(select(getEvents), map(events => events.map(event => ({
+    this.events$ = this.store.pipe(select(getAgendaEvents), map(events => events.map(event => ({
       ...event,
       is_in_past: new Date() > new Date(event.end_timestamp),
       start_date: this.getDate(event.start_timestamp),

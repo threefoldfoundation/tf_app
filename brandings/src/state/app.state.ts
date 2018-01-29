@@ -9,7 +9,6 @@ import { SeeDocument } from '../interfaces/see.interfaces';
 import { TodoList } from '../interfaces/todo-list.interfaces';
 import { getServiceData, getUserData } from './rogerthat.state';
 
-
 export interface IBrandingState {
   globalStats: GlobalStats[];
   globalStatsStatus: ApiRequestStatus;
@@ -65,9 +64,10 @@ export const getNodes = createSelector(getUserData, s => s.nodes || []);
 export const getNodesStats = createSelector(getAppState, s => s.nodesStats);
 export const getNodesStatsStatus = createSelector(getAppState, s => s.nodesStatsStatus);
 
-export const getEvents = createSelector(getServiceData, data => data.agenda_events || []);
+export const getAgendaEvents = createSelector(getServiceData, data => data.agenda_events || []);
 export const hasReferrer = createSelector(getUserData, data => data.has_referrer || false);
 export const getKYC = createSelector(getUserData, data => data.kyc || { status: KYCStatus.UNVERIFIED, verified: false });
 export const isKYCVerified = createSelector(getKYC, kyc => kyc.verified);
 export const getReferrals = createSelector(getUserData, data => data.referrals);
+export const getSupportChat = createSelector(getUserData, data => data.support_chat_id);
 

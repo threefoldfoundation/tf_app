@@ -349,8 +349,10 @@ export interface QrCodeScannedContent {
   userDetails?: UserDetails;
 }
 
+export type BadgeUpdatedKey = 'news' | 'messages';
+
 export interface BadgeUpdated {
-  key: string;
+  key: BadgeUpdatedKey;
   count: number;
 }
 

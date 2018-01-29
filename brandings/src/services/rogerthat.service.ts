@@ -13,7 +13,7 @@ import {
   RogerthatCallbacks,
   RogerthatOpenParams,
 } from '../manual_typings/rogerthat';
-import { RogerthatError } from '../manual_typings/rogerthat-errors';
+import { RogerthatError, RogerthatMessageOpenError } from '../manual_typings/rogerthat-errors';
 import { getApicallResult } from '../state/rogerthat.state';
 import { I18nService } from './i18n.service';
 
@@ -98,6 +98,22 @@ export class RogerthatService {
       };
       const error = (err: RogerthatError) => this.ngZone.run(() => emitter.error(err));
       rogerthat.util.open(params, success, error);
+    });
+  }
+
+  openMessage(messageKey: string): Observable<null> {
+    return Observable.create((emitter: Subject<null>) => {
+      const success = () => {
+        this.ngZone.run(() => {
+          emitter.next(null);
+          emitter.complete();
+        });
+      };
+      const error = (err: RogerthatMessageOpenError) => this.ngZone.run(() => emitter.error(<RogerthatError>{
+        code: err.type,
+        message: err.type,
+      }));
+      rogerthat.message.open(messageKey, success, error);
     });
   }
 

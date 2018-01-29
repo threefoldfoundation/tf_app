@@ -25,6 +25,9 @@ interface IBrandingActionTypes {
   GET_NODE_STATUS: 'Get node status';
   GET_NODE_STATUS_COMPLETE: 'Get node status complete';
   GET_NODE_STATUS_FAILED: 'Get node status failed';
+  OPEN_SUPPORT_CHAT: 'Open support chat';
+  OPEN_SUPPORT_CHAT_COMPLETE: 'Open support chat complete';
+  OPEN_SUPPORT_CHAT_FAILED: 'Open support chat failed';
 }
 
 export const BrandingActionTypes: IBrandingActionTypes = {
@@ -46,6 +49,9 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   GET_NODE_STATUS: 'Get node status',
   GET_NODE_STATUS_COMPLETE: 'Get node status complete',
   GET_NODE_STATUS_FAILED: 'Get node status failed',
+  OPEN_SUPPORT_CHAT: 'Open support chat',
+  OPEN_SUPPORT_CHAT_COMPLETE: 'Open support chat complete',
+  OPEN_SUPPORT_CHAT_FAILED: 'Open support chat failed',
 };
 
 
@@ -167,6 +173,20 @@ export class GetNodeStatusFailedAction implements Action {
   constructor(public payload: ApiRequestStatus) {
   }
 }
+export class OpenSupportChatAction implements Action {
+  type = BrandingActionTypes.OPEN_SUPPORT_CHAT;
+}
+
+export class OpenSupportChatCompleteAction implements Action {
+  type = BrandingActionTypes.OPEN_SUPPORT_CHAT_COMPLETE;
+}
+
+export class OpenSupportChatFailedAction implements Action {
+  type = BrandingActionTypes.OPEN_SUPPORT_CHAT_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
 
 export type BrandingActions =
   GetGlobalStatsAction
@@ -186,5 +206,8 @@ export type BrandingActions =
   | UpdateEventPresenceFailedAction
   | GetNodeStatusAction
   | GetNodeStatusCompleteAction
-  | GetNodeStatusFailedAction;
+  | GetNodeStatusFailedAction
+  | OpenSupportChatAction
+  | OpenSupportChatCompleteAction
+  | OpenSupportChatFailedAction;
 

@@ -1,9 +1,54 @@
-<ion-row justify-content-center>
-  <img src="../../assets/img/about_header.png"/>
-</ion-row>
-<h2>fancy home page goes here</h2>
-<p>News items: {{ newsItems | json }}</p>
-<p>Support status: {{ supportStatus | json }}</p>
-<p>KYC: {{ kycStatus | json }}</p>
-<p>Has referrer: {{ hasReferrer }}</p>
-<p>Nodes: {{ nodes }}</p>
+<!--<ion-row justify-content-center>-->
+<!--<img src="../../assets/img/header.png"/>-->
+<!--</ion-row>-->
+<!--<p>News items: {{ newsItems | json }}</p>-->
+<!--<p>Support status: {{ supportStatus | json }}</p>-->
+<!--<p>KYC: {{ kycStatus | json }}</p>-->
+<!--<p>Has referrer: {{ hasReferrer }}</p>-->
+<!--<p>Nodes: {{ nodes }}</p>-->
+<!--<p>Unread messages: {{ messageCount }}</p>-->
+<ion-grid class="home-grid">
+  <ion-row>
+    <ion-col>
+      <tile [title]="'threefold_news' | translate" (click)="tileClicked.emit('news')"
+            image="https://placeimg.com/1600/600/any">
+        <tile-content>
+          <ion-slides [pager]="true" class="news-tile">
+            <ion-slide *ngFor="let newsItem of newsItems">
+              <h4>{{ newsItem.title }}</h4>
+              <p>{{ newsItem.message | truncate : 130 : true }}</p>
+            </ion-slide>
+          </ion-slides>
+        </tile-content>
+      </tile>
+    </ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col>
+      <tile [title]="'buy_tokens' | translate"
+            icon="buytoken"
+            [footer]="'buy tokens footer'"
+            (click)="tileClicked.emit('buy_tokens')">
+      </tile>
+    </ion-col>
+    <ion-col>
+      <ion-row>
+        <tile [title]="'contact_support' | translate"
+              icon="support"
+              [footer]="(supportStatus.online ? 'online' : 'offline') | translate"
+              (click)="tileClicked.emit('support')"
+              size="half">
+        </tile>
+      </ion-row>
+      <ion-row>
+        <tile [title]="'contact_support' | translate"
+              icon="support"
+              [footer]="(supportStatus.online ? 'online' : 'offline') | translate"
+              (click)="tileClicked.emit('support')"
+              size="half"
+              style="margin-top: 10px;">
+        </tile>
+      </ion-row>
+    </ion-col>
+  </ion-row>
+</ion-grid>

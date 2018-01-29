@@ -9,8 +9,9 @@ import { AgendaService } from '../services/agenda.service';
 import { GlobalStatsService } from '../services/global-stats.service';
 import { NodeService } from '../services/node.service';
 import { ReferrerService } from '../services/referrer.service';
+import { RogerthatService } from '../services/rogerthat.service';
 import { SeeService } from '../services/see.service';
-import { getNodes } from '../state/app.state';
+import { getNodes, getSupportChat } from '../state/app.state';
 import { handleApiError } from '../util/rpc';
 
 @Injectable()
@@ -39,7 +40,7 @@ export class BrandingEffects {
       map(result => new actions.GetEventPresenceCompleteAction(result)),
       catchError(err => handleApiError(actions.GetEventPresenceFailedAction, err)))));
 
-  @Effect() updateEventPresence = this.actions$.pipe(
+  @Effect() updateEventPresence$ = this.actions$.pipe(
     ofType<actions.UpdateEventPresenceAction>(actions.BrandingActionTypes.UPDATE_EVENT_PRESENCE),
     switchMap(action => this.agendaService.updatePresence(action.payload).pipe(
       map(result => new actions.UpdateEventPresenceCompleteAction(result)),
@@ -59,12 +60,20 @@ export class BrandingEffects {
       map(result => new actions.GetNodeStatusCompleteAction(result)),
       catchError(err => handleApiError(actions.GetNodeStatusFailedAction, err)))));
 
+  @Effect() openSupportChat$ = this.actions$.pipe(
+    ofType<actions.OpenSupportChatAction>(actions.BrandingActionTypes.OPEN_SUPPORT_CHAT),
+    switchMap(() => this.store.select(getSupportChat)),
+    switchMap(supportChatId => this.rogerthatService.openMessage(<string>supportChatId).pipe(
+      map(result => new actions.OpenSupportChatCompleteAction()),
+      catchError(err => handleApiError(actions.OpenSupportChatFailedAction, err)))));
+
   constructor(private actions$: Actions,
               private store: Store<IAppState>,
               private globalStatsService: GlobalStatsService,
               private referrerService: ReferrerService,
               private agendaService: AgendaService,
               private seeService: SeeService,
-              private nodeService: NodeService) {
+              private nodeService: NodeService,
+              private rogerthatService: RogerthatService) {
   }
 }

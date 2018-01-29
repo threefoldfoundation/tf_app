@@ -38,6 +38,8 @@
   }
 }
 
+// todo: move these styles to their appropriate folder, setting the styleUrls on a component doesn't seem to work though
+
 .agenda-toolbar h2, .agenda-toolbar p {
   color: #fff;
 }
@@ -48,4 +50,92 @@
 
 .agenda-icon {
   font-size: 26px;
+}
+
+.tile {
+  color: $light;
+  display: inline-block;
+  width: 100%;
+  ion-card {
+    position: relative;
+    text-align: center;
+  }
+}
+
+.tile-full-height {
+  height: 190px;
+
+  .tile-icon {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+.tile-half-height {
+  height: 90px;
+  .tile-icon {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.tile-title {
+  position: absolute;
+  top: 0;
+  left: 16px;
+}
+
+.tile-content {
+  padding: 16px;
+  position: absolute;
+  top: 10%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.tile-image {
+  -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+  filter: grayscale(100%);
+}
+
+.title-image-container {
+  opacity: 0.23;
+}
+
+.tile-title {
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.news-tile {
+  h4 {
+    font-size: 24px;
+  }
+  .slide-zoom {
+    text-align: left;
+  }
+}
+
+.tile-icon {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+}
+
+.tile-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-transform: uppercase;
+}
+
+@each $name, $color in $colorMap {
+  .bg-#{$name} {
+    background-color: $color;
+  }
 }

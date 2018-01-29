@@ -1,0 +1,11 @@
+<ion-card [class]="getClass()">
+  <div class="title-image-container" *ngIf="image">
+    <img class="tile-image" [src]="image"/>
+  </div>
+  <p class="tile-title" *ngIf="title">{{ title }}</p>
+  <ng-content select="tile-content"></ng-content>
+  <div *ngIf="icon" class="tile-icon">
+    <img [src]="'../../assets/img/' + icon + '.png'"/>
+  </div>
+  <p class="tile-footer" *ngIf="footer">{{ footer }}</p>
+</ion-card>

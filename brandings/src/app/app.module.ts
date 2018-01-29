@@ -15,6 +15,7 @@ import { COMPONENTS } from '../components';
 import { BrandingEffects, RogerthatEffects } from '../effects';
 import { PAGES } from '../pages';
 import { MarkdownPipe } from '../pipes/markdown.pipe';
+import { TruncatePipe } from '../pipes/truncate.pipe';
 import { SERVICES } from '../services';
 import { MissingTranslationWarnHandler } from '../util/missing-translation-handler';
 import { AppComponent } from './app.component';
@@ -32,6 +33,7 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
     PAGES,
     COMPONENTS,
     MarkdownPipe,
+    TruncatePipe,
   ],
   imports: [
     BrowserModule,

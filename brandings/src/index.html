@@ -20,21 +20,21 @@
 <script>
   if (typeof rogerthat === 'undefined') {
     const now = new Date().getTime() / 1000;
-    const fakeNewsItems = [{
+    const newsItem = {
       buttons: [],
       sender: {avatar_id: 1, email: 'test@exmaple.com', name: 'Test name'},
       broadcast_type: 'whatever',
       flags: 0,
       id: 1,
       image_url: null,
-      message: 'Sample message',
+      message: 'On Friday the 22nd of December from 5PM to 6PM CET, we will redo the videomeeting about the Technical roadmap. We will also discuss the Future of Blockchain and the technology we will use to create the new neutral internet.',
       qr_code_caption: null,
       qr_code_content: null,
       reach: 123,
       sort_priority: 1,
       sort_timestamp: now,
       timestamp: now,
-      title: 'Sample title',
+      title: 'Technical Roadmap / Future of Blockchain videocall',
       type: 1,
       users_that_rogered: [],
       version: 1,
@@ -44,7 +44,8 @@
       disabled: false,
       isPartial: false,
       sortKey: 0,
-    }];
+    };
+    const fakeNewsItems = [newsItem, newsItem, newsItem];
     rogerthat = {
       api: {
         call: () => {
@@ -135,7 +136,12 @@
   }
   sha256 = () => {
   };
-  setTimeout(() => rogerthat.callbacks._ready(), 350);
+  const interval = setInterval(() => {
+    if (rogerthat.callbacks._ready) {
+      rogerthat.callbacks._ready();
+      clearInterval(interval);
+    }
+  }, 100);
 </script>
 <script src="build/polyfills.js"></script>
 <script src="build/vendor.js"></script>

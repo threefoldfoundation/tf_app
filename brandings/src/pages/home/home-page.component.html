@@ -1,7 +1,9 @@
-<ion-content padding>
+<ion-content>
   <home [newsItems]="(newsList$ | async).items"
         [supportStatus]="supportStatus$ | async"
         [kycStatus]="kycStatus$ | async"
         [hasReferrer]="hasReferrer$ | async"
-        [nodes]="nodes$ | async"></home>
+        [nodes]="nodes$ | async"
+        [messageCount]="messagesCount$ | async"
+        (tileClicked)="onTileClicked($event)"></home>
 </ion-content>

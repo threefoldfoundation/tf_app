@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { SupportStatus } from '../../interfaces/home';
 import { NodeStatus } from '../../interfaces/node-status.interfaces';
 import { UserDataKYC } from '../../interfaces/rogerthat';
@@ -15,4 +15,6 @@ export class HomeComponent {
   @Input() kycStatus: UserDataKYC;
   @Input() hasReferrer: boolean;
   @Input() nodes: NodeStatus[];
+  @Input() messageCount: number;
+  @Output() tileClicked = new EventEmitter<string>();
 }
