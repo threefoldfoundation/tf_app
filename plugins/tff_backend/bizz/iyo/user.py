@@ -15,16 +15,14 @@
 #
 # @@license_version:1.3@@
 
-import httplib
-import logging
-
-from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client, get_itsyouonline_client_from_jwt
-from plugins.its_you_online_auth.libs.itsyouonline.AddOrganizationMemberReqBody import AddOrganizationMemberReqBody
+from plugins.its_you_online_auth.libs import itsyouonline
+from plugins.its_you_online_auth.libs.itsyouonline.CreateGrantBody import CreateGrantBody
+from plugins.its_you_online_auth.libs.itsyouonline.UpdateGrantBody import UpdateGrantBody
 from plugins.its_you_online_auth.libs.itsyouonline.userview import userview
-from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username
+from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username, \
+    get_iyo_organization_id
 from plugins.tff_backend.utils import convert_to_str
-from requests.exceptions import HTTPError
 
 
 def get_user(username, jwt=None):
@@ -32,26 +30,42 @@ def get_user(username, jwt=None):
         client = get_itsyouonline_client_from_jwt(jwt)
     else:
         client = get_itsyouonline_client_from_username(username)
-    result = client.api.users.GetUserInformation(convert_to_str(username))
+    result = client.users.GetUserInformation(convert_to_str(username))
     return userview(convert_to_str(result.json()))
 
+def has_grant(client, username, grant):
+    assert isinstance(client, itsyouonline.Client)
+    grants = client.organizations.GetUserGrants(convert_to_str(username), get_iyo_organization_id()).json()
+    return grants and grant in grants
 
-@returns()
-@arguments(username=unicode, organization_id=unicode)
-def invite_user_to_organization(username, organization_id):
-    logging.info('Inviting user %s to IYO organization %s', username, organization_id)
+
+def list_grants(username):
     client = get_itsyouonline_client()
-    try:
-        data = AddOrganizationMemberReqBody(searchstring=convert_to_str(username))
-        client.api.organizations.AddOrganizationMember(data=data, globalid=organization_id)
-    except HTTPError as e:
-        if e.response.status_code != httplib.CONFLICT:
-            raise e
+    return client.organizations.GetUserGrants(convert_to_str(username), get_iyo_organization_id())
 
 
-@returns()
-@arguments(username=unicode, organization_id=unicode)
-def remove_user_from_organization(username, organization_id):
-    logging.info('Removing user %s from IYO organization %s', username, organization_id)
+def list_all_users_with_grant(grant):
     client = get_itsyouonline_client()
-    client.api.organizations.RemoveOrganizationMember(convert_to_str(username), organization_id)
+    return client.organizations.ListUsersWithGrant(grant, get_iyo_organization_id())
+
+
+def add_grant(username, grant):
+    client = get_itsyouonline_client()
+    data = CreateGrantBody(username=convert_to_str(username), grant=grant)
+    return client.organizations.CreateUserGrant(data, get_iyo_organization_id())
+
+
+def update_grant(username, oldgrant, newgrant):
+    client = get_itsyouonline_client()
+    data = UpdateGrantBody(username=convert_to_str(username), oldgrant=oldgrant, newgrant=newgrant)
+    return client.organizations.UpdateUserGrant(data, get_iyo_organization_id())
+
+
+def remove_grant(username, grant):
+    client = get_itsyouonline_client()
+    return client.organizations.DeleteUserGrant(grant, convert_to_str(username), get_iyo_organization_id())
+
+
+def remove_all_grants(username):
+    client = get_itsyouonline_client()
+    return client.organizations.DeleteAllUserGrants(convert_to_str(username), get_iyo_organization_id())

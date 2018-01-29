@@ -40,14 +40,14 @@ from plugins.tff_backend.api.rogerthat.global_stats import api_list_global_stats
 from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, api_iyo_see_detail
 from plugins.tff_backend.api.rogerthat.nodes import api_get_node_status
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
-from plugins.tff_backend.bizz.authentication import Organization
+from plugins.tff_backend.bizz.authentication import Grants
 from plugins.tff_backend.bizz.dashboard import update_firebase_installation
 from plugins.tff_backend.bizz.flow_statistics import save_flow_statistics
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.hoster import order_node, order_node_signed
 from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \
     investment_agreement_signed_by_admin, invest_complete, start_invest
-from plugins.tff_backend.bizz.iyo.user import invite_user_to_organization
+from plugins.tff_backend.bizz.iyo.user import add_grant
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1, kyc_part_2
 from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_info_in_userdata, \
@@ -188,7 +188,7 @@ def friend_invite_result(rt_settings, request_id, params, response):
     if user_detail.public_keys:
         deferred.defer(store_public_key, user_detail)
     deferred.defer(store_info_in_userdata, username, user_detail)
-    deferred.defer(invite_user_to_organization, username, Organization.PUBLIC)
+    deferred.defer(add_grant, username, Grants.PUBLIC)
     deferred.defer(add_user_to_public_role, user_detail)
     deferred.defer(populate_intercom_user, Session.create_key(username), user_detail)
 

@@ -22,23 +22,23 @@ import logging
 import os
 import time
 
+from google.appengine.api import users, urlfetch
+from google.appengine.ext import deferred, ndb
+from google.appengine.ext.deferred.deferred import PermanentTaskFailure
+import jinja2
+
 from framework.bizz.session import create_session
 from framework.i18n_utils import DEFAULT_LANGUAGE, translate
 from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
 from framework.utils.jinja_extensions import TranslateExtension
-from google.appengine.api import users, urlfetch
-from google.appengine.ext import deferred, ndb
-from google.appengine.ext.deferred.deferred import PermanentTaskFailure
-import jinja2
 from mcfw.consts import MISSING
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
 from onfido import Applicant
 from plugins.intercom_support.intercom_support_plugin import IntercomSupportPlugin
 from plugins.intercom_support.rogerthat_callbacks import start_or_get_chat
-from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
-    has_access_to_organization
+from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client
 from plugins.its_you_online_auth.bizz.profile import get_profile, index_profile
 from plugins.its_you_online_auth.models import Profile
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
@@ -49,10 +49,10 @@ from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_QR, REGISTRATIO
 from plugins.rogerthat_api.to.messaging import AnswerTO, Message
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.authentication import Organization, Roles, RogerthatRoles
+from plugins.tff_backend.bizz.authentication import Roles, RogerthatRoles, Grants
 from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user, tag_intercom_users, IntercomTags
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
-from plugins.tff_backend.bizz.iyo.user import get_user
+from plugins.tff_backend.bizz.iyo.user import get_user, has_grant
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.bizz.kyc.onfido_bizz import create_check, update_applicant, deserialize, list_checks, serialize
 from plugins.tff_backend.bizz.rogerthat import create_error_message, send_rogerthat_message
@@ -305,10 +305,10 @@ def is_user_in_roles(user_detail, roles):
     username = get_iyo_username(user_detail)
     result = []
     for role in roles:
-        organization_id = Organization.get_by_role_name(role.name)
-        if not organization_id:
+        grant = Grants.get_by_role_name(role.name)
+        if not grant:
             continue
-        if has_access_to_organization(client, organization_id, username):
+        if has_grant(client, username, grant):
             result.append(role.id)
     return result
 
@@ -318,8 +318,8 @@ def is_user_in_roles(user_detail, roles):
 def add_user_to_public_role(user_detail):
     client = get_itsyouonline_client()
     username = get_iyo_username(user_detail)
-    organization_id = Organization.get_by_role_name(Roles.MEMBERS)
-    if has_access_to_organization(client, organization_id, username):
+    grant = Grants.get_by_role_name(Roles.MEMBERS)
+    if has_grant(client, username, username, grant):
         logging.info('User is already in members role, not adding to public role')
     else:
         add_user_to_role(user_detail, RogerthatRoles.PUBLIC)
