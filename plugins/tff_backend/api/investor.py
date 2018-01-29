@@ -15,17 +15,15 @@
 #
 # @@license_version:1.3@@
 
-from google.appengine.api import users
-from google.appengine.api.search import MAXIMUM_DOCUMENTS_RETURNED_PER_SEARCH
-
 from framework.bizz.authentication import get_current_session
-from framework.plugin_loader import get_auth_plugin
+from google.appengine.api.search import MAXIMUM_DOCUMENTS_RETURNED_PER_SEARCH
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.audit.audit import audit
 from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.bizz.investor import put_investment_agreement, create_investment_agreement
+from plugins.tff_backend.bizz.iyo.utils import get_app_user_from_iyo_username
 from plugins.tff_backend.dal.investment_agreements import search_investment_agreements, get_investment_agreement
 from plugins.tff_backend.to.investor import InvestmentAgreementListTO, InvestmentAgreementTO, \
     CreateInvestmentAgreementTO
@@ -61,6 +59,6 @@ def api_get_investment_agreement(agreement_id):
 @returns(InvestmentAgreementTO)
 @arguments(agreement_id=(int, long), data=InvestmentAgreementTO)
 def api_put_investment_agreement(agreement_id, data):
-    user = users.User('%s@%s' % (get_current_session().user_id, get_auth_plugin().configuration.api_domain))
+    user = get_app_user_from_iyo_username(get_current_session().user_id)
     agreement = put_investment_agreement(agreement_id, data, user)
     return InvestmentAgreementTO.from_model(agreement)

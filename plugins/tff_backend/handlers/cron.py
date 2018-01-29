@@ -60,15 +60,18 @@ class BackupHandler(webapp2.RequestHandler):
                                  'Session'])
 
         # tff_backend
-        models_to_backup.extend(['GlobalStats',
+        models_to_backup.extend(['Event',
+                                 'EventParticipant',
+                                 'GlobalStats',
+                                 'InvestmentAgreement',
                                  'NodeOrder',
                                  'ProfilePointer',
-                                 'InvestmentAgreement',
+                                 'PublicKeyMapping',
                                  'TffProfile',
                                  'ThreeFoldBlockHeight',
-                                 'ThreeFoldWallet',
+                                 'ThreeFoldPendingTransaction',
                                  'ThreeFoldTransaction',
-                                 'ThreeFoldPendingTransaction'
+                                 'ThreeFoldWallet',
                                  ])
 
         for model_to_backup in models_to_backup:

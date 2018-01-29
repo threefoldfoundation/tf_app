@@ -16,19 +16,18 @@
 # @@license_version:1.3@@
 
 import base64
+from collections import defaultdict
 import httplib
 import json
 import logging
 from types import NoneType
 
-from google.appengine.api import users
-from google.appengine.ext import deferred, ndb
-
 from babel.numbers import get_currency_name
-from framework.consts import get_base_url
-from framework.i18n_utils import translate, DEFAULT_LANGUAGE
+from framework.consts import get_base_url, DAY
 from framework.plugin_loader import get_config
 from framework.utils import now
+from google.appengine.api import users
+from google.appengine.ext import deferred, ndb
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -41,6 +40,7 @@ from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormRes
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     FlowCallbackResultTypeTO, TYPE_FLOW
 from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
+from plugins.tff_backend.bizz.agreements import get_bank_account_info
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
@@ -53,12 +53,11 @@ from plugins.tff_backend.bizz.kyc.onfido_bizz import get_applicant
 from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
-from plugins.tff_backend.bizz.rogerthat import create_error_message
+from plugins.tff_backend.bizz.rogerthat import create_error_message, send_rogerthat_flow
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.bizz.user import user_code, get_tff_profile
-from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS, ACCOUNT_NUMBERS
 from plugins.tff_backend.consts.kyc import country_choices
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TokenType
 from plugins.tff_backend.dal.investment_agreements import get_investment_agreement
@@ -67,13 +66,15 @@ from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.models.user import KYCStatus
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
-    BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT
+    BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT,\
+    FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO, \
     CreateInvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from requests.exceptions import HTTPError
+
 
 INVESTMENT_TODO_MAPPING = {
     InvestmentAgreement.STATUS_CANCELED: None,
@@ -136,6 +137,12 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
 
         if version == BUY_TOKENS_FLOW_V3_PAUSED:
             return None
+
+        deferred.defer(_send_sign_investment_reminder, agreement.id, u'long', _countdown=3600, _queue=SCHEDULED_QUEUE)
+        deferred.defer(_send_sign_investment_reminder, agreement.id, u'short', _countdown=3 * DAY,
+                       _queue=SCHEDULED_QUEUE)
+        deferred.defer(_send_sign_investment_reminder, agreement.id, u'short', _countdown=10 * DAY,
+                       _queue=SCHEDULED_QUEUE)
 
         tag = {
             '__rt__.tag': 'invest_complete',
@@ -200,10 +207,12 @@ def create_investment_agreement(agreement):
     content_type = prefix.split(';')[0].replace('data:', '')
     doc_content = base64.b64decode(doc_content_base64)
     agreement_model.put()
+
     pdf_name = InvestmentAgreement.filename(agreement_model.id)
     pdf_url = upload_to_gcs(pdf_name, doc_content, content_type)
     deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_model.key, app_user, pdf_url,
                    content_type, send_sign_message=False, pdf_size=len(doc_content))
+
     return agreement_model
 
 
@@ -401,7 +410,7 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
 - from: %(user)s\n
 - amount: %(amount)s %(currency)s
 - %(token_count_float)s %(token_type)s tokens
-""" % {'investment': agreement.reference,
+""" % {'investment': agreement.id,
        'user': get_iyo_username(agreement.app_user),
        'amount': agreement.amount,
        'currency': agreement.currency,
@@ -484,8 +493,8 @@ def investment_agreement_signed(message_flow_run_id, member, steps, end_id, end_
                        INVESTMENT_TODO_MAPPING[agreement.status])
         deferred.defer(_inform_support_of_new_investment, iyo_username, agreement.id, agreement.token_count_float)
         logging.debug('Sending confirmation message')
-        prefix_message = translate(DEFAULT_LANGUAGE, 'tff', 'thanks_we_received_your_investment_signature')
-        deferred.defer(send_payment_instructions, agreement.app_user, agreement.id, prefix_message)
+        deferred.defer(send_payment_instructions, agreement.app_user, agreement.id, '')
+        deferred.defer(_send_hoster_reminder, agreement.app_user, _countdown=1)
         result = FlowCallbackResultTypeTO(flow=FLOW_INVESTMENT_CONFIRMED,
                                           tag=None,
                                           force_language=None,
@@ -579,45 +588,64 @@ Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more de
     send_emails_to_support(subject, body)
 
 
+def _get_total_investment_value(app_user):
+    total_token_count = defaultdict(lambda: 0)
+    statuses = (InvestmentAgreement.STATUS_PAID, InvestmentAgreement.STATUS_SIGNED)
+    for agreement in InvestmentAgreement.list_by_status_and_user(app_user, statuses):
+        total_token_count[agreement.token] += agreement.token_count_float
+    logging.debug('%s has the following tokens: %s', app_user, dict(total_token_count))
+
+    tokens = total_token_count.keys()
+    stats = dict(zip(tokens, ndb.get_multi([GlobalStats.create_key(token) for token in tokens])))
+    total_usd = 0
+    for token, token_count in total_token_count.iteritems():
+        total_usd += token_count * stats[token].value
+    logging.debug('These tokens are worth $%s', total_usd)
+    return total_usd
+
+
 @returns()
-@arguments(app_user=users.User, agreement_id=(int, long), message_prefix=unicode)
-def send_payment_instructions(app_user, agreement_id, message_prefix):
+@arguments(app_user=users.User)
+def _send_hoster_reminder(app_user):
+    if _get_total_investment_value(app_user) >= 600:
+        send_rogerthat_flow(app_user, FLOW_HOSTER_REMINDER)
+
+
+@returns()
+@arguments(app_user=users.User, agreement_id=(int, long), message_prefix=unicode, reminder=bool)
+def send_payment_instructions(app_user, agreement_id, message_prefix, reminder=False):
     agreement = get_investment_agreement(agreement_id)
+    if reminder and agreement.status != InvestmentAgreement.STATUS_SIGNED:
+        return
+    elif not reminder:
+        deferred.defer(send_payment_instructions, app_user, agreement_id, message_prefix, True,
+                       _countdown=14 * DAY, _queue=SCHEDULED_QUEUE)
+
     params = {
         'currency': agreement.currency,
-        'iban': BANK_ACCOUNTS.get(agreement.currency, BANK_ACCOUNTS['USD']),
-        'account_number': ACCOUNT_NUMBERS.get(agreement.currency),
         'reference': agreement.reference,
-        'message_prefix': message_prefix
+        'message_prefix': message_prefix,
+        'bank_account': get_bank_account_info(agreement.currency),
     }
-    if agreement.currency == "BTC":
+
+    if agreement.currency == 'BTC':
         params['amount'] = '{:.8f}'.format(agreement.amount)
-        message = u"""%(message_prefix)sPlease use the following transfer details
-Amount: %(currency)s %(amount)s - wallet 3GTf7gWhvWqfsurxXpEj6DU7SVoLM3wC6A
-
-Please inform us by email at payments@threefoldtoken.com when you have made payment.
-
-Reference: %(reference)s"""
-
+        params['notes'] = u'Please inform us by email at payments@threefoldtoken.com when you have made payment.'
     else:
         params['amount'] = '{:.2f}'.format(agreement.amount)
-        message = u"""%(message_prefix)sPlease use the following transfer details
-Amount: %(currency)s %(amount)s
+        params['notes'] = u'For the attention of ThreeFold FZC, a company incorporated under the laws of Sharjah, ' \
+            u'United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B'
 
-Bank: Mashreq Bank
-
-Bank address: Al Hawai Tower, Ground Floor Sheikh Zayed Road - PO Box 36612 - UAE Dubai
-
-Account number: %(account_number)s
-
-IBAN: %(iban)s / BIC : BOMLAEAD
-
-For the attention of Green IT Globe Holdings FZC, a company incorporated under the laws of Sharjah, United Arab Emirates, with registered office at SAIF Zone, SAIF Desk Q1-07-038/B
-
-Important: The payment must be made from a bank account registered under your name. Please use %(reference)s as reference."""  # noQA
-
-    msg = message % params
     subject = u'ThreeFold payment instructions'
+    msg = u"""%(message_prefix)sHere are your payment instructions for the purchase of your ThreeFold Tokens.
+
+Please use the following transfer details:  
+Amount: %(currency)s %(amount)s  
+%(bank_account)s
+
+%(notes)s
+
+Please use %(reference)s as reference.""" % params
     send_message_and_email(app_user, msg, subject)
 
 
@@ -644,3 +672,24 @@ def get_intercom_tags_for_investment(agreement):
     else:
         logging.warn('Unknown token %s, not tagging intercom user %s', agreement.token, agreement.app_user)
         return []
+
+
+@returns()
+@arguments(agreement_id=(int, long), message_type=unicode)
+def _send_sign_investment_reminder(agreement_id, message_type):
+    agreement = get_investment_agreement(agreement_id)
+    if agreement.status != InvestmentAgreement.STATUS_CREATED:
+        return
+
+    if message_type == u'long':
+        message = 'Dear ThreeFold Member,\n\n' \
+                  'Thank you for joining the ThreeFold Foundation! Your contract has been created and is ready to be signed and processed.\n' \
+                  'You can find your created %s Purchase Agreement in your ThreeFold messages.' % (agreement.token)
+    elif message_type == u'short':
+        message = 'Dear ThreeFold Member,\n\n' \
+                  'It appears that your created %s Purchase Agreement has not been signed yet.' % (agreement.token)
+    else:
+        return
+    subject = u'Your Purchase Agreement is ready to be signed'
+
+    send_message_and_email(agreement.app_user, message, subject)
