@@ -36,7 +36,7 @@ def save_utility_bill(url, profile_key):
     filename = 'users/%s/utility_bill.jpeg' % profile.username
     profile.kyc.utility_bill_url = upload_to_gcs(filename, result.content, content_type)
     profile.put()
-    deferred.defer(store_kyc_in_user_data, profile.app_user, _transactional=True)
+    deferred.defer(store_kyc_in_user_data, profile.app_user, _transactional=ndb.in_transaction())
 
 
 @arguments(profile=TffProfile)

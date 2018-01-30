@@ -56,6 +56,7 @@ class KYCInformation(NdbModel):
     updates = ndb.LocalStructuredProperty(KYCStatusUpdate, repeated=True, compressed=True)
     applicant_id = ndb.StringProperty()
     utility_bill_url = ndb.StringProperty()
+    utility_bill_verified = ndb.BooleanProperty(default=False)
 
     def set_status(self, new_status, author, comment=None):
         self.updates.append(KYCStatusUpdate(from_status=self.status,
