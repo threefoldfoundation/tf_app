@@ -16,7 +16,7 @@
         <div *ngIf="step.step_type === 'form_step'">
           <p *ngIf="step.form_type === WidgetType.PHOTO_UPLOAD; else displayValue">
             {{ 'tff.input_value_x' | translate : { value : '' } }}
-            <a target="_blank" rel="noopener" [href]="step.form_result.result.value">
+            <a target="_blank" rel="noopener" [href]="step.form_result.result.value" *ngIf="step.form_result">
               {{ 'tff.picture' | translate }}
             </a>
           </p>
