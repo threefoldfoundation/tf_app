@@ -430,11 +430,17 @@ kyc_steps = [
         'message': 'Please take a picture of your passport.',
         'widget': 'PhotoUploadWidget',
         'order': 23
+    },
+    {
+        'type': 'utility_bill',
+        'message': 'Please upload a picture of a utility bill that has your name and address on it for our proof of address',
+        'widget': 'PhotoUploadWidget',
+        'order': 24
     }
 ]
 
 DEFAULT_KYC_STEPS = {'first_name', 'last_name', 'email', 'gender', 'dob', 'address_building_number',
-                     'address_street', 'address_town', 'address_country', 'address_postcode'}
+                     'address_street', 'address_town', 'address_country', 'address_postcode', 'utility_bill'}
 
 """
 From https://info.onfido.com/supported-documents
