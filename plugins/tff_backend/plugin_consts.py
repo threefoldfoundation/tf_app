@@ -41,5 +41,6 @@ FLOW_SIGN_INVESTMENT = 'sign_investment'
 FLOW_INVESTMENT_CONFIRMED = 'investment_confirmed'
 FLOW_SIGN_HOSTING_AGREEMENT = 'sign_hosting_agreement'
 FLOW_HOSTER_REMINDER = 'hoster_reminder'
+FLOW_UTILITY_BILL_RECEIVED = 'utility_bill_received'
 
 SCHEDULED_QUEUE = 'scheduled-queue'

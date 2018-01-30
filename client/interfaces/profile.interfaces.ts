@@ -64,6 +64,7 @@ export interface KYCInformation {
   status: KYCStatus;
   updates: KYCStatusUpdate[];
   applicant_id: string;
+  utility_bill_url: string | null;
 }
 
 export interface KYCStatusUpdate {

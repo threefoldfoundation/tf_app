@@ -6,7 +6,8 @@
     <p><i>In the future you will be able to change information here</i></p>
   </form>
   <div class="kyc-buttons">
-    <button mat-raised-button *ngIf="allowedStatuses.includes(kyc.PENDING_SUBMIT)" (click)="submit(kyc.PENDING_SUBMIT)"
+    <button mat-raised-button *ngIf="allowedStatuses.includes(kyc.PENDING_SUBMIT)"
+            (click)="submit(kyc.PENDING_SUBMIT)"
             [disabled]="updateStatus.loading">
       <mat-icon>replay</mat-icon>
       {{ 'tff.resend_flow' | translate }}
@@ -31,6 +32,14 @@
       {{ 'tff.deny_kyc' | translate }}
     </button>
   </div>
+  <h3>{{ 'tff.utility_bill' | translate }}</h3>
+  <p *ngIf="profile.kyc.utility_bill_url" class="kyc-buttons">
+    <a mat-raised-button target="_blank" rel="noreferrer" [href]="profile.kyc.utility_bill_url">
+      {{ 'tff.view' | translate }}
+    </a>
+    <a mat-raised-button download [href]="profile.kyc.utility_bill_url">{{ 'tff.download' | translate }}</a>
+  </p>
+  <p *ngIf="!profile.kyc.utility_bill_url">{{ 'tff.no_utility_bill_yet_for_user' | translate }}</p>
   <h3>{{ 'tff.checks' | translate }}</h3>
   <mat-nav-list class="kyc-check-list" *ngIf="checksStatus.success">
     <a mat-list-item *ngFor="let check of checks" [href]="check.results_uri" target="_blank" rel="noopener">

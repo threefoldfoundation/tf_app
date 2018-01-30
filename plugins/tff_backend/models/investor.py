@@ -1,10 +1,15 @@
-from google.appengine.ext import ndb
+from enum import IntEnum
 
 from framework.models.common import NdbModel
 from framework.utils import now
+from google.appengine.ext import ndb
 from plugins.tff_backend.bizz.gcs import get_serving_url, encrypt_filename
 from plugins.tff_backend.consts.payment import TOKEN_TFT
 from plugins.tff_backend.plugin_consts import NAMESPACE
+
+
+class PaymentInfo(IntEnum):
+    UAE = 1
 
 
 class InvestmentAgreement(NdbModel):
@@ -39,6 +44,7 @@ class InvestmentAgreement(NdbModel):
     cancel_time = ndb.IntegerProperty()
     modification_time = ndb.IntegerProperty()
     version = ndb.StringProperty()
+    payment_info = ndb.IntegerProperty(repeated=True, choices=map(int, PaymentInfo))
 
     def _pre_put_hook(self):
         self.modification_time = now()
