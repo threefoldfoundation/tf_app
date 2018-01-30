@@ -24,7 +24,6 @@ from types import NoneType
 
 from babel.numbers import get_currency_name
 from framework.consts import get_base_url, DAY
-from framework.plugin_loader import get_config
 from framework.utils import now
 from google.appengine.api import users
 from google.appengine.ext import deferred, ndb
@@ -64,7 +63,7 @@ from plugins.tff_backend.dal.investment_agreements import get_investment_agreeme
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.models.user import KYCStatus
-from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
+from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
     BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT,\
     FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE
@@ -550,9 +549,8 @@ def get_investment_agreement_details(agreement_id):
 
 
 @returns(InvestmentAgreement)
-@arguments(agreement_id=(int, long), agreement=InvestmentAgreementTO, admin_user=users.User)
-def put_investment_agreement(agreement_id, agreement, admin_user):
-    admin_app_user = create_app_user_by_email(admin_user.email(), get_config(NAMESPACE).rogerthat.app_id)
+@arguments(agreement_id=(int, long), agreement=InvestmentAgreementTO, admin_app_user=users.User)
+def put_investment_agreement(agreement_id, agreement, admin_app_user):
     # type: (long, InvestmentAgreement, users.User) -> InvestmentAgreement
     agreement_model = InvestmentAgreement.get_by_id(agreement_id)  # type: InvestmentAgreement
     if not agreement_model:
