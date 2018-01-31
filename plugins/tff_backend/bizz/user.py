@@ -377,6 +377,17 @@ def set_kyc_status(username, payload, current_user_id):
     return profile
 
 
+@ndb.transactional()
+def set_utility_bill_verified(username):
+    # type: (unicode) -> TffProfile
+    from plugins.tff_backend.bizz.investor import send_signed_investments_messages
+    profile = get_tff_profile(username)
+    profile.kyc.utility_bill_verified = True
+    profile.put()
+    deferred.defer(send_signed_investments_messages, profile.app_user, _transactional=True)
+    return profile
+
+
 def _create_check(applicant_id):
     # This can take a bit of time
     urlfetch.set_default_fetch_deadline(300)
