@@ -29,4 +29,5 @@ def send_message_and_email(app_user, message, subject):
     deferred.defer(send_rogerthat_message, member, message, _transactional=ndb.in_transaction())
     if not DEBUG:
         iyo_username = get_iyo_username(app_user)
+        message += '\n\nKind regards,\nThe ThreeFold Team'
         deferred.defer(send_intercom_email, iyo_username, subject, message, _transactional=ndb.in_transaction())
