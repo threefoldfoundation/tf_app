@@ -246,26 +246,31 @@ def _get_profiles_with_node():
 
 @ndb.transactional()
 def _check_node_status(tff_profile_key, statuses):
-    tff_profile = tff_profile_key.get()  # type: TffProfile
-    should_update = False
-    for node in tff_profile.nodes:
-        status = statuses.get(node.id)
-        if not status:
-            logging.warn('Expected to find node %s in the ORC response', node.id)
-            continue
-        if node.status != status:
-            logging.info('Node %s of user %s changed from status "%s" to "%s"',
-                         tff_profile.username, node.id, node.status, status)
-            should_update = True
-            from_status = node.status
-            node.status = status
+    try:
+        tff_profile = tff_profile_key.get()  # type: TffProfile
+        should_update = False
+        for node in tff_profile.nodes:
+            status = statuses.get(node.id)
+            if not status:
+                logging.warn('Expected to find node %s in the ORC response', node.id)
+                continue
+            if node.status != status:
+                logging.info('Node %s of user %s changed from status "%s" to "%s"',
+                             tff_profile.username, node.id, node.status, status)
+                should_update = True
+                from_status = node.status
+                node.status = status
 
-            now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-            _send_node_status_update_message(tff_profile.app_user, from_status, status, now)
+                now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+                _send_node_status_update_message(tff_profile.app_user, from_status, status, now)
 
-    if should_update:
-        tff_profile.put()
-        deferred.defer(_put_node_status_user_data, tff_profile_key, _transactional=True)
+        if should_update:
+            tff_profile.put()
+            deferred.defer(_put_node_status_user_data, tff_profile_key, _transactional=True)
+    except:
+        msg = 'Failure in checking node status for %s' % tff_profile_key
+        logging.exception(msg, _suppress=False)
+        raise deferred.PermanentTaskFailure(msg)
 
 
 def _put_node_status_user_data(tff_profile_key):

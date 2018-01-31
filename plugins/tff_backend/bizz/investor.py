@@ -282,7 +282,7 @@ def invest_complete(message_flow_run_id, member, steps, end_id, end_message_flow
             elif step.step_id == 'message_utility_bill':
                 azzert(step.answer_id == FormTO.POSITIVE)
                 url = step.get_value()
-                save_utility_bill(url, TffProfile.create_key(get_iyo_username(user_details[0])))
+                deferred.defer(save_utility_bill, url, TffProfile.create_key(get_iyo_username(user_details[0])))
 
         deferred.defer(_invest, agreement_key, email, app_id, 0, payment_info)
 
