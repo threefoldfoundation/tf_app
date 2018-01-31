@@ -22,7 +22,6 @@ import logging
 from framework.bizz.job import run_job
 from framework.plugin_loader import get_config
 from framework.utils import now
-from framework.utils.transactions import on_trans_committed
 from google.appengine.api import urlfetch, apiproxy_stub_map
 from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
@@ -266,9 +265,14 @@ def _check_node_status(tff_profile_key, statuses):
 
     if should_update:
         tff_profile.put()
-        user, app_id = get_app_user_tuple(tff_profile.app_user)
-        data = {'nodes': [n.to_dict() for n in tff_profile.nodes]}
-        on_trans_committed(system.put_user_data, get_rogerthat_api_key(), user.email(), app_id, data)
+        deferred.defer(_put_node_status_user_data, tff_profile_key, _transactional=True)
+
+
+def _put_node_status_user_data(tff_profile_key):
+    tff_profile = tff_profile_key.get()
+    user, app_id = get_app_user_tuple(tff_profile.app_user)
+    data = {'nodes': [n.to_dict() for n in tff_profile.nodes]}
+    system.put_user_data(get_rogerthat_api_key(), user.email(), app_id, data)
 
 
 def _send_node_status_update_message(app_user, from_status, to_status, now):
