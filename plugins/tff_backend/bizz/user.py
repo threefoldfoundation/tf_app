@@ -22,16 +22,15 @@ import logging
 import os
 import time
 
-import jinja2
-from google.appengine.api import users, urlfetch
-from google.appengine.ext import deferred, ndb
-from google.appengine.ext.deferred.deferred import PermanentTaskFailure
-
 from framework.bizz.session import create_session
 from framework.i18n_utils import DEFAULT_LANGUAGE, translate
 from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
 from framework.utils.jinja_extensions import TranslateExtension
+from google.appengine.api import users, urlfetch
+from google.appengine.ext import deferred, ndb
+from google.appengine.ext.deferred.deferred import PermanentTaskFailure
+import jinja2
 from mcfw.consts import MISSING, DEBUG
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
@@ -67,6 +66,7 @@ from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyDa
 from plugins.tff_backend.to.user import SetKYCPayloadTO
 from plugins.tff_backend.utils import convert_to_str
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+
 
 FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     trim_blocks=True,
@@ -374,6 +374,18 @@ def set_kyc_status(username, payload, current_user_id):
     profile.put()
     deferred.defer(store_kyc_in_user_data, profile.app_user, _countdown=2)
     deferred.defer(index_profile, Profile.create_key(username), _countdown=2)
+    return profile
+
+
+@ndb.transactional()
+def set_utility_bill_verified(username):
+    # type: (unicode) -> TffProfile
+    from plugins.tff_backend.bizz.investor import send_signed_investments_messages, send_hoster_reminder
+    profile = get_tff_profile(username)
+    profile.kyc.utility_bill_verified = True
+    profile.put()
+    deferred.defer(send_signed_investments_messages, profile.app_user, _transactional=True)
+    deferred.defer(send_hoster_reminder, profile.app_user, _countdown=1, _transactional=True)
     return profile
 
 

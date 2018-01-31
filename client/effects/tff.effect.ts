@@ -126,6 +126,13 @@ export class TffEffects {
         catchError(err => handleApiError(actions.SetKYCStatusFailedAction, err)),
       )));
 
+  @Effect() verifyUtilityBill$ = this.actions$
+    .ofType<actions.VerityUtilityBillAction>(actions.TffActionTypes.VERIFY_UTILITY_BILL).pipe(
+      switchMap(action => this.tffService.verifyUtilityBill(action.username).pipe(
+        map(payload => new actions.VerityUtilityBillCompleteAction(payload)),
+        catchError(err => handleApiError(actions.VerityUtilityBillFailedAction, err)),
+      )));
+
   @Effect() getBalance$ = this.actions$
     .ofType<actions.GetBalanceAction>(actions.TffActionTypes.GET_BALANCE).pipe(
       switchMap(action => this.tffService.getBalance(action.payload).pipe(
