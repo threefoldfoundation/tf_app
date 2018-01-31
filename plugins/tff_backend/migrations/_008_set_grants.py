@@ -26,7 +26,7 @@ from plugins.tff_backend.bizz.authentication import ROOT_ORGANIZATION, Grants
 from plugins.tff_backend.bizz.iyo.user import add_grant
 
 
-def ensure_grants():
+def migrate():
     public_org = 'user:memberof:%s.public' % ROOT_ORGANIZATION
     members_org = 'user:memberof:%s.members' % ROOT_ORGANIZATION
     run_job(_get_users, [], _ensure_grants, [public_org, members_org])
