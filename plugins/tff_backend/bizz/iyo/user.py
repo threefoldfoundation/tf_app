@@ -33,6 +33,7 @@ def get_user(username, jwt=None):
     result = client.users.GetUserInformation(convert_to_str(username))
     return userview(convert_to_str(result.json()))
 
+
 def has_grant(client, username, grant):
     assert isinstance(client, itsyouonline.Client)
     grants = client.organizations.GetUserGrants(convert_to_str(username), get_iyo_organization_id()).json()

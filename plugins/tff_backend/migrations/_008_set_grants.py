@@ -15,8 +15,6 @@
 #
 # @@license_version:1.3@@
 
-import logging
-
 from google.appengine.ext import deferred
 
 from framework.bizz.job import run_job

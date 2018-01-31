@@ -94,18 +94,10 @@ def user_registered(user_detail, origin, data):
             return
 
         jwt = qr_content
-
     elif origin == REGISTRATION_ORIGIN_OAUTH:
         access_token_data = data.get('result', {})
         access_token = access_token_data.get('access_token')
-        scopes = [s for s in access_token_data.get('scope', '').split(',') if s]
-        missing_scopes = [s for s in required_scopes if s and s not in scopes]
-        if missing_scopes:
-            logging.warn('Access token is missing required scopes %s', missing_scopes)
-        scopes.append('offline_access')
-        logging.debug('Creating JWT with scopes %s', scopes)
-        jwt = create_jwt(access_token, scope=','.join(scopes))
-
+        jwt = create_jwt(access_token, scope='offline_access')
     else:
         return
 
@@ -318,7 +310,7 @@ def add_user_to_public_role(user_detail):
     client = get_itsyouonline_client()
     username = get_iyo_username(user_detail)
     grant = Grants.get_by_role_name(Roles.MEMBERS)
-    if has_grant(client, username, username, grant):
+    if has_grant(client, username, grant):
         logging.info('User is already in members role, not adding to public role')
     else:
         add_user_to_role(user_detail, RogerthatRoles.PUBLIC)
