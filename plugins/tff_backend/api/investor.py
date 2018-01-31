@@ -59,6 +59,6 @@ def api_get_investment_agreement(agreement_id):
 @returns(InvestmentAgreementTO)
 @arguments(agreement_id=(int, long), data=InvestmentAgreementTO)
 def api_put_investment_agreement(agreement_id, data):
-    user = get_app_user_from_iyo_username(get_current_session().user_id)
-    agreement = put_investment_agreement(agreement_id, data, user)
+    app_user = get_app_user_from_iyo_username(get_current_session().user_id)
+    agreement = put_investment_agreement(agreement_id, data, app_user)
     return InvestmentAgreementTO.from_model(agreement)

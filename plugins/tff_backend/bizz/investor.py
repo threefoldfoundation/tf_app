@@ -24,8 +24,7 @@ from types import NoneType
 
 from babel.numbers import get_currency_name
 from framework.consts import get_base_url, DAY
-from framework.plugin_loader import get_config
-from framework.utils import now
+from framework.utils import now, azzert
 from google.appengine.api import users
 from google.appengine.ext import deferred, ndb
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
@@ -49,6 +48,7 @@ from plugins.tff_backend.bizz.hoster import get_publickey_label
 from plugins.tff_backend.bizz.intercom_helpers import IntercomTags
 from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
+from plugins.tff_backend.bizz.kyc import save_utility_bill
 from plugins.tff_backend.bizz.kyc.onfido_bizz import get_applicant
 from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1
 from plugins.tff_backend.bizz.messages import send_message_and_email
@@ -62,12 +62,12 @@ from plugins.tff_backend.consts.kyc import country_choices
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TokenType
 from plugins.tff_backend.dal.investment_agreements import get_investment_agreement
 from plugins.tff_backend.models.global_stats import GlobalStats
-from plugins.tff_backend.models.investor import InvestmentAgreement
-from plugins.tff_backend.models.user import KYCStatus
-from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, NAMESPACE, \
+from plugins.tff_backend.models.investor import InvestmentAgreement, PaymentInfo
+from plugins.tff_backend.models.user import KYCStatus, TffProfile
+from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
     BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT,\
-    FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE
+    FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO, \
     CreateInvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
@@ -273,7 +273,18 @@ def invest_complete(message_flow_run_id, member, steps, end_id, end_message_flow
     app_id = user_details[0].app_id
     if 'confirm' in end_id:
         agreement_key = InvestmentAgreement.create_key(json.loads(tag)['investment_id'])
-        deferred.defer(_invest, agreement_key, email, app_id, 0)
+
+        payment_info = []
+        for step in steps:
+            if step.step_id == 'message_usd_within_uae':
+                if step.answer_id == 'button_yes':
+                    payment_info.append(PaymentInfo.UAE.value)
+            elif step.step_id == 'message_utility_bill':
+                azzert(step.answer_id == FormTO.POSITIVE)
+                url = step.get_value()
+                save_utility_bill(url, TffProfile.create_key(get_iyo_username(user_details[0])))
+
+        deferred.defer(_invest, agreement_key, email, app_id, 0, payment_info)
 
 
 def _get_currency_name(currency):
@@ -307,23 +318,43 @@ def _set_token_count(agreement, token_count_float=None, precision=2):
     agreement.token_precision = precision
 
 
-def _invest(agreement_key, email, app_id, retry_count):
-    # type: (ndb.Key, unicode, unicode, long) -> None
+def _invest(agreement_key, email, app_id, retry_count, payment_info=[]):
+    # type: (ndb.Key, unicode, unicode, long, list[int]) -> None
     from plugins.tff_backend.bizz.agreements import create_token_agreement_pdf
     app_user = create_app_user_by_email(email, app_id)
     logging.debug('Creating Token agreement')
     agreement = get_investment_agreement(agreement_key.id())
+    if payment_info:
+        agreement.payment_info.extend(payment_info)
     _set_token_count(agreement)
     agreement.put()
     currency_full = _get_currency_name(agreement.currency)
     pdf_name = InvestmentAgreement.filename(agreement_key.id())
     pdf_contents = create_token_agreement_pdf(agreement.name, agreement.address, agreement.amount, currency_full,
-                                              agreement.currency, agreement.token)
+                                              agreement.currency, agreement.token, agreement.payment_info)
     pdf_url = upload_to_gcs(pdf_name, pdf_contents, 'application/pdf')
     logging.debug('Storing Investment Agreement in the datastore')
     pdf_size = len(pdf_contents)
-    deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, pdf_url, pdf_size=pdf_size)
+
+    send_sign_message = True
+    if agreement.currency in ('EUR', 'GBP') \
+            or (agreement.currency == 'USD' and PaymentInfo.UAE not in payment_info):
+        # need a utility bill in this case
+        tff_profile = get_tff_profile(get_iyo_username(app_user))
+        if not tff_profile.kyc or not tff_profile.kyc.utility_bill_verified:
+            # utility bill not verified yet
+            deferred.defer(_send_utility_bill_received, app_user)
+            send_sign_message = False
+
+    deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, pdf_url,
+                   send_sign_message=send_sign_message, pdf_size=pdf_size)
     deferred.defer(update_investor_progress, email, app_id, INVESTMENT_TODO_MAPPING[agreement.status])
+
+
+def _send_utility_bill_received(app_user):
+    email, app_id = get_app_user_tuple(app_user)
+    members = [MemberTO(member=email.email(), app_id=app_id, alert_flags=0)]
+    messaging.start_local_flow(get_rogerthat_api_key(), None, members, None, flow=FLOW_UTILITY_BILL_RECEIVED)
 
 
 def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url, content_type='application/pdf',
@@ -550,9 +581,8 @@ def get_investment_agreement_details(agreement_id):
 
 
 @returns(InvestmentAgreement)
-@arguments(agreement_id=(int, long), agreement=InvestmentAgreementTO, admin_user=users.User)
-def put_investment_agreement(agreement_id, agreement, admin_user):
-    admin_app_user = create_app_user_by_email(admin_user.email(), get_config(NAMESPACE).rogerthat.app_id)
+@arguments(agreement_id=(int, long), agreement=InvestmentAgreementTO, admin_app_user=users.User)
+def put_investment_agreement(agreement_id, agreement, admin_app_user):
     # type: (long, InvestmentAgreement, users.User) -> InvestmentAgreement
     agreement_model = InvestmentAgreement.get_by_id(agreement_id)  # type: InvestmentAgreement
     if not agreement_model:
@@ -625,7 +655,7 @@ def send_payment_instructions(app_user, agreement_id, message_prefix, reminder=F
         'currency': agreement.currency,
         'reference': agreement.reference,
         'message_prefix': message_prefix,
-        'bank_account': get_bank_account_info(agreement.currency),
+        'bank_account': get_bank_account_info(agreement.currency, agreement.payment_info),
     }
 
     if agreement.currency == 'BTC':

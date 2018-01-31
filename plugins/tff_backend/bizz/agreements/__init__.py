@@ -21,11 +21,13 @@ import time
 from babel.numbers import get_currency_name
 import jinja2
 import markdown
+from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
 from plugins.tff_backend.utils import round_currency_amount
 from xhtml2pdf import pisa
+from plugins.tff_backend.models.investor import PaymentInfo
 
 
 try:
@@ -59,15 +61,20 @@ def create_hosting_agreement_pdf(full_name, address):
     return pdf_contents
 
 
-def get_bank_account_info(currency_short):
-    bank_file = os.path.join(ASSETS_FOLDER, 'bank_%s.md' % currency_short)
-    if not os.path.exists(bank_file):
-        bank_file = os.path.join(ASSETS_FOLDER, 'bank_USD.md')
+@returns(unicode)
+@arguments(currency_short=unicode, payment_info=[int])
+def get_bank_account_info(currency_short, payment_info):
+    suffix = currency_short
+    if payment_info and PaymentInfo.UAE.value in payment_info:
+        suffix += '-UAE'
+
+    bank_file = os.path.join(ASSETS_FOLDER, 'bank_%s.md' % suffix)
     with codecs.open(bank_file, 'r', encoding='utf-8') as f:
         return f.read()
 
 
-def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short, token=TOKEN_TFT):
+def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short, token=TOKEN_TFT,
+                               payment_info=None):
     # don't forget to update intercom tags when adding new contracts / tokens
     if currency_short == 'BTC':
         amount_formatted = '{:.8f}'.format(amount)
@@ -92,8 +99,7 @@ def create_token_agreement_pdf(full_name, address, amount, currency_full, curren
 
     if token == TOKEN_ITFT:
         html_file = 'token_itft.html'
-        bank_account = get_bank_account_info(currency_short)
-        context = {'bank_account': bank_account}
+        context = {'bank_account': get_bank_account_info(currency_short, payment_info or [])}
         context.update(template_variables)
         md = JINJA_ENVIRONMENT.get_template('token_itft.md').render(context)
         markdown_to_html = markdown.markdown(md, extensions=['markdown.extensions.tables'])

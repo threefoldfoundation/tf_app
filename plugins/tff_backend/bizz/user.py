@@ -22,17 +22,17 @@ import logging
 import os
 import time
 
+import jinja2
 from google.appengine.api import users, urlfetch
 from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
-import jinja2
 
 from framework.bizz.session import create_session
 from framework.i18n_utils import DEFAULT_LANGUAGE, translate
 from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
 from framework.utils.jinja_extensions import TranslateExtension
-from mcfw.consts import MISSING
+from mcfw.consts import MISSING, DEBUG
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
 from onfido import Applicant
@@ -66,7 +66,6 @@ from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyDa
 from plugins.tff_backend.to.user import SetKYCPayloadTO
 from plugins.tff_backend.utils import convert_to_str
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-
 
 FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     trim_blocks=True,
@@ -338,6 +337,8 @@ def get_tff_profile(username):
 
 
 def can_change_kyc_status(current_status, new_status):
+    if DEBUG:
+        return True
     statuses = {
         KYCStatus.DENIED: [],
         KYCStatus.UNVERIFIED: [KYCStatus.PENDING_SUBMIT],
@@ -441,6 +442,8 @@ def generate_kyc_flow(country_code, iyo_username):
 
 
 def _get_extra_properties(country_code):
+    if DEBUG:
+        return []
     return REQUIRED_DOCUMENT_TYPES[country_code]
 
 
@@ -492,7 +495,8 @@ def store_kyc_in_user_data(app_user):
     user_data = {
         'kyc': {
             'status': profile.kyc.status,
-            'verified': profile.kyc.status == KYCStatus.VERIFIED
+            'verified': profile.kyc.status == KYCStatus.VERIFIED,
+            'has_utility_bill': profile.kyc.utility_bill_url is not None
         }
     }
     email, app_id = get_app_user_tuple(app_user)
