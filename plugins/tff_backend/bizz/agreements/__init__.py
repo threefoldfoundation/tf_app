@@ -18,17 +18,18 @@ import codecs
 import os
 import time
 
-from babel.numbers import get_currency_name
 import jinja2
+
+import inflect
 import markdown
+from babel.numbers import get_currency_name
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
+from plugins.tff_backend.models.investor import PaymentInfo
 from plugins.tff_backend.utils import round_currency_amount
 from xhtml2pdf import pisa
-from plugins.tff_backend.models.investor import PaymentInfo
-
 
 try:
     from cStringIO import StringIO
@@ -80,11 +81,9 @@ def create_token_agreement_pdf(full_name, address, amount, currency_full, curren
         amount_formatted = '{:.8f}'.format(amount)
     else:
         amount_formatted = '{:.2f}'.format(amount)
-    conversion = {}
-    if token:
-        stats = get_global_stats(token)
-        conversion = {currency.currency: round_currency_amount(currency.currency, currency.value / stats.value) for
-                      currency in stats.currencies}
+    stats = get_global_stats(token)
+    conversion = {currency.currency: round_currency_amount(currency.currency, currency.value / stats.value) for
+                  currency in stats.currencies}
 
     template_variables = {
         'logo_path': 'assets/logo.jpg',
@@ -93,6 +92,8 @@ def create_token_agreement_pdf(full_name, address, amount, currency_full, curren
         'address': address.replace('\n', ', '),
         'amount': amount_formatted,
         'currency_full': currency_full,
+        'price': stats.value,
+        'price_words': inflect.engine().number_to_words(stats.value).title(),
         'currency_short': currency_short,
         'conversion': conversion
     }

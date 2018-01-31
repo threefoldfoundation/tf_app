@@ -16,17 +16,18 @@
 # @@license_version:1.3@@
 
 import base64
-from collections import defaultdict
 import httplib
 import json
 import logging
+from collections import defaultdict
 from types import NoneType
+
+from google.appengine.api import users
+from google.appengine.ext import deferred, ndb
 
 from babel.numbers import get_currency_name
 from framework.consts import get_base_url, DAY
 from framework.utils import now, azzert
-from google.appengine.api import users
-from google.appengine.ext import deferred, ndb
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments, serialize_complex_value
@@ -66,7 +67,7 @@ from plugins.tff_backend.models.investor import InvestmentAgreement, PaymentInfo
 from plugins.tff_backend.models.user import KYCStatus, TffProfile
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
-    BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT,\
+    BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT, \
     FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO, \
     CreateInvestmentAgreementTO
@@ -74,7 +75,6 @@ from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVers
 from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from requests.exceptions import HTTPError
-
 
 INVESTMENT_TODO_MAPPING = {
     InvestmentAgreement.STATUS_CANCELED: None,
@@ -723,3 +723,21 @@ def _send_sign_investment_reminder(agreement_id, message_type):
     subject = u'Your Purchase Agreement is ready to be signed'
 
     send_message_and_email(agreement.app_user, message, subject)
+
+
+@ndb.transactional()
+def multiply_agreement_tokens(agreement):
+    # type: (InvestmentAgreement) -> None
+    if PaymentInfo.HAS_MULTIPLIED_TOKENS in agreement.payment_info:
+        raise Exception('Cannot multiply tokens for InvestmentAgreement %s, its tokens have already been multiplied',
+                        agreement.id)
+    # Gives the original amount of tokens * 99 as a new transaction
+    original_count = agreement.token_count
+    agreement.token_count *= 100
+    agreement.payment_info.append(PaymentInfo.HAS_MULTIPLIED_TOKENS)
+    agreement.put()
+    # todo proper message
+    memo = 'Agreed to divide token value by 100 and multiply amount of tokens by 100'
+    token_count = original_count * 99
+    logging.info('Assigning %s tokens to %s', token_count, agreement.app_user)
+    transfer_genesis_coins_to_user(agreement.app_user, agreement.token, long(token_count * 100), memo)

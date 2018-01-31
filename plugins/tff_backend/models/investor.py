@@ -10,6 +10,7 @@ from plugins.tff_backend.plugin_consts import NAMESPACE
 
 class PaymentInfo(IntEnum):
     UAE = 1
+    HAS_MULTIPLIED_TOKENS = 2
 
 
 class InvestmentAgreement(NdbModel):
