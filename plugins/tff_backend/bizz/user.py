@@ -455,8 +455,6 @@ def generate_kyc_flow(country_code, iyo_username):
 
 
 def _get_extra_properties(country_code):
-    if DEBUG:
-        return []
     return REQUIRED_DOCUMENT_TYPES[country_code]
 
 
