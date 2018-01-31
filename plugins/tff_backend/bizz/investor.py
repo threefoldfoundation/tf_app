@@ -72,7 +72,7 @@ from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, \
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO, \
     CreateInvestmentAgreementTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
-from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string
+from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 from requests.exceptions import HTTPError
 
@@ -117,6 +117,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         # KYC flow started from within the invest flow
         return kyc_part_1(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                           result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params)
+
     try:
         email = user_details[0].email
         app_id = user_details[0].app_id
@@ -133,16 +134,21 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         username = get_iyo_username(app_user)
         agreement = _create_investment_agreement(amount, currency, token, token_count_float, username, version,
                                                  app_user, status=InvestmentAgreement.STATUS_CREATED)
+        payment_info = []
+        usd_within_uae_step = get_step(steps, 'message_usd_within_uae')
+        if usd_within_uae_step and usd_within_uae_step.answer_id == 'button_yes':
+            payment_info.append(PaymentInfo.UAE.value)
+        agreement.payment_info.extend(payment_info)
         agreement.put()
 
         if version == BUY_TOKENS_FLOW_V3_PAUSED:
             return None
 
-        deferred.defer(_send_sign_investment_reminder, agreement.id, u'long', _countdown=3600, _queue=SCHEDULED_QUEUE)
-        deferred.defer(_send_sign_investment_reminder, agreement.id, u'short', _countdown=3 * DAY,
-                       _queue=SCHEDULED_QUEUE)
-        deferred.defer(_send_sign_investment_reminder, agreement.id, u'short', _countdown=10 * DAY,
-                       _queue=SCHEDULED_QUEUE)
+        utility_bill_step = get_step(steps, 'message_utility_bill')
+        if utility_bill_step:
+            azzert(utility_bill_step.answer_id == FormTO.POSITIVE)
+            url = utility_bill_step.get_value()
+            deferred.defer(save_utility_bill, url, TffProfile.create_key(get_iyo_username(user_details[0])))
 
         tag = {
             '__rt__.tag': 'invest_complete',
@@ -273,18 +279,7 @@ def invest_complete(message_flow_run_id, member, steps, end_id, end_message_flow
     app_id = user_details[0].app_id
     if 'confirm' in end_id:
         agreement_key = InvestmentAgreement.create_key(json.loads(tag)['investment_id'])
-
-        payment_info = []
-        for step in steps:
-            if step.step_id == 'message_usd_within_uae':
-                if step.answer_id == 'button_yes':
-                    payment_info.append(PaymentInfo.UAE.value)
-            elif step.step_id == 'message_utility_bill':
-                azzert(step.answer_id == FormTO.POSITIVE)
-                url = step.get_value()
-                deferred.defer(save_utility_bill, url, TffProfile.create_key(get_iyo_username(user_details[0])))
-
-        deferred.defer(_invest, agreement_key, email, app_id, 0, payment_info)
+        deferred.defer(_invest, agreement_key, email, app_id, 0)
 
 
 def _get_currency_name(currency):
@@ -318,16 +313,12 @@ def _set_token_count(agreement, token_count_float=None, precision=2):
     agreement.token_precision = precision
 
 
-def _invest(agreement_key, email, app_id, retry_count, payment_info=None):
+def _invest(agreement_key, email, app_id, retry_count):
     # type: (ndb.Key, unicode, unicode, long, list[int]) -> None
-    if payment_info is None:
-        payment_info = []
     from plugins.tff_backend.bizz.agreements import create_token_agreement_pdf
     app_user = create_app_user_by_email(email, app_id)
     logging.debug('Creating Token agreement')
     agreement = get_investment_agreement(agreement_key.id())
-    if payment_info:
-        agreement.payment_info.extend(payment_info)
     _set_token_count(agreement)
     agreement.put()
     currency_full = _get_currency_name(agreement.currency)
@@ -338,12 +329,7 @@ def _invest(agreement_key, email, app_id, retry_count, payment_info=None):
     logging.debug('Storing Investment Agreement in the datastore')
     pdf_size = len(pdf_contents)
 
-    needs_bill = needs_utility_bill(agreement)
-    if needs_bill:
-        deferred.defer(_send_utility_bill_received, app_user)
-
-    deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, pdf_url,
-                   send_sign_message=not needs_bill, pdf_size=pdf_size)
+    deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, pdf_url, pdf_size=pdf_size)
     deferred.defer(update_investor_progress, email, app_id, INVESTMENT_TODO_MAPPING[agreement.status])
 
 
@@ -420,6 +406,12 @@ def _send_ito_agreement_sign_message(agreement_key, app_user, pdf_url, attachmen
     members = [MemberTO(member=email.email(), app_id=app_id, alert_flags=0)]
     messaging.start_local_flow(get_rogerthat_api_key(), None, members, None, tag=tag,
                                context=None, flow=FLOW_SIGN_INVESTMENT, flow_params=flow_params)
+
+    deferred.defer(_send_sign_investment_reminder, agreement_key.id(), u'long', _countdown=3600, _queue=SCHEDULED_QUEUE)
+    deferred.defer(_send_sign_investment_reminder, agreement_key.id(), u'short', _countdown=3 * DAY,
+                   _queue=SCHEDULED_QUEUE)
+    deferred.defer(_send_sign_investment_reminder, agreement_key.id(), u'short', _countdown=10 * DAY,
+                   _queue=SCHEDULED_QUEUE)
 
 
 def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
@@ -527,10 +519,13 @@ def investment_agreement_signed(message_flow_run_id, member, steps, end_id, end_
         deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id,
                        INVESTMENT_TODO_MAPPING[agreement.status])
         deferred.defer(_inform_support_of_new_investment, iyo_username, agreement.id, agreement.token_count_float)
-        if not needs_utility_bill(agreement):
+        if needs_utility_bill(agreement):
+            logging.debug('Sending "utility bill received" message')
+            deferred.defer(_send_utility_bill_received, agreement.app_user)
+        else:
             logging.debug('Sending confirmation message')
             deferred.defer(send_payment_instructions, agreement.app_user, agreement.id, '')
-        deferred.defer(_send_hoster_reminder, agreement.app_user, _countdown=1)
+            deferred.defer(send_hoster_reminder, agreement.app_user, _countdown=1)
         result = FlowCallbackResultTypeTO(flow=FLOW_INVESTMENT_CONFIRMED,
                                           tag=None,
                                           force_language=None,
@@ -641,7 +636,7 @@ def _get_total_investment_value(app_user):
 
 @returns()
 @arguments(app_user=users.User)
-def _send_hoster_reminder(app_user):
+def send_hoster_reminder(app_user):
     if _get_total_investment_value(app_user) >= 600:
         send_rogerthat_flow(app_user, FLOW_HOSTER_REMINDER)
 
