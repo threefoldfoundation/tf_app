@@ -41,7 +41,7 @@ export class DashboardComponent implements OnChanges {
   @Input() installationStats: AggregatedInstallationStats;
   timeDuration = 86400 * 7;
   TickerEntryType = TickerEntryType;
-  cards: ChartCard[];
+  cards: ChartCard[] = [];
   defaultChartOptions = {
     is3D: true,
     legend: <'none'>'none',

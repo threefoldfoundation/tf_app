@@ -357,6 +357,16 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       };
     case actions.TffActionTypes.SET_KYC_STATUS_FAILED:
       return { ...state, setKYCStatus: action.payload };
+    case actions.TffActionTypes.VERIFY_UTILITY_BILL:
+      return { ...state, verifyUtilityBillStatus: apiRequestLoading };
+    case actions.TffActionTypes.VERIFY_UTILITY_BILL_COMPLETE:
+      return {
+        ...state,
+        verifyUtilityBillStatus: apiRequestSuccess,
+        tffProfile: action.payload,
+      };
+    case actions.TffActionTypes.VERIFY_UTILITY_BILL_FAILED:
+      return { ...state, verifyUtilityBillStatus: action.payload };
     case actions.TffActionTypes.GET_AGENDA_EVENTS:
       return {
         ...state,
