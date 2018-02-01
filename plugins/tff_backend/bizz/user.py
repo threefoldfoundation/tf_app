@@ -22,15 +22,16 @@ import logging
 import os
 import time
 
+from google.appengine.api import users, urlfetch
+from google.appengine.ext import deferred, ndb
+from google.appengine.ext.deferred.deferred import PermanentTaskFailure
+import jinja2
+
 from framework.bizz.session import create_session
 from framework.i18n_utils import DEFAULT_LANGUAGE, translate
 from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
 from framework.utils.jinja_extensions import TranslateExtension
-from google.appengine.api import users, urlfetch
-from google.appengine.ext import deferred, ndb
-from google.appengine.ext.deferred.deferred import PermanentTaskFailure
-import jinja2
 from mcfw.consts import MISSING, DEBUG
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
@@ -301,9 +302,11 @@ def store_public_key(user_detail):
 @returns([(int, long)])
 @arguments(user_detail=UserDetailsTO, roles=[RoleTO])
 def is_user_in_roles(user_detail, roles):
+    result = []
     client = get_itsyouonline_client()
     username = get_iyo_username(user_detail)
-    result = []
+    if not username:
+        return result
     for role in roles:
         organization_id = Organization.get_by_role_name(role.name)
         if not organization_id:
