@@ -125,5 +125,5 @@ export const TFF_COMPONENTS: any[] = [
   ...TFF_PAGES
 ];
 
-export * from './tff-config.service';
 export * from './tff.service';
+export * from './tff-config.service';
