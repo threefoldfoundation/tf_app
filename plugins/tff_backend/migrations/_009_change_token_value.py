@@ -23,11 +23,11 @@ from plugins.tff_backend.plugin_consts import BUY_TOKENS_TAG, BUY_TOKENS_FLOW_V5
 
 
 def migrate():
-    stats_model = GlobalStats.create_key('iTFT').get()  # type: GlobalStats
-    new_value = 0.08
-    currencies = _get_currency_conversions(stats_model.currencies, new_value)
-    stats_model.populate(currencies=currencies, value=new_value)
-    stats_model.put()
+    for stats_model in GlobalStats.query():  # type: GlobalStats
+        new_value = stats_model.value / 100
+        currencies = _get_currency_conversions(stats_model.currencies, new_value)
+        stats_model.populate(currencies=currencies, value=new_value)
+        stats_model.put()
     coords = [2, 1, 0]
     icon_name = 'fa-suitcase'
     label = 'Purchase iTokens'
