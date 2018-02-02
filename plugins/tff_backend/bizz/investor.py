@@ -379,6 +379,8 @@ def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url, c
 
 
 _create_see_document
+
+
 def _send_ito_agreement_sign_message(agreement_key, app_user, pdf_url, attachment_name, pdf_size):
     logging.debug('Sending SIGN widget to app user')
 
@@ -497,7 +499,7 @@ def investment_agreement_signed(message_flow_run_id, member, steps, end_id, end_
         deferred.defer(_inform_support_of_new_investment, iyo_username, agreement.id, agreement.token_count_float)
         logging.debug('Sending confirmation message')
         deferred.defer(send_payment_instructions, agreement.app_user, agreement.id, '')
-        deferred.defer(_send_hoster_reminder, agreement.app_user, _countdown=1)
+        deferred.defer(send_hoster_reminder, agreement.app_user, _countdown=1)
         result = FlowCallbackResultTypeTO(flow=FLOW_INVESTMENT_CONFIRMED,
                                           tag=None,
                                           force_language=None,
