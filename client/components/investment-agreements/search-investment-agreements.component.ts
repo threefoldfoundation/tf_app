@@ -12,7 +12,7 @@ export class SearchInvestmentAgreementsComponent {
     value: parseInt(status),
   }));
 
-  @Output() search = new EventEmitter<InvestmentAgreementsQuery>();
+  @Output() submitSearch = new EventEmitter<InvestmentAgreementsQuery>();
 
   searchString: string | null;
   _query: InvestmentAgreementsQuery;
@@ -30,6 +30,6 @@ export class SearchInvestmentAgreementsComponent {
 
   submit() {
     this.query = { ...this.query, cursor: null };
-    this.search.emit(this.query);
+    this.submitSearch.emit(this.query);
   }
 }

@@ -38,6 +38,12 @@
       {{ 'tff.view' | translate }}
     </a>
     <a mat-raised-button download [href]="profile.kyc.utility_bill_url">{{ 'tff.download' | translate }}</a>
+    <button mat-raised-button color="primary" *ngIf="!profile.kyc.utility_bill_verified"
+            [disabled]="utilityBillStatus.loading"
+            (click)="verifyUtilityBill.emit(profile.username)">
+      {{ 'tff.mark_as_verified' | translate }}
+    </button>
+    <tff-api-request-status [status]="utilityBillStatus"></tff-api-request-status>
   </p>
   <p *ngIf="!profile.kyc.utility_bill_url">{{ 'tff.no_utility_bill_yet_for_user' | translate }}</p>
   <h3>{{ 'tff.checks' | translate }}</h3>

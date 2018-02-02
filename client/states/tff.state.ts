@@ -53,6 +53,7 @@ export interface ITffState {
   tffProfile: TffProfile | null;
   tffProfileStatus: ApiRequestStatus;
   setKYCStatus: ApiRequestStatus;
+  verifyUtilityBillStatus: ApiRequestStatus;
   agendaEvents: AgendaEvent[];
   agendaEventsStatus: ApiRequestStatus;
   agendaEvent: AgendaEvent | null;
@@ -128,6 +129,7 @@ export const initialTffState: ITffState = {
   tffProfile: null,
   tffProfileStatus: apiRequestInitial,
   setKYCStatus: apiRequestInitial,
+  verifyUtilityBillStatus: apiRequestInitial,
   agendaEvents: [],
   agendaEventsStatus: apiRequestInitial,
   agendaEvent: null,

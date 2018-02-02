@@ -22,10 +22,10 @@ import logging
 import os
 import time
 
-import jinja2
 from google.appengine.api import users, urlfetch
 from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
+import jinja2
 
 from framework.bizz.session import create_session
 from framework.i18n_utils import DEFAULT_LANGUAGE, translate
@@ -67,6 +67,7 @@ from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyDa
 from plugins.tff_backend.to.user import SetKYCPayloadTO
 from plugins.tff_backend.utils import convert_to_str
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+
 
 FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     trim_blocks=True,
@@ -301,9 +302,11 @@ def store_public_key(user_detail):
 @returns([(int, long)])
 @arguments(user_detail=UserDetailsTO, roles=[RoleTO])
 def is_user_in_roles(user_detail, roles):
+    result = []
     client = get_itsyouonline_client()
     username = get_iyo_username(user_detail)
-    result = []
+    if not username:
+        return result
     for role in roles:
         organization_id = Organization.get_by_role_name(role.name)
         if not organization_id:
@@ -377,6 +380,18 @@ def set_kyc_status(username, payload, current_user_id):
     return profile
 
 
+@ndb.transactional()
+def set_utility_bill_verified(username):
+    # type: (unicode) -> TffProfile
+    from plugins.tff_backend.bizz.investor import send_signed_investments_messages, send_hoster_reminder
+    profile = get_tff_profile(username)
+    profile.kyc.utility_bill_verified = True
+    profile.put()
+    deferred.defer(send_signed_investments_messages, profile.app_user, _transactional=True)
+    deferred.defer(send_hoster_reminder, profile.app_user, _countdown=1, _transactional=True)
+    return profile
+
+
 def _create_check(applicant_id):
     # This can take a bit of time
     urlfetch.set_default_fetch_deadline(300)
@@ -443,8 +458,6 @@ def generate_kyc_flow(country_code, iyo_username):
 
 
 def _get_extra_properties(country_code):
-    if DEBUG:
-        return []
     return REQUIRED_DOCUMENT_TYPES[country_code]
 
 

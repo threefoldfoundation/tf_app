@@ -4,13 +4,18 @@ import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators/map';
 import { take } from 'rxjs/operators/take';
 import { Subscription } from 'rxjs/Subscription';
-import { filterNull } from '../../../../framework/client/ngrx';
-import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { GetKYCChecksAction, SetKYCStatusAction } from '../../actions/threefold.action';
-import { Check } from '../../interfaces/onfido.interfaces';
-import { SetKYCStatusPayload, TffProfile } from '../../interfaces/profile.interfaces';
-import { getKYCChecks, getKYCChecksStatus, getTffProfile, getTffProfileStatus, setKYCStatus } from '../../tff.state';
+import { filterNull, IAppState } from '../../../../framework/client/ngrx';
+import { ApiRequestStatus } from '../../../../framework/client/rpc';
+import { GetKYCChecksAction, SetKYCStatusAction, VerityUtilityBillAction } from '../../actions';
+import { Check, SetKYCStatusPayload, TffProfile } from '../../interfaces';
+import {
+  getKYCChecks,
+  getKYCChecksStatus,
+  getTffProfile,
+  getTffProfileStatus,
+  setKYCStatus,
+  verifyUtilityBillStatus,
+} from '../../tff.state';
 
 @Component({
   selector: 'tff-kyc-page',
@@ -26,7 +31,9 @@ import { getKYCChecks, getKYCChecksStatus, getTffProfile, getTffProfileStatus, s
                [updateStatus]="updateStatus$ | async"
                [checks]="checks$ | async"
                [checksStatus]="checksStatus$ | async"
-               (setStatus)="onSetStatus($event)"></tff-kyc>
+               [utilityBillStatus]="utilityBillStatus$ | async"
+               (setStatus)="onSetStatus($event)"
+               (verifyUtilityBill)="onVerifyUtilityBill($event)"></tff-kyc>
     </div>`
 })
 
@@ -36,6 +43,7 @@ export class KycPageComponent implements OnInit, OnDestroy {
   updateStatus$: Observable<ApiRequestStatus>;
   checks$: Observable<Check[]>;
   checksStatus$: Observable<ApiRequestStatus>;
+  utilityBillStatus$: Observable<ApiRequestStatus>;
 
   private _sub: Subscription;
   constructor(private store: Store<IAppState>) {
@@ -54,6 +62,7 @@ export class KycPageComponent implements OnInit, OnDestroy {
     this.updateStatus$ = this.store.select(setKYCStatus);
     this.checks$ = this.store.select(getKYCChecks);
     this.checksStatus$ = this.store.select(getKYCChecksStatus);
+    this.utilityBillStatus$ = this.store.select(verifyUtilityBillStatus);
     this._sub = this.tffProfile$.subscribe(user => {
       this.store.dispatch(new GetKYCChecksAction(user.username));
     });
@@ -65,5 +74,9 @@ export class KycPageComponent implements OnInit, OnDestroy {
 
   onSetStatus(setStatusPayload: SetKYCStatusPayload) {
     this.tffProfile$.pipe(take(1)).subscribe(profile => this.store.dispatch(new SetKYCStatusAction(profile.username, setStatusPayload)));
+  }
+
+  onVerifyUtilityBill(username: string) {
+    this.store.dispatch(new VerityUtilityBillAction(username));
   }
 }

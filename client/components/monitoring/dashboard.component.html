@@ -10,7 +10,7 @@
         </mat-card>
       </mat-grid-tile>
     </mat-grid-list>
-    <p>{{ 'tff.stats_for_last_x' | translate : { time: timeDuration | timeDuration } }}</p>
+    <p *ngIf="cards.length">{{ 'tff.stats_for_last_x' | translate : { time: timeDuration | timeDuration } }}</p>
   </div>
   <mat-nav-list fxFlex="40" fxFlex.lt-md="100">
     <mat-list-item *ngFor="let entry of tickerEntries; trackBy: trackTickerEntries">

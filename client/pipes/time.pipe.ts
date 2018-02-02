@@ -3,9 +3,7 @@ import { ChangeDetectorRef, OnDestroy, Pipe, PipeTransform } from '@angular/core
 import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs/Observable';
 import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
-import { startWith } from 'rxjs/operators/startWith';
-import { switchMap } from 'rxjs/operators/switchMap';
-import { takeWhile } from 'rxjs/operators/takeWhile';
+import { distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
 
 interface StringKeyValue {
   [key: string]: string;
@@ -82,7 +80,6 @@ export function getTimePipeValue(seconds: number) {
   pure: false,
 })
 export class TimePipe implements OnDestroy, PipeTransform {
-  private isDestroyed = false;
   private value: Date;
   private timer: Observable<string>;
   private readonly asyncPipe: AsyncPipe;
@@ -93,22 +90,21 @@ export class TimePipe implements OnDestroy, PipeTransform {
     this.asyncPipe = new AsyncPipe(ref);
   }
 
-  public transform(obj: Date): string | null {
+  transform(obj: Date): string {
     if (!obj) {
       return '';
     }
-    if (!(obj instanceof Date || typeof obj === 'number')) {
-      throw new Error('TimePipe only works with Dates and numbers');
+    if (!(obj instanceof Date)) {
+      throw new Error('TimePipe only works with Dates');
     }
+    this.value = obj;
     if (!this.timer) {
       this.timer = this.getObservable();
     }
-    this.value = obj;
-    return this.asyncPipe.transform(this.timer);
+    return <string>this.asyncPipe.transform(this.timer);
   }
 
   ngOnDestroy() {
-    this.isDestroyed = true;
     this.asyncPipe.ngOnDestroy();
   }
 
@@ -123,13 +119,13 @@ export class TimePipe implements OnDestroy, PipeTransform {
   private getObservable() {
     return IntervalObservable.create(5000).pipe(
       startWith(0),
-      switchMap(() => this.getTimeString()),
-      takeWhile(() => !this.isDestroyed),
+      map(() => getTimePipeValue(this.getTimeDiff())),
+      distinctUntilChanged((first, second) => first.value === second.value && first.timeType === second.timeType),
+      switchMap(val => this.getTimeString(val.value, val.timeType)),
     );
   }
 
-  private getTimeString(): Observable<string> {
-    const { value, timeType } = getTimePipeValue(this.getTimeDiff());
+  private getTimeString(value: number, timeType: keyof TimePipeTranslationMapping): Observable<string> {
     return this.translate.stream(this.getTranslationKey(value, timeType), { value });
   }
 }

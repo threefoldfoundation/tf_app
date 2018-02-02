@@ -99,6 +99,10 @@ export class TffService {
     return this.http.put<TffProfile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/profile/kyc`, payload);
   }
 
+  verifyUtilityBill(username: string) {
+    return this.http.put<TffProfile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/profile/kyc/utility-bill`, {});
+  }
+
   getBalance(username: string) {
     return this.http.get<WalletBalance[]>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/balance`);
   }

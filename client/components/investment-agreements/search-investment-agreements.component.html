@@ -1,4 +1,4 @@
-<form fxLayout="row" fxLayout.sm="column">
+<form fxLayout="row" fxLayout.sm="column" (ngSubmit)="submit()">
   <mat-form-field fxFlex="30%" fxFlex.lg="20%" fxFlex.sm="100%">
     <mat-select name="investment_status" [(ngModel)]="_query.status" (ngModelChange)="submit()"
                 [placeholder]="'tff.status' | translate">

@@ -13,7 +13,7 @@ import { getUserList, getUserListStatus, getUserQueryList } from '../../tff.stat
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="default-component-padding">
-      <tff-user-search [query]="query$ | async" (search)="onQuery($event)"></tff-user-search>
+      <tff-user-search [query]="query$ | async" (submitSearch)="onQuery($event)"></tff-user-search>
       <tff-api-request-status [status]="status$ | async"></tff-api-request-status>
       <tff-user-list [userList]="userList$ | async" (loadMore)="onLoadMore()"></tff-user-list>
     </div>`

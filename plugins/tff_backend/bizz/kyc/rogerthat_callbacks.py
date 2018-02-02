@@ -35,7 +35,6 @@ from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING, FormFlowS
 from plugins.rogerthat_api.to.messaging.forms import FormResultTO, UnicodeWidgetResultTO, LongWidgetResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     TYPE_FLOW, FlowCallbackResultTypeTO
-from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
 from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
@@ -71,6 +70,7 @@ def kyc_part_1(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
     ref_step = get_step(steps, 'message_referrer')
     if ref_step and not result.referrer_user:
         try:
+            from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
             api_set_referral({'code': ref_step.get_value()}, user_details[0])
         except ApiCallException as e:
             if not DEBUG:
@@ -171,4 +171,3 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
     profile.kyc.set_status(KYCStatus.SUBMITTED.value, username)
     profile.put()
     deferred.defer(index_profile, Profile.create_key(username))
-

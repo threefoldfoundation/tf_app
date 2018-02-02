@@ -1,8 +1,7 @@
 import { AsyncPipe, I18nPluralPipe } from '@angular/common';
-import { ChangeDetectorRef, OnDestroy, Pipe, PipeTransform } from '@angular/core';
+import { ChangeDetectorRef, Pipe, PipeTransform } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs/Observable';
-import { takeWhile } from 'rxjs/operators/takeWhile';
 import { getTimePipeValue, TimePipeTranslationMapping } from './time.pipe';
 
 const translationMapping: TimePipeTranslationMapping = {
@@ -32,8 +31,7 @@ const translationMapping: TimePipeTranslationMapping = {
   name: 'timeDuration',
   pure: false,
 })
-export class TimeDurationPipe implements OnDestroy, PipeTransform {
-  private isDestroyed = false;
+export class TimeDurationPipe implements PipeTransform {
   private value: number;
   private observable: Observable<string>;
   private readonly asyncPipe: AsyncPipe;
@@ -53,7 +51,6 @@ export class TimeDurationPipe implements OnDestroy, PipeTransform {
   }
 
   ngOnDestroy() {
-    this.isDestroyed = true;
     this.asyncPipe.ngOnDestroy();
   }
 
@@ -63,8 +60,6 @@ export class TimeDurationPipe implements OnDestroy, PipeTransform {
 
   private getObservable(): Observable<string> {
     const { value, timeType } = getTimePipeValue(this.value);
-    return this.translate.stream(this.getTranslationKey(value, timeType), { value }).pipe(
-      takeWhile(() => !this.isDestroyed),
-    );
+    return this.translate.stream(this.getTranslationKey(value, timeType), { value });
   }
 }

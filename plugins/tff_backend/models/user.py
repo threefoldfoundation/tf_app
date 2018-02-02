@@ -46,11 +46,6 @@ class KYCStatusUpdate(NdbModel):
 
 
 class KYCInformation(NdbModel):
-    """
-    Args:
-        updates(list[KYCStatusUpdate])
-        applicant_id(unicode)
-    """
     NAMESPACE = NAMESPACE
     status = ndb.IntegerProperty(choices=KYC_STATUSES)
     updates = ndb.LocalStructuredProperty(KYCStatusUpdate, repeated=True, compressed=True)
@@ -77,8 +72,6 @@ class TffProfile(NdbModel):
     app_user = ndb.UserProperty()
     referrer_user = ndb.UserProperty()
     referrer_username = ndb.StringProperty()
-    node_id = ndb.StringProperty()  # todo Remove after migration to property `nodes`
-    node_status = ndb.StringProperty()   # todo Remove after migration to property `nodes`
     nodes = ndb.StructuredProperty(NodeInfo, repeated=True)  # type: list[NodeInfo]
     kyc = ndb.StructuredProperty(KYCInformation)  # type: KYCInformation
 
@@ -90,8 +83,8 @@ class TffProfile(NdbModel):
     def username(self):
         return self.key.id().decode('utf8')
 
-    def to_dict(self, extra_properties=None):
-        return super(TffProfile, self).to_dict(['username'])
+    def to_dict(self, extra_properties=None, include=None, exclude=None):
+        return super(TffProfile, self).to_dict(extra_properties or ['username'], include, exclude)
 
     @classmethod
     def list_with_node(cls):

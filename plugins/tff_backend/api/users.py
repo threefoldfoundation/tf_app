@@ -26,7 +26,7 @@ from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.bizz.iyo.utils import get_app_user_from_iyo_username
 from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user, get_pending_transactions, get_all_balances
-from plugins.tff_backend.bizz.user import get_tff_profile, set_kyc_status, list_kyc_checks
+from plugins.tff_backend.bizz.user import get_tff_profile, set_kyc_status, list_kyc_checks, set_utility_bill_verified
 from plugins.tff_backend.to.payment import NewTransactionTO, PendingTransactionTO, PendingTransactionListTO, \
     WalletBalanceTO
 from plugins.tff_backend.to.user import SetKYCPayloadTO, TffProfileTO
@@ -69,6 +69,14 @@ def api_get_tff_user(username):
 def api_set_kyc_status(username, data):
     username = username.decode('utf-8')  # username must be unicode
     return TffProfileTO.from_model(set_kyc_status(username, data, get_current_session().user_id))
+
+
+@rest('/users/<username:[^/]+>/profile/kyc/utility-bill', 'put', Scopes.BACKEND_ADMIN)
+@returns(TffProfileTO)
+@arguments(username=str)
+def api_set_utility_bill_verified(username):
+    username = username.decode('utf-8')  # username must be unicode
+    return TffProfileTO.from_model(set_utility_bill_verified(username))
 
 
 @rest('/users/<username:[^/]+>/transactions', 'get', Scopes.BACKEND_ADMIN)
