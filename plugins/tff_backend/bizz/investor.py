@@ -743,20 +743,17 @@ def multiply_agreements_tokens(document_key, sign_result, user_detail, investmen
 
     for agreement in investments:  # type: InvestmentAgreement
         if PaymentInfo.HAS_MULTIPLIED_TOKENS not in agreement.payment_info:
-            if agreement.status == InvestmentAgreement.STATUS_CREATED:
-                # Should've been canceled
-                continue
             agreement.token_count *= 100
             agreement.payment_info.append(PaymentInfo.HAS_MULTIPLIED_TOKENS)
             to_put.append(agreement)
-            if agreement.token == TOKEN_ITFT:
+            if agreement.token == TOKEN_ITFT and agreement.status == InvestmentAgreement.STATUS_PAID:
                 transfer_amount += agreement.token_count_float
     memo = 'Amendment %s' % document.id
-    token_count = long(transfer_amount * 99 * 100)
+    token_count = long(transfer_amount * 99)
     document.status = DocumentStatus.SIGNED.value
     to_put.append(document)
     ndb.put_multi(to_put)
-    if transfer_amount:
+    if token_count:
         logging.info('Assigning %s tokens to %s for investment agreements %s', token_count, document.username,
                      to_put)
         transfer_genesis_coins_to_user(app_user, TokenType.I, token_count, memo)
