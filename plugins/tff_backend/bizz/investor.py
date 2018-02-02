@@ -39,8 +39,7 @@ from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormRes
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     FlowCallbackResultTypeTO, TYPE_FLOW
 from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
-from plugins.tff_backend.bizz.agreements import get_bank_account_info, create_token_value_addendum, \
-    create_itft_amendment_1_pdf
+from plugins.tff_backend.bizz.agreements import get_bank_account_info, create_itft_amendment_1_pdf
 from plugins.tff_backend.bizz.agreements.document import send_document_sign_message
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.email import send_emails_to_support
@@ -760,7 +759,7 @@ def multiply_agreements_tokens(document_key, sign_result, user_detail, investmen
                      to_put)
         transfer_genesis_coins_to_user(app_user, TokenType.I, token_count, memo)
     else:
-        logging.error('Nothing to transfer for user %s (document %s) ', document.username, document.id)
+        logging.error('Nothing to transfer for user %s (document %s) ', dcreate_token_value_addendumocument.username, document.id)
 
 
 def create_token_value_agreement(username):
