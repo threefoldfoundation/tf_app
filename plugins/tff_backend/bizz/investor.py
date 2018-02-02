@@ -751,7 +751,7 @@ def multiply_agreements_tokens(document_key, sign_result, user_detail, investmen
             to_put.append(agreement)
             if agreement.token == TOKEN_ITFT:
                 transfer_amount += agreement.token_count_float
-    memo = 'PLACEHOLDER MEMO'
+    memo = 'Amendment %s' % document.id
     token_count = long(transfer_amount * 99 * 100)
     document.status = DocumentStatus.SIGNED.value
     to_put.append(document)
@@ -771,16 +771,16 @@ def create_token_value_agreement(username):
     content_type = u'application/pdf'
     pdf_url = upload_to_gcs(pdf_name, pdf_contents, content_type)
     pdf_size = len(pdf_contents)
-    iyo_see_doc_id = u'PLACEHOLDER %s' % document_id
-    doc_category = u'PLACEHOLDER CATEGORY'
-    description = u'PLACEHOLDER'
+    iyo_see_doc_id = u'Amendment %s' % document_id
+    doc_category = u'Amendment to purchase agreement'
+    description = doc_category
     create_see_document(iyo_see_doc_id, doc_category, description, username, pdf_url, content_type)
     document = Document(key=Document.create_key(document_id),
                         iyo_see_id=iyo_see_doc_id,
                         username=username,
                         type=DocumentType.TOKEN_VALUE_ADDENDUM.value)
     document.put()
-    attachment_name = 'PLACEHOLDER'
+    attachment_name = iyo_see_doc_id
     push_message = 'PLACEHOLDER PUSH MSG'
     deferred.defer(send_document_sign_message, document.key, username, pdf_url, attachment_name, pdf_size,
                    SIGN_TOKEN_VALUE_ADDENDUM_TAG, FLOW_SIGN_TOKEN_VALUE_ADDENDUM, push_message)
