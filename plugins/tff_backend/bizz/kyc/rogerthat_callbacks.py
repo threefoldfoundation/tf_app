@@ -18,9 +18,10 @@ import datetime
 import json
 import logging
 
-from framework.consts import get_base_url
 from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
+
+from framework.consts import get_base_url
 from mcfw.consts import DEBUG
 from mcfw.properties import object_factory
 from mcfw.rpc import arguments, returns
@@ -174,4 +175,9 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
 
     # Automatically set status to PENDING_APPROVAL after 5 minutes
     payload = SetKYCPayloadTO(status=KYCStatus.PENDING_APPROVAL.value, comment='Verification started automatically')
-    deferred.defer(set_kyc_status, username, payload, current_user_id=username, _countdown=300, _queue=SCHEDULED_QUEUE)
+    deferred.defer(_set_kyc_status, username, payload, current_user_id=username, _countdown=300, _queue=SCHEDULED_QUEUE)
+
+
+def _set_kyc_status(username, payload, current_user_id):
+    if get_tff_profile(username).kyc.status == KYCStatus.SUBMITTED:
+        set_kyc_status(username, payload, current_user_id)
