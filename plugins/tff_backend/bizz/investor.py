@@ -69,8 +69,8 @@ from plugins.tff_backend.models.user import KYCStatus, TffProfile
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
     BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT, \
-    INVEST_FLOW_TAG, FLOW_SIGN_TOKEN_VALUE_ADDENDUM, SIGN_TOKEN_VALUE_ADDENDUM_TAG, FLOW_HOSTER_REMINDER, \
-    SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED
+    BUY_TOKENS_FLOW_V5, INVEST_FLOW_TAG, FLOW_SIGN_TOKEN_VALUE_ADDENDUM, SIGN_TOKEN_VALUE_ADDENDUM_TAG, \
+    FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO, \
     CreateInvestmentAgreementTO
 from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string, get_step
@@ -125,7 +125,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         logging.info('User %s wants to invest', email)
         version = get_key_name_from_key_string(steps[0].message_flow_id)
         currency = get_step_value(steps, 'message_get_currency').replace('_cur', '')
-        if version.startswith(BUY_TOKENS_FLOW_V3):
+        if version.startswith(BUY_TOKENS_FLOW_V3) or version.startswith(BUY_TOKENS_FLOW_V5):
             amount = float(get_step_value(steps, 'message_get_order_size_ITO').replace(',', '.'))
             token_count_float = get_token_count(currency, amount)
         else:

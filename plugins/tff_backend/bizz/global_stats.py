@@ -66,7 +66,7 @@ def update_currencies():
 
 
 def _get_currency_conversions(currencies, dollar_value):
-    # type: (list[CurrencyValueTO | CurrencyValue], int) -> list[CurrencyValue]
+    # type: (list[CurrencyValueTO | CurrencyValue], float) -> list[CurrencyValue]
     currency_result = _get_current_currency_rates()
     result_list = []
     invalid_currencies = [c.currency for c in currencies if c.currency not in currency_result]
