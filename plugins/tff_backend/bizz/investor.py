@@ -618,26 +618,31 @@ Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more de
     send_emails_to_support(subject, body)
 
 
-def _get_total_investment_value(app_user):
+def get_total_token_count(app_user, agreements):
     total_token_count = defaultdict(lambda: 0)
-    statuses = (InvestmentAgreement.STATUS_PAID, InvestmentAgreement.STATUS_SIGNED)
-    for agreement in InvestmentAgreement.list_by_status_and_user(app_user, statuses):
+    for agreement in agreements:
         total_token_count[agreement.token] += agreement.token_count_float
     logging.debug('%s has the following tokens: %s', app_user, dict(total_token_count))
+    return total_token_count
+
+
+def get_total_investment_value(app_user):
+    statuses = (InvestmentAgreement.STATUS_PAID, InvestmentAgreement.STATUS_SIGNED)
+    total_token_count = get_total_token_count(app_user, InvestmentAgreement.list_by_status_and_user(app_user, statuses))
 
     tokens = total_token_count.keys()
     stats = dict(zip(tokens, ndb.get_multi([GlobalStats.create_key(token) for token in tokens])))
     total_usd = 0
     for token, token_count in total_token_count.iteritems():
         total_usd += token_count * stats[token].value
-    logging.debug('These tokens are worth $%s', total_usd)
+    logging.debug('The tokens of %s are worth $%s', app_user, total_usd)
     return total_usd
 
 
 @returns()
 @arguments(app_user=users.User)
-def _send_hoster_reminder(app_user):
-    if _get_total_investment_value(app_user) >= 600:
+def send_hoster_reminder(app_user):
+    if get_total_investment_value(app_user) >= 600:
         send_rogerthat_flow(app_user, FLOW_HOSTER_REMINDER)
 
 
