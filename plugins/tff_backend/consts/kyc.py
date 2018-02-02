@@ -427,7 +427,7 @@ kyc_steps = [
     },
     {
         'type': 'passport',
-        'message': 'Please take a picture of your passport.',
+        'message': 'Please take a picture of your passport.\n\nNote: National ID\'s are not accepted at this point in time.',
         'widget': 'PhotoUploadWidget',
         'order': 23
     },

@@ -367,7 +367,7 @@ def set_kyc_status(username, payload, current_user_id):
     comment = payload.comment if payload.comment is not MISSING else None
     profile.kyc.set_status(payload.status, current_user_id, comment=comment)
     if payload.status == KYCStatus.PENDING_SUBMIT:
-        deferred.defer(send_kyc_flow, profile.app_user, payload.comment)
+        deferred.defer(send_kyc_flow, profile.app_user, payload.comment, _countdown=5)  # after user_data update
     if payload.status == KYCStatus.INFO_SET:
         update_applicant(profile.kyc.applicant_id, deserialize(payload.data, Applicant))
     elif payload.status == KYCStatus.PENDING_APPROVAL:

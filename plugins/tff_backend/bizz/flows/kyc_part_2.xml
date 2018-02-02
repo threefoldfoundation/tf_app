@@ -33,7 +33,7 @@
         {% if step.value %}date="{{ step.value }}"{% endif %}/>
         {% elif step.type == 'PhotoUploadWidget' %}
         <widget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="PhotoUploadWidget"
-                quality="2000000" gallery="false" camera="true"/>
+                quality="2000000" gallery="true" camera="true"/>
         {% elif step.type == 'SelectSingleWidget' %}
         <javascriptValidation>
           function run(result, rogerthat) {

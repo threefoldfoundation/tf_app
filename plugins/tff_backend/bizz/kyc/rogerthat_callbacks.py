@@ -18,10 +18,9 @@ import datetime
 import json
 import logging
 
+from framework.consts import get_base_url
 from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
-
-from framework.consts import get_base_url
 from mcfw.consts import DEBUG
 from mcfw.properties import object_factory
 from mcfw.rpc import arguments, returns
@@ -41,9 +40,10 @@ from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.kyc import save_utility_bill, validate_kyc_status
 from plugins.tff_backend.bizz.kyc.onfido_bizz import update_applicant, create_applicant, upload_document
 from plugins.tff_backend.bizz.rogerthat import create_error_message
-from plugins.tff_backend.bizz.user import get_tff_profile, generate_kyc_flow
+from plugins.tff_backend.bizz.user import get_tff_profile, generate_kyc_flow, set_kyc_status
 from plugins.tff_backend.models.user import KYCStatus
-from plugins.tff_backend.plugin_consts import KYC_FLOW_PART_2_TAG
+from plugins.tff_backend.plugin_consts import KYC_FLOW_PART_2_TAG, SCHEDULED_QUEUE
+from plugins.tff_backend.to.user import SetKYCPayloadTO
 from plugins.tff_backend.utils import get_step
 
 
@@ -171,3 +171,7 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
     profile.kyc.set_status(KYCStatus.SUBMITTED.value, username)
     profile.put()
     deferred.defer(index_profile, Profile.create_key(username))
+
+    # Automatically set status to PENDING_APPROVAL after 5 minutes
+    payload = SetKYCPayloadTO(status=KYCStatus.PENDING_APPROVAL.value, comment='Verification started automatically')
+    deferred.defer(set_kyc_status, username, payload, current_user_id=username, _countdown=300, _queue=SCHEDULED_QUEUE)
