@@ -16,7 +16,6 @@
 # @@license_version:1.3@@
 
 import base64
-import httplib
 import json
 import logging
 from collections import defaultdict
@@ -30,7 +29,7 @@ from framework.consts import get_base_url, DAY
 from framework.utils import now, azzert
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
-from mcfw.rpc import returns, arguments, serialize_complex_value
+from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.api import messaging
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
@@ -40,15 +39,16 @@ from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormRes
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     FlowCallbackResultTypeTO, TYPE_FLOW
 from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
-from plugins.tff_backend.bizz.agreements import get_bank_account_info
+from plugins.tff_backend.bizz.agreements import get_bank_account_info, create_token_value_addendum
+from plugins.tff_backend.bizz.agreements.document import send_document_sign_message
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.global_stats import get_global_stats
-from plugins.tff_backend.bizz.hoster import get_publickey_label
 from plugins.tff_backend.bizz.intercom_helpers import IntercomTags
-from plugins.tff_backend.bizz.iyo.see import create_see_document, get_see_document, sign_see_document
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
+from plugins.tff_backend.bizz.iyo.see import _create_see_document, get_see_document, sign_see_document, \
+    create_see_document
+from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id, get_app_user_from_iyo_username
 from plugins.tff_backend.bizz.kyc import save_utility_bill
 from plugins.tff_backend.bizz.kyc.onfido_bizz import get_applicant
 from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1
@@ -62,19 +62,19 @@ from plugins.tff_backend.bizz.user import user_code, get_tff_profile
 from plugins.tff_backend.consts.kyc import country_choices
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TokenType
 from plugins.tff_backend.dal.investment_agreements import get_investment_agreement
+from plugins.tff_backend.models.document import Document, DocumentType, DocumentStatus
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement, PaymentInfo
 from plugins.tff_backend.models.user import KYCStatus, TffProfile
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
     BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT, \
-    FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED
+    FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED, INVEST_FLOW_TAG, FLOW_SIGN_TOKEN_VALUE_ADDENDUM, \
+    SIGN_TOKEN_VALUE_ADDENDUM_TAG
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO, \
     CreateInvestmentAgreementTO
-from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-from requests.exceptions import HTTPError
 
 INVESTMENT_TODO_MAPPING = {
     InvestmentAgreement.STATUS_CANCELED: None,
@@ -145,7 +145,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
                        _queue=SCHEDULED_QUEUE)
 
         tag = {
-            '__rt__.tag': 'invest_complete',
+            '__rt__.tag': INVEST_FLOW_TAG,
             'investment_id': agreement.id
         }
         flow_params = {
@@ -363,21 +363,8 @@ def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url, c
     iyo_username = get_iyo_username(app_user)
     doc_id = u'Internal Token Offering %s' % agreement_key.id()
     doc_category = u'Purchase Agreement'
-    iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
-                                     globalid=get_iyo_organization_id(),
-                                     uniqueid=doc_id,
-                                     version=1,
-                                     category=doc_category,
-                                     link=pdf_url,
-                                     content_type=content_type,
-                                     markdown_short_description=u'Internal Token Offering - Purchase Agreement',
-                                     markdown_full_description=u'Internal Token Offering - Purchase Agreement')
-    logging.debug('Creating IYO SEE document: %s', iyo_see_doc)
-    try:
-        create_see_document(iyo_username, iyo_see_doc)
-    except HTTPError as e:
-        if e.response.status_code != httplib.CONFLICT:
-            raise e
+    description = u'Internal Token Offering - Purchase Agreement'
+    create_see_document(doc_id, doc_category, description, iyo_username, pdf_url, content_type)
 
     def trans():
         agreement = agreement_key.get()
@@ -391,6 +378,7 @@ def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url, c
     ndb.transaction(trans)
 
 
+_create_see_document
 def _send_ito_agreement_sign_message(agreement_key, app_user, pdf_url, attachment_name, pdf_size):
     logging.debug('Sending SIGN widget to app user')
 
@@ -490,28 +478,12 @@ def investment_agreement_signed(message_flow_run_id, member, steps, end_id, end_
 
         sign_result = last_step.form_result.result.get_value()
         assert isinstance(sign_result, SignWidgetResultTO)
-        payload_signature = sign_result.payload_signature
-
-        iyo_organization_id = get_iyo_organization_id()
         iyo_username = get_iyo_username(user_detail)
-
-        logging.debug('Getting IYO SEE document %s', agreement.iyo_see_id)
-        doc = get_see_document(iyo_organization_id, iyo_username, agreement.iyo_see_id)
-        doc_view = IYOSeeDocumentView(username=doc.username,
-                                      globalid=doc.globalid,
-                                      uniqueid=doc.uniqueid,
-                                      **serialize_complex_value(doc.versions[-1], IYOSeeDocumenVersion, False))
-        doc_view.signature = payload_signature
-        keystore_label = get_publickey_label(sign_result.public_key.public_key, user_detail)
-        if not keystore_label:
-            return create_error_message()
-        doc_view.keystore_label = keystore_label
-        logging.debug('Signing IYO SEE document')
-        sign_see_document(iyo_organization_id, iyo_username, doc_view)
+        sign_see_document(iyo_username, agreement.iyo_see_id, sign_result, user_detail)
 
         logging.debug('Storing signature in DB')
         agreement.populate(status=InvestmentAgreement.STATUS_SIGNED,
-                           signature=payload_signature,
+                           signature=sign_result.payload_signature,
                            sign_time=now())
         agreement.put_async()
 
@@ -730,19 +702,83 @@ def _send_sign_investment_reminder(agreement_id, message_type):
     send_message_and_email(agreement.app_user, message, subject)
 
 
-@ndb.transactional()
-def multiply_agreement_tokens(agreement):
-    # type: (InvestmentAgreement) -> None
-    if PaymentInfo.HAS_MULTIPLIED_TOKENS in agreement.payment_info:
-        raise Exception('Cannot multiply tokens for InvestmentAgreement %s, its tokens have already been multiplied',
-                        agreement.id)
+@returns(FlowMemberResultCallbackResultTO)
+@arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory('step_type', FLOW_STEP_MAPPING)],
+           end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flow_params=unicode)
+def token_value_addendum_signed(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key,
+                                tag, result_key, flush_id, flush_message_flow_id, service_identity, user_details,
+                                flow_params):
+    parsed_tag = json.loads(tag)
+    document_key = Document.create_key(parsed_tag['document_id'])
+    last_step = steps[-1]
+    assert isinstance(last_step, FormFlowStepTO)
+    if last_step.answer_id != FormTO.POSITIVE:
+        logging.error('User pressed cancel in the %s flow', FLOW_SIGN_TOKEN_VALUE_ADDENDUM)
+        return None
+
+    logging.info('Received signature for Document')
+
+    sign_result = last_step.form_result.result.get_value()
+    assert isinstance(sign_result, SignWidgetResultTO)
+    user_detail = user_details[0]
+    app_user = create_app_user_by_email(user_detail.email, user_detail.app_id)
+    investment_keys = InvestmentAgreement.list_by_user(app_user).fetch(keys_only=True)
+    multiply_agreements_tokens(document_key, sign_result, user_details[0], investment_keys)
+
+
+def multiply_agreements_tokens(document_key, sign_result, user_detail, investment_keys):
+    # type: (ndb.Key, SignWidgetResultTO, UserDetailsTO) -> None
+    document = document_key.get()  # type: Document
+    investments = ndb.get_multi(investment_keys)
+    sign_see_document(document.username, document.iyo_see_id, sign_result, user_detail)
     # Gives the original amount of tokens * 99 as a new transaction
-    original_count = agreement.token_count
-    agreement.token_count *= 100
-    agreement.payment_info.append(PaymentInfo.HAS_MULTIPLIED_TOKENS)
-    agreement.put()
-    # todo proper message
-    memo = 'Agreed to divide token value by 100 and multiply amount of tokens by 100'
-    token_count = original_count * 99
-    logging.info('Assigning %s tokens to %s', token_count, agreement.app_user)
-    transfer_genesis_coins_to_user(agreement.app_user, agreement.token, long(token_count * 100), memo)
+    transfer_amount = 0
+
+    app_user = get_app_user_from_iyo_username(document.username)
+    to_put = []
+
+    for agreement in investments:  # type: InvestmentAgreement
+        if PaymentInfo.HAS_MULTIPLIED_TOKENS not in agreement.payment_info:
+            if agreement.status == InvestmentAgreement.STATUS_CREATED:
+                # Should've been canceled
+                continue
+            agreement.token_count *= 100
+            agreement.payment_info.append(PaymentInfo.HAS_MULTIPLIED_TOKENS)
+            to_put.append(agreement)
+            if agreement.token == TOKEN_ITFT:
+                transfer_amount += agreement.token_count_float
+    memo = 'PLACEHOLDER MEMO'
+    token_count = long(transfer_amount * 99 * 100)
+    document.status = DocumentStatus.SIGNED.value
+    to_put.append(document)
+    ndb.put_multi(to_put)
+    if transfer_amount:
+        logging.info('Assigning %s tokens to %s for investment agreements %s', token_count, document.username,
+                     to_put)
+        transfer_genesis_coins_to_user(app_user, TokenType.I, token_count, memo)
+    else:
+        logging.error('Nothing to transfer for user %s (document %s) ', document.username, document.id)
+
+
+def create_token_value_agreement(username):
+    document_id = Document.allocate_ids(1)[0]
+    pdf_name = Document.create_filename(DocumentType.TOKEN_VALUE_ADDENDUM.value, document_id)
+    pdf_contents = create_token_value_addendum()
+    content_type = u'application/pdf'
+    pdf_url = upload_to_gcs(pdf_name, pdf_contents, content_type)
+    pdf_size = len(pdf_contents)
+    iyo_see_doc_id = u'PLACEHOLDER %s' % document_id
+    doc_category = u'PLACEHOLDER CATEGORY'
+    description = u'PLACEHOLDER'
+    create_see_document(iyo_see_doc_id, doc_category, description, username, pdf_url, content_type)
+    document = Document(key=Document.create_key(document_id),
+                        iyo_see_id=iyo_see_doc_id,
+                        username=username,
+                        type=DocumentType.TOKEN_VALUE_ADDENDUM.value)
+    document.put()
+    attachment_name = 'PLACEHOLDER'
+    push_message = 'PLACEHOLDER PUSH MSG'
+    deferred.defer(send_document_sign_message, document.key, username, pdf_url, attachment_name, pdf_size,
+                   SIGN_TOKEN_VALUE_ADDENDUM_TAG, FLOW_SIGN_TOKEN_VALUE_ADDENDUM, push_message)

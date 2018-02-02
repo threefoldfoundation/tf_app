@@ -1,4 +1,4 @@
-<h2>{{ 'tff.flow_run_x_tag_y' | translate : { flowName: flowRun.flow_name, tag: flowRun.tag } }}</h2>
+<h2>{{ 'tff.flow_run_x_tag_y' | translate : { flowName: getFlowName(flowRun.flow_name), tag: flowRun.tag } }}</h2>
 <a [routerLink]="['/users', user.username]" target="_blank">
   {{ 'tff.user_x' | translate : { user: user | profileName } }}
 </a>
@@ -21,7 +21,7 @@
             </a>
           </p>
           <ng-template #displayValue>
-            {{ 'tff.input_value_x' | translate : { value : step.display_value } }}
+            {{ 'tff.input_value_x' | translate : { value : step.display_value || '' } }}
           </ng-template>
         </div>
       </mat-card-content>

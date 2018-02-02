@@ -1,8 +1,8 @@
-from enum import IntEnum
+from google.appengine.ext import ndb
 
+from enum import IntEnum
 from framework.models.common import NdbModel
 from framework.utils import now
-from google.appengine.ext import ndb
 from plugins.tff_backend.bizz.gcs import get_serving_url, encrypt_filename
 from plugins.tff_backend.consts.payment import TOKEN_TFT
 from plugins.tff_backend.plugin_consts import NAMESPACE
@@ -76,8 +76,8 @@ class InvestmentAgreement(NdbModel):
         return u'purchase-agreements/%s.pdf' % encrypt_filename(agreement_id)
 
     @classmethod
-    def create_key(cls, subscription_id):
-        return ndb.Key(cls, subscription_id, namespace=NAMESPACE)
+    def create_key(cls, agreement_id):
+        return ndb.Key(cls, agreement_id, namespace=NAMESPACE)
 
     @classmethod
     def list(cls):

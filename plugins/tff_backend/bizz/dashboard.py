@@ -14,9 +14,9 @@
 # limitations under the License.
 #
 # @@license_version:1.4@@
+import time
 from collections import defaultdict
 from datetime import datetime
-import time
 
 from dateutil.relativedelta import relativedelta
 from mcfw.rpc import arguments, returns
@@ -52,7 +52,7 @@ def rebuild_installation_stats(date):
     }
     ticker_entries = []
     while has_more:
-        installation_list = list_installations(page_size=1000, cursor=cursor, detailed=True)
+        installation_list = list_installations(page_size=1000, cursor=cursor)
         cursor = installation_list.cursor
         if not installation_list.more:
             has_more = False
@@ -77,7 +77,7 @@ def update_firebase_installation(installation, logs):
 
 def rebuild_firebase_data():
     # Removes all /dashboard data from firebase and rebuilds it
-    # Shouldn't be ran more than once a month if all goes well
+    # Ensure only the stats for last 7 days are kept
     ticker_entries = []
     remove_firebase_data('dashboard.json')
     date = datetime.now() - relativedelta(days=7)

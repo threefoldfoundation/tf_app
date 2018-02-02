@@ -46,6 +46,5 @@ def get_ticker_entry_for_installation(installation, new_logs):
             'id': installation.id,
             'status': installation.status,
             'platform': installation.platform,
-            'name': installation.user_details.name if installation.user_details else None
         },
         type=TickerEntryType.INSTALLATION.value)

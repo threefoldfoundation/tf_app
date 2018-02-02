@@ -60,6 +60,7 @@ def get_app_user_from_iyo_username(username):
     return email and users.User(email)
 
 
+@ndb.non_transactional()
 def get_itsyouonline_client_from_username(username):
     session = get_current_session()
     if not session or session.user_id != username:

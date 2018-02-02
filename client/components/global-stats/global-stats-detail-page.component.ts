@@ -38,7 +38,6 @@ export class GlobalStatsDetailPageComponent implements OnInit {
 
 
   onSubmit(globalStats: GlobalStats) {
-    console.log(globalStats);
     this.store.dispatch(new UpdateGlobalStatsAction(globalStats));
   }
 }

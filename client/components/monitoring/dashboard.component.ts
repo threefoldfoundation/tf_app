@@ -2,9 +2,15 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { MOBILE_TYPES } from '../../../../rogerthat_api/client/interfaces';
-import { FirebaseFlowRun, FlowRunStatus, TickerEntryType } from '../../interfaces';
-import { TickerEntry } from '../../interfaces/dashboard';
-import { AggregatedFlowRunStats, AggregatedInstallationStats } from '../../interfaces/flow-statistics.interfaces';
+import {
+  AggregatedFlowRunStats,
+  AggregatedInstallationStats,
+  FirebaseFlowRun,
+  FlowRunStatus,
+  TickerEntry,
+  TickerEntryType,
+} from '../../interfaces';
+import { FlowStatisticsService } from '../../services';
 import { getStepTitle } from '../../util';
 import ChartArea = google.visualization.ChartArea;
 import ChartSpecs = google.visualization.ChartSpecs;
@@ -47,22 +53,14 @@ export class DashboardComponent implements OnChanges {
     legend: <'none'>'none',
     pieSliceText: 'label',
     width: 220,
-    height: 220,
+    height: 210,
     chartArea: <ChartArea>{ width: '100%', height: '100%' },
     backgroundColor: 'transparent',
     pieSliceTextStyle: <ChartTextStyle>{ fontSize: 13 },
   };
 
-  nameMapping: { [ key: string ]: string } = {
-    'kyc_part_1': 'tff.kyc_procedure',
-    'order_node_v4': 'tff.order_node',
-    'error_message': 'tff.error_message',
-    'buy_tokens_ITO_v3_async_KYC': 'tff.buy_tokens',
-    'sign_investment': 'tff.sign_investment',
-    'sign_hosting_agreement': 'tff.sign_hosting_agreement',
-  };
-
   constructor(private translate: TranslateService,
+              private flowStatisticsService: FlowStatisticsService,
               private datePipe: DatePipe) {
   }
 
@@ -70,7 +68,7 @@ export class DashboardComponent implements OnChanges {
     if (changes.flowStats || changes.installationStats) {
       if (this.flowStats && this.flowStats.length && this.installationStats) {
         const flowCards = this.flowStats.map(f => ({
-          title: this.getFlowName(f.flowName),
+          title: this.flowStatisticsService.getFlowName(f.flowName),
           chart: {
             chartType: 'PieChart',
             options: {
@@ -121,7 +119,7 @@ export class DashboardComponent implements OnChanges {
   getTickerText(entry: TickerEntry): string {
     if (entry.type === TickerEntryType.FLOW) {
       const flowRun = entry.data;
-      const flowName = this.getFlowName(flowRun.flow_name);
+      const flowName = this.flowStatisticsService.getFlowName(flowRun.flow_name);
       if (flowRun.status === FlowRunStatus.STARTED) {
         return flowName;
       }
@@ -130,7 +128,7 @@ export class DashboardComponent implements OnChanges {
       }
       if (flowRun.status === FlowRunStatus.IN_PROGRESS) {
         if (flowRun.last_step) {
-          return `${flowName}: ${getStepTitle(flowRun.last_step.step_id)} -> Clicked "${getStepTitle(flowRun.last_step.button)}"`;
+          return `${flowName}: ${getStepTitle(flowRun.last_step.step_id)} → Clicked "${getStepTitle(flowRun.last_step.button)}"`;
         }
         return flowName;
       }
@@ -146,10 +144,7 @@ export class DashboardComponent implements OnChanges {
       }
     } else if (entry.type === TickerEntryType.INSTALLATION) {
       const platform = this.translate.instant(MOBILE_TYPES[ entry.data.platform ]);
-      if (entry.data.name) {
-        return this.translate.instant('tff.user_x_installed_on_platform', { name: entry.data.name, platform: platform });
-      }
-      return `${platform} installation`;
+      return this.translate.instant('tff.installation_on_platform', { platform: platform });
     } else {
       return JSON.stringify(entry);
     }
@@ -170,13 +165,6 @@ export class DashboardComponent implements OnChanges {
     } else {
       return `/installations/${tickerEntry.data.id}`;
     }
-  }
-
-  private getFlowName(flowName: string): string {
-    if (flowName in this.nameMapping) {
-      return this.translate.instant(this.nameMapping[ flowName ]);
-    }
-    return flowName;
   }
 
 }

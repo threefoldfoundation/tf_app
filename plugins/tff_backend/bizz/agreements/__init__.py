@@ -175,3 +175,20 @@ def _render_pdf_from_html(html_file, template_variables):
     output_stream.close()
 
     return pdf_contents
+
+
+def create_token_value_addendum():
+    md_variables = {}
+    md_content = markdown.markdown(JINJA_ENVIRONMENT.get_template('token_value.md').render(md_variables))
+    html_file = 'token_value.html'
+    template_variables = {
+        'logo_path': 'assets/logo.jpg',
+        'markdown_to_html': md_content
+    }
+    source_html = JINJA_ENVIRONMENT.get_template(html_file).render(template_variables)
+    output_stream = StringIO()
+    pisa.CreatePDF(src=source_html, dest=output_stream, path='%s' % ASSETS_FOLDER)
+    pdf_contents = output_stream.getvalue()
+    output_stream.close()
+
+    return pdf_contents
