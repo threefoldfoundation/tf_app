@@ -778,7 +778,8 @@ def create_token_value_agreement(username):
                         type=DocumentType.TOKEN_VALUE_ADDENDUM.value)
     document.put()
     attachment_name = iyo_see_doc_id
-    push_message = 'PLACEHOLDER PUSH MSG'
+    push_message = 'Please read through and sign the amendment to receive 100x more tokens in your wallet for your' \
+                   ' purchased value.'
     deferred.defer(send_document_sign_message, document.key, username, pdf_url, attachment_name, pdf_size,
                    SIGN_TOKEN_VALUE_ADDENDUM_TAG, FLOW_SIGN_TOKEN_VALUE_ADDENDUM, push_message)
 
