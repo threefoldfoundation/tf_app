@@ -34,7 +34,64 @@ import { IAppState } from '../../framework/client/ngrx';
 import { AddRoutesAction } from '../../framework/client/sidebar/index';
 import { AddToolbarItemAction } from '../../framework/client/toolbar/actions';
 import { ToolbarItemTypes } from '../../framework/client/toolbar/interfaces';
+import {
+  AgendaEventDetailComponent,
+  AgendaEventDetailPageComponent,
+  AgendaEventsListComponent,
+  AgendaEventsListPageComponent,
+  ApiRequestStatusComponent,
+  CreateAgendaEventPageComponent,
+  CreateTransactionComponent,
+  CreateTransactionPageComponent,
+  DashboardComponent,
+  EventParticipantsComponent,
+  EventParticipantsPageComponent,
+  FlowRunDetailComponent,
+  FlowRunStatusComponent,
+  GlobalStatsDetailComponent,
+  GlobalStatsDetailPageComponent,
+  GlobalStatsListPageComponent,
+  InstallationComponent,
+  InstallationLogsComponent,
+  InstallationsComponent,
+  InstallationStatusComponent,
+  InvestmentAgreementAmountComponent,
+  InvestmentAgreementDetailComponent,
+  InvestmentAgreementDetailPageComponent,
+  InvestmentAgreementListComponent,
+  InvestmentAgreementListPageComponent,
+  IyoSeeComponent,
+  KycComponent,
+  KycUpdatesComponent,
+  OrderDetailComponent,
+  OrderDetailPageComponent,
+  OrderListComponent,
+  OrderListPageComponent,
+  SearchInvestmentAgreementsComponent,
+  SearchNodeOrdersComponent,
+  TransactionListComponent,
+  UserListComponent,
+  UserSearchComponent,
+  WalletBalanceComponent,
+} from './components';
 import { TffEffects } from './effects';
+import {
+  CreateInvestmentAgreementPageComponent,
+  CreateOrderPageComponent,
+  DashboardPageComponent,
+  FlowStatisticsDetailPageComponent,
+  FlowStatisticsOverviewPageComponent,
+  FlowStatisticsPageComponent,
+  InstallationLogsPageComponent,
+  InstallationsPageComponent,
+  KycPageComponent,
+  UserDetailsPageComponent,
+  UserListPageComponent,
+  UserNodeOrdersPageComponent,
+  UserPageComponent,
+  UserPurchaseAgreementsPageComponent,
+  UserTransactionsListPageComponent,
+} from './pages';
 import { MarkdownPipe } from './pipes/markdown.pipe';
 import { ProfileNamePipe } from './pipes/profile-name.pipe';
 import { TimeDurationPipe } from './pipes/time-duration.pipe';
@@ -42,7 +99,7 @@ import { TimePipe } from './pipes/time.pipe';
 import { TimestampPipe } from './pipes/timestamp.pipe';
 import { tffReducer } from './reducers';
 import { TffRoutes } from './routes';
-import { TFF_COMPONENTS, TFF_PROVIDERS } from './services';
+import { ApiErrorService, FlowStatisticsService, TffConfig, TffService } from './services';
 
 const MATERIAL_IMPORTS = [
   MatAutocompleteModule,
@@ -70,6 +127,72 @@ const PIPES = [
   ProfileNamePipe,
 ];
 
+export const TFF_PROVIDERS: any[] = [
+  ApiErrorService,
+  FlowStatisticsService,
+  TffConfig,
+  TffService,
+];
+
+export const TFF_PAGES = [
+  CreateInvestmentAgreementPageComponent,
+  CreateOrderPageComponent,
+  DashboardPageComponent,
+  FlowStatisticsDetailPageComponent,
+  FlowStatisticsOverviewPageComponent,
+  FlowStatisticsPageComponent,
+  InstallationLogsPageComponent,
+  InstallationsPageComponent,
+  KycPageComponent,
+  UserDetailsPageComponent,
+  UserListPageComponent,
+  UserNodeOrdersPageComponent,
+  UserPageComponent,
+  UserPurchaseAgreementsPageComponent,
+  UserTransactionsListPageComponent,
+];
+
+export const TFF_COMPONENTS: any[] = [
+  AgendaEventDetailComponent,
+  AgendaEventDetailPageComponent,
+  AgendaEventsListComponent,
+  AgendaEventsListPageComponent,
+  ApiRequestStatusComponent,
+  CreateAgendaEventPageComponent,
+  CreateTransactionComponent,
+  CreateTransactionPageComponent,
+  DashboardComponent,
+  EventParticipantsComponent,
+  EventParticipantsPageComponent,
+  FlowRunDetailComponent,
+  FlowRunStatusComponent,
+  GlobalStatsDetailComponent,
+  GlobalStatsDetailPageComponent,
+  GlobalStatsListPageComponent,
+  InstallationComponent,
+  InstallationLogsComponent,
+  InstallationsComponent,
+  InstallationStatusComponent,
+  InvestmentAgreementAmountComponent,
+  InvestmentAgreementDetailComponent,
+  InvestmentAgreementDetailPageComponent,
+  InvestmentAgreementListComponent,
+  InvestmentAgreementListPageComponent,
+  IyoSeeComponent,
+  KycComponent,
+  KycUpdatesComponent,
+  OrderDetailComponent,
+  OrderDetailPageComponent,
+  OrderListComponent,
+  OrderListPageComponent,
+  SearchInvestmentAgreementsComponent,
+  SearchNodeOrdersComponent,
+  TransactionListComponent,
+  UserListComponent,
+  UserSearchComponent,
+  WalletBalanceComponent,
+  ...TFF_PAGES,
+];
 
 @NgModule({
   imports: [

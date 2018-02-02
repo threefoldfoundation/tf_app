@@ -2,7 +2,7 @@
 |------------------------------|--------------------------------------|
 | **Address of the purchaser** | {{ address }}                        |
 | **Purchase Amount**          | **{{ amount }}** {{ currency_full }} |
-| **Purchase Price**           | Five U.S. Dollar (5 US $) per iTFT   |
+| **Purchase Price**           | {{ price_words }} U.S. Dollar ({{ price }} US $) per iTFT |
 
 This agreement (hereinafter referred to as the “**Agreement**”) is entered into on **{{ effective_date }}** (the “**Effective Date**”), by and between:
 

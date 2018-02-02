@@ -20,7 +20,7 @@ import hmac
 from google.appengine.api.app_identity import app_identity
 
 import cloudstorage
-from cloudstorage.common import local_api_url
+from cloudstorage.common import local_api_url, LOCAL_GCS_ENDPOINT
 from framework.plugin_loader import get_config
 from mcfw.consts import DEBUG
 from plugins.tff_backend.plugin_consts import NAMESPACE
@@ -52,6 +52,7 @@ def get_serving_url(filename, bucket=None):
     if not bucket:
         bucket = _get_default_bucket()
     if DEBUG:
+        return '%s/%s/%s' % ('http://10.1.1.121:8800%s' % LOCAL_GCS_ENDPOINT, bucket, filename)
         return '%s/%s/%s' % (local_api_url(), bucket, filename)
     return 'https://storage.googleapis.com/%s/%s' % (bucket, filename)
 
