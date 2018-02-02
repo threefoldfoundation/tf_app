@@ -39,7 +39,8 @@ from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormRes
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     FlowCallbackResultTypeTO, TYPE_FLOW
 from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
-from plugins.tff_backend.bizz.agreements import get_bank_account_info, create_token_value_addendum
+from plugins.tff_backend.bizz.agreements import get_bank_account_info, create_token_value_addendum, \
+    create_itft_amendment_1_pdf
 from plugins.tff_backend.bizz.agreements.document import send_document_sign_message
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.email import send_emails_to_support
@@ -765,7 +766,7 @@ def multiply_agreements_tokens(document_key, sign_result, user_detail, investmen
 def create_token_value_agreement(username):
     document_id = Document.allocate_ids(1)[0]
     pdf_name = Document.create_filename(DocumentType.TOKEN_VALUE_ADDENDUM.value, document_id)
-    pdf_contents = create_token_value_addendum()
+    pdf_contents = create_itft_amendment_1_pdf(get_app_user_from_iyo_username(username))
     content_type = u'application/pdf'
     pdf_url = upload_to_gcs(pdf_name, pdf_contents, content_type)
     pdf_size = len(pdf_contents)
