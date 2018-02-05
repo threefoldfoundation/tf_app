@@ -81,15 +81,8 @@ def round_currency_amount(currency, amount):
 
 
 def convert_to_str(data):
-    if isinstance(data, unicode):
-        return data.encode('utf-8')
-    elif isinstance(data, list):
-        for i, list_item in enumerate(data):
-            data[i] = convert_to_str(list_item)
-    elif isinstance(data, dict):
-        for key, val in data.iteritems():
-            data[key] = convert_to_str(val)
-    return data
+    from framework.utils import convert_to_str as convert
+    return convert(data)
 
 
 def get_key_name_from_key_string(key_string):

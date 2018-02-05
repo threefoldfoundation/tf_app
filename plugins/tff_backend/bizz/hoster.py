@@ -19,15 +19,16 @@ import base64
 import json
 import logging
 
+from google.appengine.api import users
+from google.appengine.ext import ndb, deferred
+
 from framework.consts import get_base_url
 from framework.plugin_loader import get_config
 from framework.utils import now
-from google.appengine.api import users
-from google.appengine.ext import ndb, deferred
 from mcfw.consts import DEBUG, MISSING
 from mcfw.exceptions import HttpBadRequestException
 from mcfw.properties import object_factory
-from mcfw.rpc import returns, arguments, serialize_complex_value
+from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.api import messaging, system
 from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
 from plugins.rogerthat_api.to.messaging import AttachmentTO, Message
@@ -41,8 +42,7 @@ from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.intercom_helpers import tag_intercom_users, IntercomTags
-from plugins.tff_backend.bizz.iyo.keystore import get_keystore
-from plugins.tff_backend.bizz.iyo.see import create_see_document, sign_see_document, get_see_document
+from plugins.tff_backend.bizz.iyo.see import get_see_document, sign_see_document, create_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.nodes import add_nodes_to_profile
@@ -56,11 +56,10 @@ from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.consts.hoster import REQUIRED_TOKEN_COUNT_TO_HOST
 from plugins.tff_backend.dal.node_orders import get_node_order
 from plugins.tff_backend.exceptions.hoster import OrderAlreadyExistsException, InvalidContentTypeException
-from plugins.tff_backend.models.hoster import NodeOrder, PublicKeyMapping, NodeOrderStatus, ContactInfo
+from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus, ContactInfo
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE, FLOW_HOSTER_SIGNATURE_RECEIVED, \
     FLOW_SIGN_HOSTING_AGREEMENT
-from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocumenVersion
 from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderDetailsTO, CreateNodeOrderTO
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
@@ -195,25 +194,16 @@ def _create_node_order_pdf(node_order_id):
 
 def _order_node_iyo_see(app_user, node_order_id, pdf_url, pdf_size, create_quotation=True):
     iyo_username = get_iyo_username(app_user)
-    organization_id = get_iyo_organization_id()
-
-    iyo_see_doc = IYOSeeDocumentView(username=iyo_username,
-                                     globalid=organization_id,
-                                     uniqueid=u'Zero-Node order %s' % NodeOrder.create_human_readable_id(node_order_id),
-                                     version=1,
-                                     category=u'Terms and conditions',
-                                     link=pdf_url,
-                                     content_type=u'application/pdf',
-                                     markdown_short_description=u'Terms and conditions for ordering a Zero-Node',
-                                     markdown_full_description=u'Terms and conditions for ordering a Zero-Node')
-    logging.debug('Creating IYO SEE document: %s', iyo_see_doc)
-    iyo_see_doc = create_see_document(iyo_username, iyo_see_doc)
-
-    attachment_name = u' - '.join([iyo_see_doc.uniqueid, iyo_see_doc.category])
+    doc_id = u'Zero-Node order %s' % NodeOrder.create_human_readable_id(node_order_id)
+    category = u'Terms and conditions'
+    content_type = u'application/pdf'
+    description = u'Terms and conditions for ordering a Zero-Node'
+    create_see_document(doc_id, category, description, iyo_username, pdf_url, content_type)
+    attachment_name = u' - '.join([doc_id, category])
 
     def trans():
         order = get_node_order(node_order_id)
-        order.tos_iyo_see_id = iyo_see_doc.uniqueid
+        order.tos_iyo_see_id = doc_id
         order.put()
         if create_quotation:
             deferred.defer(_create_quotation, app_user, node_order_id, pdf_url, attachment_name, pdf_size,
@@ -309,28 +299,12 @@ def order_node_signed(message_flow_run_id, member, steps, end_id, end_message_fl
 
         sign_result = last_step.form_result.result.get_value()
         assert isinstance(sign_result, SignWidgetResultTO)
-        payload_signature = sign_result.payload_signature
-
-        iyo_organization_id = get_iyo_organization_id()
         iyo_username = get_iyo_username(user_detail)
-
-        logging.debug('Getting IYO SEE document %s', order.tos_iyo_see_id)
-        doc = get_see_document(iyo_organization_id, iyo_username, order.tos_iyo_see_id)
-        doc_view = IYOSeeDocumentView(username=doc.username,
-                                      globalid=doc.globalid,
-                                      uniqueid=doc.uniqueid,
-                                      **serialize_complex_value(doc.versions[-1], IYOSeeDocumenVersion, False))
-        doc_view.signature = payload_signature
-        keystore_label = get_publickey_label(sign_result.public_key.public_key, user_detail)
-        if not keystore_label:
-            return create_error_message()
-        doc_view.keystore_label = keystore_label
-        logging.debug('Signing IYO SEE document')
-        sign_see_document(iyo_organization_id, iyo_username, doc_view)
+        sign_see_document(iyo_username, order.tos_iyo_see_id, sign_result, user_detail)
 
         logging.debug('Storing signature in DB')
         order.populate(status=NodeOrderStatus.SIGNED,
-                       signature=payload_signature,
+                       signature=sign_result.payload_signature,
                        sign_time=now())
         order.put()
 
@@ -351,22 +325,6 @@ def order_node_signed(message_flow_run_id, member, steps, end_id, end_message_fl
     except:
         logging.exception('An unexpected error occurred')
         return create_error_message()
-
-
-def get_publickey_label(public_key, user_details):
-    # type: (unicode, UserDetailsTO) -> unicode
-    mapping = PublicKeyMapping.create_key(public_key, user_details.email).get()
-    if mapping:
-        return mapping.label
-    else:
-        logging.error('No PublicKeyMapping found! falling back to doing a request to itsyou.online')
-        iyo_keys = get_keystore(get_iyo_username(user_details))
-        results = filter(lambda k: public_key in k.key, iyo_keys)  # some stuff is prepended to the key
-        if len(results):
-            return results[0].label
-        else:
-            logging.error('Could not find label for public key %s on itsyou.online', public_key)
-            return None
 
 
 @returns(NodeOrderDetailsTO)

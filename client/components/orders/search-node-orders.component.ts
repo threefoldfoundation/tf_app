@@ -10,7 +10,7 @@ export class SearchNodeOrdersComponent {
   statuses = ORDER_STATUSES;
   searchString: string | null;
   _query: NodeOrdersQuery;
-  @Output() search = new EventEmitter();
+  @Output() submitSearch = new EventEmitter();
 
   get query() {
     return { ...this._query, query: this.searchString };
@@ -26,6 +26,6 @@ export class SearchNodeOrdersComponent {
 
   submit() {
     this.query = { ...this.query, cursor: null };
-    this.search.emit(this.query);
+    this.submitSearch.emit(this.query);
   }
 }

@@ -19,7 +19,7 @@ from types import NoneType
 
 from enum import Enum
 from framework.plugin_loader import get_plugin, get_config
-from intercom import ResourceNotFound
+from intercom import ResourceNotFound, BadRequestError
 from intercom.tag import Tag
 from intercom.user import User
 from mcfw.rpc import arguments, returns
@@ -80,6 +80,9 @@ def send_intercom_email(iyo_username, subject, message):
     if intercom_plugin:
         from_ = {'type': 'admin', 'id': get_config(NAMESPACE).intercom_admin_id}
         to_user = upsert_intercom_user(iyo_username)
+        if to_user.unsubscribed_from_emails:
+            logging.warning('Not sending email via intercom, user %s is unsubscribed from emails.', to_user.id)
+            return None
         to = {'type': 'user', 'id': to_user.id}
         return intercom_plugin.send_message(from_, message, message_type='email', subject=subject, to=to)
     logging.debug('Not sending email with subject "%s" via intercom because intercom plugin was not found', subject)

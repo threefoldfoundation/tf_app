@@ -1,7 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { map } from 'rxjs/operators/map';
 import { Profile } from '../../../its_you_online_auth/client/interfaces';
 import { Installation, InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces';
 import {
@@ -11,10 +9,6 @@ import {
   CreateOrderPayload,
   CreateTransactionPayload,
   EventParticipant,
-  FlowRun,
-  FlowRunList,
-  FlowRunQuery,
-  FirebaseFlowStats,
   GetEventParticipantsPayload,
   GetInstallationsQuery,
   GlobalStats,
@@ -33,6 +27,7 @@ import {
   UserList,
   WalletBalance,
 } from '../interfaces';
+import { getQueryParams } from '../util';
 import { TffConfig } from './tff-config.service';
 
 @Injectable()
@@ -42,7 +37,7 @@ export class TffService {
   }
 
   getNodeOrders(payload: NodeOrdersQuery) {
-    const params = this._getQueryParams(payload);
+    const params = getQueryParams(payload);
     return this.http.get<NodeOrderList>(`${TffConfig.API_URL}/orders`, { params });
   }
 
@@ -59,7 +54,7 @@ export class TffService {
   }
 
   getInvestmentAgreements(payload: InvestmentAgreementsQuery) {
-    const params = this._getQueryParams(payload);
+    const params = getQueryParams(payload);
     return this.http.get<InvestmentAgreementList>(`${TffConfig.API_URL}/investment-agreements`, { params });
   }
 
@@ -88,7 +83,7 @@ export class TffService {
   }
 
   searchUsers(payload: SearchUsersQuery) {
-    const params = this._getQueryParams(payload);
+    const params = getQueryParams(payload);
     return this.http.get<UserList>(`${TffConfig.API_URL}/users`, { params });
   }
 
@@ -123,7 +118,7 @@ export class TffService {
   }
 
   getAgendaEvents(past: boolean) {
-    const params = this._getQueryParams({ past });
+    const params = getQueryParams({ past });
     return this.http.get<AgendaEvent[]>(`${TffConfig.API_URL}/agenda-events`, { params });
   }
 
@@ -150,30 +145,8 @@ export class TffService {
     return this.http.get<Check[]>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/kyc/checks`);
   }
 
-  getDistinctFlows() {
-    return this.http.get<string[]>(`${TffConfig.API_URL}/flow-statistics/flows`);
-  }
-
-  getFlowRuns(query: FlowRunQuery): Observable<FlowRunList> {
-    const params = this._getQueryParams(query);
-    return this.http.get<FlowRunList<string>>(`${TffConfig.API_URL}/flow-statistics`, { params }).pipe(
-      map(result => ({ ...result, results: result.results.map(flowRun => this.convertFlowRun(flowRun)) })),
-    );
-  }
-
-  getFlowRun(id: string): Observable<FlowRun> {
-    return this.http.get<FlowRun<string>>(`${TffConfig.API_URL}/flow-statistics/details/${id}`).pipe(
-      map(result => this.convertFlowRun(result)),
-    );
-  }
-
-  getFlowStats(startDate: string) {
-    const params = this._getQueryParams({ start_date: startDate });
-    return this.http.get<FirebaseFlowStats[]>(`${TffConfig.API_URL}/flow-statistics/stats`, { params });
-  }
-
   getInstallations(query: GetInstallationsQuery) {
-    const params = this._getQueryParams(query);
+    const params = getQueryParams(query);
     return this.http.get<InstallationsList>(`${TffConfig.API_URL}/installations`, { params });
   }
 
@@ -184,27 +157,4 @@ export class TffService {
   getInstallationLogs(installationId: string) {
     return this.http.get<InstallationLog[]>(`${TffConfig.API_URL}/installations/${installationId}/logs`);
   }
-
-  private _getQueryParams<T>(queryObject: T): HttpParams {
-    let params = new HttpParams();
-    const q = <[ keyof T ]>Object.keys(queryObject);
-    for (const key of q) {
-      if (queryObject[ key ] !== null) {
-        params = params.set(key, queryObject[ key ].toString());
-      }
-    }
-    return params;
-  }
-
-  /**
-   * Converts string dates in the FlowRun object to Date objects
-   */
-  private convertFlowRun(flowRun: FlowRun<string>): FlowRun<Date> {
-    return {
-      ...flowRun,
-      start_date: new Date(flowRun.start_date),
-      statistics: { ...flowRun.statistics, last_step_date: new Date(flowRun.statistics.last_step_date) },
-    };
-  }
-
 }

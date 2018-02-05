@@ -19,12 +19,12 @@ import webapp2
 
 from plugins.tff_backend.bizz.agreements import create_hosting_agreement_pdf, create_token_agreement_pdf
 from plugins.tff_backend.bizz.investor import _get_currency_name
-from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
+from plugins.tff_backend.consts.payment import TOKEN_TFT
 
 
 class AgreementsTestingPageHandler(webapp2.RequestHandler):
     def get(self, *args, **kwargs):
-        type_ = self.request.get("type", "hoster")
+        type_ = self.request.get("type", "investor")
         name = u"__NAME__"
         address = u"__ADDRESS__"
 
@@ -34,17 +34,9 @@ class AgreementsTestingPageHandler(webapp2.RequestHandler):
             token = self.request.get("token", TOKEN_TFT)
             currency = self.request.get("currency", "USD")
             amount = 123.456789123456789
-
-            if token == TOKEN_ITFT:
-                pdf = create_token_agreement_pdf(name, address, amount, _get_currency_name(currency), currency, token)
-            else:
-                pdf = create_token_agreement_pdf(name, address, amount, _get_currency_name(currency), currency,
-                                                 TOKEN_TFT)
+            pdf = create_token_agreement_pdf(name, address, amount, _get_currency_name(currency), currency, token)
         else:
-            pdf = None
-
-        if not pdf:
-            self.response.out.write(u"Failed to generate pdf for this type")
+            self.response.out.write(u"Invalid pdf type %s" % type_)
             return
 
         self.response.headers['Content-Type'] = 'application/pdf'

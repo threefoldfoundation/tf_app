@@ -16,7 +16,7 @@ import { getNodeOrdersQuery, getOrders, getOrdersStatus } from '../../tff.state'
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="default-component-padding">
-      <tff-search-node-orders [query]="query$ | async" (search)="onSearch($event)"></tff-search-node-orders>
+      <tff-search-node-orders [query]="query$ | async" (submitSearch)="onSearch($event)"></tff-search-node-orders>
       <tff-order-list [orders]="orders$ | async"
                       [status]="listStatus$ | async"
                       (loadMore)="onLoadMore()"></tff-order-list>

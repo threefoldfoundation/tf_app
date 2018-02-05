@@ -12,3 +12,4 @@ xhtml2pdf==0.0.6
 GoogleAppEngineCloudStorageClient
 git+https://github.com/onfido/api-python-client.git
 Markdown==2.6.11
+inflect

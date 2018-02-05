@@ -31,6 +31,6 @@ class GlobalStatsTO(TO):
     name = unicode_property('name')
     token_count = long_property('token_count')
     unlocked_count = long_property('unlocked_count')
-    value = long_property('value')
+    value = float_property('value')
     currencies = typed_property('currencies', CurrencyValueTO, True)  # type: list[CurrencyValueTO]
-    market_cap = long_property('market_cap')
+    market_cap = float_property('market_cap')

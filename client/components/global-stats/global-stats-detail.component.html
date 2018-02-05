@@ -5,7 +5,7 @@
   </button>
   <tff-api-request-status [status]="status"></tff-api-request-status>
   <div *ngIf="status.success" style="padding-top: 16px;">
-    <form fxLayout="column" (ngSubmit)="save(form)" #form="ngForm">
+    <form fxLayout="column" (ngSubmit)="submit(form)" #form="ngForm">
       <mat-form-field>
         <input matInput [(ngModel)]="globalStats.name" [placeholder]="'tff.name' | translate" name="name" required>
       </mat-form-field>

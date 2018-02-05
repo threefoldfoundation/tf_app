@@ -41,9 +41,10 @@ from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.kyc import save_utility_bill, validate_kyc_status
 from plugins.tff_backend.bizz.kyc.onfido_bizz import update_applicant, create_applicant, upload_document
 from plugins.tff_backend.bizz.rogerthat import create_error_message
-from plugins.tff_backend.bizz.user import get_tff_profile, generate_kyc_flow
+from plugins.tff_backend.bizz.user import get_tff_profile, generate_kyc_flow, set_kyc_status
 from plugins.tff_backend.models.user import KYCStatus
-from plugins.tff_backend.plugin_consts import KYC_FLOW_PART_2_TAG
+from plugins.tff_backend.plugin_consts import KYC_FLOW_PART_2_TAG, SCHEDULED_QUEUE
+from plugins.tff_backend.to.user import SetKYCPayloadTO
 from plugins.tff_backend.utils import get_step
 
 
@@ -171,3 +172,12 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
     profile.kyc.set_status(KYCStatus.SUBMITTED.value, username)
     profile.put()
     deferred.defer(index_profile, Profile.create_key(username))
+
+    # Automatically set status to PENDING_APPROVAL after 5 minutes
+    payload = SetKYCPayloadTO(status=KYCStatus.PENDING_APPROVAL.value, comment='Verification started automatically')
+    deferred.defer(_set_kyc_status, username, payload, current_user_id=username, _countdown=300, _queue=SCHEDULED_QUEUE)
+
+
+def _set_kyc_status(username, payload, current_user_id):
+    if get_tff_profile(username).kyc.status == KYCStatus.SUBMITTED:
+        set_kyc_status(username, payload, current_user_id)
