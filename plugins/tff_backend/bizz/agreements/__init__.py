@@ -16,16 +16,15 @@
 # @@license_version:1.3@@
 
 import codecs
-from collections import defaultdict
 import os
 import time
 
-from babel.numbers import get_currency_name
-from framework.utils import azzert
 import jinja2
 
 import inflect
 import markdown
+from babel.numbers import get_currency_name
+from framework.utils import azzert
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS
@@ -170,7 +169,7 @@ def _render_pdf_from_html(html_file, template_variables):
     source_html = JINJA_ENVIRONMENT.get_template(html_file).render(template_variables)
 
     output_stream = StringIO()
-    pisa.CreatePDF(src=source_html, dest=output_stream, path='%s' % ASSETS_FOLDER)
+    pisa.CreatePDF(src=source_html, dest=output_stream, path='%s' % ASSETS_FOLDER, encoding='UTF-8')
     pdf_contents = output_stream.getvalue()
     output_stream.close()
 
