@@ -56,6 +56,7 @@ from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keyst
 from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.bizz.kyc.onfido_bizz import create_check, update_applicant, deserialize, list_checks, serialize
+from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.rogerthat import create_error_message, send_rogerthat_message
 from plugins.tff_backend.bizz.service import add_user_to_role, get_main_branding_hash
 from plugins.tff_backend.consts.kyc import kyc_steps, DEFAULT_KYC_STEPS, REQUIRED_DOCUMENT_TYPES
@@ -259,6 +260,16 @@ def store_referral_in_user_data(profile_key):
     email, app_id = get_app_user_tuple(profile.app_user)
     api_key = get_rogerthat_api_key()
     system.put_user_data(api_key, email.email(), app_id, user_data)
+
+
+def notify_new_referral(my_username, app_user):
+    iyo_user = get_user(my_username)
+
+    subject = u'%s just used your invitation code' % iyo_user.firstname
+    message = u'Hi!\n' \
+              u'Good news, %s %s has used your invitation code.' % (iyo_user.firstname, iyo_user.lastname)
+
+    send_message_and_email(app_user, message, subject)
 
 
 @returns()

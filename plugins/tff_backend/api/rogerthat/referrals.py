@@ -24,7 +24,8 @@ from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.iyo.user import invite_user_to_organization, remove_user_from_organization
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.service import remove_user_from_role, add_user_to_role
-from plugins.tff_backend.bizz.user import store_referral_in_user_data
+from plugins.tff_backend.bizz.user import store_referral_in_user_data, \
+    notify_new_referral
 from plugins.tff_backend.models.user import TffProfile, ProfilePointer
 
 
@@ -56,11 +57,19 @@ def api_set_referral(params, user_detail):
         my_profile.referrer_username = pp.username
         my_profile.put()
 
+        deferred.defer(_setup_permissions, username, user_detail, _transactional=True)
+        deferred.defer(store_referral_in_user_data, my_profile.key, _transactional=True)
+        deferred.defer(notify_new_referral, username, referrer_profile.app_user, _transactional=True)
+
+    ndb.transaction(trans, xg=True)
+    return {u'result': u'You successfully joined the ThreeFold community. Welcome aboard!'}
+
+
+def _setup_permissions(username, user_detail):
+    def trans():
         deferred.defer(remove_user_from_role, user_detail, RogerthatRoles.PUBLIC, _transactional=True)
         deferred.defer(add_user_to_role, user_detail, RogerthatRoles.MEMBERS, _transactional=True)
         deferred.defer(remove_user_from_organization, username, Organization.PUBLIC, _transactional=True)
         deferred.defer(invite_user_to_organization, username, Organization.MEMBERS, _transactional=True)
-        deferred.defer(store_referral_in_user_data, my_profile.key, _transactional=True)
 
-    ndb.transaction(trans, xg=True)
-    return {u'result': u'You successfully joined the ThreeFold community. Welcome aboard!'}
+    ndb.transaction(trans)
