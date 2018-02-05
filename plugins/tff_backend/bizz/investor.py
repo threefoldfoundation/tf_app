@@ -323,8 +323,11 @@ def _invest(agreement_key, email, app_id, retry_count):
     agreement.put()
     currency_full = _get_currency_name(agreement.currency)
     pdf_name = InvestmentAgreement.filename(agreement_key.id())
+    username = get_iyo_username(app_user)
+    has_verified_utility_bill = get_tff_profile(username).kyc.utility_bill_verified
     pdf_contents = create_token_agreement_pdf(agreement.name, agreement.address, agreement.amount, currency_full,
-                                              agreement.currency, agreement.token, agreement.payment_info)
+                                              agreement.currency, agreement.token, agreement.payment_info,
+                                              has_verified_utility_bill)
     pdf_url = upload_to_gcs(pdf_name, pdf_contents, 'application/pdf')
     logging.debug('Storing Investment Agreement in the datastore')
     pdf_size = len(pdf_contents)
@@ -335,8 +338,11 @@ def _invest(agreement_key, email, app_id, retry_count):
 
 def needs_utility_bill(agreement):
     if agreement.currency in ('EUR', 'GBP') \
-        or (agreement.currency == 'USD' and PaymentInfo.UAE not in agreement.payment_info):
+            or (agreement.currency == 'USD' and PaymentInfo.UAE not in agreement.payment_info):
         tff_profile = get_tff_profile(get_iyo_username(agreement.app_user))
+        # not uploaded -> must be someone without a passport -> doesn't need utility bill
+        if not tff_profile.kyc.utility_bill_url:
+            return False
         return not tff_profile.kyc.utility_bill_verified
     return False
 
@@ -629,12 +635,14 @@ def send_payment_instructions(app_user, agreement_id, message_prefix, reminder=F
     elif not reminder:
         deferred.defer(send_payment_instructions, app_user, agreement_id, message_prefix, True,
                        _countdown=14 * DAY, _queue=SCHEDULED_QUEUE)
-
+    username = get_iyo_username(app_user)
+    profile = get_tff_profile(username)
     params = {
         'currency': agreement.currency,
         'reference': agreement.reference,
         'message_prefix': message_prefix,
-        'bank_account': get_bank_account_info(agreement.currency, agreement.payment_info),
+        'bank_account': get_bank_account_info(agreement.currency, agreement.payment_info,
+                                              profile.kyc.utility_bill_verified),
     }
 
     if agreement.currency == 'BTC':

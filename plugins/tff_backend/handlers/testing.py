@@ -34,7 +34,8 @@ class AgreementsTestingPageHandler(webapp2.RequestHandler):
             token = self.request.get("token", TOKEN_TFT)
             currency = self.request.get("currency", "USD")
             amount = 123.456789123456789
-            pdf = create_token_agreement_pdf(name, address, amount, _get_currency_name(currency), currency, token)
+            pdf = create_token_agreement_pdf(name, address, amount, _get_currency_name(currency), currency, token,
+                                             payment_info=None, has_verified_utility_bill=True)
         else:
             self.response.out.write(u"Invalid pdf type %s" % type_)
             return
