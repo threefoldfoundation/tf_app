@@ -14,17 +14,17 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-from collections import defaultdict
-import datetime
 import json
 import logging
+from collections import defaultdict
+
+from google.appengine.api import urlfetch, apiproxy_stub_map
+from google.appengine.ext import ndb
+from google.appengine.ext.deferred import deferred
 
 from framework.bizz.job import run_job
 from framework.plugin_loader import get_config
 from framework.utils import now
-from google.appengine.api import urlfetch, apiproxy_stub_map
-from google.appengine.ext import ndb
-from google.appengine.ext.deferred import deferred
 from mcfw.cache import cached
 from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
@@ -258,11 +258,12 @@ def _check_node_status(tff_profile_key, statuses):
                 logging.info('Node %s of user %s changed from status "%s" to "%s"',
                              tff_profile.username, node.id, node.status, status)
                 should_update = True
-                from_status = node.status
+                # Disable until the status doesn't change every 5 minutes, spamming the user with messages
+                # from_status = node.status
                 node.status = status
 
-                now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-                _send_node_status_update_message(tff_profile.app_user, from_status, status, now)
+                # now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+                # _send_node_status_update_message(tff_profile.app_user, from_status, status, now)
 
         if should_update:
             tff_profile.put()
