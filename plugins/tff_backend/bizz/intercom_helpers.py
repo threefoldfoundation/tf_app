@@ -80,14 +80,11 @@ def send_intercom_email(iyo_username, subject, message):
     if intercom_plugin:
         from_ = {'type': 'admin', 'id': get_config(NAMESPACE).intercom_admin_id}
         to_user = upsert_intercom_user(iyo_username)
+        if to_user.unsubscribed_from_emails:
+            logging.warning('Not sending email via intercom, user %s is unsubscribed from emails.', to_user.id)
+            return None
         to = {'type': 'user', 'id': to_user.id}
-        try:
-            return intercom_plugin.send_message(from_, message, message_type='email', subject=subject, to=to)
-        except BadRequestError as e:
-            # Could be that the user is unsubscribed to emails
-            logging.warn('Could not send intercom email')
-            logging.info(e.message)
-            logging.info(e.context)
+        return intercom_plugin.send_message(from_, message, message_type='email', subject=subject, to=to)
     logging.debug('Not sending email with subject "%s" via intercom because intercom plugin was not found', subject)
     return None
 
