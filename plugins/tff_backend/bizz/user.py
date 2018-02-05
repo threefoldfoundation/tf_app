@@ -22,10 +22,10 @@ import logging
 import os
 import time
 
+import jinja2
 from google.appengine.api import users, urlfetch
 from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
-import jinja2
 
 from framework.bizz.session import create_session
 from framework.i18n_utils import DEFAULT_LANGUAGE, translate
@@ -66,7 +66,6 @@ from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyDa
 from plugins.tff_backend.to.user import SetKYCPayloadTO
 from plugins.tff_backend.utils import convert_to_str
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-
 
 FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     trim_blocks=True,
@@ -414,13 +413,34 @@ def generate_kyc_flow(country_code, iyo_username):
 
     steps = []
     branding_key = get_main_branding_hash()
+    must_ask_passport = 'passport' not in REQUIRED_DOCUMENT_TYPES[country_code]
     for prop in properties:
         step_info = _get_step_info(prop)
         if not step_info:
             raise BusinessException('Unsupported step type: %s' % prop)
         value = known_information.get(prop)
+        reference = 'message_%s' % prop
+        # If yes, go to passport step. If no, go to national identity step
+        if prop in ('national_identity_card', 'national_identity_card_front') and must_ask_passport:
+            steps.append({
+                'reference': 'message_has_passport',
+                'message': """Are you in the possession of a valid passport?
+
+Note: If you do not have a passport (and only a national id), you will only be able to wire the funds to our UAE Mashreq bank account.""",
+                'type': None,
+                'order': step_info['order'] - 0.5,
+                'answers': [{
+                    'id': 'yes',
+                    'caption': 'Yes',
+                    'reference': 'message_passport'
+                }, {
+                    'id': 'no',
+                    'caption': 'No',
+                    'reference': 'message_national_identity_card' if 'national_identity_card' in properties else 'message_national_identity_card_front'
+                }]
+            })
         steps.append({
-            'reference': 'message_%s' % prop,
+            'reference': reference,
             'positive_reference': None,
             'positive_caption': step_info.get('positive_caption', 'Continue'),
             'negative_reference': 'flush_monitoring_end_canceled',
@@ -436,7 +456,10 @@ def generate_kyc_flow(country_code, iyo_username):
     sorted_steps = sorted(steps, key=lambda k: k['order'])
     for i, step in enumerate(sorted_steps):
         if len(sorted_steps) > i + 1:
-            step['positive_reference'] = sorted_steps[i + 1]['reference']
+            if 'positive_reference' in step:
+                if step['reference'] == 'message_passport':
+                    sorted_steps[i - 1]['positive_reference'] = 'flowcode_check_skip_passport'
+                step['positive_reference'] = sorted_steps[i + 1]['reference']
         else:
             step['positive_reference'] = 'flush_results'
     template_params = {

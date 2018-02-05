@@ -131,7 +131,9 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
         else:
             logging.warn('Ignoring unknown property %s with value %s', prop, value)
     for step in steps:
-        assert isinstance(step, FormFlowStepTO)
+        # In case of the flowcode_check_skip_passport step
+        if not isinstance(step, FormFlowStepTO):
+            continue
         step_id_split = step.step_id.split('_', 1)
         if step_id_split[0] == 'message':
             prop = step_id_split[1]  # 'type' from one of plugins.tff_backend.consts.kyc.kyc_steps
