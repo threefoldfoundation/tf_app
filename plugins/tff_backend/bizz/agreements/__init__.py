@@ -28,7 +28,7 @@ from framework.utils import azzert
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS
-from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
+from plugins.tff_backend.consts.payment import TOKEN_ITFT
 from plugins.tff_backend.models.investor import PaymentInfo, InvestmentAgreement
 from plugins.tff_backend.utils import round_currency_amount
 from xhtml2pdf import pisa
@@ -65,11 +65,11 @@ def create_hosting_agreement_pdf(full_name, address):
 
 
 @returns(unicode)
-@arguments(currency_short=unicode, payment_info=[int])
-def get_bank_account_info(currency_short, payment_info):
+@arguments(currency_short=unicode, payment_info=[int], has_verified_utility_bill=bool)
+def get_bank_account_info(currency_short, payment_info, has_verified_utility_bill):
     suffix = currency_short
-    if payment_info and PaymentInfo.UAE.value in payment_info:
-        suffix += '-UAE'
+    if payment_info and PaymentInfo.UAE.value in payment_info or not has_verified_utility_bill:
+        suffix = 'default'
 
     bank_file = os.path.join(ASSETS_FOLDER, 'bank_%s.md' % suffix)
     with codecs.open(bank_file, 'r', encoding='utf-8') as f:
@@ -114,8 +114,8 @@ def create_itft_amendment_1_pdf(app_user):
     return _render_pdf_from_html('token_itft.html', template_variables)
 
 
-def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short, token=TOKEN_TFT,
-                               payment_info=None):
+def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short, token, payment_info,
+                               has_verified_utility_bill):
     # don't forget to update intercom tags when adding new contracts / tokens
     if currency_short == 'BTC':
         amount_formatted = '{:.8f}'.format(amount)
@@ -140,7 +140,7 @@ def create_token_agreement_pdf(full_name, address, amount, currency_full, curren
 
     if token == TOKEN_ITFT:
         html_file = 'token_itft.html'
-        context = {'bank_account': get_bank_account_info(currency_short, payment_info or [])}
+        context = {'bank_account': get_bank_account_info(currency_short, payment_info or [], has_verified_utility_bill)}
         context.update(template_variables)
         md = JINJA_ENVIRONMENT.get_template('token_itft.md').render(context)
         markdown_to_html = markdown.markdown(md, extensions=['markdown.extensions.tables'])

@@ -1,7 +1,7 @@
 import { HttpParams } from '@angular/common/http';
 
 export function getStepTitle(stepId: string): string {
-  return stepId.replace('message_', '').replace('_', ' ');
+  return stepId.replace('message_', '').replace(/_/g, ' ');
 }
 
 export function getQueryParams<T>(queryObject: T): HttpParams {
