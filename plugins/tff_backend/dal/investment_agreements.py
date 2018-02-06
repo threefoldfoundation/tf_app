@@ -70,7 +70,7 @@ def multi_index_investment_agreement(order_keys):
 
 def _stringify_long(value):
     # type: (long) -> str
-    return str(value).rstrip('0').rstrip('.')
+    return str(float(value)).rstrip('0').rstrip('.')
 
 
 def create_investment_agreement_document(investment, iyo_username):
