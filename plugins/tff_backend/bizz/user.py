@@ -22,10 +22,10 @@ import logging
 import os
 import time
 
+import jinja2
 from google.appengine.api import users, urlfetch
 from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
-import jinja2
 
 from framework.bizz.session import create_session
 from framework.i18n_utils import DEFAULT_LANGUAGE, translate
@@ -38,8 +38,7 @@ from mcfw.rpc import returns, arguments
 from onfido import Applicant
 from plugins.intercom_support.intercom_support_plugin import IntercomSupportPlugin
 from plugins.intercom_support.rogerthat_callbacks import start_or_get_chat
-from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
-    has_access_to_organization
+from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client
 from plugins.its_you_online_auth.bizz.profile import get_profile, index_profile
 from plugins.its_you_online_auth.models import Profile
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
@@ -50,10 +49,10 @@ from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_QR, REGISTRATIO
 from plugins.rogerthat_api.to.messaging import AnswerTO, Message
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.authentication import Organization, Roles, RogerthatRoles
+from plugins.tff_backend.bizz.authentication import Roles, RogerthatRoles, Grants
 from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user, tag_intercom_users, IntercomTags
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
-from plugins.tff_backend.bizz.iyo.user import get_user
+from plugins.tff_backend.bizz.iyo.user import get_user, has_grant
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.bizz.kyc.onfido_bizz import create_check, update_applicant, deserialize, list_checks, serialize
 from plugins.tff_backend.bizz.rogerthat import create_error_message, send_rogerthat_message
@@ -67,7 +66,6 @@ from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyDa
 from plugins.tff_backend.to.user import SetKYCPayloadTO
 from plugins.tff_backend.utils import convert_to_str
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-
 
 FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     trim_blocks=True,
@@ -96,18 +94,10 @@ def user_registered(user_detail, origin, data):
             return
 
         jwt = qr_content
-
     elif origin == REGISTRATION_ORIGIN_OAUTH:
         access_token_data = data.get('result', {})
         access_token = access_token_data.get('access_token')
-        scopes = [s for s in access_token_data.get('scope', '').split(',') if s]
-        missing_scopes = [s for s in required_scopes if s and s not in scopes]
-        if missing_scopes:
-            logging.warn('Access token is missing required scopes %s', missing_scopes)
-        scopes.append('offline_access')
-        logging.debug('Creating JWT with scopes %s', scopes)
-        jwt = create_jwt(access_token, scope=','.join(scopes))
-
+        jwt = create_jwt(access_token, scope='offline_access')
     else:
         return
 
@@ -308,10 +298,10 @@ def is_user_in_roles(user_detail, roles):
     if not username:
         return result
     for role in roles:
-        organization_id = Organization.get_by_role_name(role.name)
-        if not organization_id:
+        grant = Grants.get_by_role_name(role.name)
+        if not grant:
             continue
-        if has_access_to_organization(client, organization_id, username):
+        if has_grant(client, username, grant):
             result.append(role.id)
     return result
 
@@ -321,8 +311,8 @@ def is_user_in_roles(user_detail, roles):
 def add_user_to_public_role(user_detail):
     client = get_itsyouonline_client()
     username = get_iyo_username(user_detail)
-    organization_id = Organization.get_by_role_name(Roles.MEMBERS)
-    if has_access_to_organization(client, organization_id, username):
+    grant = Grants.get_by_role_name(Roles.MEMBERS)
+    if has_grant(client, username, grant):
         logging.info('User is already in members role, not adding to public role')
     else:
         add_user_to_role(user_detail, RogerthatRoles.PUBLIC)
@@ -423,13 +413,34 @@ def generate_kyc_flow(country_code, iyo_username):
 
     steps = []
     branding_key = get_main_branding_hash()
+    must_ask_passport = 'passport' not in REQUIRED_DOCUMENT_TYPES[country_code]
     for prop in properties:
         step_info = _get_step_info(prop)
         if not step_info:
             raise BusinessException('Unsupported step type: %s' % prop)
         value = known_information.get(prop)
+        reference = 'message_%s' % prop
+        # If yes, go to passport step. If no, go to national identity step
+        if prop in ('national_identity_card', 'national_identity_card_front') and must_ask_passport:
+            steps.append({
+                'reference': 'message_has_passport',
+                'message': """Are you in the possession of a valid passport?
+
+Note: If you do not have a passport (and only a national id), you will only be able to wire the funds to our UAE Mashreq bank account.""",
+                'type': None,
+                'order': step_info['order'] - 0.5,
+                'answers': [{
+                    'id': 'yes',
+                    'caption': 'Yes',
+                    'reference': 'message_passport'
+                }, {
+                    'id': 'no',
+                    'caption': 'No',
+                    'reference': 'message_national_identity_card' if 'national_identity_card' in properties else 'message_national_identity_card_front'
+                }]
+            })
         steps.append({
-            'reference': 'message_%s' % prop,
+            'reference': reference,
             'positive_reference': None,
             'positive_caption': step_info.get('positive_caption', 'Continue'),
             'negative_reference': 'flush_monitoring_end_canceled',
@@ -445,7 +456,10 @@ def generate_kyc_flow(country_code, iyo_username):
     sorted_steps = sorted(steps, key=lambda k: k['order'])
     for i, step in enumerate(sorted_steps):
         if len(sorted_steps) > i + 1:
-            step['positive_reference'] = sorted_steps[i + 1]['reference']
+            if 'positive_reference' in step:
+                if step['reference'] == 'message_passport':
+                    sorted_steps[i - 1]['positive_reference'] = 'flowcode_check_skip_passport'
+                step['positive_reference'] = sorted_steps[i + 1]['reference']
         else:
             step['positive_reference'] = 'flush_results'
     template_params = {

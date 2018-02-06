@@ -34,7 +34,7 @@ def get_see_document(organization_id, username, uniqueid, version=u"latest"):
     query_params = {
         'version': version
     }
-    result = client.api.users.GetSeeObject(uniqueid, organization_id, convert_to_str(username),
+    result = client.users.GetSeeObject(uniqueid, organization_id, convert_to_str(username),
                                            query_params=query_params)
     return IYOSeeDocument(**result.json())
 
@@ -46,7 +46,7 @@ def get_see_documents(organization_id, username):
     query_params = {
         'globalid': organization_id
     }
-    result = client.api.users.GetSeeObjects(convert_to_str(username), query_params=query_params)
+    result = client.users.GetSeeObjects(convert_to_str(username), query_params=query_params)
     return [IYOSeeDocumentView(**d) for d in result.json()]
 
 
@@ -55,7 +55,7 @@ def get_see_documents(organization_id, username):
 def _create_see_document(username, doc):
     client = get_itsyouonline_client_from_username(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
-    result = client.api.users.CreateSeeObject(data, convert_to_str(username))
+    result = client.users.CreateSeeObject(data, convert_to_str(username))
     return IYOSeeDocumentView(**result.json())
 
 
@@ -64,7 +64,7 @@ def _create_see_document(username, doc):
 def update_see_document(organization_id, username, doc):
     client = get_itsyouonline_client_from_username(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
-    result = client.api.users.UpdateSeeObject(data, doc.uniqueid, organization_id, convert_to_str(username))
+    result = client.users.UpdateSeeObject(data, doc.uniqueid, organization_id, convert_to_str(username))
     return IYOSeeDocumentView(**result.json())
 
 
@@ -73,7 +73,7 @@ def update_see_document(organization_id, username, doc):
 def _sign_see_document(organization_id, username, doc):
     client = get_itsyouonline_client_from_username(username)
     data = serialize_complex_value(doc, IYOSeeDocumentView, False, skip_missing=True)
-    result = client.api.users.SignSeeObject(data, convert_to_str(doc.version), doc.uniqueid, organization_id,
+    result = client.users.SignSeeObject(data, convert_to_str(doc.version), doc.uniqueid, organization_id,
                                             convert_to_str(username))
     return IYOSeeDocumentView(**result.json())
 

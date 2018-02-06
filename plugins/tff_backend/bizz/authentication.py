@@ -48,19 +48,6 @@ class Organization(object):
     BACKEND = '%s.%s' % (ROOT_ORGANIZATION, Roles.BACKEND)
     BACKEND_ADMIN = '%s.%s' % (ROOT_ORGANIZATION, Roles.BACKEND_ADMIN)
     BACKEND_READONLY = '%s.%s' % (ROOT_ORGANIZATION, Roles.BACKEND_READONLY)
-    PUBLIC = '%s.%s' % (ROOT_ORGANIZATION, Roles.PUBLIC)
-    MEMBERS = '%s.%s' % (ROOT_ORGANIZATION, Roles.MEMBERS)
-
-    ROLES = {
-        Roles.BACKEND: BACKEND,
-        Roles.BACKEND_ADMIN: BACKEND,
-        Roles.PUBLIC: PUBLIC,
-        Roles.MEMBERS: MEMBERS,
-    }
-
-    @staticmethod
-    def get_by_role_name(role_name):
-        return Organization.ROLES.get(role_name, None)
 
 
 class Scope(object):
@@ -69,15 +56,11 @@ class Scope(object):
     BACKEND = _memberof % Organization.BACKEND
     BACKEND_ADMIN = _memberof % Organization.BACKEND_ADMIN
     BACKEND_READONLY = _memberof % Organization.BACKEND_READONLY
-    PUBLIC = _memberof % Organization.PUBLIC
-    MEMBERS = _memberof % Organization.MEMBERS
 
 
 class Scopes(object):
     BACKEND_ADMIN = [Scope.ROOT_ADMINS, Scope.BACKEND, Scope.BACKEND_ADMIN]
     BACKEND_READONLY = BACKEND_ADMIN + [Scope.BACKEND_READONLY]
-    PUBLIC = BACKEND_READONLY + [Scope.PUBLIC]
-    MEMBERS = PUBLIC + [Scope.MEMBERS]
 
 
 def get_permissions_from_scopes(scopes):
@@ -96,3 +79,17 @@ def get_permissions_from_scopes(scopes):
 
 def get_permission_strings(scopes):
     return ['tff.%s' % p for p in get_permissions_from_scopes(scopes)]
+
+
+class Grants(object):
+    PUBLIC = 'public'
+    MEMBERS = 'members'
+
+    ROLES = {
+        Roles.PUBLIC: PUBLIC,
+        Roles.MEMBERS: MEMBERS,
+    }
+
+    @staticmethod
+    def get_by_role_name(role_name):
+        return Grants.ROLES.get(role_name, None)
