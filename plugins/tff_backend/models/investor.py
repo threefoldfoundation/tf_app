@@ -90,7 +90,7 @@ class InvestmentAgreement(NdbModel):
 
     @classmethod
     def list_by_status_and_user(cls, app_user, statuses):
-        # type: (users.User, int) -> list[InvestmentAgreement]
+        # type: (users.User, list[int]) -> list[InvestmentAgreement]
         statuses = [statuses] if isinstance(statuses, int) else statuses
         return [investment for investment in cls.list_by_user(app_user) if investment.status in statuses]
 
