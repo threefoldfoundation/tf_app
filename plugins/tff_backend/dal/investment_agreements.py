@@ -71,17 +71,22 @@ def multi_index_investment_agreement(order_keys):
 def create_investment_agreement_document(investment, iyo_username):
     # type: (InvestmentAgreement) -> search.Document
     investment_id_str = str(investment.id)
-    return search.Document(
-        doc_id=investment_id_str,
-        fields=[
-            search.AtomField(name='id', value=investment_id_str),
-            search.AtomField(name='reference', value=investment.reference),
-            search.NumberField(name='status', value=investment.status),
-            search.TextField(name='username', value=iyo_username),
-            search.DateField(name='creation_time', value=datetime.utcfromtimestamp(investment.creation_time)),
-            search.TextField(name='name', value=investment.name),
-            search.TextField(name='address', value=investment.address),
-        ])
+    fields = [
+        search.AtomField(name='id', value=investment_id_str),
+        search.AtomField(name='reference', value=investment.reference),
+        search.NumberField(name='status', value=investment.status),
+        search.TextField(name='username', value=iyo_username),
+        search.DateField(name='creation_time', value=datetime.utcfromtimestamp(investment.creation_time)),
+        search.TextField(name='name', value=investment.name),
+        search.TextField(name='address', value=investment.address and investment.address.replace('\n', '')),
+        search.TextField(name='currency', value=investment.currency),
+    ]
+    if investment.amount:
+        fields.append(search.TextField(name='amount', value=str(investment.amount).rstrip('.0')))
+    if investment.token_count:
+        fields.append(search.TextField(name='token_count', value=str(investment.token_count).rstrip('.0')))
+
+    return search.Document(doc_id=investment_id_str, fields=fields)
 
 
 def search_investment_agreements(query=None, page_size=20, cursor=None):

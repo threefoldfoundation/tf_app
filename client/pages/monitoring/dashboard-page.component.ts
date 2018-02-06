@@ -30,7 +30,7 @@ export class DashboardPageComponent implements OnInit {
     this.installations$ = this.channelService.db.object<InstallationStats>(`${prefix}/dashboard/installations`).valueChanges()
       .pipe(map(stats => this.aggregateInstallationStats(stats)));
     this.tickerEntries$ = this.channelService.db
-      .list<TickerEntry<string>>(`${prefix}/dashboard/ticker`, ref => ref.orderByChild('date').limitToLast(50))
+      .list<TickerEntry<string>>(`${prefix}/dashboard/ticker`, ref => ref.orderByChild('date').limitToLast(250))
       .valueChanges().pipe(map(results => this.convertTickerEntries(results)));
   }
 
