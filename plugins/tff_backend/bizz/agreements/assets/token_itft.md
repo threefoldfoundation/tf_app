@@ -40,9 +40,7 @@ During such six months lock-up period, however, the Purchaser shall still be ent
 
 **5. Payment**
 
-The Company will accept payment for the iTFT's purchased under this Agreement in U.S. Dollars, Euro, Pound Sterling, United Arab Emirates Dirham and Bitcoin. Purchaser shall make the required payment to the Company in consideration for Purchaser’s purchase of the iTFT’s pursuant to the Agreement by wire transfer to the Company within three business days as from the Effective Date, as follows:
-
-{{ bank_account }}
+The Company will accept payment for the iTFT's purchased under this Agreement in U.S. Dollars, Euro, Pound Sterling, United Arab Emirates Dirham and Bitcoin. Purchaser shall make the required payment to the Company in consideration for Purchaser’s purchase of the iTFT’s pursuant to the Agreement by wire transfer to the Company within three business days. The payment information will be provided in the ThreeFold app.
 
 For purposes of this Agreement, the value of the Purchase Amount shall be deemed in U.S. Dollar even when the Purchaser pays in any of the other currencies mentioned above.
 
