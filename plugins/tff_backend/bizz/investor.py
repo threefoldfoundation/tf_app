@@ -70,7 +70,7 @@ from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
     BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT, \
     BUY_TOKENS_FLOW_V5, INVEST_FLOW_TAG, FLOW_SIGN_TOKEN_VALUE_ADDENDUM, SIGN_TOKEN_VALUE_ADDENDUM_TAG, \
-    FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED
+    FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED, FF_ENDED_TIMESTAMP
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO, \
     CreateInvestmentAgreementTO
 from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string, get_step
@@ -742,7 +742,8 @@ def multiply_tokens_for_agreements(investments):
     transfer_amount = 0
     updated_agreements = []
     for agreement in investments:  # type: InvestmentAgreement
-        if PaymentInfo.HAS_MULTIPLIED_TOKENS not in agreement.payment_info:
+        if PaymentInfo.HAS_MULTIPLIED_TOKENS not in agreement.payment_info \
+                and agreement.creation_time <= FF_ENDED_TIMESTAMP:
             agreement.token_count *= 100
             agreement.payment_info.append(PaymentInfo.HAS_MULTIPLIED_TOKENS)
             updated_agreements.append(agreement)

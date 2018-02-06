@@ -19,10 +19,12 @@ import logging
 from google.appengine.ext import ndb
 
 from framework.bizz.job import run_job
+from framework.utils import azzert
 from plugins.tff_backend.bizz.investor import multiply_tokens_for_agreements, create_token_value_agreement
 from plugins.tff_backend.models.document import Document, DocumentType
 from plugins.tff_backend.models.investor import InvestmentAgreement, PaymentInfo
 from plugins.tff_backend.models.user import TffProfile
+from plugins.tff_backend.plugin_consts import FF_ENDED_TIMESTAMP
 
 
 def migrate(dry_run=False):
@@ -36,11 +38,11 @@ def _get_all_profiles():
 def _create_token_value_agreement_if_needed(profile_key):
     profile = profile_key.get()  # type: TffProfile
     investments = [i for i in InvestmentAgreement.list_by_user(profile.app_user) if
-                   PaymentInfo.HAS_MULTIPLIED_TOKENS not in i.payment_info]  # type list[InvestmentAgreement]
+                   PaymentInfo.HAS_MULTIPLIED_TOKENS not in i.payment_info and i.creation_time <= FF_ENDED_TIMESTAMP]
     statuses = [InvestmentAgreement.STATUS_PAID, InvestmentAgreement.STATUS_SIGNED]
     canceled_or_started_investments = [i for i in investments if i.status not in statuses]
     to_put, token_count = multiply_tokens_for_agreements(canceled_or_started_investments)
-    assert (token_count == 0, 'Expected token_count to be 0')
+    azzert(token_count == 0, 'Expected token_count to be 0')
     logging.info('Updated %s agreements for user %s', len(to_put), profile.username)
     if to_put:
         ndb.put_multi(to_put)
