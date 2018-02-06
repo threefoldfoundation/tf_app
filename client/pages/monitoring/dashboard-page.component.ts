@@ -1,4 +1,3 @@
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
@@ -13,19 +12,12 @@ import { ITffState } from '../../states';
 @Component({
   selector: 'tff-dashboard-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="default-component-padding">
-      <tff-dashboard [flowStats]="flowStats$ | async"
-                     [tickerEntries]="tickerEntries$ | async"
-                     [installationStats]="installations$ | async"
-                     [chartSize]="chartSize$ | async"></tff-dashboard>
-    </div>`,
+  templateUrl: 'dashboard-page.component.html',
 })
 export class DashboardPageComponent implements OnInit {
   flowStats$: Observable<AggregatedFlowRunStats[]>;
   tickerEntries$: Observable<TickerEntry[]>;
   installations$: Observable<AggregatedInstallationStats>;
-  chartSize$: Observable<[ number, number ]>;
 
   constructor(private store: Store<ITffState>,
               private channelService: ChannelService) {
