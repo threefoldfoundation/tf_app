@@ -769,7 +769,7 @@ def multiply_agreements_tokens(document_key, sign_result, user_detail, investmen
                      to_put)
         transfer_genesis_coins_to_user(app_user, TokenType.I, token_count, memo)
     else:
-        logging.error('Nothing to transfer for user %s (document %s) ', document.username, document.id)
+        logging.info('Nothing to transfer for user %s (document %s) ', document.username, document.id)
 
 
 def create_token_value_agreement(username):
