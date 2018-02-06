@@ -433,7 +433,7 @@ kyc_steps = [
     },
     {
         'type': 'utility_bill',
-        'message': 'Please upload a picture of a utility bill that has your name and address on it for our proof of address',
+        'message': 'Please upload a picture of a utility bill that is not older than three months and has your name and address on it for our Proof of Address.',
         'widget': 'PhotoUploadWidget',
         'order': 24
     }

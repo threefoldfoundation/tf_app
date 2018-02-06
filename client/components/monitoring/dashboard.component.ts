@@ -50,14 +50,13 @@ export enum ChartColor {
   styleUrls: [ 'dashboard.component.css' ],
 })
 export class DashboardComponent implements OnChanges, OnDestroy {
-  @HostListener('window:resize', [ '$event' ])
+  @HostListener('window:resize')
   onResize() {
     this.drawChartSubject.next();
   }
   @Input() flowStats: AggregatedFlowRunStats[];
   @Input() tickerEntries: TickerEntry[];
   @Input() installationStats: AggregatedInstallationStats;
-  @Input() chartSize: [ number, number ];
   timeDuration = 86400 * 7;
   TickerEntryType = TickerEntryType;
   chart: BarChart;
@@ -140,7 +139,6 @@ export class DashboardComponent implements OnChanges, OnDestroy {
   }
 
   private createChart() {
-    console.log('createChart');
     if (!this.flowStats || !this.installationStats) {
       return;
     }

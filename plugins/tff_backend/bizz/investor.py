@@ -70,7 +70,7 @@ from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
     BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT, \
     BUY_TOKENS_FLOW_V5, INVEST_FLOW_TAG, FLOW_SIGN_TOKEN_VALUE_ADDENDUM, SIGN_TOKEN_VALUE_ADDENDUM_TAG, \
-    FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED
+    FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED, FF_ENDED_TIMESTAMP
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO, \
     CreateInvestmentAgreementTO
 from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string, get_step
@@ -738,26 +738,29 @@ def token_value_addendum_signed(message_flow_run_id, member, steps, end_id, end_
     multiply_agreements_tokens(document_key, sign_result, user_details[0], investment_keys)
 
 
+def multiply_tokens_for_agreements(investments):
+    transfer_amount = 0
+    updated_agreements = []
+    for agreement in investments:  # type: InvestmentAgreement
+        if PaymentInfo.HAS_MULTIPLIED_TOKENS not in agreement.payment_info \
+                and agreement.creation_time <= FF_ENDED_TIMESTAMP:
+            agreement.token_count *= 100
+            agreement.payment_info.append(PaymentInfo.HAS_MULTIPLIED_TOKENS)
+            updated_agreements.append(agreement)
+            if agreement.token == TOKEN_ITFT and agreement.status == InvestmentAgreement.STATUS_PAID:
+                transfer_amount += agreement.token_count_float
+    return updated_agreements, long(transfer_amount * 99)
+
+
 def multiply_agreements_tokens(document_key, sign_result, user_detail, investment_keys):
     # type: (ndb.Key, SignWidgetResultTO, UserDetailsTO) -> None
     document = document_key.get()  # type: Document
     investments = ndb.get_multi(investment_keys)
     sign_see_document(document.username, document.iyo_see_id, sign_result, user_detail)
     # Gives the original amount of tokens * 99 as a new transaction
-    transfer_amount = 0
-
     app_user = get_app_user_from_iyo_username(document.username)
-    to_put = []
-
-    for agreement in investments:  # type: InvestmentAgreement
-        if PaymentInfo.HAS_MULTIPLIED_TOKENS not in agreement.payment_info:
-            agreement.token_count *= 100
-            agreement.payment_info.append(PaymentInfo.HAS_MULTIPLIED_TOKENS)
-            to_put.append(agreement)
-            if agreement.token == TOKEN_ITFT and agreement.status == InvestmentAgreement.STATUS_PAID:
-                transfer_amount += agreement.token_count_float
+    to_put, token_count = multiply_tokens_for_agreements(investments)
     memo = 'Amendment %s' % document.id
-    token_count = long(transfer_amount * 99)
     document.status = DocumentStatus.SIGNED.value
     to_put.append(document)
     ndb.put_multi(to_put)
@@ -770,6 +773,7 @@ def multiply_agreements_tokens(document_key, sign_result, user_detail, investmen
 
 
 def create_token_value_agreement(username):
+    logging.info('Creating token value agreement for user %s', username)
     document_id = Document.allocate_ids(1)[0]
     pdf_name = Document.create_filename(DocumentType.TOKEN_VALUE_ADDENDUM.value, document_id)
     pdf_contents = create_itft_amendment_1_pdf(get_app_user_from_iyo_username(username))
