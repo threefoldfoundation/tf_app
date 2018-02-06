@@ -33,6 +33,7 @@ class DocumentStatus(Enum):
 
 
 class Document(NdbModel):
+    NAMESPACE = NAMESPACE
     username = ndb.StringProperty()
     iyo_see_id = ndb.StringProperty()
     type = ndb.StringProperty(choices=map(lambda x: x.value, DocumentType))

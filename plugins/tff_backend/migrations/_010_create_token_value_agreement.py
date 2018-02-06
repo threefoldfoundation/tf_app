@@ -19,7 +19,8 @@ import logging
 from google.appengine.ext import ndb
 
 from framework.bizz.job import run_job
-from plugins.tff_backend.bizz.investor import create_token_value_agreement, multiply_tokens_for_agreements
+from plugins.tff_backend.bizz.investor import multiply_tokens_for_agreements, create_token_value_agreement
+from plugins.tff_backend.models.document import Document, DocumentType
 from plugins.tff_backend.models.investor import InvestmentAgreement, PaymentInfo
 from plugins.tff_backend.models.user import TffProfile
 
@@ -43,5 +44,7 @@ def _create_token_value_agreement_if_needed(profile_key):
     logging.info('Updated %s agreements for user %s', len(to_put), profile.username)
     if to_put:
         ndb.put_multi(to_put)
-    if any(i.status in statuses for i in investments):
+    has_document = any(
+        d.type == DocumentType.TOKEN_VALUE_ADDENDUM.value for d in Document.list_by_username(profile.username))
+    if any(i.status in statuses for i in investments) and not has_document:
         create_token_value_agreement(profile.username)
