@@ -68,9 +68,9 @@ def multi_index_investment_agreement(order_keys):
     return INVESTMENT_INDEX.put(to_put)
 
 
-def _stringify_long(value):
-    # type: (long) -> str
-    return str(float(value)).rstrip('0').rstrip('.')
+def _stringify_float(value):
+    # type: (float) -> str
+    return str(value).rstrip('0').rstrip('.')
 
 
 def create_investment_agreement_document(investment, iyo_username):
@@ -87,9 +87,9 @@ def create_investment_agreement_document(investment, iyo_username):
         search.TextField(name='currency', value=investment.currency),
     ]
     if investment.amount:
-        fields.append(search.TextField(name='amount', value=_stringify_long(investment.amount)))
+        fields.append(search.TextField(name='amount', value=_stringify_float(investment.amount)))
     if investment.token_count:
-        fields.append(search.TextField(name='token_count', value=_stringify_long(investment.token_count)))
+        fields.append(search.TextField(name='token_count', value=_stringify_float(investment.token_count_float)))
     return search.Document(doc_id=investment_id_str, fields=fields)
 
 
