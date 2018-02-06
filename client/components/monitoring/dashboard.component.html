@@ -1,17 +1,5 @@
 <div fxLayout="row" fxLayout.lt-md="column">
-  <div fxFlex="60" fxFlex.lt-md="100">
-    <mat-grid-list cols="3" rowHeight="320px">
-      <mat-grid-tile *ngFor="let card of cards; trackBy: trackCards">
-        <mat-card class="flow-card">
-          <mat-card-title>{{card.title}}</mat-card-title>
-          <mat-card-content>
-            <google-chart [data]="card.chart"></google-chart>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-    </mat-grid-list>
-    <p *ngIf="cards.length">{{ 'tff.stats_for_last_x' | translate : { time: timeDuration | timeDuration } }}</p>
-  </div>
+  <google-chart [data]="chart"></google-chart>
   <mat-nav-list fxFlex="40" fxFlex.lt-md="100">
     <mat-list-item *ngFor="let entry of tickerEntries; trackBy: trackTickerEntries">
       <a [routerLink]="getTickerEntryUrl(entry)" target="_blank" fxLayout="row" class="ticker-line">

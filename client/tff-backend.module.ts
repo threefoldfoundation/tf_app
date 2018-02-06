@@ -127,7 +127,7 @@ const PIPES = [
   ProfileNamePipe,
 ];
 
-export const TFF_PROVIDERS: any[] = [
+export const TFF_PROVIDERS = [
   ApiErrorService,
   FlowStatisticsService,
   TffConfig,

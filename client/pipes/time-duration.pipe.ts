@@ -2,30 +2,7 @@ import { AsyncPipe, I18nPluralPipe } from '@angular/common';
 import { ChangeDetectorRef, Pipe, PipeTransform } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs/Observable';
-import { getTimePipeValue, TimePipeTranslationMapping } from './time.pipe';
-
-const translationMapping: TimePipeTranslationMapping = {
-  s: {
-    '=1': 'tff.1_second',
-    'other': 'tff.x_seconds',
-  },
-  m: {
-    '=1': 'tff.1_minute',
-    'other': 'tff.x_minutes',
-  },
-  h: {
-    '=1': 'tff.1_hour',
-    'other': 'tff.x_hours',
-  },
-  d: {
-    '=1': 'tff.1_day',
-    'other': 'tff.x_days',
-  },
-  y: {
-    '=1': 'tff.1_year',
-    'other': 'tff.x_years',
-  },
-};
+import { getTimePipeValue, TIME_DURATION_MAPPING, TimePipeTranslationMapping } from './time-pipe-data';
 
 @Pipe({
   name: 'timeDuration',
@@ -55,7 +32,7 @@ export class TimeDurationPipe implements PipeTransform {
   }
 
   private getTranslationKey(value: number, timeType: keyof TimePipeTranslationMapping) {
-    return this.i18nPluralPipe.transform(value, translationMapping[ timeType ]);
+    return this.i18nPluralPipe.transform(value, TIME_DURATION_MAPPING[ timeType ]);
   }
 
   private getObservable(): Observable<string> {
