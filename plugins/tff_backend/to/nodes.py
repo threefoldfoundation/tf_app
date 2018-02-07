@@ -53,6 +53,10 @@ class NodeOrderTO(TO):
     document_url = unicode_property('document_url')
 
 
+class NodeOrderDetailTO(NodeOrderTO):
+    username = unicode_property('username')
+
+
 class CreateNodeOrderTO(TO):
     app_user = unicode_property('app_user')
     billing_info = typed_property('billing_info', ContactInfoTO)  # type: ContactInfoTO

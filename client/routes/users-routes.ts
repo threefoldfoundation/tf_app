@@ -1,12 +1,14 @@
 import { MetaGuard } from '@ngx-meta/core';
-import { CreateTransactionPageComponent, UserPageComponent, UserTransactionsListPageComponent } from '../components/users';
-import { KycPageComponent } from '../pages/kyc';
 import {
+  CreateTransactionPageComponent,
+  KycPageComponent,
   UserDetailsPageComponent,
   UserListPageComponent,
   UserNodeOrdersPageComponent,
+  UserPageComponent,
   UserPurchaseAgreementsPageComponent,
-} from '../pages/users';
+  UserTransactionsListPageComponent,
+} from '../pages';
 
 export const USERS_ROUTES = [
   {

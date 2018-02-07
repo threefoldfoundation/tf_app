@@ -20,6 +20,7 @@ export interface TffProfile {
   referrer_user: string;
   referrer_username: string;
   username: string;
+  referral_code: string;
 }
 
 export enum KYCStatus {
