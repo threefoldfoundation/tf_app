@@ -47,4 +47,6 @@ FLOW_HOSTER_REMINDER = 'hoster_reminder'
 FLOW_UTILITY_BILL_RECEIVED = 'utility_bill_received'
 FLOW_SIGN_TOKEN_VALUE_ADDENDUM = 'sign_token_value_addendum'
 
+FF_ENDED_TIMESTAMP = 1517785200  # friends and family sale
+
 SCHEDULED_QUEUE = 'scheduled-queue'

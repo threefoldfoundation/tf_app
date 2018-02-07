@@ -1,7 +1,9 @@
 <mat-nav-list *ngIf="investmentAgreements">
   <a *ngFor="let agreement of investmentAgreements.results" [routerLink]="['/investment-agreements', agreement.id]"
      [target]="linkTarget" mat-list-item>
-    <h4 matLine>{{ 'tff.investment_agreement_x' | translate : { id: agreement.id, ref: agreement.reference } }}</h4>
+    <h4 matLine>
+      {{ 'tff.investment_agreement_x' | translate : { id: agreement.id, ref: agreement.reference } }}
+      - {{ getStatus(agreement) | translate }}</h4>
     <p matLine *ngIf="agreement.name">{{ agreement.name }}</p>
     <tff-investment-agreement-amount matLine [amount]="agreement.amount"
                                      [currency]="agreement.currency"

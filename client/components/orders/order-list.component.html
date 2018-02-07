@@ -1,6 +1,6 @@
 <mat-nav-list *ngIf="orders">
   <a mat-list-item *ngFor="let order of orders.results" [routerLink]="['/node-orders', order.id]" [target]="linkTarget">
-    <h4 matLine>{{ 'tff.node_order_x' | translate : { orderId: order.id } }}</h4>
+    <h4 matLine>{{ 'tff.node_order_x' | translate : { orderId: order.id } }} - {{ getStatus(order) | translate }}</h4>
     <p matLine>{{ order.billing_info.name }}</p>
     <p matLine>{{ order.order_time | timestamp }}</p>
   </a>

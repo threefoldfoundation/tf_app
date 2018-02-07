@@ -12,12 +12,7 @@ import { ITffState } from '../../states';
 @Component({
   selector: 'tff-dashboard-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="default-component-padding">
-      <tff-dashboard [flowStats]="flowStats$ | async"
-                     [tickerEntries]="tickerEntries$ | async"
-                     [installationStats]="installations$ | async"></tff-dashboard>
-    </div>`,
+  templateUrl: 'dashboard-page.component.html',
 })
 export class DashboardPageComponent implements OnInit {
   flowStats$: Observable<AggregatedFlowRunStats[]>;
@@ -35,7 +30,7 @@ export class DashboardPageComponent implements OnInit {
     this.installations$ = this.channelService.db.object<InstallationStats>(`${prefix}/dashboard/installations`).valueChanges()
       .pipe(map(stats => this.aggregateInstallationStats(stats)));
     this.tickerEntries$ = this.channelService.db
-      .list<TickerEntry<string>>(`${prefix}/dashboard/ticker`, ref => ref.orderByChild('date').limitToLast(50))
+      .list<TickerEntry<string>>(`${prefix}/dashboard/ticker`, ref => ref.orderByChild('date').limitToLast(250))
       .valueChanges().pipe(map(results => this.convertTickerEntries(results)));
   }
 

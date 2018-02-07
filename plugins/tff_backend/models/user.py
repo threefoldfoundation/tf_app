@@ -75,16 +75,21 @@ class TffProfile(NdbModel):
     nodes = ndb.StructuredProperty(NodeInfo, repeated=True)  # type: list[NodeInfo]
     kyc = ndb.StructuredProperty(KYCInformation)  # type: KYCInformation
 
-    @classmethod
-    def create_key(cls, username):
-        return ndb.Key(cls, username, namespace=NAMESPACE)
-
     @property
     def username(self):
         return self.key.id().decode('utf8')
 
+    @property
+    def referral_code(self):
+        from plugins.tff_backend.bizz.user import user_code
+        return user_code(self.username)
+
+    @classmethod
+    def create_key(cls, username):
+        return ndb.Key(cls, username, namespace=NAMESPACE)
+
     def to_dict(self, extra_properties=None, include=None, exclude=None):
-        return super(TffProfile, self).to_dict(extra_properties or ['username'], include, exclude)
+        return super(TffProfile, self).to_dict(extra_properties or ['username', 'referral_code'], include, exclude)
 
     @classmethod
     def list_with_node(cls):

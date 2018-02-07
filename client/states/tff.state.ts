@@ -1,11 +1,13 @@
-import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc/rpc.interfaces';
-import { Profile } from '../../../its_you_online_auth/client/interfaces/index';
-import { Installation } from '../../../rogerthat_api/client/interfaces';
-import { InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces/app';
-import { AgendaEvent, EventParticipant } from '../interfaces/agenda-events.interfaces';
+import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc';
+import { Profile } from '../../../its_you_online_auth/client/interfaces';
+import { Installation, InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces';
 import {
+  AgendaEvent,
+  Check,
+  EventParticipant,
+  FirebaseFlowStats,
   FlowRun,
-  FlowRunList, FirebaseFlowStats,
+  FlowRunList,
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
@@ -14,11 +16,12 @@ import {
   NodeOrderList,
   NodeOrdersQuery,
   PaginatedResult,
+  SearchUsersQuery,
+  TffProfile,
   TransactionList,
+  UserList,
   WalletBalance,
-} from '../interfaces/index';
-import { Check } from '../interfaces/onfido.interfaces';
-import { SearchUsersQuery, TffProfile, UserList } from '../interfaces/profile.interfaces';
+} from '../interfaces';
 
 export interface ITffState {
   orders: NodeOrderList;
