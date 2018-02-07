@@ -26,13 +26,14 @@ from mcfw.consts import MISSING
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.payment import get_asset_ids, get_token_from_asset_id, get_balance, get_transactions, \
-    get_asset_id_from_token, get_app_user_from_asset_id, get_transaction_of_type_pending
+    get_asset_id_from_token, get_app_user_from_asset_id, get_transaction_of_type_pending, \
+    create_signature_data
 from plugins.tff_backend.consts.payment import PROVIDER_ID, TOKEN_TFT_CONTRIBUTOR, TOKEN_ITFT, TokenType
 from plugins.tff_backend.models.payment import ThreeFoldPendingTransaction
-from plugins.tff_backend.plugin_consts import NAMESPACE
+from plugins.tff_backend.plugin_consts import NAMESPACE, COIN_TO_HASTINGS
 from plugins.tff_backend.to.payment import PaymentProviderAssetTO, PaymentAssetBalanceTO, \
     PaymentProviderTransactionTO, GetPaymentTransactionsResponseTO, CreateTransactionResponseTO, \
-    PublicPaymentProviderTransactionTO
+    PublicPaymentProviderTransactionTO, CryptoTransactionResponseTO, PaymentProviderSignatureDataTransactionTO
 
 
 def custom_auth_method(f, request_handler):
@@ -142,6 +143,19 @@ def api_get_transactions(asset_id, transaction_type, cursor=None):
 
     rto.cursor = unicode(new_cursor.urlsafe()) if has_more and new_cursor else None
     return rto
+
+
+@rest('/payment/transactions/create_signature_data', 'post', custom_auth_method=custom_auth_method)
+@returns(CryptoTransactionResponseTO)
+@arguments(data=PaymentProviderSignatureDataTransactionTO)
+def api_create_signature_data_transaction(data):
+    # todo calculate amount with precision
+    try:
+        data = create_signature_data(data.from_asset_id, data.to_asset_id, data.amount * COIN_TO_HASTINGS, data.app_user)
+    except:
+        pass
+
+    return data
 
 
 @rest('/payment/transactions', 'post', custom_auth_method=custom_auth_method)

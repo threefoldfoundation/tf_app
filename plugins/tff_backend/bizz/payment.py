@@ -15,14 +15,14 @@
 #
 # @@license_version:1.3@@
 
+from datetime import datetime
 import hashlib
 import hmac
 import json
 import logging
 import time
-import uuid
-from datetime import datetime
 from types import NoneType
+import uuid
 
 from google.appengine.api import urlfetch, users
 from google.appengine.ext import deferred, ndb
@@ -34,13 +34,15 @@ from mcfw.consts import DEBUG
 from mcfw.exceptions import HttpBadRequestException
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.profile import get_profile
+from plugins.rivine_explorer.api import get_output_ids
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_TFT_CONTRIBUTOR, TOKEN_ITFT, TokenType
 from plugins.tff_backend.models.payment import ThreeFoldWallet, ThreeFoldTransaction, \
     ThreeFoldPendingTransaction, ThreeFoldBlockHeight
-from plugins.tff_backend.plugin_consts import NAMESPACE
-from plugins.tff_backend.to.payment import WalletBalanceTO
+from plugins.tff_backend.plugin_consts import NAMESPACE, COIN_TO_HASTINGS
+from plugins.tff_backend.to.payment import WalletBalanceTO, CryptoTransactionTO, \
+    CryptoTransactionDataTO, CryptoTransactionInputTO, CryptoTransactionOutputTO
 from plugins.tff_backend.utils.app import get_app_id_from_app_user
 
 
@@ -365,6 +367,49 @@ def get_spendable_amount_of_transaction(transaction):
 def validate_token_type(token_type):
     if token_type not in TokenType.all():
         raise HttpBadRequestException(u'invalid_token_type', {'possible_token_types': TokenType.all()})
+
+
+@returns(CryptoTransactionTO)
+@arguments(from_asset_id=unicode, to_asset_id=unicode, amount=(int, long), app_user=users.User)
+def create_signature_data(from_asset_id, to_asset_id, amount, app_user):
+    transactions = get_output_ids(from_asset_id)
+
+    transaction = CryptoTransactionTO()
+    transaction.minerfees = unicode(COIN_TO_HASTINGS)
+    transaction.data = []
+    transaction.from_address = from_asset_id
+    transaction.to_address = to_asset_id
+
+    amount_left = amount
+    for t in transactions:
+        data = CryptoTransactionDataTO()
+        data.input = CryptoTransactionInputTO(t.output_id, 0)
+        data.outputs = []
+        data.timelock = 0
+        data.algorithm = None
+        data.public_key_index = 0
+        data.public_key = None
+        data.signature_hash = None
+        data.signature = None
+
+        should_break = False
+        a = long(t.amount)
+        if (amount_left - a) >= 0:
+            data.outputs.append(CryptoTransactionOutputTO(unicode(a), to_asset_id))
+            amount_left -= a
+        else:
+            should_break = True
+            data.outputs.append(CryptoTransactionOutputTO(unicode(amount_left), to_asset_id))
+            data.outputs.append(CryptoTransactionOutputTO(unicode(a - amount_left), from_asset_id))
+
+        transaction.data.append(data)
+
+        if should_break:
+            break
+    else:
+        raise Exception('insufficient_funds')
+
+    return transaction
 
 
 @returns(ThreeFoldPendingTransaction)

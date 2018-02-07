@@ -60,6 +60,48 @@ class PublicPaymentProviderTransactionTO(object):
     status = unicode_property('6')
 
 
+class CryptoTransactionInputTO(object):
+    parent_id = unicode_property('1')
+    timelock = long_property('2')
+
+
+class CryptoTransactionOutputTO(object):
+    value = unicode_property('1')
+    unlockhash = unicode_property('2')
+
+
+class CryptoTransactionDataTO(object):
+    input = typed_property('1', CryptoTransactionInputTO, False)
+    outputs = typed_property('2', CryptoTransactionOutputTO, True)
+    timelock = long_property('3', default=0)
+    algorithm = unicode_property('4', default=None)
+    public_key_index = long_property('5', default=0)
+    public_key = unicode_property('6', default=None)
+    signature_hash = unicode_property('7', default=None)
+    signature = unicode_property('8', default=None)
+
+
+class CryptoTransactionTO(object):
+    minerfees = unicode_property('1')
+    data = typed_property('2', CryptoTransactionDataTO, True)
+    from_address = unicode_property('3')
+    to_address = unicode_property('4')
+
+
+class CryptoTransactionResponseTO(object):
+    result = typed_property('1', CryptoTransactionTO, False)
+    error = unicode_property('2')
+
+
+class PaymentProviderSignatureDataTransactionTO(TO):
+    id = unicode_property('1')
+    amount = long_property('2')
+    precision = long_property('3')
+    memo = unicode_property('4')
+    from_asset_id = unicode_property('5')
+    to_asset_id = unicode_property('6')
+
+
 class PaymentProviderTransactionTO(TO):
     id = unicode_property('1')
     type = unicode_property('2')
