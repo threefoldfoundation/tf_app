@@ -29,4 +29,6 @@ class TffProfileTO(TO):
     app_user = unicode_property('app_user')
     referrer_user = unicode_property('referrer_user')
     referrer_username = unicode_property('referrer_username')
+    nodes = typed_property('nodes', dict, True)
+    referral_code = unicode_property('referral_code')
     kyc = typed_property('kyc', dict)

@@ -51,6 +51,10 @@ export interface InvestmentAgreement {
   cancel_time: number | null;
   modification_time: number;
   document_url: string | null;
+  /**
+   * Only set on the details pages
+   */
+  username?: string;
 }
 
 export interface CreateInvestmentAgreementPayload {

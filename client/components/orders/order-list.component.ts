@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { NodeOrderList, ORDER_STATUSES } from '../../interfaces/index';
+import { ApiRequestStatus } from '../../../../framework/client/rpc';
+import { NodeOrder, NodeOrderList, ORDER_STATUSES, ORDER_STATUSES_DICT } from '../../interfaces';
 
 @Component({
   selector: 'tff-order-list',
@@ -13,4 +13,8 @@ export class OrderListComponent {
   @Input() status: ApiRequestStatus;
   @Input() linkTarget = '_self';
   @Output() loadMore = new EventEmitter();
+
+  getStatus(order: NodeOrder): string {
+    return ORDER_STATUSES_DICT[ order.status ];
+  }
 }
