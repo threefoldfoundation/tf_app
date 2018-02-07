@@ -57,14 +57,14 @@
         {% endif %}
       </form>
     </formMessage>
-    {% if not loop.last and step.positive_reference %}
+        {% if not loop.last and step.positive_reference %}
     <resultsFlush
       id="flush_monitoring_{{ step.positive_reference }}"
       reference="{{ step.positive_reference }}"/>
-    {% endif %}
+        {% endif %}
     {% else %}
     <message id="{{ step.reference }}" autoLock="true" vibrate="false" alertType="SILENT" alertIntervalType="NONE"
-             allowDismiss="false">
+             allowDismiss="false" brandingKey="{{ branding_key }}">
       <content>{{ step.message }}</content>
       {% for answer in step.answers %}
       <answer caption="{{ answer.caption }}" action="{{ answer.action }}" id="{{ answer.id }}"
