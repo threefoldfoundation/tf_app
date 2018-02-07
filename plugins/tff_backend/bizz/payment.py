@@ -412,6 +412,63 @@ def create_signature_data(from_asset_id, to_asset_id, amount, app_user):
     return transaction
 
 
+@returns()
+@arguments(crypto_transaction=CryptoTransactionTO)
+def create_transaction(crypto_transaction):
+    from plugins.rivine_explorer.api import create_transaction as rivine_create_transaction
+    data = {}
+    data["coininputs"] = []
+    for d in crypto_transaction.data:
+        coininput = {
+            u"parentid": d.input.parent_id,
+            u"unlockconditions": {
+                u"timelock": 0,
+                u"publickeys": [{
+                    u"algorithm": d.algorithm,
+                    u"key": d.public_key
+                }],
+                u"signaturesrequired": 1
+            }
+        }
+        data["coininputs"].append(coininput)
+
+    data["coinoutputs"] = []
+    for d in crypto_transaction.data:
+        for output in d.outputs:
+            coinoutput = {
+                u"value": output.value,
+                u"unlockhash": output.unlockhash
+            }
+
+            data["coinoutputs"].append(coinoutput)
+
+    data["blockstakeinputs"] = None
+    data["blockstakeoutputs"] = None
+    data["minerfees"] = [crypto_transaction.minerfees]  # todo investigate if this should be done/output
+    data["arbitrarydata"] = None
+    data["transactionsignatures"] = []
+    for d in crypto_transaction.data:
+        transactionsignature = {
+            u"parentid": d.input.parent_id,
+            u"publickeyindex": d.public_key_index,
+            u"timelock": d.timelock,
+            u"coveredfields": {
+                u"wholetransaction": True,
+                u"coininputs": None,
+                u"coinoutputs": None,
+                u"blockstakeinputs": None,
+                u"blockstakeoutputs": None,
+                u"minerfees": None,
+                u"arbitrarydata": None,
+                u"transactionsignatures": None
+            },
+            u"signature": d.signature
+        }
+        data["transactionsignatures"].append(transactionsignature)
+
+    rivine_create_transaction(data)
+
+
 @returns(ThreeFoldPendingTransaction)
 @arguments(app_user=users.User, token_type=unicode, amount=(int, long), memo=unicode, epoch=(int, long))
 def transfer_genesis_coins_to_user(app_user, token_type, amount, memo=None, epoch=0):

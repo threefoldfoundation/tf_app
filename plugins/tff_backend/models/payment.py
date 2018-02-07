@@ -118,6 +118,16 @@ class ThreeFoldTransaction(ThreeFoldBaseTransaction):
             .order(-cls.timestamp)  # noQA
 
 
+class ThreeFoldPendingTransactionDetails(NdbModel):
+    NAMESPACE = NAMESPACE
+
+    data = ndb.TextProperty()
+
+    @classmethod
+    def create_key(cls, transaction_id):
+        return ndb.Key(cls, u"%s" % transaction_id, namespace=NAMESPACE)
+
+
 class ThreeFoldPendingTransaction(ThreeFoldBaseTransaction):
     STATUS_PENDING = u'pending'
     STATUS_CONFIRMED = u'confirmed'

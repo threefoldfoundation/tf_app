@@ -113,6 +113,7 @@ class PaymentProviderTransactionTO(TO):
     from_asset_id = unicode_property('8')
     to_asset_id = unicode_property('9')
     precision = long_property('10')
+    crypto_transaction = typed_property('11', CryptoTransactionTO, False)
 
 
 class GetPaymentTransactionsResponseTO(TO):

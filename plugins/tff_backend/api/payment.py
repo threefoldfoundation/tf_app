@@ -15,25 +15,27 @@
 #
 # @@license_version:1.3@@
 
+import json
 import logging
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from framework.plugin_loader import get_config
-from framework.utils import now
 from mcfw.consts import MISSING
 from mcfw.restapi import rest
-from mcfw.rpc import returns, arguments
+from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.tff_backend.bizz.payment import get_asset_ids, get_token_from_asset_id, get_balance, get_transactions, \
     get_asset_id_from_token, get_app_user_from_asset_id, get_transaction_of_type_pending, \
-    create_signature_data
-from plugins.tff_backend.consts.payment import PROVIDER_ID, TOKEN_TFT_CONTRIBUTOR, TOKEN_ITFT, TokenType
-from plugins.tff_backend.models.payment import ThreeFoldPendingTransaction
+    create_signature_data, create_transaction
+from plugins.tff_backend.consts.payment import PROVIDER_ID
+from plugins.tff_backend.models.payment import ThreeFoldPendingTransaction, \
+    ThreeFoldPendingTransactionDetails
 from plugins.tff_backend.plugin_consts import NAMESPACE, COIN_TO_HASTINGS
 from plugins.tff_backend.to.payment import PaymentProviderAssetTO, PaymentAssetBalanceTO, \
     PaymentProviderTransactionTO, GetPaymentTransactionsResponseTO, CreateTransactionResponseTO, \
-    PublicPaymentProviderTransactionTO, CryptoTransactionResponseTO, PaymentProviderSignatureDataTransactionTO
+    PublicPaymentProviderTransactionTO, CryptoTransactionResponseTO, PaymentProviderSignatureDataTransactionTO, \
+    CryptoTransactionTO
 
 
 def custom_auth_method(f, request_handler):
@@ -149,13 +151,20 @@ def api_get_transactions(asset_id, transaction_type, cursor=None):
 @returns(CryptoTransactionResponseTO)
 @arguments(data=PaymentProviderSignatureDataTransactionTO)
 def api_create_signature_data_transaction(data):
+    to = CryptoTransactionResponseTO()
+    to.result = None
+    to.error = None
     # todo calculate amount with precision
     try:
-        data = create_signature_data(data.from_asset_id, data.to_asset_id, data.amount * COIN_TO_HASTINGS, data.app_user)
-    except:
-        pass
+        to.result = create_signature_data(data.from_asset_id, data.to_asset_id, data.amount * COIN_TO_HASTINGS, data.app_user)
 
-    return data
+        transaction = ThreeFoldPendingTransactionDetails(key=ThreeFoldPendingTransactionDetails.create_key(data.id),
+                                                         data=json.dumps(serialize_complex_value(to.result, CryptoTransactionTO, False)))
+        transaction.put()
+
+    except Exception as e:
+        to.error = e.get_message()
+    return to
 
 
 @rest('/payment/transactions', 'post', custom_auth_method=custom_auth_method)
@@ -171,43 +180,15 @@ def api_create_transaction(data):
         to.status = ThreeFoldPendingTransaction.STATUS_FAILED
         return to
 
+    ptd = ThreeFoldPendingTransactionDetails.create_key(data.id).get()
+    if not ptd:
+        to.status = ThreeFoldPendingTransaction.STATUS_FAILED
+        return to
+
     if data.precision is MISSING:
         data.precision = 2
 
-    from_user = get_app_user_from_asset_id(data.from_asset_id)
-    to_user = get_app_user_from_asset_id(data.to_asset_id)
-    token = get_token_from_asset_id(data.from_asset_id)
-    if token == TOKEN_ITFT:
-        token_type = TokenType.I
-    elif token == TOKEN_TFT_CONTRIBUTOR:
-        token_type = TokenType.D
-    else:
-        token_type = TokenType.A
+    # todo validate transaction with saved transaction
 
-    def trans():
-        pt_key = ThreeFoldPendingTransaction.create_key(data.id)
-        pt = pt_key.get()
-        if not pt:
-            pt = ThreeFoldPendingTransaction(key=pt_key,
-                                             timestamp=now())
-        elif pt.synced:
-            return pt.synced_status
+    create_transaction(data.crypto_transaction)
 
-        # todo precision
-        pt.unlock_timestamps = [0]
-        pt.unlock_amounts = [data.amount]
-        pt.token = token
-        pt.token_type = token_type
-        pt.amount = data.amount
-        pt.memo = data.memo
-        pt.app_users = [from_user, to_user]
-        pt.from_user = from_user
-        pt.to_user = to_user
-        pt.synced = False
-        pt.synced_status = ThreeFoldPendingTransaction.STATUS_PENDING
-        pt.put()
-
-        return pt.synced_status
-
-    to.status = ndb.transaction(trans)
-    return to
