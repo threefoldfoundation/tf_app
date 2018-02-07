@@ -28,7 +28,7 @@ from plugins.tff_backend.utils import convert_to_str
 def create_keystore_key(username, data):
     client = get_itsyouonline_client_from_username(username)
     data = serialize_complex_value(data, IYOKeyStoreKey, False, skip_missing=True)
-    result = client.api.users.SaveKeyStoreKey(data, convert_to_str(username))
+    result = client.users.SaveKeyStoreKey(data, convert_to_str(username))
     return IYOKeyStoreKey(**result.json())
 
 
@@ -36,7 +36,7 @@ def create_keystore_key(username, data):
 @arguments(username=unicode)
 def get_keystore(username):
     client = get_itsyouonline_client_from_username(username)
-    result = client.api.users.GetKeyStore(convert_to_str(username))
+    result = client.users.GetKeyStore(convert_to_str(username))
     return [IYOKeyStoreKey(**key) for key in result.json()]
 
 

@@ -38,8 +38,7 @@ from mcfw.rpc import returns, arguments
 from onfido import Applicant
 from plugins.intercom_support.intercom_support_plugin import IntercomSupportPlugin
 from plugins.intercom_support.rogerthat_callbacks import start_or_get_chat
-from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client, \
-    has_access_to_organization
+from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached, get_itsyouonline_client
 from plugins.its_you_online_auth.bizz.profile import get_profile, index_profile
 from plugins.its_you_online_auth.models import Profile
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
@@ -50,10 +49,10 @@ from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_QR, REGISTRATIO
 from plugins.rogerthat_api.to.messaging import AnswerTO, Message
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.authentication import Organization, Roles, RogerthatRoles
+from plugins.tff_backend.bizz.authentication import Roles, RogerthatRoles, Grants
 from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user, tag_intercom_users, IntercomTags
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
-from plugins.tff_backend.bizz.iyo.user import get_user
+from plugins.tff_backend.bizz.iyo.user import get_user, has_grant
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.bizz.kyc.onfido_bizz import create_check, update_applicant, deserialize, list_checks, serialize
 from plugins.tff_backend.bizz.messages import send_message_and_email
@@ -96,18 +95,10 @@ def user_registered(user_detail, origin, data):
             return
 
         jwt = qr_content
-
     elif origin == REGISTRATION_ORIGIN_OAUTH:
         access_token_data = data.get('result', {})
         access_token = access_token_data.get('access_token')
-        scopes = [s for s in access_token_data.get('scope', '').split(',') if s]
-        missing_scopes = [s for s in required_scopes if s and s not in scopes]
-        if missing_scopes:
-            logging.warn('Access token is missing required scopes %s', missing_scopes)
-        scopes.append('offline_access')
-        logging.debug('Creating JWT with scopes %s', scopes)
-        jwt = create_jwt(access_token, scope=','.join(scopes))
-
+        jwt = create_jwt(access_token, scope='offline_access')
     else:
         return
 
@@ -318,10 +309,10 @@ def is_user_in_roles(user_detail, roles):
     if not username:
         return result
     for role in roles:
-        organization_id = Organization.get_by_role_name(role.name)
-        if not organization_id:
+        grant = Grants.get_by_role_name(role.name)
+        if not grant:
             continue
-        if has_access_to_organization(client, organization_id, username):
+        if has_grant(client, username, grant):
             result.append(role.id)
     return result
 
@@ -331,8 +322,8 @@ def is_user_in_roles(user_detail, roles):
 def add_user_to_public_role(user_detail):
     client = get_itsyouonline_client()
     username = get_iyo_username(user_detail)
-    organization_id = Organization.get_by_role_name(Roles.MEMBERS)
-    if has_access_to_organization(client, organization_id, username):
+    grant = Grants.get_by_role_name(Roles.MEMBERS)
+    if has_grant(client, username, grant):
         logging.info('User is already in members role, not adding to public role')
     else:
         add_user_to_role(user_detail, RogerthatRoles.PUBLIC)

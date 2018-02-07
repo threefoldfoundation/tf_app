@@ -19,9 +19,9 @@ from google.appengine.ext import ndb, deferred
 
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.to import UserDetailsTO
-from plugins.tff_backend.bizz.authentication import Organization, RogerthatRoles
+from plugins.tff_backend.bizz.authentication import RogerthatRoles, Grants
 from plugins.tff_backend.bizz.global_stats import ApiCallException
-from plugins.tff_backend.bizz.iyo.user import invite_user_to_organization, remove_user_from_organization
+from plugins.tff_backend.bizz.iyo.user import remove_grant, add_grant
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.service import remove_user_from_role, add_user_to_role
 from plugins.tff_backend.bizz.user import store_referral_in_user_data, \
@@ -69,7 +69,7 @@ def _setup_permissions(username, user_detail):
     def trans():
         deferred.defer(remove_user_from_role, user_detail, RogerthatRoles.PUBLIC, _transactional=True)
         deferred.defer(add_user_to_role, user_detail, RogerthatRoles.MEMBERS, _transactional=True)
-        deferred.defer(remove_user_from_organization, username, Organization.PUBLIC, _transactional=True)
-        deferred.defer(invite_user_to_organization, username, Organization.MEMBERS, _transactional=True)
+        deferred.defer(remove_grant, username, Grants.PUBLIC, _transactional=True)
+        deferred.defer(add_grant, username, Grants.MEMBERS, _transactional=True)
 
     ndb.transaction(trans)
