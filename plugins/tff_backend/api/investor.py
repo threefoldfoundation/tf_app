@@ -15,8 +15,9 @@
 #
 # @@license_version:1.3@@
 
-from framework.bizz.authentication import get_current_session
 from google.appengine.api.search import MAXIMUM_DOCUMENTS_RETURNED_PER_SEARCH
+
+from framework.bizz.authentication import get_current_session
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.audit.audit import audit
@@ -26,7 +27,7 @@ from plugins.tff_backend.bizz.investor import put_investment_agreement, create_i
 from plugins.tff_backend.bizz.iyo.utils import get_app_user_from_iyo_username
 from plugins.tff_backend.dal.investment_agreements import search_investment_agreements, get_investment_agreement
 from plugins.tff_backend.to.investor import InvestmentAgreementListTO, InvestmentAgreementTO, \
-    CreateInvestmentAgreementTO
+    CreateInvestmentAgreementTO, InvestmentAgreementDetailTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
@@ -41,24 +42,24 @@ def api_get_investment_agreements(page_size=20, cursor=None, query=None, status=
 
 
 @rest('/investment-agreements', 'post', Scopes.BACKEND_ADMIN, silent=True)
-@returns(InvestmentAgreementTO)
+@returns(InvestmentAgreementDetailTO)
 @arguments(data=CreateInvestmentAgreementTO)
 def api_create_investment_agreement(data):
-    return InvestmentAgreementTO.from_model(create_investment_agreement(data))
+    return InvestmentAgreementDetailTO.from_dict(create_investment_agreement(data).to_dict(['username']))
 
 
 @rest('/investment-agreements/<agreement_id:[^/]+>', 'get', Scopes.BACKEND_ADMIN)
-@returns(InvestmentAgreementTO)
+@returns(InvestmentAgreementDetailTO)
 @arguments(agreement_id=(int, long))
 def api_get_investment_agreement(agreement_id):
-    return InvestmentAgreementTO.from_model(get_investment_agreement(agreement_id))
+    return InvestmentAgreementDetailTO.from_dict(get_investment_agreement(agreement_id).to_dict(['username']))
 
 
 @audit(AuditLogType.UPDATE_INVESTMENT_AGREEMENT, 'agreement_id')
 @rest('/investment-agreements/<agreement_id:[^/]+>', 'put', Scopes.BACKEND_ADMIN)
-@returns(InvestmentAgreementTO)
+@returns(InvestmentAgreementDetailTO)
 @arguments(agreement_id=(int, long), data=InvestmentAgreementTO)
 def api_put_investment_agreement(agreement_id, data):
     app_user = get_app_user_from_iyo_username(get_current_session().user_id)
     agreement = put_investment_agreement(agreement_id, data, app_user)
-    return InvestmentAgreementTO.from_model(agreement)
+    return InvestmentAgreementDetailTO.from_dict(agreement.to_dict(['username']))

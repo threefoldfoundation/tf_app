@@ -51,6 +51,10 @@ class InvestmentAgreementTO(TO):
     document_url = unicode_property('document_url')
 
 
+class InvestmentAgreementDetailTO(InvestmentAgreementTO):
+    username = unicode_property('username')
+
+
 class CreateInvestmentAgreementTO(TO):
     app_user = unicode_property('app_user')
     amount = float_property('amount')

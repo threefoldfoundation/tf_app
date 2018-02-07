@@ -24,6 +24,7 @@ from framework.models.common import NdbModel
 from framework.plugin_loader import get_config
 from framework.utils import chunks, now
 from plugins.tff_backend.bizz.gcs import get_serving_url, encrypt_filename
+from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -114,6 +115,10 @@ class NodeOrder(NdbModel):
         has_doc = self.tos_iyo_see_id is not None or self.status in (NodeOrderStatus.ARRIVED, NodeOrderStatus.SENT)
         return get_serving_url(self.filename(self.id)) if has_doc else None
 
+    @property
+    def username(self):
+        return get_iyo_username(self.app_user) if self.app_user else None
+
     @classmethod
     def filename(cls, node_order_id):
         return u'node-orders/%s.pdf' % encrypt_filename(node_order_id)
@@ -161,8 +166,8 @@ class NodeOrder(NdbModel):
     def list_by_so(cls, odoo_sale_order_id):
         return cls.query().filter(cls.odoo_sale_order_id == odoo_sale_order_id)
 
-    def to_dict(self, extra_properties=None):
-        return super(NodeOrder, self).to_dict(['document_url'])
+    def to_dict(self, extra_properties=[]):
+        return super(NodeOrder, self).to_dict(extra_properties + ['document_url'])
 
 
 class PublicKeyMapping(NdbModel):

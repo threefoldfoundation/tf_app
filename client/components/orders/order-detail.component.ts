@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { NODE_ORDER_STATUS_MAPPING, NodeOrder, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces/nodes.interfaces';
+import { ApiRequestStatus } from '../../../../framework/client/rpc';
+import { Profile } from '../../../../its_you_online_auth/client/interfaces';
+import { ORDER_STATUSES_DICT } from '../../interfaces';
+import { NODE_ORDER_STATUS_MAPPING, NodeOrder, NodeOrderStatuses } from '../../interfaces';
 
 @Component({
   selector: 'tff-order-detail',
@@ -14,24 +15,18 @@ import { NODE_ORDER_STATUS_MAPPING, NodeOrder, NodeOrderStatuses, ORDER_STATUSES
 
 export class OrderDetailComponent implements OnChanges {
   statuses = NodeOrderStatuses;
+  ORDER_STATUSES_DICT = ORDER_STATUSES_DICT;
   allowedStatuses: NodeOrderStatuses[] = [];
   @Input() nodeOrder: NodeOrder;
+  @Input() user: Profile | null;
   @Input() status: ApiRequestStatus;
   @Input() updateStatus: ApiRequestStatus;
   @Output() onUpdate = new EventEmitter<NodeOrder>();
-
-  constructor(private translate: TranslateService) {
-  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.nodeOrder && changes.nodeOrder.currentValue) {
       this.allowedStatuses = NODE_ORDER_STATUS_MAPPING[ (<NodeOrder>changes.nodeOrder.currentValue).status ];
     }
-  }
-
-  getOrderStatus(): string {
-    const status = ORDER_STATUSES.find(s => s.value === this.nodeOrder.status);
-    return status ? this.translate.instant(status.label) : '';
   }
 
   setOrderStatus(status: NodeOrderStatuses) {
