@@ -9,7 +9,6 @@
       {{ 'tff.so_number' | translate : { number : nodeOrder.odoo_sale_order_id } }}
     </p>
     <p *ngIf="nodeOrder.socket">{{ 'tff.socket' | translate : { socket : nodeOrder.socket } }}</p>
-    <p>{{ user | json }}</p>
     <a [routerLink]="['/users', user.username]" target="_blank" *ngIf="user">
       {{ 'tff.user_x' | translate : { user: user | profileName } }}
     </a>

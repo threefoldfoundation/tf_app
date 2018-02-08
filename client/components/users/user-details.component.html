@@ -1,6 +1,6 @@
 <p>{{ 'tff.referral_code_x' | translate : { code: tffProfile.referral_code } }}</p>
 <a [routerLink]="['/users', tffProfile.referrer_username]" target="_blank" *ngIf="tffProfile.referrer_username">
-  {{ 'tff.referred_by_x' | translate : { referrer: tffProfile.referrer_username } }}
+  {{ 'tff.referred_by_x' | translate : { user: tffProfile.referrer_username } }}
 </a>
 <div *ngIf="tffProfile.nodes.length">
   <h4>{{ 'tff.nodes' | translate }}</h4>
