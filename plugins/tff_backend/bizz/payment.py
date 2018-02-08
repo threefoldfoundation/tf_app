@@ -28,13 +28,12 @@ from google.appengine.api import urlfetch, users
 from google.appengine.ext import deferred, ndb
 
 from dateutil.relativedelta import relativedelta
-from framework.plugin_loader import get_config
+from framework.plugin_loader import get_config, get_plugin
 from framework.utils import now, get_epoch_from_datetime, urlencode
 from mcfw.consts import DEBUG
 from mcfw.exceptions import HttpBadRequestException
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.profile import get_profile
-from plugins.rivine_explorer.api import get_output_ids
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_TFT_CONTRIBUTOR, TOKEN_ITFT, TokenType
@@ -372,7 +371,8 @@ def validate_token_type(token_type):
 @returns(CryptoTransactionTO)
 @arguments(from_asset_id=unicode, to_asset_id=unicode, amount=(int, long), app_user=users.User)
 def create_signature_data(from_asset_id, to_asset_id, amount, app_user):
-    transactions = get_output_ids(from_asset_id)
+    rivine_explorer_plugin = get_plugin('rivine_explorer')
+    transactions = rivine_explorer_plugin.get_output_ids(from_asset_id)
 
     transaction = CryptoTransactionTO()
     transaction.minerfees = unicode(COIN_TO_HASTINGS)
@@ -415,7 +415,6 @@ def create_signature_data(from_asset_id, to_asset_id, amount, app_user):
 @returns()
 @arguments(crypto_transaction=CryptoTransactionTO)
 def create_transaction(crypto_transaction):
-    from plugins.rivine_explorer.api import create_transaction as rivine_create_transaction
     data = {}
     data["coininputs"] = []
     for d in crypto_transaction.data:
@@ -466,7 +465,8 @@ def create_transaction(crypto_transaction):
         }
         data["transactionsignatures"].append(transactionsignature)
 
-    rivine_create_transaction(data)
+    rivine_explorer_plugin = get_plugin('rivine_explorer')
+    rivine_explorer_plugin.create_transaction(data)
 
 
 @returns(ThreeFoldPendingTransaction)

@@ -163,7 +163,7 @@ def api_create_signature_data_transaction(data):
         transaction.put()
 
     except Exception as e:
-        to.error = e.get_message()
+        to.error = e.message
     return to
 
 
