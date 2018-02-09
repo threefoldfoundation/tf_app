@@ -197,6 +197,13 @@ export class TffEffects {
         catchError(err => handleApiError(actions.GetKYCChecksFailedAction, err)),
       )));
 
+  @Effect() getUserFlowRuns$ = this.actions$
+    .ofType<actions.GetUserFlowRunsAction>(actions.TffActionTypes.GET_USER_FLOW_RUNS).pipe(
+      switchMap(action => this.flowStatisticsService.getUserFlowRuns(action.payload).pipe(
+        map(result => new actions.GetUserFlowRunsCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetUserFlowRunsFailedAction, err)),
+      )));
+
   @Effect() getDistinctFlows$ = this.actions$
     .ofType<actions.GetFlowRunFlowsAction>(actions.TffActionTypes.GET_FLOW_RUN_FLOWS).pipe(
       switchMap(() => this.flowStatisticsService.getDistinctFlows().pipe(

@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { GetFlowRunsAction } from '../../actions';
-import { FlowRun, FlowRunList, FlowRunStatus } from '../../interfaces';
+import { FlowRunList } from '../../interfaces';
 import { FlowStatisticsService } from '../../services';
 import { ITffState } from '../../states';
 import { getFlowRuns, getFlowRunsStatus } from '../../tff.state';
@@ -29,14 +29,6 @@ export class FlowStatisticsPageComponent implements OnInit {
     this.flowRuns$ = this.store.select(getFlowRuns);
     this.status$ = this.store.select(getFlowRunsStatus);
     this.search(null);
-  }
-
-  trackFlowRuns(index: number, item: FlowRun) {
-    return item.id;
-  }
-
-  mustShowLastStepDate(flowRun: FlowRun) {
-    return flowRun.status === FlowRunStatus.STALLED;
   }
 
   search(cursor: string | null) {

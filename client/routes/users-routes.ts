@@ -9,6 +9,7 @@ import {
   UserPurchaseAgreementsPageComponent,
   UserTransactionsListPageComponent,
 } from '../pages';
+import { UserFlowRunsDetailsPageComponent, UserFlowRunsPageComponent } from '../pages/users';
 
 export const USERS_ROUTES = [
   {
@@ -54,6 +55,11 @@ export const USERS_ROUTES = [
           label: 'tff.investment_agreements',
           icon: 'attach_money',
           route: 'investment-agreements',
+        },
+        {
+          label: 'tff.flow_statistics',
+          icon: 'timeline',
+          route: 'flow-statistics',
         } ],
       meta: { title: 'tff.users' },
     },
@@ -94,6 +100,19 @@ export const USERS_ROUTES = [
         canActivate: [ MetaGuard ],
         data: { meta: { title: 'tff.investment_agreements' } },
         component: UserPurchaseAgreementsPageComponent,
-      } ],
-  },
+      },
+      {
+        path: 'flow-statistics',
+        canActivate: [ MetaGuard ],
+        data: { meta: { title: 'tff.flow_statistics' } },
+        component: UserFlowRunsPageComponent,
+      },
+      {
+        path: 'flow-statistics/:flowRunId',
+        canActivate: [ MetaGuard ],
+        data: { meta: { title: 'tff.flow_statistics' } },
+        component: UserFlowRunsDetailsPageComponent,
+      },
+    ]
+  }
 ];

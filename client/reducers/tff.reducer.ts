@@ -470,6 +470,22 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         kycChecksStatus: action.payload,
       };
+    case actions.TffActionTypes.GET_USER_FLOW_RUNS:
+      return {
+        ...state,
+        userFlowRunsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_USER_FLOW_RUNS_COMPLETE:
+      return {
+        ...state,
+        userFlowRuns: action.payload,
+        userFlowRunsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_USER_FLOW_RUNS_FAILED:
+      return {
+        ...state,
+        userFlowRunsStatus: action.payload,
+      };
     case actions.TffActionTypes.GET_FLOW_RUN_FLOWS:
       return {
         ...state,

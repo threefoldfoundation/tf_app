@@ -1,6 +1,5 @@
 babel==2.5.1
 ERPpeek==1.6.3
-GoogleAppEngineCloudStorageClient
 html2text==2015.11.4
 html5lib==0.999
 Pillow==4.0.0

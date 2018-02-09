@@ -31,7 +31,8 @@ export const getUserStatus = createSelector(getTffState, s => s.userStatus);
 export const getTffProfile = createSelector(getTffState, s => s.tffProfile);
 export const getTffProfileStatus = createSelector(getTffState, s => s.tffProfileStatus);
 export const setKYCStatus = createSelector(getTffState, s => s.setKYCStatus);
-
+export const getUserFlowRuns = createSelector(getTffState, s => s.userFlowRuns);
+export const getuserFlowRunsStatus = createSelector(getTffState, s => s.userFlowRunsStatus);
 export const getBalance = createSelector(getTffState, s => s.balance);
 export const getBalanceStatus = createSelector(getTffState, s => s.balanceStatus);
 export const getUserTransactions = createSelector(getTffState, s => s.userTransactions);
