@@ -165,6 +165,10 @@ def list_flow_runs(cursor, page_size, flow_name, start_date):
     return qry.fetch_page(page_size, start_cursor=ndb.Cursor(urlsafe=cursor))
 
 
+def list_flow_runs_by_user(username, cursor, page_size):
+    return FlowRun.list_by_user(username).fetch_page(page_size, start_cursor=ndb.Cursor(urlsafe=cursor))
+
+
 def get_flow_run(flow_run_id):
     # type: (unicode) -> FlowRun
     flow_run = FlowRun.create_key(flow_run_id).get()

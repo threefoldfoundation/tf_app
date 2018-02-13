@@ -9,6 +9,7 @@ import {
   CreateOrderPayload,
   CreateTransactionPayload,
   EventParticipant,
+  FlowRunList,
   GetEventParticipantsPayload,
   GetInstallationsQuery,
   GlobalStats,
@@ -27,6 +28,7 @@ import {
   UserList,
   WalletBalance,
 } from '../interfaces';
+import { UserFlowRunsQuery } from '../interfaces/flow-statistics.interfaces';
 import { getQueryParams } from '../util';
 import { TffConfig } from './tff-config.service';
 

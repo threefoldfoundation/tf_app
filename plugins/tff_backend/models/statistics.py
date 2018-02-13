@@ -85,8 +85,12 @@ class FlowRun(NdbModel):
 
     @classmethod
     def list_by_status_and_last_step_date(cls, status, date):
-        return FlowRun.query().filter(cls.status == status).filter(cls.statistics.last_step_date < date)
+        return cls.query().filter(cls.status == status).filter(cls.statistics.last_step_date < date)
+
+    @classmethod
+    def list_by_user(cls, user):
+        return cls.query(cls.user == user).order(-cls.start_date)
 
     @classmethod
     def list_by_user_and_flow(cls, flow_name, user):
-        return FlowRun.query(cls.flow_name == flow_name, cls.user == user).order(-cls.start_date)
+        return cls.query(cls.flow_name == flow_name, cls.user == user).order(-cls.start_date)

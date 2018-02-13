@@ -8,7 +8,7 @@ export function getQueryParams<T>(queryObject: T): HttpParams {
   let params = new HttpParams();
   const q = <[ keyof T ]>Object.keys(queryObject);
   for (const key of q) {
-    if (queryObject[ key ] !== null) {
+    if (queryObject[ key ] !== null && queryObject[ key ] !== undefined) {
       params = params.set(key, queryObject[ key ].toString());
     }
   }

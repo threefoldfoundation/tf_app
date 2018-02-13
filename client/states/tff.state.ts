@@ -51,6 +51,8 @@ export interface ITffState {
   userTransactions: TransactionList;
   userTransactionsStatus: ApiRequestStatus;
   createTransactionStatus: ApiRequestStatus;
+  userFlowRuns: FlowRunList;
+  userFlowRunsStatus: ApiRequestStatus;
   balance: WalletBalance[];
   balanceStatus: ApiRequestStatus;
   tffProfile: TffProfile | null;
@@ -127,6 +129,8 @@ export const initialTffState: ITffState = {
   userTransactions: emptyPaginatedResult,
   userTransactionsStatus: apiRequestInitial,
   createTransactionStatus: apiRequestInitial,
+  userFlowRuns: emptyPaginatedResult,
+  userFlowRunsStatus: apiRequestInitial,
   balance: [],
   balanceStatus: apiRequestInitial,
   tffProfile: null,

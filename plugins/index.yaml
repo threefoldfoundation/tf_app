@@ -5,7 +5,7 @@ indexes:
   properties:
   - name: status
   - name: send_time
-  
+
 # ======================================================= PAYMENT ======================================================
 
 - kind: ThreeFoldTransaction
@@ -114,6 +114,12 @@ indexes:
 - kind: FlowRun
   properties:
   - name: flow_name
+  - name: user
+  - name: start_date
+    direction: desc
+
+- kind: FlowRun
+  properties:
   - name: user
   - name: start_date
     direction: desc

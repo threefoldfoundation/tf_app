@@ -1,0 +1,15 @@
+<mat-nav-list>
+  <a mat-list-item [routerLink]="flowRun.id"
+     *ngFor="let flowRun of flowRuns.results; trackBy: trackFlowRuns;">
+    <p matLine style="margin-right: 16px;">
+      {{ showTag ? flowRun.tag : getFlowName(flowRun.flow_name) }} - {{ flowRun.start_date | date : 'medium' }}
+    </p>
+    <p matLine *ngIf="mustShowLastStepDate(flowRun)">
+      <span>{{ 'tff.last_activity_x' | translate : { date: flowRun.statistics.last_step_date | time } }}</span>
+    </p>
+    <tff-flow-run-status matLine [status]="flowRun.status"></tff-flow-run-status>
+  </a>
+</mat-nav-list>
+<button mat-button *ngIf="flowRuns.more" (click)="loadMore.emit(flowRuns.cursor)">
+  {{ 'tff.load_more' | translate }}
+</button>

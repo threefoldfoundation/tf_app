@@ -4,6 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators/map';
 import { FirebaseFlowStats, FlowRun, FlowRunList, FlowRunQuery } from '../interfaces';
+import { UserFlowRunsQuery } from '../interfaces/flow-statistics.interfaces';
 import { getQueryParams } from '../util';
 import { TffConfig } from './tff-config.service';
 
@@ -53,6 +54,12 @@ export class FlowStatisticsService {
   getFlowStats(startDate: string) {
     const params = getQueryParams({ start_date: startDate });
     return this.http.get<FirebaseFlowStats[]>(`${TffConfig.API_URL}/flow-statistics/stats`, { params });
+  }
+
+  getUserFlowRuns(query: UserFlowRunsQuery) {
+    const params = getQueryParams({ cursor: query.cursor, page_size: query.page_size });
+    return this.http.get<FlowRunList<string>>(`${TffConfig.API_URL}/users/${encodeURIComponent(query.username)}/flows`, { params }).pipe(
+      map(result => ({ ...result, results: result.results.map(flowRun => this.convertFlowRun(flowRun)) })));
   }
 
   /**
