@@ -1,51 +1,54 @@
-<h2>{{ 'tff.flow_run_x_tag_y' | translate : { flowName: flowRun.flow_name, tag: flowRun.tag } }}</h2>
-<a [routerLink]="['/users', user.username]" target="_blank">
-  {{ 'tff.user_x' | translate : { user: user | profileName } }}
-</a>
-<div fxLayout="column" fxLayoutAlign="center center" class="steps step-margin">
-  <span>{{ 'tff.flow_started_x' | translate : { date: flowRun.start_date | date : 'medium' } }}</span>
-  <mat-icon *ngIf="flowRun.steps?.length > 0">arrow_downward</mat-icon>
-  <div *ngFor="let step of flowRun.steps; let i = index; let isLastStep = last; trackBy: trackSteps;">
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>{{ getStepTitle(step.step_id) }}</mat-card-title>
-        <mat-card-subtitle>{{ step.acknowledged_timestamp | timestamp : 'medium' }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <p [innerHTML]="step.message | markdown"></p>
-        <div *ngIf="step.step_type === 'form_step'">
-          <p *ngIf="step.form_type === WidgetType.PHOTO_UPLOAD; else displayValue">
-            {{ 'tff.input_value_x' | translate : { value : '' } }}
-            <a target="_blank" rel="noopener" [href]="step.form_result.result.value">
-              {{ 'tff.picture' | translate }}
-            </a>
-          </p>
-          <ng-template #displayValue>
-            {{ 'tff.input_value_x' | translate : { value : step.display_value } }}
-          </ng-template>
-        </div>
-      </mat-card-content>
-    </mat-card>
-    <div class="step-margin" fxLayout="column" fxLayoutAlign="center center">
-      <mat-icon>arrow_downward</mat-icon>
-      <span>
-      {{ flowRun.statistics.steps[i].time_taken | timeDuration }}
-      </span>
-      <mat-icon>arrow_downward</mat-icon>
-      <button mat-raised-button>{{ step.button }}</button>
-      <mat-icon *ngIf="!isLastStep">arrow_downward</mat-icon>
+<tff-api-request-status [status]="status"></tff-api-request-status>
+<div *ngIf="status.success">
+  <h2>{{ 'tff.flow_run_x_tag_y' | translate : { flowName: getFlowName(flowRun.flow_name), tag: flowRun.tag } }}</h2>
+  <a [routerLink]="['/users', user.username]" target="_blank">
+    {{ 'tff.user_x' | translate : { user: user | profileName } }}
+  </a>
+  <div fxLayout="column" fxLayoutAlign="center center" class="steps step-margin">
+    <span>{{ 'tff.flow_started_x' | translate : { date: flowRun.start_date | date : 'medium' } }}</span>
+    <mat-icon *ngIf="flowRun.steps?.length > 0">arrow_downward</mat-icon>
+    <div *ngFor="let step of flowRun.steps; let i = index; let isLastStep = last; trackBy: trackSteps;">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>{{ getStepTitle(step.step_id) }}</mat-card-title>
+          <mat-card-subtitle>{{ step.acknowledged_timestamp | timestamp : 'medium' }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <p [innerHTML]="step.message | markdown"></p>
+          <div *ngIf="step.step_type === 'form_step'">
+            <p *ngIf="step.form_type === WidgetType.PHOTO_UPLOAD; else displayValue">
+              {{ 'tff.input_value_x' | translate : { value : '' } }}
+              <a target="_blank" rel="noopener" [href]="step.form_result.result.value" *ngIf="step.form_result">
+                {{ 'tff.picture' | translate }}
+              </a>
+            </p>
+            <ng-template #displayValue>
+              {{ 'tff.input_value_x' | translate : { value : step.display_value || '' } }}
+            </ng-template>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <div class="step-margin" fxLayout="column" fxLayoutAlign="center center">
+        <mat-icon>arrow_downward</mat-icon>
+        <span>
+          {{ flowRun.statistics.steps[i].time_taken | timeDuration }}
+          </span>
+        <mat-icon>arrow_downward</mat-icon>
+        <button mat-raised-button>{{ step.button }}</button>
+        <mat-icon *ngIf="!isLastStep">arrow_downward</mat-icon>
+      </div>
     </div>
-  </div>
-  <mat-icon>arrow_downward</mat-icon>
-  <div *ngIf="shouldShowNextStep(flowRun)" fxLayout="column" fxLayoutAlign="center center" class="step-margin">
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>{{ getStepTitle(flowRun.statistics.next_step) }}</mat-card-title>
-      </mat-card-header>
-    </mat-card>
     <mat-icon>arrow_downward</mat-icon>
-    <span>{{ 'tff.last_activity_x' | translate : { date: flowRun.statistics.last_step_date | time } }}</span>
-    <mat-icon>arrow_downward</mat-icon>
+    <div *ngIf="shouldShowNextStep(flowRun)" fxLayout="column" fxLayoutAlign="center center" class="step-margin">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>{{ getStepTitle(flowRun.statistics.next_step) }}</mat-card-title>
+        </mat-card-header>
+      </mat-card>
+      <mat-icon>arrow_downward</mat-icon>
+      <span>{{ 'tff.last_activity_x' | translate : { date: flowRun.statistics.last_step_date | time } }}</span>
+      <mat-icon>arrow_downward</mat-icon>
+    </div>
+    <tff-flow-run-status [status]="flowRun.status"></tff-flow-run-status>
   </div>
-  <tff-flow-run-status [status]="flowRun.status"></tff-flow-run-status>
 </div>

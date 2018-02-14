@@ -16,7 +16,7 @@ import { getInvestmentAgreements, getInvestmentAgreementsQuery, getInvestmentAgr
   template: `
     <div class="default-component-padding">
       <tff-search-investment-agreements [query]="query$ | async"
-                                        (search)="onQuery($event)"></tff-search-investment-agreements>
+                                        (submitSearch)="onQuery($event)"></tff-search-investment-agreements>
       <tff-investment-agreements [investmentAgreements]="investmentAgreements$ | async"
                                  [status]="listStatus$ | async"
                                  (loadMore)="onLoadMore()"></tff-investment-agreements>

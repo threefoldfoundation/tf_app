@@ -34,7 +34,9 @@ export class KycComponent implements OnChanges {
   @Input() updateStatus: ApiRequestStatus;
   @Input() checks: Check[];
   @Input() checksStatus: ApiRequestStatus;
+  @Input() utilityBillStatus: ApiRequestStatus;
   @Output() setStatus = new EventEmitter<SetKYCStatusPayload>();
+  @Output() verifyUtilityBill = new EventEmitter<string>();
   @ViewChild('form') form: NgForm;
 
   constructor(private translate: TranslateService,

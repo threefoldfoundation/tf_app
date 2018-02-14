@@ -9,6 +9,7 @@ import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
 import { IAppState } from '../../../framework/client/ngrx/state/app.state';
 import { handleApiError } from '../../../framework/client/rpc/rpc.service';
 import * as actions from '../actions/threefold.action';
+import { FlowStatisticsService } from '../services';
 import { TffService } from '../services/tff.service';
 import { getGlobalStatsList } from '../tff.state';
 
@@ -126,6 +127,13 @@ export class TffEffects {
         catchError(err => handleApiError(actions.SetKYCStatusFailedAction, err)),
       )));
 
+  @Effect() verifyUtilityBill$ = this.actions$
+    .ofType<actions.VerityUtilityBillAction>(actions.TffActionTypes.VERIFY_UTILITY_BILL).pipe(
+      switchMap(action => this.tffService.verifyUtilityBill(action.username).pipe(
+        map(payload => new actions.VerityUtilityBillCompleteAction(payload)),
+        catchError(err => handleApiError(actions.VerityUtilityBillFailedAction, err)),
+      )));
+
   @Effect() getBalance$ = this.actions$
     .ofType<actions.GetBalanceAction>(actions.TffActionTypes.GET_BALANCE).pipe(
       switchMap(action => this.tffService.getBalance(action.payload).pipe(
@@ -189,30 +197,37 @@ export class TffEffects {
         catchError(err => handleApiError(actions.GetKYCChecksFailedAction, err)),
       )));
 
+  @Effect() getUserFlowRuns$ = this.actions$
+    .ofType<actions.GetUserFlowRunsAction>(actions.TffActionTypes.GET_USER_FLOW_RUNS).pipe(
+      switchMap(action => this.flowStatisticsService.getUserFlowRuns(action.payload).pipe(
+        map(result => new actions.GetUserFlowRunsCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetUserFlowRunsFailedAction, err)),
+      )));
+
   @Effect() getDistinctFlows$ = this.actions$
     .ofType<actions.GetFlowRunFlowsAction>(actions.TffActionTypes.GET_FLOW_RUN_FLOWS).pipe(
-      switchMap(() => this.tffService.getDistinctFlows().pipe(
+      switchMap(() => this.flowStatisticsService.getDistinctFlows().pipe(
         map(result => new actions.GetFlowRunFlowsCompleteAction(result)),
         catchError(err => handleApiError(actions.GetFlowRunFlowsFailedAction, err)),
       )));
 
   @Effect() getFlowRuns$ = this.actions$
     .ofType<actions.GetFlowRunsAction>(actions.TffActionTypes.GET_FLOW_RUNS).pipe(
-      switchMap(action => this.tffService.getFlowRuns(action.payload).pipe(
+      switchMap(action => this.flowStatisticsService.getFlowRuns(action.payload).pipe(
         map(result => new actions.GetFlowRunsCompleteAction(result)),
         catchError(err => handleApiError(actions.GetFlowRunsFailedAction, err)),
       )));
 
   @Effect() getFlowRun$ = this.actions$
     .ofType<actions.GetFlowRunAction>(actions.TffActionTypes.GET_FLOW_RUN).pipe(
-      switchMap(action => this.tffService.getFlowRun(action.payload).pipe(
+      switchMap(action => this.flowStatisticsService.getFlowRun(action.payload).pipe(
         map(result => new actions.GetFlowRunCompleteAction(result)),
         catchError(err => handleApiError(actions.GetFlowRunFailedAction, err)),
       )));
 
   @Effect() getFlowStats$ = this.actions$
     .ofType<actions.GetFlowStatsAction>(actions.TffActionTypes.GET_FLOW_STATS).pipe(
-      switchMap(action => this.tffService.getFlowStats(action.payload).pipe(
+      switchMap(action => this.flowStatisticsService.getFlowStats(action.payload).pipe(
         map(result => new actions.GetFlowStatsCompleteAction(result)),
         catchError(err => handleApiError(actions.GetFlowStatsFailedAction, err)),
       )));
@@ -240,6 +255,7 @@ export class TffEffects {
 
   constructor(private actions$: Actions<actions.TffActions>,
               private tffService: TffService,
+              private flowStatisticsService: FlowStatisticsService,
               private store: Store<IAppState>) {
   }
 }

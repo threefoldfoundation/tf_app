@@ -1,13 +1,26 @@
-import { Profile } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
+import { Profile } from '../../../its_you_online_auth/client/interfaces';
 import { Applicant } from './onfido.interfaces';
 import { PaginatedResult } from './shared.interfaces';
 
+export enum NodeStatus {
+  RUNNING = 'running',
+  HALTED = 'halted',
+}
+
+export interface NodeInfo {
+  status: NodeStatus;
+  id: string;
+  serial_number: string;
+}
+
 export interface TffProfile {
   app_user: string;
+  nodes: NodeStatus[];
   kyc: KYCInformation;
   referrer_user: string;
   referrer_username: string;
   username: string;
+  referral_code: string;
 }
 
 export enum KYCStatus {
@@ -64,6 +77,8 @@ export interface KYCInformation {
   status: KYCStatus;
   updates: KYCStatusUpdate[];
   applicant_id: string;
+  utility_bill_url: string | null;
+  utility_bill_verified: boolean;
 }
 
 export interface KYCStatusUpdate {

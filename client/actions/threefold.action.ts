@@ -6,13 +6,14 @@ import { Installation, InstallationLog, InstallationsList } from '../../../roger
 import {
   AgendaEvent,
   Check,
-  CreateInvestmentAgreementPayload, CreateOrderPayload,
+  CreateInvestmentAgreementPayload,
+  CreateOrderPayload,
   CreateTransactionPayload,
   EventParticipant,
+  FirebaseFlowStats,
   FlowRun,
   FlowRunList,
   FlowRunQuery,
-  FirebaseFlowStats,
   GetEventParticipantsPayload,
   GetInstallationsQuery,
   GlobalStats,
@@ -31,6 +32,7 @@ import {
   UserList,
   WalletBalance,
 } from '../interfaces';
+import { UserFlowRunsQuery } from '../interfaces/flow-statistics.interfaces';
 
 // duplicated code needed else the type of the action type is only 'string'
 
@@ -92,6 +94,9 @@ export interface ITffActionTypes {
   SET_KYC_STATUS: '[TFF] Set KYC status';
   SET_KYC_STATUS_COMPLETE: '[TFF] Set KYC status complete';
   SET_KYC_STATUS_FAILED: '[TFF] Set KYC status failed';
+  VERIFY_UTILITY_BILL: '[TFF] Set Verify utility bill';
+  VERIFY_UTILITY_BILL_COMPLETE: '[TFF] Verify utility bill complete';
+  VERIFY_UTILITY_BILL_FAILED: '[TFF] Verify utility bill failed';
   GET_AGENDA_EVENTS: '[TFF] Get agenda events ';
   GET_AGENDA_EVENTS_COMPLETE: '[TFF] Get agenda events success';
   GET_AGENDA_EVENTS_FAILED: '[TFF] Get agenda events failed';
@@ -111,6 +116,9 @@ export interface ITffActionTypes {
   GET_KYC_CHECKS: '[TFF] Get KYC checks';
   GET_KYC_CHECKS_COMPLETE: '[TFF] Get KYC checks complete';
   GET_KYC_CHECKS_FAILED: '[TFF] Get KYC checks failed';
+  GET_USER_FLOW_RUNS: '[TFF] Get user flow runs';
+  GET_USER_FLOW_RUNS_COMPLETE: '[TFF] Get user flow runs complete';
+  GET_USER_FLOW_RUNS_FAILED: '[TFF] Get user flow runs failed';
   GET_FLOW_RUN_FLOWS: '[TFF] Get flow run flows';
   GET_FLOW_RUN_FLOWS_COMPLETE: '[TFF] Get flow run flows complete';
   GET_FLOW_RUN_FLOWS_FAILED: '[TFF] Get flow run flows failed';
@@ -211,6 +219,12 @@ export const TffActionTypes: ITffActionTypes = {
   GET_KYC_CHECKS: type('[TFF] Get KYC checks'),
   GET_KYC_CHECKS_COMPLETE: type('[TFF] Get KYC checks complete'),
   GET_KYC_CHECKS_FAILED: type('[TFF] Get KYC checks failed'),
+  GET_USER_FLOW_RUNS: type('[TFF] Get user flow runs'),
+  GET_USER_FLOW_RUNS_COMPLETE: type('[TFF] Get user flow runs complete'),
+  GET_USER_FLOW_RUNS_FAILED: type('[TFF] Get user flow runs failed'),
+  VERIFY_UTILITY_BILL: type('[TFF] Set Verify utility bill'),
+  VERIFY_UTILITY_BILL_COMPLETE: type('[TFF] Verify utility bill complete'),
+  VERIFY_UTILITY_BILL_FAILED: type('[TFF] Verify utility bill failed'),
   GET_FLOW_RUN_FLOWS: type('[TFF] Get flow run flows'),
   GET_FLOW_RUN_FLOWS_COMPLETE: type('[TFF] Get flow run flows complete'),
   GET_FLOW_RUN_FLOWS_FAILED: type('[TFF] Get flow run flows failed'),
@@ -601,7 +615,6 @@ export class GetTffProfileFailedAction implements Action {
   }
 }
 
-
 export class SetKYCStatusAction implements Action {
   type = TffActionTypes.SET_KYC_STATUS;
 
@@ -621,6 +634,30 @@ export class SetKYCStatusCompleteAction implements Action {
 
 export class SetKYCStatusFailedAction implements Action {
   type = TffActionTypes.SET_KYC_STATUS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+
+  }
+}
+
+export class VerityUtilityBillAction implements Action {
+  type = TffActionTypes.VERIFY_UTILITY_BILL;
+
+  constructor(public username: string) {
+
+  }
+}
+
+export class VerityUtilityBillCompleteAction implements Action {
+  type = TffActionTypes.VERIFY_UTILITY_BILL_COMPLETE;
+
+  constructor(public payload: TffProfile) {
+
+  }
+}
+
+export class VerityUtilityBillFailedAction implements Action {
+  type = TffActionTypes.VERIFY_UTILITY_BILL_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
 
@@ -753,6 +790,27 @@ export class GetKYCChecksCompleteAction implements Action {
 
 export class GetKYCChecksFailedAction implements Action {
   type = TffActionTypes.GET_KYC_CHECKS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetUserFlowRunsAction implements Action {
+  type = TffActionTypes.GET_USER_FLOW_RUNS;
+
+  constructor(public payload: UserFlowRunsQuery) {
+  }
+}
+
+export class GetUserFlowRunsCompleteAction implements Action {
+  type = TffActionTypes.GET_USER_FLOW_RUNS_COMPLETE;
+
+  constructor(public payload: FlowRunList) {
+  }
+}
+
+export class GetUserFlowRunsFailedAction implements Action {
+  type = TffActionTypes.GET_USER_FLOW_RUNS_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
@@ -983,6 +1041,12 @@ export type TffActions
   | GetKYCChecksAction
   | GetKYCChecksCompleteAction
   | GetKYCChecksFailedAction
+  | GetUserFlowRunsAction
+  | GetUserFlowRunsCompleteAction
+  | GetUserFlowRunsFailedAction
+  | VerityUtilityBillAction
+  | VerityUtilityBillCompleteAction
+  | VerityUtilityBillFailedAction
   | GetFlowRunFlowsAction
   | GetFlowRunFlowsCompleteAction
   | GetFlowRunFlowsFailedAction
@@ -995,7 +1059,6 @@ export type TffActions
   | GetFlowStatsAction
   | GetFlowStatsCompleteAction
   | GetFlowStatsFailedAction
-  | GetKYCChecksFailedAction
   | GetInstallationsAction
   | GetInstallationsCompleteAction
   | GetInstallationsFailedAction

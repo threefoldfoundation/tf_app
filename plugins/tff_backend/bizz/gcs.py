@@ -37,6 +37,8 @@ def _get_default_bucket():
 
 
 def upload_to_gcs(filename, file_data, content_type, bucket=None):
+    if isinstance(filename, unicode):
+        filename = filename.encode('utf-8')
     if not bucket:
         bucket = _get_default_bucket()
     file_path = '/%s/%s' % (bucket, filename)

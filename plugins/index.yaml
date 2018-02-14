@@ -5,16 +5,6 @@ indexes:
   properties:
   - name: status
   - name: send_time
-  
-- kind: NodeOrder
-  properties:
-  - name: app_user
-  - name: status
-  
-- kind: NodeOrder
-  properties:
-  - name: address_hash
-  - name: status
 
 # ======================================================= PAYMENT ======================================================
 
@@ -124,6 +114,12 @@ indexes:
 - kind: FlowRun
   properties:
   - name: flow_name
+  - name: user
+  - name: start_date
+    direction: desc
+
+- kind: FlowRun
+  properties:
   - name: user
   - name: start_date
     direction: desc

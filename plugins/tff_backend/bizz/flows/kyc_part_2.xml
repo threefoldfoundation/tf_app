@@ -6,12 +6,21 @@
     name="kyc_part_2"
     language="en"
     startReference="{{ start_reference }}">
+    <flowCode id="flowcode_check_skip_passport" exceptionReference="message_passport">
+      <javascriptCode>function run(rogerthat, messageFlowRun) {
+        var stepId = messageFlowRun.steps[messageFlowRun.steps.length - 1].step_id;
+        return {outlet: stepId.indexOf('national_identity_card') !== -1 ? 'flush_results' : 'message_passport'};
+      };</javascriptCode>
+      <outlet value="message_passport" name="message_passport" reference="message_passport"></outlet>
+      <outlet value="flush_results" name="flush_results" reference="flush_results"></outlet>
+    </flowCode>
     {% for step in steps %}
+    {% if step.type %}
     <formMessage id="{{ step.reference }}"
                  alertIntervalType="NONE"
                  alertType="SILENT"
                  brandingKey="{{ step.branding_key }}"
-                 positiveReference="{{ 'flush_monitoring_' if not loop.last else ''}}{{ step.positive_reference }}"
+                 positiveReference="{{ 'flush_monitoring_' if (not loop.last and step.positive_reference) else ''}}{{ step.positive_reference }}"
                  vibrate="false"
                  autoLock="true"
                  negativeReference="{{ step.negative_reference }}">
@@ -33,7 +42,7 @@
         {% if step.value %}date="{{ step.value }}"{% endif %}/>
         {% elif step.type == 'PhotoUploadWidget' %}
         <widget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="PhotoUploadWidget"
-                quality="2000000" gallery="false" camera="true"/>
+                quality="2000000" gallery="true" camera="true"/>
         {% elif step.type == 'SelectSingleWidget' %}
         <javascriptValidation>
           function run(result, rogerthat) {
@@ -48,10 +57,20 @@
         {% endif %}
       </form>
     </formMessage>
-    {% if not loop.last %}
+        {% if not loop.last and step.positive_reference %}
     <resultsFlush
       id="flush_monitoring_{{ step.positive_reference }}"
       reference="{{ step.positive_reference }}"/>
+        {% endif %}
+    {% else %}
+    <message id="{{ step.reference }}" autoLock="true" vibrate="false" alertType="SILENT" alertIntervalType="NONE"
+             allowDismiss="false" brandingKey="{{ branding_key }}">
+      <content>{{ step.message }}</content>
+      {% for answer in step.answers %}
+      <answer caption="{{ answer.caption }}" action="{{ answer.action }}" id="{{ answer.id }}"
+              reference="{{ answer.reference}}"></answer>
+      {% endfor %}
+    </message>
     {% endif %}
     {% endfor %}
     <resultsFlush

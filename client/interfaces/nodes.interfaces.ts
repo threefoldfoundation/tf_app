@@ -45,6 +45,10 @@ export interface NodeOrder {
   cancel_time: number | null;
   socket: string;
   document_url: string | null;
+  /**
+   * Not set when listing node orders
+   */
+  username?: string;
 }
 
 export interface CreateOrderPayload<DateType = number> {
@@ -77,3 +81,13 @@ export const ORDER_STATUSES = [
   { value: NodeOrderStatuses.ARRIVED, label: 'tff.arrived_and_came_online' },
   { value: NodeOrderStatuses.CANCELED, label: 'tff.canceled' },
 ];
+
+export const ORDER_STATUSES_DICT = {
+  [ NodeOrderStatuses.WAITING_APPROVAL ]: 'tff.waiting_approval',
+  [ NodeOrderStatuses.APPROVED ]: 'tff.approved',
+  [ NodeOrderStatuses.SIGNED ]: 'tff.signed',
+  [ NodeOrderStatuses.PAID ]: 'tff.paid',
+  [ NodeOrderStatuses.SENT ]: 'tff.sent',
+  [ NodeOrderStatuses.ARRIVED ]: 'tff.arrived_and_came_online',
+  [ NodeOrderStatuses.CANCELED ]: 'tff.canceled',
+};

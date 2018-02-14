@@ -9,11 +9,14 @@
       {{ 'tff.so_number' | translate : { number : nodeOrder.odoo_sale_order_id } }}
     </p>
     <p *ngIf="nodeOrder.socket">{{ 'tff.socket' | translate : { socket : nodeOrder.socket } }}</p>
-    <p>{{ 'tff.name' | translate}}: {{ nodeOrder.billing_info.name }}</p>
+    <a [routerLink]="['/users', user.username]" target="_blank" *ngIf="user">
+      {{ 'tff.user_x' | translate : { user: user | profileName } }}
+    </a>
+    <p *ngIf="!user">{{ 'tff.user_x' | translate : { user: nodeOrder.billing_info.name } }}</p>
     <p>{{ 'tff.email' | translate}}: {{ nodeOrder.billing_info.email }}</p>
     <p>{{ 'tff.phone' | translate}}: {{ nodeOrder.billing_info.phone }}</p>
     <p>{{ 'tff.billing_address' | translate}}: {{ nodeOrder.billing_info.address }}</p>
-    <p>{{ 'tff.status' | translate}}: {{ getOrderStatus() }}</p>
+    <p>{{ 'tff.status' | translate }}: {{ ORDER_STATUSES_DICT[nodeOrder.status] | translate }}</p>
     <tff-document-url [url]="nodeOrder.document_url"></tff-document-url>
     <mat-divider></mat-divider>
     <h3>{{ 'tff.shipping_information' | translate }}</h3>

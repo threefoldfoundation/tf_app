@@ -11,7 +11,7 @@ export class UserSearchComponent {
   statuses = KYCStatuses;
   searchString: string;
   _query: SearchUsersQuery;
-  @Output() search = new EventEmitter<SearchUsersQuery>();
+  @Output() submitSearch = new EventEmitter<SearchUsersQuery>();
 
   get query(): SearchUsersQuery {
     return { ...this._query, query: this.searchString };
@@ -27,6 +27,6 @@ export class UserSearchComponent {
 
   submit() {
     this.query = { ...this.query, cursor: null };
-    this.search.next(this.query);
+    this.submitSearch.next(this.query);
   }
 }

@@ -357,6 +357,16 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       };
     case actions.TffActionTypes.SET_KYC_STATUS_FAILED:
       return { ...state, setKYCStatus: action.payload };
+    case actions.TffActionTypes.VERIFY_UTILITY_BILL:
+      return { ...state, verifyUtilityBillStatus: apiRequestLoading };
+    case actions.TffActionTypes.VERIFY_UTILITY_BILL_COMPLETE:
+      return {
+        ...state,
+        verifyUtilityBillStatus: apiRequestSuccess,
+        tffProfile: action.payload,
+      };
+    case actions.TffActionTypes.VERIFY_UTILITY_BILL_FAILED:
+      return { ...state, verifyUtilityBillStatus: action.payload };
     case actions.TffActionTypes.GET_AGENDA_EVENTS:
       return {
         ...state,
@@ -459,6 +469,22 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       return {
         ...state,
         kycChecksStatus: action.payload,
+      };
+    case actions.TffActionTypes.GET_USER_FLOW_RUNS:
+      return {
+        ...state,
+        userFlowRunsStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_USER_FLOW_RUNS_COMPLETE:
+      return {
+        ...state,
+        userFlowRuns: action.payload,
+        userFlowRunsStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_USER_FLOW_RUNS_FAILED:
+      return {
+        ...state,
+        userFlowRunsStatus: action.payload,
       };
     case actions.TffActionTypes.GET_FLOW_RUN_FLOWS:
       return {
