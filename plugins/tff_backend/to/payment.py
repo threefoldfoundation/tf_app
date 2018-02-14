@@ -51,7 +51,7 @@ class PaymentProviderAssetTO(TO):
     required_action = typed_property('12', PaymentAssetRequiredActionTO)
 
 
-class PublicPaymentProviderTransactionTO(object):
+class PublicPaymentProviderTransactionTO(TO):
     id = unicode_property('1')
     timestamp = long_property('2')
     currency = unicode_property('3')
@@ -60,17 +60,25 @@ class PublicPaymentProviderTransactionTO(object):
     status = unicode_property('6')
 
 
-class CryptoTransactionInputTO(object):
+class CryptoTransactionInputTO(TO):
     parent_id = unicode_property('1')
     timelock = long_property('2')
 
+    def __init__(self, parent_id=None, timelock=0):
+        self.parent_id = parent_id
+        self.timelock = timelock
 
-class CryptoTransactionOutputTO(object):
+
+class CryptoTransactionOutputTO(TO):
     value = unicode_property('1')
     unlockhash = unicode_property('2')
 
+    def __init__(self, value=None, unlockhash=None):
+        self.value = value
+        self.unlockhash = unlockhash
 
-class CryptoTransactionDataTO(object):
+
+class CryptoTransactionDataTO(TO):
     input = typed_property('1', CryptoTransactionInputTO, False)
     outputs = typed_property('2', CryptoTransactionOutputTO, True)
     timelock = long_property('3', default=0)
@@ -81,14 +89,14 @@ class CryptoTransactionDataTO(object):
     signature = unicode_property('8', default=None)
 
 
-class CryptoTransactionTO(object):
+class CryptoTransactionTO(TO):
     minerfees = unicode_property('1')
     data = typed_property('2', CryptoTransactionDataTO, True)
     from_address = unicode_property('3')
     to_address = unicode_property('4')
 
 
-class CryptoTransactionResponseTO(object):
+class CryptoTransactionResponseTO(TO):
     result = typed_property('1', CryptoTransactionTO, False)
     error = unicode_property('2')
 

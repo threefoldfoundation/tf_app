@@ -156,14 +156,13 @@ def api_create_signature_data_transaction(data):
     to.error = None
     # todo calculate amount with precision
     try:
-        to.result = create_signature_data(data.from_asset_id, data.to_asset_id, data.amount * COIN_TO_HASTINGS, data.app_user)
-
+        to.result = create_signature_data(data.from_asset_id, data.to_asset_id, data.amount * COIN_TO_HASTINGS)
         transaction = ThreeFoldPendingTransactionDetails(key=ThreeFoldPendingTransactionDetails.create_key(data.id),
                                                          data=json.dumps(serialize_complex_value(to.result, CryptoTransactionTO, False)))
         transaction.put()
 
     except Exception as e:
-        to.error = e.message
+        to.error = unicode(e.message)
     return to
 
 

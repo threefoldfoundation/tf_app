@@ -60,6 +60,8 @@ def get_app_user_from_asset_id(asset_id):
 @returns(unicode)
 @arguments(asset_id=unicode)
 def get_token_from_asset_id(asset_id):
+    if ":" not in asset_id:
+        return u'T'
     return asset_id.rsplit(u":", 1)[1]
 
 
@@ -369,8 +371,8 @@ def validate_token_type(token_type):
 
 
 @returns(CryptoTransactionTO)
-@arguments(from_asset_id=unicode, to_asset_id=unicode, amount=(int, long), app_user=users.User)
-def create_signature_data(from_asset_id, to_asset_id, amount, app_user):
+@arguments(from_asset_id=unicode, to_asset_id=unicode, amount=(int, long))
+def create_signature_data(from_asset_id, to_asset_id, amount):
     rivine_explorer_plugin = get_plugin('rivine_explorer')
     transactions = rivine_explorer_plugin.get_output_ids(from_asset_id)
 
@@ -379,6 +381,8 @@ def create_signature_data(from_asset_id, to_asset_id, amount, app_user):
     transaction.data = []
     transaction.from_address = from_asset_id
     transaction.to_address = to_asset_id
+
+    fee_substracted = False
 
     amount_left = amount
     for t in transactions:
@@ -394,7 +398,11 @@ def create_signature_data(from_asset_id, to_asset_id, amount, app_user):
 
         should_break = False
         a = long(t.amount)
-        if (amount_left - a) >= 0:
+        if not fee_substracted:
+            a -= COIN_TO_HASTINGS
+            fee_substracted = True
+            
+        if (amount_left - a) > 0:
             data.outputs.append(CryptoTransactionOutputTO(unicode(a), to_asset_id))
             amount_left -= a
         else:
@@ -421,7 +429,7 @@ def create_transaction(crypto_transaction):
         coininput = {
             u"parentid": d.input.parent_id,
             u"unlockconditions": {
-                u"timelock": 0,
+                u"timelock": d.input.timelock,
                 u"publickeys": [{
                     u"algorithm": d.algorithm,
                     u"key": d.public_key
