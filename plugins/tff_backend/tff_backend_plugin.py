@@ -22,13 +22,14 @@ from framework.bizz.authentication import get_current_session
 from framework.plugin_loader import get_plugin, BrandingPlugin
 from framework.utils.plugins import Handler, Module
 from mcfw.consts import AUTHENTICATED, NOT_AUTHENTICATED
-from mcfw.restapi import rest_functions
+from mcfw.restapi import rest_functions, register_postcall_hook
 from mcfw.rpc import parse_complex_value
 from plugins.rogerthat_api.rogerthat_api_plugin import RogerthatApiPlugin
 from plugins.tff_backend import rogerthat_callbacks
 from plugins.tff_backend.api import investor, payment, nodes, global_stats, users, audit, agenda, flow_statistics, \
     installations
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings, Roles
+from plugins.tff_backend.bizz.statistics import log_restapi_call_result
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler, \
     BackupHandler, CheckNodesOnlineHandler, CheckNodesStatusesHandler, ExpiredEventsHandler, RebuildFirebaseHandler
@@ -62,6 +63,7 @@ class TffBackendPlugin(BrandingPlugin):
                                        trigger_only=True)
         rogerthat_api_plugin.subscribe('system.api_call', rogerthat_callbacks.system_api_call)
         patch_onfido_lib()
+        register_postcall_hook(log_restapi_call_result)
 
     def get_handlers(self, auth):
         yield Handler(url='/', handler=IndexPageHandler)
