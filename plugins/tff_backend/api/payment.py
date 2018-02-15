@@ -30,7 +30,8 @@ from plugins.tff_backend.consts.payment import PROVIDER_ID, TRANS_STATUS_FAILED,
     COIN_TO_HASTINGS_PERCISION, COIN_TO_HASTINGS
 from plugins.tff_backend.models.payment import ThreeFoldPendingTransactionDetails
 from plugins.tff_backend.plugin_consts import NAMESPACE
-from plugins.tff_backend.rivine import get_balance
+from plugins.tff_backend.rivine import get_balance, get_transactions, \
+    get_transaction
 from plugins.tff_backend.to.payment import PaymentProviderAssetTO, PaymentAssetBalanceTO, \
     PaymentProviderTransactionTO, GetPaymentTransactionsResponseTO, CreateTransactionResponseTO, \
     PublicPaymentProviderTransactionTO, CryptoTransactionResponseTO, PaymentProviderSignatureDataTransactionTO, \
@@ -88,17 +89,18 @@ def api_get_asset(asset_id):
 @returns(PublicPaymentProviderTransactionTO)
 @arguments(transaction_id=unicode)
 def api_get_public_transaction_detail(transaction_id):
-    # todo public transaction
-    return None
+    t = get_transaction(transaction_id)
+    if not t:
+        return None
 
-#     to = PublicPaymentProviderTransactionTO()
-#     to.id = pt.id
-#     to.timestamp = pt.timestamp
-#     to.currency = pt.token
-#     to.amount = pt.amount
-#     to.precision = pt.precision
-#     to.status = pt.synced_status
-#     return to
+    to = PublicPaymentProviderTransactionTO()
+    to.id = t['id']
+    to.timestamp = t['timestamp']
+    to.currency = t['currency']
+    to.amount = long(t['amount'])
+    to.precision = COIN_TO_HASTINGS_PERCISION
+    to.status = t['status']
+    return to
 
 
 @rest('/payment/transactions', 'get', custom_auth_method=custom_auth_method)
@@ -107,34 +109,29 @@ def api_get_public_transaction_detail(transaction_id):
 def api_get_transactions(asset_id, transaction_type, cursor=None):
     rto = GetPaymentTransactionsResponseTO()
     rto.transactions = []
-
-    # todo get transactions
-
     rto.cursor = None
-    return rto
+    
+    for t in get_transactions(asset_id, transaction_type):
+        to = PaymentProviderTransactionTO()
+        to.id = t['id']
+        to.type = u'transfer'
+        to.name = u'Transfer %s' % t['id']
+        to.amount = long(t['amount'])
+        to.currency = t['currency']
+        to.memo = None
+        to.timestamp = t['timestamp']
+        to.from_asset_id = t['inputs'][0]['unlockhash']
+        if to.from_asset_id == asset_id:
+            if t['outputs'][0]['unlockhash'] == asset_id:
+                to.to_asset_id = t['outputs'][1]['unlockhash']
+            else:
+                to.to_asset_id = t['outputs'][0]['unlockhash']
+        else:
+            to.to_asset_id = asset_id
+        to.precision = COIN_TO_HASTINGS_PERCISION
+        rto.transactions.append(to)
 
-#
-#     for t in transaction_models:
-#         if transaction_type == u"confirmed":
-#             trans_id = unicode(t.height)
-#         else:
-#             trans_id = unicode(t.id)
-#
-#         to = PaymentProviderTransactionTO()
-#         to.id = trans_id
-#         to.type = u'transfer'
-#         to.name = u'Transfer %s' % trans_id
-#         to.amount = t.amount
-#         to.currency = t.token
-#         to.memo = t.memo
-#         to.timestamp = t.timestamp
-#         to.from_asset_id = get_asset_id_from_token(t.from_user, t.token) if t.from_user else None
-#         to.to_asset_id = get_asset_id_from_token(t.to_user, t.token)
-#         to.precision = 2 # todo precision
-#         rto.transactions.append(to)
-#
-#     rto.cursor = unicode(new_cursor.urlsafe()) if has_more and new_cursor else None
-#     return rto
+    return rto
 
 
 @rest('/payment/transactions/create_signature_data', 'post', custom_auth_method=custom_auth_method)

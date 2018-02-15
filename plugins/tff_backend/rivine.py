@@ -26,6 +26,8 @@ from google.appengine.ext import deferred, ndb
 
 from framework.utils import now
 from mcfw.consts import DEBUG
+from plugins.tff_backend.consts.payment import TOKEN_TFT, TRANS_STATUS_CONFIRMED, \
+    TRANS_STATUS_PENDING
 from plugins.tff_backend.models.payment import RivineBlockHeight, \
     ThreeFoldWallet
 
@@ -67,13 +69,48 @@ def get_info_by_hash(hash_):
     return r
 
 
-def get_transactions(address):
+def get_transaction(trans_id):
+    hash_, address = trans_id.split('_', 1)
+    info = get_info_by_hash(hash_)
+    if info['hashtype'] != "transactionid":
+        return None
+    t = info['transaction']
+    live_block_height = get_block_height() - MATURITY_DEPTH
+    for sco_id, co in zip(t['coinoutputids'], t['rawtransaction']['coinoutputs']):
+        if co['unlockhash'] != address:
+            continue
+
+        if t['height'] <= live_block_height:
+            status = TRANS_STATUS_CONFIRMED
+        else:
+            status = TRANS_STATUS_PENDING
+
+        return {'id': u'%s_%s' % (t['id'], address),
+                'height': t['height'],
+                'timestamp': get_block_by_height(t['height'])['rawblock']['timestamp'],
+                'output_id': sco_id,
+                'inputs': t['coininputoutputs'],
+                'outputs': t['rawtransaction']['coinoutputs'],
+                'amount': unicode(co['value']),
+                'currency': TOKEN_TFT,
+                'status': status,
+                'spent': False}
+
+
+def get_transactions(address, status):
+    if status not in (TRANS_STATUS_PENDING, TRANS_STATUS_CONFIRMED,):
+        return []
     info = get_info_by_hash(address)
     if info['hashtype'] != "unlockhash":
         return []
 
+    live_block_height = get_block_height() - MATURITY_DEPTH
     transactions = []
     for t in info['transactions']:
+        if status == TRANS_STATUS_CONFIRMED and t['height'] > live_block_height:
+            continue
+        elif status == TRANS_STATUS_PENDING and t['height'] <= live_block_height:
+            continue
         if not t['coinoutputids'] or len(t['coinoutputids']) == 0:
             continue
 
@@ -81,10 +118,14 @@ def get_transactions(address):
             if co['unlockhash'] != address:
                 continue
 
-            transactions.append({'output_id': sco_id,
+            transactions.append({'id': u'%s_%s' % (t['id'], address),
+                                 'height': t['height'],
+                                 'timestamp': get_block_by_height(t['height'])['rawblock']['timestamp'],
+                                 'output_id': sco_id,
                                  'inputs': t['coininputoutputs'],
                                  'outputs': t['rawtransaction']['coinoutputs'],
                                  'amount': unicode(co['value']),
+                                 'currency': TOKEN_TFT,
                                  'spent': False})
 
     if not transactions:
@@ -104,7 +145,7 @@ def get_transactions(address):
 
 def get_balance(address):
     amount = 0
-    transactions = get_transactions(address)
+    transactions = get_transactions(address, TRANS_STATUS_CONFIRMED)
     for t in transactions:
         if t['spent']:
             continue
@@ -114,7 +155,7 @@ def get_balance(address):
 
 def get_output_ids(address):
     d = []
-    transactions = get_transactions(address)
+    transactions = get_transactions(address, TRANS_STATUS_CONFIRMED)
     for t in transactions:
         if t['spent']:
             continue
