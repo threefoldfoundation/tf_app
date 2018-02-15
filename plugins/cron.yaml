@@ -5,7 +5,7 @@ cron:
 
 - description: Payment sync transactions
   url: /admin/cron/tff_backend/payment/sync
-  schedule: every 30 minutes
+  schedule: every 1 minutes
 
 - description: Update global stats
   url: /admin/cron/tff_backend/global_stats

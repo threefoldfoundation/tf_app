@@ -19,19 +19,18 @@ import json
 import logging
 
 from google.appengine.api import users
-from google.appengine.ext import ndb
 
 from framework.plugin_loader import get_config
 from mcfw.consts import MISSING
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.tff_backend.bizz.payment import get_asset_ids, get_token_from_asset_id, get_balance, get_transactions, \
-    get_asset_id_from_token, get_app_user_from_asset_id, get_transaction_of_type_pending, \
-    create_signature_data, create_transaction
-from plugins.tff_backend.consts.payment import PROVIDER_ID
-from plugins.tff_backend.models.payment import ThreeFoldPendingTransaction, \
-    ThreeFoldPendingTransactionDetails
-from plugins.tff_backend.plugin_consts import NAMESPACE, COIN_TO_HASTINGS
+from plugins.tff_backend.bizz.payment import get_asset_ids, get_token_from_asset_id, \
+    create_signature_data, create_rivine_transaction
+from plugins.tff_backend.consts.payment import PROVIDER_ID, TRANS_STATUS_FAILED
+from plugins.tff_backend.models.payment import ThreeFoldPendingTransactionDetails
+from plugins.tff_backend.plugin_consts import NAMESPACE, COIN_TO_HASTINGS, \
+    COIN_TO_HASTINGS_PERCISION
+from plugins.tff_backend.rivine import get_balance
 from plugins.tff_backend.to.payment import PaymentProviderAssetTO, PaymentAssetBalanceTO, \
     PaymentProviderTransactionTO, GetPaymentTransactionsResponseTO, CreateTransactionResponseTO, \
     PublicPaymentProviderTransactionTO, CryptoTransactionResponseTO, PaymentProviderSignatureDataTransactionTO, \
@@ -62,12 +61,12 @@ def api_get_assets(app_user):
 @returns(PaymentProviderAssetTO)
 @arguments(asset_id=unicode)
 def api_get_asset(asset_id):
-    app_user = get_app_user_from_asset_id(asset_id)
     token = get_token_from_asset_id(asset_id)
 
-    balance = get_balance(app_user, get_token_from_asset_id(asset_id))
-    available_balance = PaymentAssetBalanceTO(amount=balance.available, description=None, precision=2)
-    total_balance = PaymentAssetBalanceTO(amount=balance.total, description=balance.description, precision=2)
+    balance = get_balance(asset_id)
+
+    available_balance = PaymentAssetBalanceTO(amount=balance, description=None, precision=COIN_TO_HASTINGS_PERCISION)
+    total_balance = PaymentAssetBalanceTO(amount=balance, description=None, precision=COIN_TO_HASTINGS_PERCISION)
 
     to = PaymentProviderAssetTO()
     to.provider_id = PROVIDER_ID
@@ -89,62 +88,53 @@ def api_get_asset(asset_id):
 @returns(PublicPaymentProviderTransactionTO)
 @arguments(transaction_id=unicode)
 def api_get_public_transaction_detail(transaction_id):
-    pt = ThreeFoldPendingTransaction.create_key(transaction_id).get()
-    if not pt:
-        return None
+    # todo public transaction
+    return None
 
-    to = PublicPaymentProviderTransactionTO()
-    to.id = pt.id
-    to.timestamp = pt.timestamp
-    to.currency = pt.token
-    to.amount = pt.amount
-    to.precision = pt.precision
-    to.status = pt.synced_status
-
-    return to
+#     to = PublicPaymentProviderTransactionTO()
+#     to.id = pt.id
+#     to.timestamp = pt.timestamp
+#     to.currency = pt.token
+#     to.amount = pt.amount
+#     to.precision = pt.precision
+#     to.status = pt.synced_status
+#     return to
 
 
 @rest('/payment/transactions', 'get', custom_auth_method=custom_auth_method)
 @returns(GetPaymentTransactionsResponseTO)
 @arguments(asset_id=unicode, transaction_type=unicode, cursor=unicode)
 def api_get_transactions(asset_id, transaction_type, cursor=None):
-    app_user = get_app_user_from_asset_id(asset_id)
-
     rto = GetPaymentTransactionsResponseTO()
     rto.transactions = []
 
-    if transaction_type == u"confirmed":
-        qry = get_transactions(app_user, get_token_from_asset_id(asset_id))
-    elif transaction_type == u"pending":
-        qry = get_transaction_of_type_pending(app_user, get_token_from_asset_id(asset_id))
-    else:
-        rto.cursor = None
-        return rto
+    # todo get transactions
 
-    transaction_models, new_cursor, has_more = qry.fetch_page(10, start_cursor=ndb.Cursor(
-        urlsafe=cursor) if cursor else None)
-
-    for t in transaction_models:
-        if transaction_type == u"confirmed":
-            trans_id = unicode(t.height)
-        else:
-            trans_id = unicode(t.id)
-
-        to = PaymentProviderTransactionTO()
-        to.id = trans_id
-        to.type = u'transfer'
-        to.name = u'Transfer %s' % trans_id
-        to.amount = t.amount
-        to.currency = t.token
-        to.memo = t.memo
-        to.timestamp = t.timestamp
-        to.from_asset_id = get_asset_id_from_token(t.from_user, t.token) if t.from_user else None
-        to.to_asset_id = get_asset_id_from_token(t.to_user, t.token)
-        to.precision = 2 # todo precision
-        rto.transactions.append(to)
-
-    rto.cursor = unicode(new_cursor.urlsafe()) if has_more and new_cursor else None
+    rto.cursor = None
     return rto
+
+#
+#     for t in transaction_models:
+#         if transaction_type == u"confirmed":
+#             trans_id = unicode(t.height)
+#         else:
+#             trans_id = unicode(t.id)
+#
+#         to = PaymentProviderTransactionTO()
+#         to.id = trans_id
+#         to.type = u'transfer'
+#         to.name = u'Transfer %s' % trans_id
+#         to.amount = t.amount
+#         to.currency = t.token
+#         to.memo = t.memo
+#         to.timestamp = t.timestamp
+#         to.from_asset_id = get_asset_id_from_token(t.from_user, t.token) if t.from_user else None
+#         to.to_asset_id = get_asset_id_from_token(t.to_user, t.token)
+#         to.precision = 2 # todo precision
+#         rto.transactions.append(to)
+#
+#     rto.cursor = unicode(new_cursor.urlsafe()) if has_more and new_cursor else None
+#     return rto
 
 
 @rest('/payment/transactions/create_signature_data', 'post', custom_auth_method=custom_auth_method)
@@ -173,15 +163,15 @@ def api_create_transaction(data):
     to = CreateTransactionResponseTO()
 
     if data.id is MISSING or data.amount is MISSING or data.from_asset_id is MISSING or data.to_asset_id is MISSING:
-        to.status = ThreeFoldPendingTransaction.STATUS_FAILED
+        to.status = TRANS_STATUS_FAILED
         return to
     if not (data.id or data.amount or data.from_asset_id or data.to_asset_id):
-        to.status = ThreeFoldPendingTransaction.STATUS_FAILED
+        to.status = TRANS_STATUS_FAILED
         return to
 
     ptd = ThreeFoldPendingTransactionDetails.create_key(data.id).get()
     if not ptd:
-        to.status = ThreeFoldPendingTransaction.STATUS_FAILED
+        to.status = TRANS_STATUS_FAILED
         return to
 
     if data.precision is MISSING:
@@ -189,5 +179,5 @@ def api_create_transaction(data):
 
     # todo validate transaction with saved transaction
 
-    create_transaction(data.crypto_transaction)
+    create_rivine_transaction(data.crypto_transaction)
 

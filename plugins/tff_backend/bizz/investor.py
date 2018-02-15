@@ -16,9 +16,9 @@
 # @@license_version:1.3@@
 
 import base64
+from collections import defaultdict
 import json
 import logging
-from collections import defaultdict
 from types import NoneType
 
 from google.appengine.api import users
@@ -53,14 +53,13 @@ from plugins.tff_backend.bizz.kyc import save_utility_bill
 from plugins.tff_backend.bizz.kyc.onfido_bizz import get_applicant
 from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1
 from plugins.tff_backend.bizz.messages import send_message_and_email
-from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
 from plugins.tff_backend.bizz.rogerthat import create_error_message, send_rogerthat_flow
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.bizz.user import user_code, get_tff_profile
 from plugins.tff_backend.consts.kyc import country_choices
-from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TokenType
+from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
 from plugins.tff_backend.dal.investment_agreements import get_investment_agreement
 from plugins.tff_backend.models.document import Document, DocumentType, DocumentStatus
 from plugins.tff_backend.models.global_stats import GlobalStats
@@ -538,8 +537,8 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
         agreement.paid_time = now()
         agreement.put()
         user_email, app_id, = get_app_user_tuple(agreement.app_user)
-        deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TokenType.I,
-                       long(agreement.token_count_float * 100), _transactional=True)
+#         deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TokenType.I,
+#                        long(agreement.token_count_float * 100), _transactional=True)
         deferred.defer(update_investor_progress, user_email.email(), app_id, INVESTMENT_TODO_MAPPING[agreement.status],
                        _transactional=True)
         deferred.defer(_send_tokens_assigned_message, agreement.app_user, _transactional=True)
@@ -767,7 +766,7 @@ def multiply_agreements_tokens(document_key, sign_result, user_detail, investmen
     if token_count:
         logging.info('Assigning %s tokens to %s for investment agreements %s', token_count, document.username,
                      to_put)
-        transfer_genesis_coins_to_user(app_user, TokenType.I, token_count, memo)
+#         transfer_genesis_coins_to_user(app_user, TokenType.I, token_count, memo)
     else:
         logging.info('Nothing to transfer for user %s (document %s) ', document.username, document.id)
 
