@@ -228,15 +228,10 @@ def _get_cpu_stats(data):
 def check_node_statuses():
     result = _orc_call('/nodes').get_result()
     if result.status_code != 200:
-        if 400 <= result.status_code < 500:
-            exception_class = deferred.PermanentTaskFailure
-        else:
-            exception_class = Exception
         msg = 'check_node_statuses returned status code %s\nContent: %s' % (result.status_code, result.content)
-        raise exception_class(msg)
+        raise deferred.PermanentTaskFailure(msg)
 
     statuses = {r['id']: r['status'] for r in json.loads(result.content)}
-
     run_job(_get_profiles_with_node, [], _check_node_status, [statuses])
 
 
