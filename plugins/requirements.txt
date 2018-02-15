@@ -9,6 +9,6 @@ qrcode==5.3
 reportlab==3.1.44
 xhtml2pdf==0.0.6
 GoogleAppEngineCloudStorageClient
-git+https://github.com/onfido/api-python-client.git
+https://github.com/onfido/api-python-client/archive/master.zip
 Markdown==2.6.11
 inflect
