@@ -26,10 +26,10 @@ from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments, serialize_complex_value
 from plugins.tff_backend.bizz.payment import get_asset_ids, get_token_from_asset_id, \
     create_signature_data, create_rivine_transaction
-from plugins.tff_backend.consts.payment import PROVIDER_ID, TRANS_STATUS_FAILED
+from plugins.tff_backend.consts.payment import PROVIDER_ID, TRANS_STATUS_FAILED, \
+    COIN_TO_HASTINGS_PERCISION, COIN_TO_HASTINGS
 from plugins.tff_backend.models.payment import ThreeFoldPendingTransactionDetails
-from plugins.tff_backend.plugin_consts import NAMESPACE, COIN_TO_HASTINGS, \
-    COIN_TO_HASTINGS_PERCISION
+from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.rivine import get_balance
 from plugins.tff_backend.to.payment import PaymentProviderAssetTO, PaymentAssetBalanceTO, \
     PaymentProviderTransactionTO, GetPaymentTransactionsResponseTO, CreateTransactionResponseTO, \
@@ -71,7 +71,7 @@ def api_get_asset(asset_id):
     to = PaymentProviderAssetTO()
     to.provider_id = PROVIDER_ID
     to.id = asset_id
-    to.type = u"account"
+    to.type = u"cryptocurrency_wallet"
     to.name = token
     to.currency = token
     to.available_balance = available_balance

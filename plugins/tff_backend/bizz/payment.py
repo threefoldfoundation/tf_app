@@ -21,9 +21,9 @@ from framework.plugin_loader import get_config
 from framework.utils import urlencode
 from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
-from plugins.tff_backend.consts.payment import TOKEN_TFT
+from plugins.tff_backend.consts.payment import TOKEN_TFT, COIN_TO_HASTINGS
 from plugins.tff_backend.models.payment import ThreeFoldWallet
-from plugins.tff_backend.plugin_consts import NAMESPACE, COIN_TO_HASTINGS
+from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.rivine import get_output_ids, create_transaction, \
     get_balance
 from plugins.tff_backend.to.payment import CryptoTransactionTO, \
@@ -47,7 +47,7 @@ def get_app_user_from_asset_id(asset_id):
 @arguments(asset_id=unicode)
 def get_token_from_asset_id(asset_id):
     if ":" not in asset_id:
-        return u'T'
+        return TOKEN_TFT
     return asset_id.rsplit(u":", 1)[1]
 
 
@@ -57,14 +57,14 @@ def get_asset_ids(app_user):
     app_id = get_app_id_from_app_user(app_user)
     if app_id != get_config(NAMESPACE).rogerthat.app_id and not DEBUG:
         return []
-    tokens = [TOKEN_TFT]
+
     if app_user:
         w_key = ThreeFoldWallet.create_key(app_user)
         w = w_key.get()
-        if w and w.tokens:
-            tokens = w.tokens
+        if w and w.addresses:
+            return w.addresses
 
-    return [get_asset_id_from_token(app_user, token) for token in tokens]
+    return []
 
 
 def get_all_balances(app_user):
@@ -86,7 +86,8 @@ def sync_payment_asset(app_user, asset_id):
 
     args = dict()
     args["app_user"] = app_user.email()
-    args["asset_id"] = asset_id
+    if asset_id:
+        args["asset_id"] = asset_id
 
     headers = {'Authorization': cfg.rogerthat.payment_secret}
 

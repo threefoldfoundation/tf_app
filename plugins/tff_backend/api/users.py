@@ -28,7 +28,8 @@ from plugins.tff_backend.bizz.flow_statistics import list_flow_runs_by_user
 from plugins.tff_backend.bizz.iyo.utils import get_app_user_from_iyo_username
 from plugins.tff_backend.bizz.payment import get_all_balances
 from plugins.tff_backend.bizz.user import get_tff_profile, set_kyc_status, list_kyc_checks, set_utility_bill_verified
-from plugins.tff_backend.plugin_consts import COIN_TO_HASTINGS_PERCISION
+from plugins.tff_backend.consts.payment import TOKEN_TFT, \
+    COIN_TO_HASTINGS_PERCISION
 from plugins.tff_backend.to.payment import WalletBalanceTO
 from plugins.tff_backend.to.user import SetKYCPayloadTO, TffProfileTO
 from plugins.tff_backend.utils.search import sanitise_search_query
@@ -92,7 +93,7 @@ def api_get_balance(username):
     to.available = balance
     to.total = balance
     to.description = None
-    to.token = u'T'
+    to.token = TOKEN_TFT
     to.precision = COIN_TO_HASTINGS_PERCISION
     return [to]
 

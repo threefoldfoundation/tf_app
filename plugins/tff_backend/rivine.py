@@ -251,4 +251,4 @@ def _update_wallet_with_address(address):
     from plugins.tff_backend.bizz.payment import sync_payment_asset
 
     for wallet in ThreeFoldWallet.list_by_address(address):
-        sync_payment_asset(wallet.app_user, address)
+        deferred.defer(sync_payment_asset, wallet.app_user, address)
