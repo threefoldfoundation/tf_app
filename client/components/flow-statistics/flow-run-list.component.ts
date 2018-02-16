@@ -10,7 +10,7 @@ import { FlowStatisticsService } from '../../services';
 export class FlowRunListComponent {
   @Input() flowRuns: FlowRunList;
   @Input() showTag = true;
-  @Output() loadMore = new EventEmitter<string>();
+  @Output() loadMore = new EventEmitter<string | null>();
 
   constructor(private flowStatisticsService: FlowStatisticsService) {
   }
