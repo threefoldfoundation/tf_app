@@ -155,8 +155,7 @@ class BaseTransactionTO(TO):
 
 class PendingTransactionTO(BaseTransactionTO):
     id = unicode_property('id')
-    synced = bool_property('synced')
-    synced_status = unicode_property('synced_status')
+    status = unicode_property('status')
 
 
 class TransactionTO(BaseTransactionTO):
@@ -168,13 +167,6 @@ class TransactionTO(BaseTransactionTO):
 
 class PendingTransactionListTO(PaginatedResultTO):
     results = typed_property('results', PendingTransactionTO, True)
-
-    @classmethod
-    def from_query(cls, models, cursor, more):
-        # type: (list[PendingTransaction], unicode, boolean) -> PendingTransactionListTO
-        assert isinstance(cursor, (ndb.Cursor, NoneType))
-        results = [PendingTransactionTO.from_model(model) for model in models]
-        return cls(cursor and cursor.to_websafe_string().decode('utf-8'), more, results)
 
 
 class WalletBalanceTO(TO):

@@ -25,7 +25,7 @@ from plugins.tff_backend.consts.payment import TOKEN_TFT, COIN_TO_HASTINGS
 from plugins.tff_backend.models.payment import ThreeFoldWallet
 from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.rivine import get_output_ids, create_transaction, \
-    get_balance
+    get_balance, get_transactions
 from plugins.tff_backend.to.payment import CryptoTransactionTO, \
     CryptoTransactionDataTO, CryptoTransactionInputTO, CryptoTransactionOutputTO
 from plugins.tff_backend.utils.app import get_app_id_from_app_user
@@ -79,6 +79,20 @@ def get_all_balances(app_user):
             balance += get_balance(address)
 
     return balance
+
+
+def get_all_transactions(app_user):
+    transactions = []
+    if not app_user:
+        return transactions
+
+    w_key = ThreeFoldWallet.create_key(app_user)
+    w = w_key.get()
+    if w and w.addresses:
+        for address in w.addresses:
+            transactions.extend(get_transactions(address))
+
+    return transactions
 
 
 def sync_payment_asset(app_user, asset_id):

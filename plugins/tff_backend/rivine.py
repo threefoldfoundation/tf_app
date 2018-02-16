@@ -75,7 +75,7 @@ def get_transaction(trans_id):
     if info['hashtype'] != "transactionid":
         return None
     t = info['transaction']
-    live_block_height = get_block_height() - MATURITY_DEPTH
+    live_block_height = RivineBlockHeight.get_block_height().height
     for sco_id, co in zip(t['coinoutputids'], t['rawtransaction']['coinoutputs']):
         if co['unlockhash'] != address:
             continue
@@ -97,22 +97,28 @@ def get_transaction(trans_id):
                 'spent': False}
 
 
-def get_transactions(address, status):
-    if status not in (TRANS_STATUS_PENDING, TRANS_STATUS_CONFIRMED,):
+def get_transactions(address, status=None):
+    if status and status not in (TRANS_STATUS_PENDING, TRANS_STATUS_CONFIRMED,):
         return []
     info = get_info_by_hash(address)
     if info['hashtype'] != "unlockhash":
         return []
 
-    live_block_height = get_block_height() - MATURITY_DEPTH
+    live_block_height = RivineBlockHeight.get_block_height().height
     transactions = []
     for t in info['transactions']:
-        if status == TRANS_STATUS_CONFIRMED and t['height'] > live_block_height:
+        if t['height'] > live_block_height:
+            t_status = TRANS_STATUS_PENDING
+        else:
+            t_status = TRANS_STATUS_CONFIRMED
+
+        if status and status == TRANS_STATUS_CONFIRMED and t_status != TRANS_STATUS_CONFIRMED:
             continue
-        elif status == TRANS_STATUS_PENDING and t['height'] <= live_block_height:
+        elif status and status == TRANS_STATUS_PENDING and t_status != TRANS_STATUS_PENDING:
             continue
         if not t['coinoutputids'] or len(t['coinoutputids']) == 0:
             continue
+
 
         for sco_id, co in zip(t['coinoutputids'], t['rawtransaction']['coinoutputs']):
             if co['unlockhash'] != address:
@@ -126,6 +132,7 @@ def get_transactions(address, status):
                                  'outputs': t['rawtransaction']['coinoutputs'],
                                  'amount': unicode(co['value']),
                                  'currency': TOKEN_TFT,
+                                 'status': t_status,
                                  'spent': False})
 
     if not transactions:

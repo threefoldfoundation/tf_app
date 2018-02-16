@@ -26,11 +26,13 @@ from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.bizz.flow_statistics import list_flow_runs_by_user
 from plugins.tff_backend.bizz.iyo.utils import get_app_user_from_iyo_username
-from plugins.tff_backend.bizz.payment import get_all_balances
+from plugins.tff_backend.bizz.payment import get_all_balances, \
+    get_all_transactions
 from plugins.tff_backend.bizz.user import get_tff_profile, set_kyc_status, list_kyc_checks, set_utility_bill_verified
 from plugins.tff_backend.consts.payment import TOKEN_TFT, \
     COIN_TO_HASTINGS_PERCISION
-from plugins.tff_backend.to.payment import WalletBalanceTO
+from plugins.tff_backend.to.payment import WalletBalanceTO, \
+    PendingTransactionListTO, PendingTransactionTO
 from plugins.tff_backend.to.user import SetKYCPayloadTO, TffProfileTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
@@ -79,6 +81,23 @@ def api_set_kyc_status(username, data):
 def api_set_utility_bill_verified(username):
     username = username.decode('utf-8')  # username must be unicode
     return TffProfileTO.from_model(set_utility_bill_verified(username))
+
+
+@rest('/users/<username:[^/]+>/transactions', 'get', Scopes.BACKEND_ADMIN)
+@returns(PendingTransactionListTO)
+@arguments(username=str, token_type=unicode, page_size=(int, long), cursor=unicode)
+def api_get_transactions(username, token_type=None, page_size=50, cursor=None):
+    username = username.decode('utf-8')  # username must be unicode
+    app_user = get_app_user_from_iyo_username(username)
+
+    to = PendingTransactionListTO()
+    to.results = []
+    for t in get_all_transactions(app_user):
+        pto = PendingTransactionTO()
+        pto.id = t['id']
+        pto.status = t['status']
+        to.results.append(pto)
+    return to
 
 
 @rest('/users/<username:[^/]+>/balance', 'get', Scopes.BACKEND_ADMIN)
