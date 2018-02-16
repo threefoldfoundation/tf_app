@@ -140,33 +140,17 @@ class NewTransactionTO(TO):
     token_type = unicode_property('token_type')
 
 
-class BaseTransactionTO(TO):
-    timestamp = long_property('timestamp')
-    unlock_timestamps = long_list_property('unlock_timestamps')
-    unlock_amounts = long_list_property('unlock_amounts')
-    token = unicode_property('token')
-    token_type = unicode_property('token_type')
-    amount = long_property('amount')
-    memo = unicode_property('memo')
-    app_users = unicode_list_property('app_users')
-    from_user = unicode_property('from_user')
-    to_user = unicode_property('to_user')
-
-
-class PendingTransactionTO(BaseTransactionTO):
+class TransactionTO(TO):
     id = unicode_property('id')
     status = unicode_property('status')
-
-
-class TransactionTO(BaseTransactionTO):
-    id = long_property('id')
-    amount_left = long_property('amount_left')
-    height = long_property('height')
-    fully_spent = bool_property('fully_spent')
+    timestamp = long_property('timestamp')
+    currency = unicode_property('currency')
+    amount = long_property('amount')
+    precision = long_property('precision')
 
 
 class PendingTransactionListTO(PaginatedResultTO):
-    results = typed_property('results', PendingTransactionTO, True)
+    results = typed_property('results', TransactionTO, True)
 
 
 class WalletBalanceTO(TO):

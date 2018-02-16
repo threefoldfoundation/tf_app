@@ -32,7 +32,7 @@ from plugins.tff_backend.bizz.user import get_tff_profile, set_kyc_status, list_
 from plugins.tff_backend.consts.payment import TOKEN_TFT, \
     COIN_TO_HASTINGS_PERCISION
 from plugins.tff_backend.to.payment import WalletBalanceTO, \
-    PendingTransactionListTO, PendingTransactionTO
+    PendingTransactionListTO, TransactionTO
 from plugins.tff_backend.to.user import SetKYCPayloadTO, TffProfileTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
@@ -93,10 +93,14 @@ def api_get_transactions(username, token_type=None, page_size=50, cursor=None):
     to = PendingTransactionListTO()
     to.results = []
     for t in get_all_transactions(app_user):
-        pto = PendingTransactionTO()
-        pto.id = t['id']
-        pto.status = t['status']
-        to.results.append(pto)
+        trans_to = TransactionTO()
+        trans_to.id = t['id']
+        trans_to.status = t['status']
+        trans_to.timestamp = t['timestamp']
+        trans_to.currency = t['currency']
+        trans_to.amount = long(t['amount'])
+        trans_to.precision = COIN_TO_HASTINGS_PERCISION
+        to.results.append(trans_to)
     return to
 
 
