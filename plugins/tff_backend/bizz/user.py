@@ -82,20 +82,7 @@ def user_registered(user_detail, origin, data):
     data = json.loads(data)
 
     required_scopes = get_config(IYO_AUTH_NAMESPACE).required_scopes.split(',')
-    if origin == REGISTRATION_ORIGIN_QR:
-        qr_type = data.get('qr_type', None)
-        qr_content = data.get('qr_content', None)
-
-        if not qr_type or not qr_content:
-            logging.warn('No qr_type/qr_content in %s', data)
-            return
-
-        if qr_type != 'jwt':
-            logging.warn('Unsupported qr_type %s', qr_type)
-            return
-
-        jwt = qr_content
-    elif origin == REGISTRATION_ORIGIN_OAUTH:
+    if origin == REGISTRATION_ORIGIN_OAUTH:
         access_token_data = data.get('result', {})
         access_token = access_token_data.get('access_token')
         jwt = create_jwt(access_token, scope='offline_access')
