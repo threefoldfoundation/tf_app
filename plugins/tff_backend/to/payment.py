@@ -14,13 +14,10 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-from types import NoneType
 
-from google.appengine.ext import ndb
 
 from framework.to import TO
-from mcfw.properties import long_property, unicode_property, typed_property, bool_property, float_property, \
-    long_list_property, unicode_list_property
+from mcfw.properties import long_property, unicode_property, typed_property, bool_property
 from plugins.tff_backend.to import PaginatedResultTO
 
 
@@ -131,13 +128,6 @@ class GetPaymentTransactionsResponseTO(TO):
 
 class CreateTransactionResponseTO(TO):
     status = unicode_property('1')
-
-
-class NewTransactionTO(TO):
-    token_count = float_property('token_count')
-    memo = unicode_property('memo')
-    date_signed = long_property('date_signed')
-    token_type = unicode_property('token_type')
 
 
 class TransactionTO(TO):
