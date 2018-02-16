@@ -15,21 +15,17 @@
 #
 # @@license_version:1.3@@
 
-from Queue import Queue, Empty
 import json
 import logging
-from threading import Thread
-import time
 
 from google.appengine.api import urlfetch
-from google.appengine.ext import deferred, ndb
 
-from framework.utils import now
 from mcfw.consts import DEBUG
+from mcfw.rpc import returns, arguments
 from plugins.tff_backend.consts.payment import TOKEN_TFT, TRANS_STATUS_CONFIRMED, \
-    TRANS_STATUS_PENDING
-from plugins.tff_backend.models.payment import RivineBlockHeight, \
-    ThreeFoldWallet
+    TRANS_STATUS_PENDING, COIN_TO_HASTINGS
+from plugins.tff_backend.to.payment import CryptoTransactionTO, \
+    CryptoTransactionDataTO, CryptoTransactionInputTO, CryptoTransactionOutputTO
 
 MATURITY_DEPTH = 10
 
@@ -69,34 +65,6 @@ def get_info_by_hash(hash_):
     return r
 
 
-def get_transaction(trans_id):
-    hash_, address = trans_id.split('_', 1)
-    info = get_info_by_hash(hash_)
-    if info['hashtype'] != "transactionid":
-        return None
-    t = info['transaction']
-    live_block_height = RivineBlockHeight.get_block_height().height
-    for sco_id, co in zip(t['coinoutputids'], t['rawtransaction']['coinoutputs']):
-        if co['unlockhash'] != address:
-            continue
-
-        if t['height'] <= live_block_height:
-            status = TRANS_STATUS_CONFIRMED
-        else:
-            status = TRANS_STATUS_PENDING
-
-        return {'id': u'%s_%s' % (t['id'], address),
-                'height': t['height'],
-                'timestamp': get_block_by_height(t['height'])['rawblock']['timestamp'],
-                'output_id': sco_id,
-                'inputs': t['coininputoutputs'],
-                'outputs': t['rawtransaction']['coinoutputs'],
-                'amount': unicode(co['value']),
-                'currency': TOKEN_TFT,
-                'status': status,
-                'spent': False}
-
-
 def get_transactions(address, status=None):
     if status and status not in (TRANS_STATUS_PENDING, TRANS_STATUS_CONFIRMED,):
         return []
@@ -104,7 +72,7 @@ def get_transactions(address, status=None):
     if info['hashtype'] != "unlockhash":
         return []
 
-    live_block_height = RivineBlockHeight.get_block_height().height
+    live_block_height = get_block_height() - MATURITY_DEPTH
     transactions = []
     for t in info['transactions']:
         if t['height'] > live_block_height:
@@ -124,7 +92,7 @@ def get_transactions(address, status=None):
             if co['unlockhash'] != address:
                 continue
 
-            transactions.append({'id': u'%s_%s' % (t['id'], address),
+            transactions.append({'id': t['id'],
                                  'height': t['height'],
                                  'timestamp': get_block_by_height(t['height'])['rawblock']['timestamp'],
                                  'output_id': sco_id,
@@ -170,133 +138,118 @@ def get_output_ids(address):
     return d
 
 
+@returns(CryptoTransactionTO)
+@arguments(from_address=unicode, to_address=unicode, amount=(int, long))
+def create_signature_data(from_address, to_address, amount):
+    transactions = get_output_ids(to_address)
+    transaction = CryptoTransactionTO()
+    transaction.minerfees = unicode(COIN_TO_HASTINGS)
+    transaction.data = []
+    transaction.from_address = from_address
+    transaction.to_address = to_address
+
+    fee_substracted = False
+
+    amount_left = amount
+    for t in transactions:
+        data = CryptoTransactionDataTO()
+        data.input = CryptoTransactionInputTO(t['output_id'], 0)
+        data.outputs = []
+        data.timelock = 0
+        data.algorithm = None
+        data.public_key_index = 0
+        data.public_key = None
+        data.signature_hash = None
+        data.signature = None
+
+        should_break = False
+        a = long(t['amount'])
+        if not fee_substracted:
+            a -= COIN_TO_HASTINGS
+            fee_substracted = True
+
+        if (amount_left - a) > 0:
+            data.outputs.append(CryptoTransactionOutputTO(unicode(a), to_address))
+            amount_left -= a
+        else:
+            should_break = True
+            data.outputs.append(CryptoTransactionOutputTO(unicode(amount_left), to_address))
+            data.outputs.append(CryptoTransactionOutputTO(unicode(a - amount_left), from_address))
+
+        transaction.data.append(data)
+
+        if should_break:
+            break
+    else:
+        raise Exception('insufficient_funds')
+
+    return transaction
+
+
+@returns(dict)
+@arguments(crypto_transaction=CryptoTransactionTO)
+def create_transaction_payload(crypto_transaction):
+    data = {}
+    data["coininputs"] = []
+    for d in crypto_transaction.data:
+        coininput = {
+            u"parentid": d.input.parent_id,
+            u"unlockconditions": {
+                u"timelock": d.input.timelock,
+                u"publickeys": [{
+                    u"algorithm": d.algorithm,
+                    u"key": d.public_key
+                }],
+                u"signaturesrequired": 1
+            }
+        }
+        data["coininputs"].append(coininput)
+
+    data["coinoutputs"] = []
+    for d in crypto_transaction.data:
+        for output in d.outputs:
+            coinoutput = {
+                u"value": output.value,
+                u"unlockhash": output.unlockhash
+            }
+
+            data["coinoutputs"].append(coinoutput)
+
+    data["blockstakeinputs"] = None
+    data["blockstakeoutputs"] = None
+    data["minerfees"] = [crypto_transaction.minerfees]  # todo investigate if this should be done/output
+    data["arbitrarydata"] = None
+    data["transactionsignatures"] = []
+    for d in crypto_transaction.data:
+        transactionsignature = {
+            u"parentid": d.input.parent_id,
+            u"publickeyindex": d.public_key_index,
+            u"timelock": d.timelock,
+            u"coveredfields": {
+                u"wholetransaction": True,
+                u"coininputs": None,
+                u"coinoutputs": None,
+                u"blockstakeinputs": None,
+                u"blockstakeoutputs": None,
+                u"minerfees": None,
+                u"arbitrarydata": None,
+                u"transactionsignatures": None
+            },
+            u"signature": d.signature
+        }
+        data["transactionsignatures"].append(transactionsignature)
+
+    return data
+
+
+@returns()
+@arguments(data=CryptoTransactionTO)
 def create_transaction(data):
+    payload = create_transaction_payload(data)
     url = 'http://localhost:23110/transactionpool/transactions'
-    logging.warn('url: %s\ndata: %s', url, data)
-    payload = data
+    logging.warn('url: %s\npayload: %s', url, payload)
     headers = {}
     headers['user-agent'] = "Rivine-Agent"
     headers['authorization'] = 'Basic test123'
     response = urlfetch.fetch(url=url, payload=json.dumps(payload), method=urlfetch.POST, headers=headers, deadline=10)
     raise Exception(u'%s: %s\n%s' % (url, response.status_code, response.content))
-
-
-def sync_block_height():
-    live_block_height = get_block_height() - MATURITY_DEPTH
-
-    def trans():
-        bh = RivineBlockHeight.get_block_height()
-        if bh.updating:
-            logging.debug("sync_block_height was already updating")
-
-        elif bh.height < 0:
-            logging.debug("sync_block_height ran for the first time")
-            bh.height = live_block_height
-            bh.put()
-
-        elif bh.height < live_block_height:
-            logging.debug("sync_block_height updating height from %s to %s", bh.height, live_block_height)
-            bh.updating = True
-            bh.put()
-            deferred.defer(_sync_block_height, bh.height, live_block_height, _transactional=True)
-
-    ndb.transaction(trans)
-
-
-def _sync_block_height(current_block_height, to_height):
-    start_time = time.time()
-
-    work = Queue()
-    results = Queue()
-
-    from_height = current_block_height + 1
-
-    for h in range(from_height, to_height):
-        work.put(h)
-
-    def slave():
-
-        def process_miner_payouts(b):
-            if not b['rawblock']['minerpayouts']:
-                return
-
-            for mp in b['rawblock']['minerpayouts']:
-                results.put(mp['unlockhash'])
-
-        def process_transactions(b):
-            for t in b['transactions']:
-                if not t['rawtransaction']['coinoutputs']:
-                    continue
-
-                if 'coininputoutputs' not in t or not t['coininputoutputs']:
-                    for co in t['rawtransaction']['coinoutputs']:
-                        results.put(co['unlockhash'])
-                else:
-                    for cio in t['coininputoutputs']:
-                        results.put(cio['unlockhash'])
-
-                    for co in t['rawtransaction']['coinoutputs']:
-                        results.put(co['unlockhash'])
-
-        while True:
-            try:
-                h = work.get_nowait()
-            except Empty:
-                break  # No more work, goodbye
-
-            try:
-                b = get_block_by_height(h)
-                process_miner_payouts(b)
-                process_transactions(b)
-
-            except Exception as e:
-                results.put(e)
-
-    threads = []
-    for _ in xrange(10):
-        t = Thread(target=slave)
-        t.start()
-        threads.append(t)
-
-    for t in threads:
-        t.join()
-
-    addresses = set()
-    while not results.empty():
-        r = results.get()
-        if isinstance(r, Exception):
-            raise r
-        else:
-            addresses.add(r)
-
-    def trans():
-        bh = RivineBlockHeight.get_block_height()
-        if not bh.updating:
-            return 0
-
-        bh.timestamp = now()
-        bh.updating = False
-        bh.height = to_height
-        bh.put()
-
-        deferred.defer(_update_wallets_with_addresses, addresses, _transactional=True)
-
-        return len(addresses)
-
-    size = ndb.transaction(trans, xg=True)
-
-    took_time = time.time() - start_time
-    msg = 'sync_transactions Took {0:.3f}s to sync block {1} -> {2} and resulted in {3} updated addresses'
-    logging.info(msg.format(took_time, from_height, to_height, size))
-
-
-def _update_wallets_with_addresses(addresses):
-    for address in addresses:
-        deferred.defer(_update_wallet_with_address, address)
-
-
-def _update_wallet_with_address(address):
-    from plugins.tff_backend.bizz.payment import sync_payment_asset
-
-    for wallet in ThreeFoldWallet.list_by_address(address):
-        deferred.defer(sync_payment_asset, wallet.app_user, address)

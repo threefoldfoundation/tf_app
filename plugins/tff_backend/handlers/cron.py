@@ -29,13 +29,6 @@ from plugins.tff_backend.bizz.global_stats import update_currencies
 from plugins.tff_backend.bizz.nodes import check_online_nodes, check_node_statuses
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.plugin_consts import NAMESPACE
-from plugins.tff_backend.rivine import sync_block_height
-
-
-class PaymentSyncHandler(webapp2.RequestHandler):
-
-    def get(self):
-        deferred.defer(sync_block_height)
 
 
 class BackupHandler(webapp2.RequestHandler):

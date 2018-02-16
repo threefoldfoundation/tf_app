@@ -26,7 +26,6 @@ class ThreeFoldWallet(NdbModel):
     NAMESPACE = NAMESPACE
     tokens = ndb.StringProperty(repeated=True)
     next_unlock_timestamp = ndb.IntegerProperty()
-    addresses = ndb.StringProperty(repeated=True)
 
     @property
     def app_user(self):
@@ -42,41 +41,3 @@ class ThreeFoldWallet(NdbModel):
             .filter(ThreeFoldWallet.next_unlock_timestamp > 0) \
             .filter(ThreeFoldWallet.next_unlock_timestamp < now_)
 
-    @classmethod
-    def list_by_address(cls, address):
-        return ThreeFoldWallet.query() \
-            .filter(ThreeFoldWallet.addresses == address)
-
-
-class ThreeFoldPendingTransactionDetails(NdbModel):
-    NAMESPACE = NAMESPACE
-
-    data = ndb.TextProperty()
-
-    @classmethod
-    def create_key(cls, transaction_id):
-        return ndb.Key(cls, u"%s" % transaction_id, namespace=NAMESPACE)
-
-
-class RivineBlockHeight(NdbModel):
-    NAMESPACE = NAMESPACE
-
-    timestamp = ndb.IntegerProperty()
-    height = ndb.IntegerProperty()
-    updating = ndb.BooleanProperty()
-
-    @classmethod
-    def create_key(cls):
-        return ndb.Key(cls, u"BlockHeight", namespace=NAMESPACE)
-
-    @staticmethod
-    def get_block_height():
-        bh_key = RivineBlockHeight.create_key()
-        bh = bh_key.get()
-        if bh:
-            return bh
-        bh = RivineBlockHeight(key=bh_key)
-        bh.height = -1
-        bh.timestamp = 0
-        bh.updating = False
-        return bh

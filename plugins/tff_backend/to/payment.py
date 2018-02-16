@@ -93,6 +93,13 @@ class CryptoTransactionTO(TO):
     to_address = unicode_property('4')
 
 
+class CreateSignatureDataTO(TO):
+    amount = long_property('2')
+    precision = long_property('3')
+    from_address = unicode_property('5')
+    to_address = unicode_property('6')
+
+
 class CryptoTransactionResponseTO(TO):
     result = typed_property('1', CryptoTransactionTO, False)
     error = unicode_property('2')
@@ -139,7 +146,7 @@ class TransactionTO(TO):
     precision = long_property('precision')
 
 
-class PendingTransactionListTO(PaginatedResultTO):
+class TransactionListTO(PaginatedResultTO):
     results = typed_property('results', TransactionTO, True)
 
 

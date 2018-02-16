@@ -7,7 +7,6 @@ import {
   Check,
   CreateInvestmentAgreementPayload,
   CreateOrderPayload,
-  CreateTransactionPayload,
   EventParticipant,
   FlowRunList,
   GetEventParticipantsPayload,
@@ -23,10 +22,7 @@ import {
   SearchUsersQuery,
   SetKYCStatusPayload,
   TffProfile,
-  Transaction,
-  TransactionList,
   UserList,
-  WalletBalance,
 } from '../interfaces';
 import { UserFlowRunsQuery } from '../interfaces/flow-statistics.interfaces';
 import { getQueryParams } from '../util';
@@ -103,20 +99,6 @@ export class TffService {
 
   verifyUtilityBill(username: string) {
     return this.http.put<TffProfile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/profile/kyc/utility-bill`, {});
-  }
-
-  getBalance(username: string) {
-    return this.http.get<WalletBalance[]>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/balance`);
-  }
-
-  getUserTransactions(username: string) {
-    return this.http.get<TransactionList>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/transactions`);
-  }
-
-  createTransaction(payload: CreateTransactionPayload) {
-    const data: Partial<CreateTransactionPayload> = { ...payload };
-    delete data.username;
-    return this.http.post<Transaction>(`${TffConfig.API_URL}/users/${encodeURIComponent(payload.username)}/transactions`, data);
   }
 
   getAgendaEvents(past: boolean) {

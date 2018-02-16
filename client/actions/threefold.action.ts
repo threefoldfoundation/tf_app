@@ -8,7 +8,6 @@ import {
   Check,
   CreateInvestmentAgreementPayload,
   CreateOrderPayload,
-  CreateTransactionPayload,
   EventParticipant,
   FirebaseFlowStats,
   FlowRun,
@@ -27,10 +26,7 @@ import {
   SearchUsersQuery,
   SetKYCStatusPayload,
   TffProfile,
-  Transaction,
-  TransactionList,
   UserList,
-  WalletBalance,
 } from '../interfaces';
 import { UserFlowRunsQuery } from '../interfaces/flow-statistics.interfaces';
 
@@ -78,16 +74,6 @@ export interface ITffActionTypes {
   GET_USER: '[TFF] Get user';
   GET_USER_COMPLETE: '[TFF] Get user success';
   GET_USER_FAILED: '[TFF] Get user failed';
-  GET_BALANCE: '[TFF] Get balance';
-  GET_BALANCE_COMPLETE: '[TFF] Get balance complete';
-  GET_BALANCE_FAILED: '[TFF] Get balance failed';
-  GET_USER_TRANSACTIONS: '[TFF] Get user transactions';
-  GET_USER_TRANSACTIONS_COMPLETE: '[TFF] Get user transactions success';
-  GET_USER_TRANSACTIONS_FAILED: '[TFF] Get user transactions failed';
-  RESET_NEW_TRANSACTION: '[TFF] Reset new transaction';
-  CREATE_TRANSACTION: '[TFF] Create transaction';
-  CREATE_TRANSACTION_COMPLETE: '[TFF] Create transaction success';
-  CREATE_TRANSACTION_FAILED: '[TFF] Create transaction failed';
   GET_TFF_PROFILE: '[TFF] Get tff profile';
   GET_TFF_PROFILE_COMPLETE: '[TFF] Get tff profile complete';
   GET_TFF_PROFILE_FAILED: '[TFF] Get tff profile failed';
@@ -184,16 +170,6 @@ export const TffActionTypes: ITffActionTypes = {
   GET_USER: type('[TFF] Get user'),
   GET_USER_COMPLETE: type('[TFF] Get user success'),
   GET_USER_FAILED: type('[TFF] Get user failed'),
-  GET_BALANCE: type('[TFF] Get balance'),
-  GET_BALANCE_COMPLETE: type('[TFF] Get balance complete'),
-  GET_BALANCE_FAILED: type('[TFF] Get balance failed'),
-  GET_USER_TRANSACTIONS: type('[TFF] Get user transactions'),
-  GET_USER_TRANSACTIONS_COMPLETE: type('[TFF] Get user transactions success'),
-  GET_USER_TRANSACTIONS_FAILED: type('[TFF] Get user transactions failed'),
-  RESET_NEW_TRANSACTION: type('[TFF] Reset new transaction'),
-  CREATE_TRANSACTION: type('[TFF] Create transaction'),
-  CREATE_TRANSACTION_COMPLETE: type('[TFF] Create transaction success'),
-  CREATE_TRANSACTION_FAILED: type('[TFF] Create transaction failed'),
   GET_TFF_PROFILE: type('[TFF] Get tff profile'),
   GET_TFF_PROFILE_COMPLETE: type('[TFF] Get tff profile complete'),
   GET_TFF_PROFILE_FAILED: type('[TFF] Get tff profile failed'),
@@ -521,74 +497,6 @@ export class GetUserCompleteAction implements Action {
 
 export class GetUserFailedAction implements Action {
   type = TffActionTypes.GET_USER_FAILED;
-
-  constructor(public payload: ApiRequestStatus) {
-  }
-}
-
-export class GetUserTransactionsAction implements Action {
-  type = TffActionTypes.GET_USER_TRANSACTIONS;
-
-  constructor(public payload: string) {
-  }
-}
-
-export class GetUserTransactionsCompleteAction implements Action {
-  type = TffActionTypes.GET_USER_TRANSACTIONS_COMPLETE;
-
-  constructor(public payload: TransactionList) {
-  }
-}
-
-export class GetUserTransactionsFailedAction implements Action {
-  type = TffActionTypes.GET_USER_TRANSACTIONS_FAILED;
-
-  constructor(public payload: ApiRequestStatus) {
-  }
-}
-
-export class GetBalanceAction implements Action {
-  type = TffActionTypes.GET_BALANCE;
-
-  constructor(public payload: string) {
-  }
-}
-
-export class GetBalanceCompleteAction implements Action {
-  type = TffActionTypes.GET_BALANCE_COMPLETE;
-
-  constructor(public payload: WalletBalance[]) {
-  }
-}
-
-export class GetBalanceFailedAction implements Action {
-  type = TffActionTypes.GET_BALANCE_FAILED;
-
-  constructor(public payload: ApiRequestStatus) {
-  }
-}
-
-export class ResetNewTransactionAction implements Action {
-  type = TffActionTypes.RESET_NEW_TRANSACTION;
-  payload: null = null;
-}
-
-export class CreateTransactionAction implements Action {
-  type = TffActionTypes.CREATE_TRANSACTION;
-
-  constructor(public payload: CreateTransactionPayload) {
-  }
-}
-
-export class CreateTransactionCompleteAction implements Action {
-  type = TffActionTypes.CREATE_TRANSACTION_COMPLETE;
-
-  constructor(public payload: Transaction) {
-  }
-}
-
-export class CreateTransactionFailedAction implements Action {
-  type = TffActionTypes.CREATE_TRANSACTION_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
@@ -1005,23 +913,12 @@ export type TffActions
   | GetUserAction
   | GetUserCompleteAction
   | GetUserFailedAction
-  | GetUserTransactionsAction
-  | GetUserTransactionsCompleteAction
-  | GetUserTransactionsFailedAction
-  | GetBalanceAction
-  | GetBalanceCompleteAction
-  | GetBalanceFailedAction
-  | ResetNewTransactionAction
-  | CreateTransactionAction
-  | CreateTransactionCompleteAction
-  | CreateTransactionFailedAction
   | GetTffProfileAction
   | GetTffProfileCompleteAction
   | GetTffProfileFailedAction
   | SetKYCStatusAction
   | SetKYCStatusCompleteAction
   | SetKYCStatusFailedAction
-  | CreateTransactionFailedAction
   | GetAgendaEventsAction
   | GetAgendaEventsCompleteAction
   | GetAgendaEventsFailedAction

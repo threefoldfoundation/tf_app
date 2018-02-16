@@ -25,14 +25,7 @@ from plugins.tff_backend.bizz.audit.audit import audit
 from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.bizz.flow_statistics import list_flow_runs_by_user
-from plugins.tff_backend.bizz.iyo.utils import get_app_user_from_iyo_username
-from plugins.tff_backend.bizz.payment import get_all_balances, \
-    get_all_transactions
 from plugins.tff_backend.bizz.user import get_tff_profile, set_kyc_status, list_kyc_checks, set_utility_bill_verified
-from plugins.tff_backend.consts.payment import TOKEN_TFT, \
-    COIN_TO_HASTINGS_PERCISION
-from plugins.tff_backend.to.payment import WalletBalanceTO, \
-    PendingTransactionListTO, TransactionTO
 from plugins.tff_backend.to.user import SetKYCPayloadTO, TffProfileTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
@@ -81,44 +74,6 @@ def api_set_kyc_status(username, data):
 def api_set_utility_bill_verified(username):
     username = username.decode('utf-8')  # username must be unicode
     return TffProfileTO.from_model(set_utility_bill_verified(username))
-
-
-@rest('/users/<username:[^/]+>/transactions', 'get', Scopes.BACKEND_ADMIN)
-@returns(PendingTransactionListTO)
-@arguments(username=str, token_type=unicode, page_size=(int, long), cursor=unicode)
-def api_get_transactions(username, token_type=None, page_size=50, cursor=None):
-    username = username.decode('utf-8')  # username must be unicode
-    app_user = get_app_user_from_iyo_username(username)
-
-    to = PendingTransactionListTO()
-    to.results = []
-    for t in get_all_transactions(app_user):
-        trans_to = TransactionTO()
-        trans_to.id = t['id']
-        trans_to.status = t['status']
-        trans_to.timestamp = t['timestamp']
-        trans_to.currency = t['currency']
-        trans_to.amount = long(t['amount'])
-        trans_to.precision = COIN_TO_HASTINGS_PERCISION
-        to.results.append(trans_to)
-    return to
-
-
-@rest('/users/<username:[^/]+>/balance', 'get', Scopes.BACKEND_ADMIN)
-@returns([WalletBalanceTO])
-@arguments(username=str)
-def api_get_balance(username):
-    username = username.decode('utf-8')  # username must be unicode
-    app_user = get_app_user_from_iyo_username(username)
-    balance = get_all_balances(app_user)
-
-    to = WalletBalanceTO()
-    to.available = balance
-    to.total = balance
-    to.description = None
-    to.token = TOKEN_TFT
-    to.precision = COIN_TO_HASTINGS_PERCISION
-    return [to]
 
 
 @rest('/users/<username:[^/]+>/kyc/checks', 'get', Scopes.BACKEND_READONLY, silent_result=True)

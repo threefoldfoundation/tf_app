@@ -38,7 +38,6 @@ import {
   AgendaEventsListPageComponent,
   ApiRequestStatusComponent,
   CreateAgendaEventPageComponent,
-  CreateTransactionComponent,
   DashboardComponent,
   EventParticipantsComponent,
   EventParticipantsPageComponent,
@@ -66,17 +65,14 @@ import {
   OrderListPageComponent,
   SearchInvestmentAgreementsComponent,
   SearchNodeOrdersComponent,
-  TransactionListComponent,
   UserDetailsComponent,
   UserListComponent,
   UserSearchComponent,
-  WalletBalanceComponent,
 } from './components';
 import { TffEffects } from './effects';
 import {
   CreateInvestmentAgreementPageComponent,
   CreateOrderPageComponent,
-  CreateTransactionPageComponent,
   DashboardPageComponent,
   FlowStatisticsDetailPageComponent,
   FlowStatisticsOverviewPageComponent,
@@ -91,7 +87,6 @@ import {
   UserNodeOrdersPageComponent,
   UserPageComponent,
   UserPurchaseAgreementsPageComponent,
-  UserTransactionsListPageComponent,
 } from './pages';
 import { MarkdownPipe } from './pipes/markdown.pipe';
 import { ProfileNamePipe } from './pipes/profile-name.pipe';
@@ -139,7 +134,6 @@ export const TFF_PROVIDERS = [
 export const TFF_PAGES = [
   CreateInvestmentAgreementPageComponent,
   CreateOrderPageComponent,
-  CreateTransactionPageComponent,
   DashboardPageComponent,
   FlowStatisticsDetailPageComponent,
   FlowStatisticsOverviewPageComponent,
@@ -154,7 +148,6 @@ export const TFF_PAGES = [
   UserNodeOrdersPageComponent,
   UserPageComponent,
   UserPurchaseAgreementsPageComponent,
-  UserTransactionsListPageComponent,
 ];
 
 export const TFF_COMPONENTS: any[] = [
@@ -164,7 +157,6 @@ export const TFF_COMPONENTS: any[] = [
   AgendaEventsListPageComponent,
   ApiRequestStatusComponent,
   CreateAgendaEventPageComponent,
-  CreateTransactionComponent,
   DashboardComponent,
   EventParticipantsComponent,
   EventParticipantsPageComponent,
@@ -192,11 +184,9 @@ export const TFF_COMPONENTS: any[] = [
   OrderListPageComponent,
   SearchInvestmentAgreementsComponent,
   SearchNodeOrdersComponent,
-  TransactionListComponent,
   UserDetailsComponent,
   UserListComponent,
   UserSearchComponent,
-  WalletBalanceComponent,
   ...TFF_PAGES,
 ];
 

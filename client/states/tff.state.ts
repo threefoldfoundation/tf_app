@@ -18,9 +18,7 @@ import {
   PaginatedResult,
   SearchUsersQuery,
   TffProfile,
-  TransactionList,
   UserList,
-  WalletBalance,
 } from '../interfaces';
 
 export interface ITffState {
@@ -48,13 +46,8 @@ export interface ITffState {
   userListStatus: ApiRequestStatus;
   user: Profile | null;
   userStatus: ApiRequestStatus;
-  userTransactions: TransactionList;
-  userTransactionsStatus: ApiRequestStatus;
-  createTransactionStatus: ApiRequestStatus;
   userFlowRuns: FlowRunList;
   userFlowRunsStatus: ApiRequestStatus;
-  balance: WalletBalance[];
-  balanceStatus: ApiRequestStatus;
   tffProfile: TffProfile | null;
   tffProfileStatus: ApiRequestStatus;
   setKYCStatus: ApiRequestStatus;
@@ -126,13 +119,8 @@ export const initialTffState: ITffState = {
   userListStatus: apiRequestInitial,
   user: null,
   userStatus: apiRequestInitial,
-  userTransactions: emptyPaginatedResult,
-  userTransactionsStatus: apiRequestInitial,
-  createTransactionStatus: apiRequestInitial,
   userFlowRuns: emptyPaginatedResult,
   userFlowRunsStatus: apiRequestInitial,
-  balance: [],
-  balanceStatus: apiRequestInitial,
   tffProfile: null,
   tffProfileStatus: apiRequestInitial,
   setKYCStatus: apiRequestInitial,
