@@ -59,9 +59,8 @@ def api_create_signature_data_transaction(data):
     to = CryptoTransactionResponseTO()
     to.result = None
     to.error = None
-    # todo calculate amount with precision
     try:
-        to.result = create_signature_data(data.from_address, data.to_address, data.amount * COIN_TO_HASTINGS)
+        to.result = create_signature_data(data.from_address, data.to_address, data.amount * pow(10, data.precision) * COIN_TO_HASTINGS)
 
     except Exception as e:
         to.error = unicode(e.message)

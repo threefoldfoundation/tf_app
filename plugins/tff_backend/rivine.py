@@ -89,6 +89,7 @@ def get_transactions(address, status=None):
 
 
         for sco_id, co in zip(t['coinoutputids'], t['rawtransaction']['coinoutputs']):
+            # todo investigate if correct when fully spent
             if co['unlockhash'] != address:
                 continue
 
@@ -217,7 +218,7 @@ def create_transaction_payload(crypto_transaction):
 
     data["blockstakeinputs"] = None
     data["blockstakeoutputs"] = None
-    data["minerfees"] = [crypto_transaction.minerfees]  # todo investigate if this should be done/output
+    data["minerfees"] = [crypto_transaction.minerfees]
     data["arbitrarydata"] = None
     data["transactionsignatures"] = []
     for d in crypto_transaction.data:
