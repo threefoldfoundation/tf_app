@@ -130,7 +130,13 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
             setattr(applicant.addresses[0], prop, value)
         else:
             logging.warn('Ignoring unknown property %s with value %s', prop, value)
+    # Ensure only the last step is used in case user went through the same step more than once
+    unique_steps = {}
     for step in steps:
+        if step.step_id in unique_steps and unique_steps[step.step_id].received_timestamp > step.received_timestamp:
+            continue
+        steps[step.step_id] = step
+    for step in unique_steps.itervalues():
         # In case of the flowcode_check_skip_passport step
         if not isinstance(step, FormFlowStepTO):
             continue

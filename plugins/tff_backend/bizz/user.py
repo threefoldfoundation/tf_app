@@ -352,7 +352,7 @@ def can_change_kyc_status(current_status, new_status):
         # KYCStatus.SUBMITTED: [KYCStatus.INFO_SET],
         # KYCStatus.INFO_SET: [KYCStatus.PENDING_APPROVAL],
         KYCStatus.PENDING_APPROVAL: [KYCStatus.VERIFIED, KYCStatus.DENIED, KYCStatus.PENDING_SUBMIT],
-        KYCStatus.VERIFIED: [],
+        KYCStatus.VERIFIED: [KYCStatus.PENDING_SUBMIT],
     }
     return new_status in statuses.get(current_status)
 
