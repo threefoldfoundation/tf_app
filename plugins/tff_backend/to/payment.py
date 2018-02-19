@@ -144,6 +144,8 @@ class TransactionTO(TO):
     currency = unicode_property('currency')
     amount = long_property('amount')
     precision = long_property('precision')
+    from_address = unicode_property('from_address')
+    to_address = unicode_property('to_address')
 
 
 class TransactionListTO(PaginatedResultTO):

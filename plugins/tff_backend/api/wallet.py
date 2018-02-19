@@ -48,6 +48,14 @@ def api_get_transactions(address):
         trans_to.currency = t['currency']
         trans_to.amount = long(t['amount'])
         trans_to.precision = COIN_TO_HASTINGS_PERCISION
+        trans_to.from_address = t['inputs'][0]['unlockhash']
+        if trans_to.from_address == address:
+            if t['outputs'][0]['unlockhash'] == address:
+                trans_to.to_address = t['outputs'][1]['unlockhash']
+            else:
+                trans_to.to_address = t['outputs'][0]['unlockhash']
+        else:
+            trans_to.to_address = address
         to.results.append(trans_to)
     return to
 
