@@ -141,6 +141,7 @@ class TransactionTO(TO):
     id = unicode_property('id')
     status = unicode_property('status')
     timestamp = long_property('timestamp')
+    spent = bool_property('spent')
     inputs = typed_property('inputs', CryptoTransactionOutputTO, True)
     outputs = typed_property('outputs', CryptoTransactionOutputTO, True)
 

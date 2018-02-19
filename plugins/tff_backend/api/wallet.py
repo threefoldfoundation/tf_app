@@ -37,6 +37,7 @@ def api_get_transactions(address):
         trans_to.id = t['id']
         trans_to.status = t['status']
         trans_to.timestamp = t['timestamp']
+        trans_to.spent = t['spent']
         trans_to.inputs = []
         for i in t['inputs']:
             co = CryptoTransactionOutputTO()
