@@ -17,22 +17,13 @@
 
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
-from plugins.tff_backend.consts.payment import COIN_TO_HASTINGS, \
-    COIN_TO_HASTINGS_PERCISION
-from plugins.tff_backend.rivine import get_balance, get_transactions, \
+from plugins.tff_backend.consts.payment import COIN_TO_HASTINGS
+from plugins.tff_backend.rivine import get_transactions, \
     create_transaction, create_signature_data
 from plugins.tff_backend.to.payment import CryptoTransactionResponseTO, \
     CryptoTransactionTO, CreateSignatureDataTO, \
-    PaymentAssetBalanceTO, TransactionListTO, TransactionTO, \
+    TransactionListTO, TransactionTO, \
     CryptoTransactionOutputTO
-
-
-@rest('/wallet/balance', 'get')
-@returns(PaymentAssetBalanceTO)
-@arguments(address=unicode)
-def api_get_balance(address):
-    balance = get_balance(address)
-    return PaymentAssetBalanceTO(amount=balance, description=None, precision=COIN_TO_HASTINGS_PERCISION)
 
 
 @rest('/wallet/transactions', 'get')
