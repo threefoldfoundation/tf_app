@@ -374,9 +374,6 @@ def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url, c
     ndb.transaction(trans)
 
 
-_create_see_document
-
-
 def _send_ito_agreement_sign_message(agreement_key, app_user, pdf_url, attachment_name, pdf_size):
     logging.debug('Sending SIGN widget to app user')
 
