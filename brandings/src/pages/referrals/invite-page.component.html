@@ -11,9 +11,6 @@
 <ion-content padding>
   <ion-grid>
     <ion-row justify-content-center>
-      <p>{{ 'your_invitation_code_is' | translate : { code: code } }}</p>
-    </ion-row>
-    <ion-row justify-content-center>
       <a ion-button [href]="smsLink" rel="noopener">{{ 'invite_via_sms' | translate }}</a>
     </ion-row>
     <ion-row justify-content-center>
