@@ -23,7 +23,8 @@ from plugins.tff_backend.rivine import get_balance, get_transactions, \
     create_transaction, create_signature_data
 from plugins.tff_backend.to.payment import CryptoTransactionResponseTO, \
     CryptoTransactionTO, CreateSignatureDataTO, \
-    PaymentAssetBalanceTO, TransactionListTO, TransactionTO
+    PaymentAssetBalanceTO, TransactionListTO, TransactionTO, \
+    CryptoTransactionOutputTO
 
 
 @rest('/wallet/balance', 'get')
@@ -45,17 +46,18 @@ def api_get_transactions(address):
         trans_to.id = t['id']
         trans_to.status = t['status']
         trans_to.timestamp = t['timestamp']
-        trans_to.currency = t['currency']
-        trans_to.amount = long(t['amount'])
-        trans_to.precision = COIN_TO_HASTINGS_PERCISION
-        trans_to.from_address = t['inputs'][0]['unlockhash']
-        if trans_to.from_address == address:
-            if t['outputs'][0]['unlockhash'] == address:
-                trans_to.to_address = t['outputs'][1]['unlockhash']
-            else:
-                trans_to.to_address = t['outputs'][0]['unlockhash']
-        else:
-            trans_to.to_address = address
+        trans_to.inputs = []
+        for i in t['inputs']:
+            co = CryptoTransactionOutputTO()
+            co.value = i['value']
+            co.unlockhash = i['unlockhash']
+            trans_to.inputs.append(co)
+        trans_to.outputs = []
+        for o in t['outputs']:
+            co = CryptoTransactionOutputTO()
+            co.value = o['value']
+            co.unlockhash = o['unlockhash']
+            trans_to.outputs.append(co)
         to.results.append(trans_to)
     return to
 

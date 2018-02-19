@@ -141,11 +141,8 @@ class TransactionTO(TO):
     id = unicode_property('id')
     status = unicode_property('status')
     timestamp = long_property('timestamp')
-    currency = unicode_property('currency')
-    amount = long_property('amount')
-    precision = long_property('precision')
-    from_address = unicode_property('from_address')
-    to_address = unicode_property('to_address')
+    inputs = typed_property('inputs', CryptoTransactionOutputTO, True)
+    outputs = typed_property('outputs', CryptoTransactionOutputTO, True)
 
 
 class TransactionListTO(PaginatedResultTO):
