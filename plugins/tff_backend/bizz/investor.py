@@ -374,9 +374,6 @@ def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url, c
     ndb.transaction(trans)
 
 
-_create_see_document
-
-
 def _send_ito_agreement_sign_message(agreement_key, app_user, pdf_url, attachment_name, pdf_size):
     logging.debug('Sending SIGN widget to app user')
 
@@ -622,6 +619,8 @@ def get_total_investment_value(app_user):
 @returns()
 @arguments(app_user=users.User)
 def send_hoster_reminder(app_user):
+    # Temporarily disabled
+    return
     if get_total_investment_value(app_user) >= 600:
         send_rogerthat_flow(app_user, FLOW_HOSTER_REMINDER)
 
