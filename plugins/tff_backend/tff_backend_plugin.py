@@ -89,7 +89,7 @@ class TffBackendPlugin(BrandingPlugin):
     def get_client_routes(self):
         return ['/orders<route:.*>', '/node-orders<route:.*>', '/investment-agreements<route:.*>',
                 '/global-stats<route:.*>', '/users<route:.*>', '/agenda<route:.*>', '/flow-statistics<route:.*>',
-                '/installations<route:.*>', '/dashboard<route:.*>']
+                '/installations<route:.*>', '/dashboard<route:.*>', '/nodes<route:.*>']
 
     def get_modules(self):
         perms = get_permissions_from_scopes(get_current_session().scopes)
