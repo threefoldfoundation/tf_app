@@ -19,7 +19,7 @@ import {
   SearchUsersQuery,
   TffProfile,
   TransactionList,
-  UserList,
+  UserList, UserNodeStatus,
   WalletBalance,
 } from '../interfaces';
 
@@ -83,6 +83,8 @@ export interface ITffState {
   installationStatus: ApiRequestStatus;
   installationLogs: InstallationLog[];
   installationLogsStatus: ApiRequestStatus;
+  nodes: UserNodeStatus[];
+  nodesStatus: ApiRequestStatus;
 }
 
 export const emptyPaginatedResult: PaginatedResult<any> = {
@@ -161,4 +163,6 @@ export const initialTffState: ITffState = {
   installationStatus: apiRequestInitial,
   installationLogs: [],
   installationLogsStatus: apiRequestInitial,
+  nodes: [],
+  nodesStatus: apiRequestInitial,
 };

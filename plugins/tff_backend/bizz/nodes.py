@@ -29,6 +29,7 @@ from mcfw.cache import cached
 from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import refresh_jwt
+from plugins.its_you_online_auth.models import Profile
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.tff_backend.bizz import get_rogerthat_api_key
@@ -40,6 +41,7 @@ from plugins.tff_backend.consts.hoster import DEBUG_NODE_DATA
 from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 from plugins.tff_backend.models.user import TffProfile, NodeInfo
 from plugins.tff_backend.plugin_consts import NAMESPACE
+from plugins.tff_backend.to.nodes import UserNodeStatusTO
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 
@@ -295,3 +297,19 @@ def _send_node_status_update_message(app_user, from_status, to_status, now):
         return
 
     send_message_and_email(app_user, msg, subject)
+
+
+def list_nodes_by_status(status=None):
+    # type: (unicode) -> list[UserNodeStatusTO]
+    if status:
+        qry = TffProfile.list_by_node_status(status)
+    else:
+        qry = TffProfile.list_with_node()
+    tff_profiles = qry.fetch()  # type: list[TffProfile]
+    profiles = {profile.username: profile for profile in
+                ndb.get_multi([Profile.create_key(p.username) for p in tff_profiles])}
+    results = [UserNodeStatusTO(
+        profile=profiles.get(tff_profile.username).to_dict() if tff_profile.username in profiles else None,
+        nodes=[node.to_dict() for node in tff_profile.nodes]
+    ) for tff_profile in tff_profiles]
+    return sorted(results, key=lambda k: k.profile and k.profile['info']['firstname'])

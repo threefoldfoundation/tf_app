@@ -1,0 +1,69 @@
+<mat-table [dataSource]="dataSource">
+  <ng-container matColumnDef="select">
+    <mat-header-cell *matHeaderCellDef>
+      <mat-checkbox (change)="$event ? masterToggle() : null"
+                    [checked]="selection.hasValue() && isAllSelected()"
+                    [indeterminate]="selection.hasValue() && !isAllSelected()">
+      </mat-checkbox>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-checkbox (click)="$event.stopPropagation()"
+                    (change)="$event ? selection.toggle(row) : null"
+                    [checked]="selection.isSelected(row)">
+      </mat-checkbox>
+    </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="name">
+    <mat-header-cell *matHeaderCellDef>{{ 'tff.name' | translate }}</mat-header-cell>
+    <mat-cell *matCellDef="let row">{{ row.profile| profileName }}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="email">
+    <mat-header-cell *matHeaderCellDef>{{ 'tff.email' | translate }}</mat-header-cell>
+    <mat-cell *matCellDef="let row">{{ row.profile | profileEmail }}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="status">
+    <mat-header-cell *matHeaderCellDef>
+      {{ 'tff.status' | translate }}
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <p *ngFor="let node of row.nodes">{{ node.status }}</p>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="serial_number">
+    <mat-header-cell *matHeaderCellDef>
+      {{ 'tff.serial_number' | translate }}
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <p *ngFor="let node of row.nodes">{{ node.serial_number }}</p>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="node_id">
+    <mat-header-cell *matHeaderCellDef>
+      {{ 'tff.node_id' | translate }}
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <p *ngFor="let node of row.nodes">{{ node.id }}</p>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="profile_link">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <a mat-button [routerLink]="['/users', row.profile.username]" target="_blank">
+        {{ 'tff.profile' | translate }}
+      </a>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+</mat-table>
+<div class="email-list" *ngIf="selection.selected.length">
+  <h3>{{ 'tff.list_of_emails' | translate }}</h3>
+  <p>{{ getSelectionCsv() }}</p>
+</div>
+<tff-api-request-status [status]="status"></tff-api-request-status>
