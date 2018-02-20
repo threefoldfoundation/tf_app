@@ -102,3 +102,12 @@ export interface SetKYCStatusPayload {
   comment?: string;
   data: Partial<Applicant>;
 }
+
+export interface UserNodeStatus {
+  profile: Profile;
+  nodes: NodeInfo[];
+}
+
+export interface NodesQuery {
+  status: NodeStatus | null | '';
+}
