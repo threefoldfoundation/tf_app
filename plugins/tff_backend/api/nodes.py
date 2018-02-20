@@ -22,8 +22,10 @@ from plugins.tff_backend.bizz.audit.audit import audit
 from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.bizz.hoster import put_node_order, create_node_order
+from plugins.tff_backend.bizz.nodes import list_nodes_by_status
 from plugins.tff_backend.dal.node_orders import search_node_orders, get_node_order
-from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO, CreateNodeOrderTO, NodeOrderDetailTO
+from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO, CreateNodeOrderTO, NodeOrderDetailTO, \
+    UserNodeStatusTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
@@ -56,3 +58,10 @@ def api_create_node_order(data):
 @arguments(order_id=(int, long), data=NodeOrderTO)
 def api_put_node_order(order_id, data):
     return NodeOrderDetailTO.from_dict(put_node_order(order_id, data).to_dict(['username']))
+
+
+@rest('/nodes', 'get', Scopes.BACKEND_READONLY, silent_result=True)
+@returns([UserNodeStatusTO])
+@arguments(status=unicode)
+def api_put_node_order(status=None):
+    return list_nodes_by_status(status)

@@ -618,6 +618,8 @@ def get_total_investment_value(app_user):
 @returns()
 @arguments(app_user=users.User)
 def send_hoster_reminder(app_user):
+    # Temporarily disabled
+    return
     if get_total_investment_value(app_user) >= 600:
         send_rogerthat_flow(app_user, FLOW_HOSTER_REMINDER)
 

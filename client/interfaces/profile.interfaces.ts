@@ -70,7 +70,7 @@ export const KYC_STATUS_MAPPING: { [ key: number ]: KYCStatus[] } = {
   // [ KYCStatus.SUBMITTED ]: [ KYCStatus.INFO_SET ],
   // [ KYCStatus.INFO_SET ]: [ KYCStatus.PENDING_APPROVAL ],
   [ KYCStatus.PENDING_APPROVAL ]: [ KYCStatus.VERIFIED, KYCStatus.DENIED, KYCStatus.PENDING_SUBMIT ],
-  [ KYCStatus.VERIFIED ]: [],
+  [ KYCStatus.VERIFIED ]: [ KYCStatus.PENDING_SUBMIT ],
 };
 
 export interface KYCInformation {
@@ -101,4 +101,13 @@ export interface SetKYCStatusPayload {
   status: KYCStatus;
   comment?: string;
   data: Partial<Applicant>;
+}
+
+export interface UserNodeStatus {
+  profile: Profile;
+  nodes: NodeInfo[];
+}
+
+export interface NodesQuery {
+  status: NodeStatus | null | '';
 }

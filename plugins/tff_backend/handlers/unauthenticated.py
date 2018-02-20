@@ -14,20 +14,15 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-import base64
-import httplib
 import logging
 import urllib
 import uuid
 
 import webapp2
 
-import qrcode
-from framework.bizz.authentication import get_current_session
 from framework.bizz.session import create_session
 from framework.handlers import render_error_page
-from framework.models.session import Session
-from framework.plugin_loader import get_auth_plugin, get_config
+from framework.plugin_loader import get_auth_plugin
 from framework.utils import get_server_url, now
 from mcfw.consts import MISSING
 from mcfw.exceptions import HttpException, HttpBadRequestException
@@ -35,8 +30,6 @@ from plugins.its_you_online_auth.bizz.authentication import get_jwt
 from plugins.its_you_online_auth.its_you_online_auth_plugin import ItsYouOnlineAuthPlugin
 from plugins.its_you_online_auth.models import OauthState
 from plugins.its_you_online_auth.plugin_consts import SOURCE_APP
-from plugins.tff_backend.configuration import TffConfiguration
-from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
 class RefreshHandler(webapp2.RequestHandler):
@@ -115,42 +108,3 @@ class RefreshCallbackHandler(webapp2.RequestHandler):
         url = '%s?%s' % (refresh_state.app_redirect_uri, urllib.urlencode(params))
         logging.info('Redirecting to %s', url)
         self.redirect(str(url))
-
-
-class JWTQrHandler(webapp2.RequestHandler):
-    def get_session(self):
-        return get_current_session()
-
-    def get(self):
-        session = self.get_session()
-        if not session:
-            self.abort(httplib.UNAUTHORIZED)
-        img = qrcode.make(session.jwt)
-        self.response.headers['Content-Type'] = 'image/png'
-        img.save(self.response.out)
-
-
-class AppleReviewQrHandler(JWTQrHandler):
-
-    def get(self):
-        auth = self.request.authorization
-        if auth is None or not self.check_auth(auth):
-            self.response.set_status(httplib.UNAUTHORIZED)
-            self.response.headers['WWW-Authenticate'] = 'Basic realm="Login required"'
-            return
-        super(AppleReviewQrHandler, self).get()
-
-    def check_auth(self, auth):
-        encoded_auth = auth[1]
-        username_colon_pass = base64.b64decode(encoded_auth)
-        username, password = map(lambda x: x.lower().strip(), username_colon_pass.split(':'))
-        config = get_config(NAMESPACE)
-        assert isinstance(config, TffConfiguration)
-        return username == config.apple.username and password == config.apple.password
-
-    def get_session(self):
-        username = get_config(NAMESPACE).apple.iyo_username
-        session = Session.list_active_user(username).get()
-        if not session:
-            logging.error('No session found for %s! Login with this account to resolve the issue', username)
-        return session
