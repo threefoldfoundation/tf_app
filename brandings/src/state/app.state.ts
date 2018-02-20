@@ -15,8 +15,6 @@ export interface IBrandingState {
   todoLists: TodoList[];
   seeDocuments: SeeDocument[];
   seeDocumentsStatus: ApiRequestStatus;
-  setReferrerResult: string | null;
-  setReferrerStatus: ApiRequestStatus;
   events: AgendaEvent[];
   eventPresence: EventPresence | null;
   eventPresenceStatus: ApiRequestStatus;
@@ -34,8 +32,6 @@ export const initialState: IBrandingState = {
   todoLists: [],
   seeDocuments: [],
   seeDocumentsStatus: apiRequestInitial,
-  setReferrerResult: null,
-  setReferrerStatus: apiRequestInitial,
   events: [],
   eventPresence: null,
   eventPresenceStatus: apiRequestInitial,
@@ -53,9 +49,6 @@ export const getTodoLists = createSelector(getAppState, s => s.todoLists);
 
 export const getSeeDocuments = createSelector(getAppState, s => s.seeDocuments);
 export const getSeeDocumentsStatus = createSelector(getAppState, s => s.seeDocumentsStatus);
-
-export const getSetReferrerResult = createSelector(getAppState, s => s.setReferrerResult);
-export const getSetReferrerStatus = createSelector(getAppState, s => s.setReferrerStatus);
 
 export const getEvents = createSelector(getAppState, s => s.events);
 export const getEventPresence = createSelector(getAppState, s => s.eventPresence);
