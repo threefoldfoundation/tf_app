@@ -8,7 +8,6 @@ import * as actions from '../actions/branding.actions';
 import { AgendaService } from '../services/agenda.service';
 import { GlobalStatsService } from '../services/global-stats.service';
 import { NodeService } from '../services/node.service';
-import { ReferrerService } from '../services/referrer.service';
 import { SeeService } from '../services/see.service';
 import { handleApiError } from '../util/rpc';
 
@@ -25,12 +24,6 @@ export class BrandingEffects {
     .pipe(switchMap(() => this.seeService.list().pipe(
       map(stats => new actions.GetSeeDocumentsCompleteAction(stats)),
       catchError(err => handleApiError(actions.GetSeeDocumentsFailedAction, err)))));
-
-  @Effect() setReferrer$: Observable<actions.BrandingActions> = this.actions$
-    .ofType<actions.SetReferrerAction>(actions.BrandingActionTypes.SET_REFERRER)
-    .pipe(switchMap(action => this.referrerService.set(action.payload).pipe(
-      map(result => new actions.SetReferrerCompleteAction(result)),
-      catchError(err => handleApiError(actions.SetReferrerFailedAction, err)))));
 
   @Effect() getEvents$: Observable<actions.BrandingActions> = this.actions$
     .ofType<actions.GetEventsAction>(actions.BrandingActionTypes.GET_EVENTS)
@@ -57,7 +50,6 @@ export class BrandingEffects {
 
   constructor(private actions$: Actions,
               private globalStatsService: GlobalStatsService,
-              private referrerService: ReferrerService,
               private agendaService: AgendaService,
               private seeService: SeeService,
               private nodeService: NodeService) {

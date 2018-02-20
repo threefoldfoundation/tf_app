@@ -22,7 +22,6 @@ from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
 
 from framework.consts import get_base_url
-from mcfw.consts import DEBUG
 from mcfw.properties import object_factory
 from mcfw.rpc import arguments, returns
 from onfido import Applicant, Address
@@ -36,7 +35,6 @@ from plugins.rogerthat_api.to.messaging.forms import FormResultTO, UnicodeWidget
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     TYPE_FLOW, FlowCallbackResultTypeTO
 from plugins.tff_backend.bizz.email import send_emails_to_support
-from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.kyc import save_utility_bill, validate_kyc_status
 from plugins.tff_backend.bizz.kyc.onfido_bizz import update_applicant, create_applicant, upload_document
@@ -68,14 +66,6 @@ def kyc_part_1(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
     result = validate_kyc_status(get_tff_profile(iyo_username))
     if isinstance(result, FlowMemberResultCallbackResultTO):
         return result
-    ref_step = get_step(steps, 'message_referrer')
-    if ref_step and not result.referrer_user:
-        try:
-            from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
-            api_set_referral({'code': ref_step.get_value()}, user_details[0])
-        except ApiCallException as e:
-            if not DEBUG:
-                return create_error_message(e.message)
     if flush_id == 'flush_corporation':
         return
     step = get_step(steps, 'message_nationality') or get_step(steps, 'message_nationality_with_vibration')
