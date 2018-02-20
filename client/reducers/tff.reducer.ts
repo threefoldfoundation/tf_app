@@ -605,6 +605,23 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         installationLogsStatus: action.payload,
       };
+    case actions.TffActionTypes.GET_NODES:
+      return {
+        ...state,
+        nodes: initialTffState.nodes,
+        nodesStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_NODES_COMPLETE:
+      return {
+        ...state,
+        nodes: action.payload,
+        nodesStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_NODES_FAILED:
+      return {
+        ...state,
+        nodesStatus: action.payload,
+      };
     default:
       return state;
   }

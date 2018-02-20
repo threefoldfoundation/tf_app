@@ -94,3 +94,8 @@ class NodeOrderListTO(PaginatedResultTO):
         assert isinstance(cursor, (search.Cursor, NoneType))
         orders = [NodeOrderTO.from_model(model) for model in models]
         return cls(cursor and cursor.web_safe_string.decode('utf-8'), more, orders)
+
+
+class UserNodeStatusTO(TO):
+    profile = typed_property('profile', dict)
+    nodes = typed_property('nodes', dict, True)

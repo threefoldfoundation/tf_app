@@ -9,7 +9,6 @@ import {
   CreateOrderPayload,
   CreateTransactionPayload,
   EventParticipant,
-  FlowRunList,
   GetEventParticipantsPayload,
   GetInstallationsQuery,
   GlobalStats,
@@ -19,6 +18,7 @@ import {
   NodeOrder,
   NodeOrderList,
   NodeOrdersQuery,
+  NodesQuery,
   PaginatedResult,
   SearchUsersQuery,
   SetKYCStatusPayload,
@@ -26,9 +26,9 @@ import {
   Transaction,
   TransactionList,
   UserList,
+  UserNodeStatus,
   WalletBalance,
 } from '../interfaces';
-import { UserFlowRunsQuery } from '../interfaces/flow-statistics.interfaces';
 import { getQueryParams } from '../util';
 import { TffConfig } from './tff-config.service';
 
@@ -158,5 +158,13 @@ export class TffService {
 
   getInstallationLogs(installationId: string) {
     return this.http.get<InstallationLog[]>(`${TffConfig.API_URL}/installations/${installationId}/logs`);
+  }
+
+  getNodes(query: NodesQuery) {
+    let params = new HttpParams();
+    if (query.status) {
+      params = params.set('status', query.status);
+    }
+    return this.http.get<UserNodeStatus[]>(`${TffConfig.API_URL}/nodes`, { params });
   }
 }
