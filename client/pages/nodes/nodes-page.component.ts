@@ -26,6 +26,7 @@ export class NodesPageComponent implements OnInit {
   nodeStatuses = [
     { value: '', label: 'tff.all' },
     { value: NodeStatus.RUNNING, label: 'tff.node_status_running' },
+    { value: NodeStatus.REBOOTING, label: 'tff.node_status_rebooting' },
     { value: NodeStatus.HALTED, label: 'tff.node_status_halted' },
   ];
   query: NodesQuery = { status: '' };

@@ -28,7 +28,7 @@
       {{ 'tff.status' | translate }}
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <p *ngFor="let node of row.nodes">{{ node.status }}</p>
+      <p *ngFor="let node of row.nodes">{{ ('tff.node_status_' + node.status) | translate }}</p>
     </mat-cell>
   </ng-container>
 

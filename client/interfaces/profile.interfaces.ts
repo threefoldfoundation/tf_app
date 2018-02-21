@@ -5,6 +5,7 @@ import { PaginatedResult } from './shared.interfaces';
 export enum NodeStatus {
   RUNNING = 'running',
   HALTED = 'halted',
+  REBOOTING = 'rebooting',
 }
 
 export interface NodeInfo {
