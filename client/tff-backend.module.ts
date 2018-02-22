@@ -105,7 +105,7 @@ import { TimePipe } from './pipes/time.pipe';
 import { TimestampPipe } from './pipes/timestamp.pipe';
 import { tffReducer } from './reducers';
 import { TffRoutes } from './routes';
-import { ApiErrorService, FlowStatisticsService, TffConfig, TffService } from './services';
+import { ApiErrorService, CSVService, FlowStatisticsService, TffConfig, TffService } from './services';
 
 const MATERIAL_IMPORTS = [
   MatAutocompleteModule,
@@ -139,6 +139,7 @@ const PIPES = [
 
 export const TFF_PROVIDERS = [
   ApiErrorService,
+  CSVService,
   FlowStatisticsService,
   TffConfig,
   TffService,
