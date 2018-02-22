@@ -1,6 +1,5 @@
 import { BrandingActions, BrandingActionTypes } from '../actions/branding.actions';
 import { EventPresence, EventPresenceStatus } from '../interfaces/agenda.interfaces';
-import { SetReferralResult } from '../interfaces/referrals.interfaces';
 import { apiRequestLoading, apiRequestSuccess } from '../interfaces/rpc.interfaces';
 import { IBrandingState, initialState } from '../state/app.state';
 
@@ -107,12 +106,18 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
       return {
         ...state,
         nodes: action.payload,
-        nodesStatus: action.payload.some(node => !node.stats) ? apiRequestLoading : apiRequestSuccess,
+        nodesStatus: apiRequestSuccess,
       };
     case BrandingActionTypes.GET_NODE_STATUS_FAILED:
       return {
         ...state,
         nodesStatus: action.payload,
+      };
+    case BrandingActionTypes.UPDATE_NODE_STATUS:
+      return {
+        ...state,
+        nodes: action.payload,
+        nodesStatus: apiRequestLoading,
       };
   }
   return state;

@@ -64,4 +64,4 @@ def api_get_node_status(params, user_detail):
 def _get_nodes_stats_async(tff_profile):
     stats = get_nodes_stats(tff_profile.nodes)
     user, app_id = get_app_user_tuple(tff_profile.app_user)
-    system.put_user_data(get_rogerthat_api_key(), user.email(), app_id, {'node_stats': stats})
+    system.put_user_data(get_rogerthat_api_key(), user.email(), app_id, {'nodes': stats})
