@@ -91,7 +91,7 @@ def _wait_for_tasks(tasks, callback=None, deadline=50):
                 for task in incomplete_tasks.itervalues()}
         time.sleep(2)
         duration = time.time() - start_time
-        logging.debug('Waiting for %s tasks for %.2f seconds', len(rpcs), duration)
+        logging.debug('Waited for %s tasks for %.2f seconds', len(rpcs), duration)
         if duration > deadline:
             logging.info('Deadline of %s seconds exceeded!', deadline)
             break
