@@ -98,4 +98,4 @@ class NodeOrderListTO(PaginatedResultTO):
 
 class UserNodeStatusTO(TO):
     profile = typed_property('profile', dict)
-    nodes = typed_property('nodes', dict, True)
+    node = typed_property('node', dict)

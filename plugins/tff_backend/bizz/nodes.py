@@ -308,8 +308,11 @@ def list_nodes_by_status(status=None):
     tff_profiles = qry.fetch()  # type: list[TffProfile]
     profiles = {profile.username: profile for profile in
                 ndb.get_multi([Profile.create_key(p.username) for p in tff_profiles])}
-    results = [UserNodeStatusTO(
-        profile=profiles.get(tff_profile.username).to_dict() if tff_profile.username in profiles else None,
-        nodes=[node.to_dict() for node in tff_profile.nodes]
-    ) for tff_profile in tff_profiles]
+    results = []
+    for tff_profile in tff_profiles:
+        for node in tff_profile.nodes:
+            if node.status == status or not status:
+                results.append(UserNodeStatusTO(
+                    profile=profiles.get(tff_profile.username).to_dict() if tff_profile.username in profiles else None,
+                    node=node.to_dict()))
     return sorted(results, key=lambda k: k.profile and k.profile['info']['firstname'])

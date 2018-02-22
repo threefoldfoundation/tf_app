@@ -5,6 +5,7 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { UserNodeStatus } from '../../interfaces';
 import { ProfileEmailPipe } from '../../pipes/profile-email.pipe';
 import { ProfileNamePipe } from '../../pipes/profile-name.pipe';
+import { CSVService } from '../../services/csv.service';
 
 @Component({
   selector: 'tff-nodes',
@@ -27,7 +28,8 @@ export class NodesComponent implements OnChanges {
   selection = new SelectionModel<UserNodeStatus>(true, []);
 
   constructor(private profileNamePipe: ProfileNamePipe,
-              private profileEmailPipe: ProfileEmailPipe) {
+              private profileEmailPipe: ProfileEmailPipe,
+              private csvService: CSVService) {
 
   }
 
@@ -58,5 +60,33 @@ export class NodesComponent implements OnChanges {
     return this.selection.selected.map(s => {
       return `${this.profileNamePipe.transform(s.profile)} <${this.profileEmailPipe.transform(s.profile)}>`;
     }).join(',');
+  }
+
+  generateCsv(selection: UserNodeStatus[]) {
+    const csvData = selection.map(row => ({
+      name: this.profileNamePipe.transform(row.profile),
+      email: this.profileEmailPipe.transform(row.profile),
+      status: row.node.status,
+      node_id: row.node.id,
+      serial_number: row.node.serial_number,
+    }));
+    const headers = [
+      { key: 'name', label: 'Name' },
+      { key: 'email', label: 'Email' },
+      { key: 'status', label: 'Status' },
+      { key: 'node_id', label: 'Node id' },
+      { key: 'serial_number', label: 'Serial number' },
+    ];
+    this.csvService.generateCsv(csvData, 'nodes', { headers });
+  }
+
+  copyText(element: HTMLElement) {
+    if (window.getSelection) {
+      const range = document.createRange();
+      range.selectNode(element);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+    }
+    document.execCommand('copy');
   }
 }

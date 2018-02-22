@@ -28,7 +28,7 @@
       {{ 'tff.status' | translate }}
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <p *ngFor="let node of row.nodes">{{ ('tff.node_status_' + node.status) | translate }}</p>
+      <p>{{ ('tff.node_status_' + row.node.status) | translate }}</p>
     </mat-cell>
   </ng-container>
 
@@ -37,7 +37,7 @@
       {{ 'tff.serial_number' | translate }}
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <p *ngFor="let node of row.nodes">{{ node.serial_number }}</p>
+      <p>{{ row.node.serial_number }}</p>
     </mat-cell>
   </ng-container>
 
@@ -46,7 +46,7 @@
       {{ 'tff.node_id' | translate }}
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <p *ngFor="let node of row.nodes">{{ node.id }}</p>
+      <p>{{ row.node.id }}</p>
     </mat-cell>
   </ng-container>
 
@@ -64,6 +64,7 @@
 </mat-table>
 <div class="email-list" *ngIf="selection.selected.length">
   <h3>{{ 'tff.list_of_emails' | translate }}</h3>
-  <p>{{ getSelectionCsv() }}</p>
+  <pre style="width: 100%; overflow: scroll;" #csv (click)="copyText(csv)">{{ getSelectionCsv() }}</pre>
+  <button mat-raised-button (click)="generateCsv(selection.selected)">{{ 'tff.generate_csv' | translate }}</button>
 </div>
 <tff-api-request-status [status]="status"></tff-api-request-status>
