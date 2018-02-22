@@ -63,5 +63,5 @@ def api_put_node_order(order_id, data):
 @rest('/nodes', 'get', Scopes.BACKEND_READONLY, silent_result=True)
 @returns([UserNodeStatusTO])
 @arguments(status=unicode)
-def api_put_node_order(status=None):
+def api_list_nodes(status=None):
     return list_nodes_by_status(status)

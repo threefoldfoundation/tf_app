@@ -30,6 +30,7 @@
   "no": "No",
   "no_work_to_finish": "Congratulations, you have no work to finish!",
   "node_halted": "Node offline",
+  "node_rebooting": "Node rebooting",
   "node_running": "Everything ok",
   "node_status": "Node status",
   "not_attending": "Not attending",

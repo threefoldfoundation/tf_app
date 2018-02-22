@@ -14,18 +14,19 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-from collections import defaultdict
 import json
 import logging
 import time
 import types
+from collections import defaultdict
+
+from google.appengine.api import urlfetch, apiproxy_stub_map
+from google.appengine.ext import ndb
+from google.appengine.ext.deferred import deferred
 
 from framework.bizz.job import run_job
 from framework.plugin_loader import get_config
 from framework.utils import now
-from google.appengine.api import urlfetch, apiproxy_stub_map
-from google.appengine.ext import ndb
-from google.appengine.ext.deferred import deferred
 from mcfw.cache import cached
 from mcfw.consts import DEBUG
 from mcfw.rpc import returns, arguments
@@ -91,7 +92,7 @@ def _wait_for_tasks(tasks, callback=None, deadline=50):
                 for task in incomplete_tasks.itervalues()}
         time.sleep(2)
         duration = time.time() - start_time
-        logging.debug('Waiting for %s tasks for %.2f seconds', len(rpcs), duration)
+        logging.debug('Waited for %s tasks for %.2f seconds', len(rpcs), duration)
         if duration > deadline:
             logging.info('Deadline of %s seconds exceeded!', deadline)
             break

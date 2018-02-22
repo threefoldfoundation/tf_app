@@ -5,7 +5,6 @@ import { Actions } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
-import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
 import { AgendaPageComponent } from '../pages/agenda/agenda-page.component';
 import { ErrorService } from '../pages/error.service';
 import { GlobalStatsPageComponent } from '../pages/global-stats/global-stats-page.component';
@@ -80,9 +79,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.actions$.pipe(withLatestFrom(this.store)).subscribe(([ action, store ]) => {
-      // Useful for debugging
-      console.log('Dispatching action', action, store);
-    });
+    // Useful for debugging
+    this.actions$.subscribe(action => console.log(JSON.stringify(action)));
   }
 }
