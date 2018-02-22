@@ -51,7 +51,12 @@ from plugins.tff_backend.utils.app import get_app_user_tuple
 @returns(apiproxy_stub_map.UserRPC)
 def _async_zero_robot_call(path, method=urlfetch.GET, payload=None):
     cfg = get_config(NAMESPACE)
-    jwt = cfg.orchestator.jwt  # TODO: _refresh_jwt(cfg.orchestator.jwt)
+    try:
+        jwt = _refresh_jwt(cfg.orchestator.jwt)
+    except:
+        msg = 'Could not refresh JWT'
+        logging.exception(msg)
+        raise deferred.PermanentTaskFailure(msg)
     headers = {'Authorization': u'Bearer %s' % jwt, 'Content-Type': 'application/json'}
     url = u'https://zero-robot.threefoldtoken.com%s' % path
     rpc = urlfetch.create_rpc(deadline=30)
