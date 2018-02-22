@@ -316,6 +316,9 @@ def _migrate_pending_transactions(keys):
         if not wallet:
             wallet = ThreeFoldWallet(key=key, tokens=[])
             wallet.put()
+        if pt.token not in wallet.tokens:
+            wallet.tokens.append(pt.token)
+            wallet.put()
 
         deferred.defer(_save_transaction_to_backlog, new_transaction.id, 'git', _transactional=True)
         deferred.defer(_save_transaction_to_backlog, new_transaction.id, 'tierion', _transactional=True)
