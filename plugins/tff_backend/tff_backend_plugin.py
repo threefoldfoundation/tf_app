@@ -22,21 +22,21 @@ from framework.bizz.authentication import get_current_session
 from framework.plugin_loader import get_plugin, BrandingPlugin
 from framework.utils.plugins import Handler, Module
 from mcfw.consts import AUTHENTICATED, NOT_AUTHENTICATED
-from mcfw.restapi import rest_functions
+from mcfw.restapi import rest_functions, register_postcall_hook
 from mcfw.rpc import parse_complex_value
 from plugins.rogerthat_api.rogerthat_api_plugin import RogerthatApiPlugin
 from plugins.tff_backend import rogerthat_callbacks
 from plugins.tff_backend.api import investor, nodes, global_stats, users, audit, agenda, flow_statistics, \
     installations, wallet
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings, Roles
+from plugins.tff_backend.bizz.statistics import log_restapi_call_result
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, UpdateGlobalStatsHandler, \
     BackupHandler, CheckNodesOnlineHandler, CheckNodesStatusesHandler, ExpiredEventsHandler, RebuildFirebaseHandler
 from plugins.tff_backend.handlers.flow_statistics import CheckStuckFlowsHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
-from plugins.tff_backend.handlers.unauthenticated import RefreshCallbackHandler, RefreshHandler, AppleReviewQrHandler, \
-    JWTQrHandler
+from plugins.tff_backend.handlers.unauthenticated import RefreshCallbackHandler, RefreshHandler
 from plugins.tff_backend.models.user import TffProfile, KYCStatus
 from plugins.tff_backend.patch_onfido_lib import patch_onfido_lib
 
@@ -62,14 +62,13 @@ class TffBackendPlugin(BrandingPlugin):
                                        trigger_only=True)
         rogerthat_api_plugin.subscribe('system.api_call', rogerthat_callbacks.system_api_call)
         patch_onfido_lib()
+        register_postcall_hook(log_restapi_call_result)
 
     def get_handlers(self, auth):
         yield Handler(url='/', handler=IndexPageHandler)
         yield Handler(url='/testing/agreements', handler=AgreementsTestingPageHandler)
         yield Handler(url='/refresh', handler=RefreshHandler)
         yield Handler(url='/refresh/callback', handler=RefreshCallbackHandler)
-        yield Handler(url='/qr', handler=JWTQrHandler)
-        yield Handler(url='/qr/apple', handler=AppleReviewQrHandler)
         authenticated_handlers = [nodes, investor, global_stats, users, audit, agenda, flow_statistics, installations]
         for _module in authenticated_handlers:
             for url, handler in rest_functions(_module, authentication=AUTHENTICATED):
@@ -91,19 +90,20 @@ class TffBackendPlugin(BrandingPlugin):
     def get_client_routes(self):
         return ['/orders<route:.*>', '/node-orders<route:.*>', '/investment-agreements<route:.*>',
                 '/global-stats<route:.*>', '/users<route:.*>', '/agenda<route:.*>', '/flow-statistics<route:.*>',
-                '/installations<route:.*>', '/dashboard<route:.*>']
+                '/installations<route:.*>', '/dashboard<route:.*>', '/nodes<route:.*>']
 
     def get_modules(self):
         perms = get_permissions_from_scopes(get_current_session().scopes)
         is_admin = Roles.BACKEND_ADMIN in perms or Roles.BACKEND in perms
         if is_admin or Roles.BACKEND_READONLY in perms:
+            yield Module(u'tff_dashboard', [], 0)
             yield Module(u'tff_orders', [], 1)
             yield Module(u'tff_global_stats', [], 3)
             yield Module(u'tff_users', [], 4)
             yield Module(u'tff_agenda', [], 5)
             yield Module(u'tff_flow_statistics', [], 6)
             yield Module(u'tff_installations', [], 7)
-            yield Module(u'tff_dashboard', [], 8)
+            yield Module(u'tff_nodes', [], 8)
         if is_admin:
             yield Module(u'tff_investment_agreements', [], 2)
 

@@ -232,6 +232,14 @@ export class TffEffects {
         catchError(err => handleApiError(actions.GetInstallationLogsFailedAction, err)),
       )));
 
+
+  @Effect() getNodes$ = this.actions$
+    .ofType<actions.GetNodesAction>(actions.TffActionTypes.GET_NODES).pipe(
+      switchMap(action => this.tffService.getNodes(action.payload).pipe(
+        map(result => new actions.GetNodesCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetNodesFailedAction, err)),
+      )));
+
   constructor(private actions$: Actions<actions.TffActions>,
               private tffService: TffService,
               private flowStatisticsService: FlowStatisticsService,

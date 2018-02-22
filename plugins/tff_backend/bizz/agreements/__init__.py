@@ -117,13 +117,16 @@ def create_itft_amendment_1_pdf(app_user):
 def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short, token, payment_info,
                                has_verified_utility_bill):
     # don't forget to update intercom tags when adding new contracts / tokens
-    if currency_short == 'BTC':
-        amount_formatted = '{:.8f}'.format(amount)
-    else:
-        amount_formatted = '{:.2f}'.format(amount)
+    def fmt(x, currency):
+        if currency == 'BTC':
+            return '{:.8f}'.format(x)
+        return '{:.2f}'.format(x)
+
+    amount_formatted = fmt(amount, currency_short)
     stats = get_global_stats(token)
-    conversion = {currency.currency: round_currency_amount(currency.currency, currency.value / stats.value) for
-                  currency in stats.currencies}
+    conversion = {currency.currency: fmt(round_currency_amount(currency.currency, currency.value / stats.value),
+                                         currency.currency)
+                  for currency in stats.currencies}
 
     template_variables = {
         'logo_path': 'assets/logo.jpg',

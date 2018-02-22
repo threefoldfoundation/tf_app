@@ -62,3 +62,6 @@ export const getInstallation = createSelector(getTffState, s => s.installation);
 export const getInstallationStatus = createSelector(getTffState, s => s.installationStatus);
 export const getInstallationLogs = createSelector(getTffState, s => s.installationLogs);
 export const getInstallationLogsStatus = createSelector(getTffState, s => s.installationLogsStatus);
+
+export const getNodes = createSelector(getTffState, s => s.nodes);
+export const getNodesStatus = createSelector(getTffState, s => s.nodesStatus);

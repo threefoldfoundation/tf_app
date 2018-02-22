@@ -7,6 +7,7 @@ import {
   MatAutocompleteModule,
   MatButtonModule,
   MatCardModule,
+  MatCheckboxModule,
   MatChipsModule,
   MatDatepickerModule,
   MatExpansionModule,
@@ -18,6 +19,7 @@ import {
   MatProgressSpinnerModule,
   MatSelectModule,
   MatSlideToggleModule,
+  MatTableModule,
   MatTabsModule,
   MatToolbarModule,
 } from '@angular/material';
@@ -59,6 +61,7 @@ import {
   IyoSeeComponent,
   KycComponent,
   KycUpdatesComponent,
+  NodesComponent,
   OrderDetailComponent,
   OrderDetailPageComponent,
   OrderListComponent,
@@ -80,6 +83,7 @@ import {
   InstallationLogsPageComponent,
   InstallationsPageComponent,
   KycPageComponent,
+  NodesPageComponent,
   UserDetailsPageComponent,
   UserFlowRunsDetailsPageComponent,
   UserFlowRunsPageComponent,
@@ -89,6 +93,7 @@ import {
   UserPurchaseAgreementsPageComponent,
 } from './pages';
 import { MarkdownPipe } from './pipes/markdown.pipe';
+import { ProfileEmailPipe } from './pipes/profile-email.pipe';
 import { ProfileNamePipe } from './pipes/profile-name.pipe';
 import { TimeDurationPipe } from './pipes/time-duration.pipe';
 import { TimePipe } from './pipes/time.pipe';
@@ -101,6 +106,7 @@ const MATERIAL_IMPORTS = [
   MatAutocompleteModule,
   MatButtonModule,
   MatCardModule,
+  MatCheckboxModule,
   MatChipsModule,
   MatDatepickerModule,
   MatExpansionModule,
@@ -112,6 +118,7 @@ const MATERIAL_IMPORTS = [
   MatProgressSpinnerModule,
   MatSelectModule,
   MatSlideToggleModule,
+  MatTableModule,
   MatTabsModule,
   MatToolbarModule,
 ];
@@ -121,6 +128,7 @@ const PIPES = [
   MarkdownPipe,
   TimePipe,
   TimeDurationPipe,
+  ProfileEmailPipe,
   ProfileNamePipe,
 ];
 
@@ -141,9 +149,10 @@ export const TFF_PAGES = [
   InstallationLogsPageComponent,
   InstallationsPageComponent,
   KycPageComponent,
+  NodesPageComponent,
   UserDetailsPageComponent,
-  UserFlowRunsPageComponent,
   UserFlowRunsDetailsPageComponent,
+  UserFlowRunsPageComponent,
   UserListPageComponent,
   UserNodeOrdersPageComponent,
   UserPageComponent,
@@ -161,11 +170,11 @@ export const TFF_COMPONENTS: any[] = [
   EventParticipantsComponent,
   EventParticipantsPageComponent,
   FlowRunDetailComponent,
+  FlowRunListComponent,
   FlowRunStatusComponent,
   GlobalStatsDetailComponent,
   GlobalStatsDetailPageComponent,
   GlobalStatsListPageComponent,
-  FlowRunListComponent,
   InstallationComponent,
   InstallationLogsComponent,
   InstallationsComponent,
@@ -178,6 +187,7 @@ export const TFF_COMPONENTS: any[] = [
   IyoSeeComponent,
   KycComponent,
   KycUpdatesComponent,
+  NodesComponent,
   OrderDetailComponent,
   OrderDetailPageComponent,
   OrderListComponent,

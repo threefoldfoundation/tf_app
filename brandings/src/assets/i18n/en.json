@@ -11,14 +11,12 @@
   "do_you_want_recording_of_event": "Do you want to receive a recording of the event when it is over?",
   "documents": "Documents",
   "end": "End",
-  "enter_invitation_code": "Enter the invitation code you received (5 characters)",
   "error": "Error",
   "from_x": "From {{ timestamp }}",
   "global_stats": "Global stats",
   "hide_full_description": "Hide full description",
   "incoming_traffic": "Incoming network traffic",
-  "invitation_code": "Invitation code",
-  "invitation_text": "Hi,\n\nI'd like to invite you to join the ThreeFold community. You can download the Android or iOS app at https://rogerth.at/install/{{ appId }}\n\nTo become a registered user in the app, you can use my invitation code {{ code }}.\n\nWelcome on board!\n{{ userName }}",
+  "invitation_text": "Hi,\n\nI'd like to invite you to join the ThreeFold community. You can download the Android or iOS app at https://rogerth.at/install/{{ appId }}\n\nWelcome on board!\n{{ userName }}",
   "invitation_to_threefold": "Invitation to Threefold community",
   "invite_friends": "Invite friends",
   "invite_via_email": "Invite via E-mail",
@@ -54,6 +52,5 @@
   "x_attendees": "{{ attendees }} attendees",
   "x_tokens_raised": "{{ count }} tokens raised",
   "yes": "Yes",
-  "you_and_x_others": "You & {{ attendees }} others",
-  "your_invitation_code_is": "Your invitation code is {{ code }}"
+  "you_and_x_others": "You & {{ attendees }} others"
 }

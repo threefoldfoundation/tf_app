@@ -19,7 +19,7 @@ import re
 from google.appengine.api import datastore_errors
 from google.appengine.ext import ndb
 
-from framework.consts import WEEK
+from framework.consts import DAY
 from framework.models.common import NdbModel
 from framework.plugin_loader import get_config
 from framework.utils import chunks, now
@@ -159,8 +159,8 @@ class NodeOrder(NdbModel):
 
     @classmethod
     def list_check_online(cls):
-        two_weeks_ago = now() - (WEEK * 2)
-        return cls.list_by_status(NodeOrderStatus.SENT).filter(cls.send_time < two_weeks_ago)
+        two_days_ago = now() - (DAY * 2)
+        return cls.list_by_status(NodeOrderStatus.SENT).filter(cls.send_time < two_days_ago)
 
     @classmethod
     def list_by_so(cls, odoo_sale_order_id):

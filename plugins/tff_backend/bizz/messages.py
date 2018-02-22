@@ -14,7 +14,10 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+import logging
+
 from google.appengine.ext import deferred, ndb
+
 from mcfw.consts import DEBUG
 from plugins.rogerthat_api.to import MemberTO
 from plugins.tff_backend.bizz.intercom_helpers import send_intercom_email
@@ -30,4 +33,8 @@ def send_message_and_email(app_user, message, subject):
     if not DEBUG:
         iyo_username = get_iyo_username(app_user)
         message += '\n\nKind regards,\nThe ThreeFold Team'
-        deferred.defer(send_intercom_email, iyo_username, subject, message, _transactional=ndb.in_transaction())
+        if iyo_username is None:
+            logging.error('Could not find itsyou.online username for app_user %s, not sending intercom email'
+                          '\nSubject: %s\nMessage:%s', app_user, subject, message)
+        else:
+            deferred.defer(send_intercom_email, iyo_username, subject, message, _transactional=ndb.in_transaction())

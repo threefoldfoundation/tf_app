@@ -45,12 +45,6 @@ class OrchestatorConfiguration(TO):
     jwt = unicode_property('1')
 
 
-class AppleConfiguration(TO):
-    username = unicode_property('username')
-    password = unicode_property('password')
-    iyo_username = unicode_property('iyo_username')
-
-
 class OnfidoConfiguration(TO):
     api_key = unicode_property('api_key')
 
@@ -75,7 +69,6 @@ class TffConfiguration(TO):
     odoo = typed_property('4', OdooConfiguration, False)
     orchestator = typed_property('5', OrchestatorConfiguration, False)
     support_emails = unicode_list_property('support_emails')
-    apple = typed_property('apple', AppleConfiguration)
     backup_disabled = bool_property('backup_disabled')
     intercom_admin_id = long_property('intercom_admin_id')
     cloudstorage_encryption_key = unicode_property('cloudstorage_encryption_key')

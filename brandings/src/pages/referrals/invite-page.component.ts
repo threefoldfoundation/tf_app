@@ -11,7 +11,6 @@ import { Platform } from 'ionic-angular';
 export class InvitePageComponent implements OnInit {
   smsLink: SafeUrl;
   emailLink: SafeUrl;
-  code: string;
 
   constructor(private platform: Platform,
               private translate: TranslateService,
@@ -19,12 +18,10 @@ export class InvitePageComponent implements OnInit {
   }
 
   ngOnInit() {
-    const code = rogerthat.user.data.invitation_code;
-    this.code = code;
     const userName = rogerthat.user.data.name || rogerthat.user.name;
     const appId = rogerthat.system.appId;
     const subject = this.translate.instant('invitation_to_threefold');
-    const message = this.translate.instant('invitation_text', { appId, code, userName });
+    const message = this.translate.instant('invitation_text', { appId, userName });
     if (rogerthat.system.os === 'ios') {
       this.smsLink = this.sanitize('sms:&body=' + encodeURIComponent(message));
     } else {

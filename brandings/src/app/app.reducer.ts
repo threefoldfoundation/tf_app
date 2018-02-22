@@ -43,22 +43,6 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
         ...state,
         seeDocumentsStatus: action.payload,
       };
-    case BrandingActionTypes.SET_REFERRER:
-      return {
-        ...state,
-        setReferrerStatus: apiRequestLoading,
-      };
-    case BrandingActionTypes.SET_REFERRER_COMPLETE:
-      return {
-        ...state,
-        setReferrerResult: (<SetReferralResult>action.payload).result,
-        setReferrerStatus: apiRequestSuccess,
-      };
-    case BrandingActionTypes.SET_REFERRER_FAILED:
-      return {
-        ...state,
-        setReferrerStatus: action.payload,
-      };
     case BrandingActionTypes.GET_EVENTS:
       return {
         ...state,

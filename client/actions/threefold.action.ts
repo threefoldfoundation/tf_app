@@ -22,13 +22,18 @@ import {
   NodeOrder,
   NodeOrderList,
   NodeOrdersQuery,
+  NodesQuery,
   PaginatedResult,
   SearchUsersQuery,
   SetKYCStatusPayload,
   TffProfile,
+  Transaction,
+  TransactionList,
+  UserFlowRunsQuery,
   UserList,
+  UserNodeStatus,
+  WalletBalance,
 } from '../interfaces';
-import { UserFlowRunsQuery } from '../interfaces/flow-statistics.interfaces';
 
 // duplicated code needed else the type of the action type is only 'string'
 
@@ -126,6 +131,9 @@ export interface ITffActionTypes {
   GET_INSTALLATION_LOGS: '[TFF] Get installation logs';
   GET_INSTALLATION_LOGS_COMPLETE: '[TFF] Get installation logs complete';
   GET_INSTALLATION_LOGS_FAILED: '[TFF] Get installation logs failed';
+  GET_NODES: '[TFF] Get nodes';
+  GET_NODES_COMPLETE: '[TFF] Get nodes complete';
+  GET_NODES_FAILED: '[TFF] Get nodes failed';
 }
 
 export const TffActionTypes: ITffActionTypes = {
@@ -222,6 +230,9 @@ export const TffActionTypes: ITffActionTypes = {
   GET_INSTALLATION_LOGS: type('[TFF] Get installation logs'),
   GET_INSTALLATION_LOGS_COMPLETE: type('[TFF] Get installation logs complete'),
   GET_INSTALLATION_LOGS_FAILED: type('[TFF] Get installation logs failed'),
+  GET_NODES: type('[TFF] Get nodes'),
+  GET_NODES_COMPLETE: type('[TFF] Get nodes complete'),
+  GET_NODES_FAILED: type('[TFF] Get nodes failed'),
 };
 
 export class GetOrdersAction implements Action {
@@ -871,6 +882,27 @@ export class GetInstallationLogsFailedAction implements Action {
   }
 }
 
+export class GetNodesAction implements Action {
+  type = TffActionTypes.GET_NODES;
+
+  constructor(public payload: NodesQuery) {
+  }
+}
+
+export class GetNodesCompleteAction implements Action {
+  type = TffActionTypes.GET_NODES_COMPLETE;
+
+  constructor(public payload: UserNodeStatus[]) {
+  }
+}
+
+export class GetNodesFailedAction implements Action {
+  type = TffActionTypes.GET_NODES_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type TffActions
   = GetOrdersAction
   | GetOrdersCompleteAction
@@ -964,4 +996,7 @@ export type TffActions
   | GetInstallationFailedAction
   | GetInstallationLogsAction
   | GetInstallationLogsCompleteAction
-  | GetInstallationLogsFailedAction;
+  | GetInstallationLogsFailedAction
+  | GetNodesAction
+  | GetNodesCompleteAction
+  | GetNodesFailedAction;

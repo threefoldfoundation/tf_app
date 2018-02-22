@@ -11,7 +11,9 @@ import { TffConfig } from './tff-config.service';
 @Injectable()
 export class FlowStatisticsService {
   flowNameMapping: { [ key: string ]: string } = {
+    'KYC_inhouse_nocode': 'tff.inhouse_kyc',
     'kyc_part_1': 'tff.kyc_procedure',
+    'order_node_v3': 'tff.order_node',
     'order_node_v4': 'tff.order_node',
     'error_message': 'tff.error_message',
     'buy_tokens_ITO_v3_async_KYC': 'tff.buy_tokens',
@@ -21,6 +23,8 @@ export class FlowStatisticsService {
     'utility_bill_received': 'tff.utility_bill_received',
     'hoster_reminder': 'tff.hoster_reminder',
     'sign_token_value_addendum': 'tff.sign_token_value_addendum',
+    'nodes_sold_out': 'tff.nodes_sold_out',
+    'buy_tokens_stopped': 'tff.buy_tokens_stopped',
   };
 
   constructor(private http: HttpClient,

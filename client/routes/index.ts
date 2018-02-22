@@ -5,6 +5,7 @@ import { GLOBAL_STATS_ROUTES } from './global-stats-routes';
 import { INSTALLATION_ROUTES } from './installation-routes';
 import { INVESTMENT_AGREEMENT_ROUTES } from './investment-agreements-routes';
 import { NODE_ORDER_ROUTES } from './node-order-routes';
+import { NODES_ROUTES } from './nodes-routes';
 import { USERS_ROUTES } from './users-routes';
 
 export const TffRoutes: Route[] = [
@@ -16,4 +17,5 @@ export const TffRoutes: Route[] = [
   ...AGENDA_ROUTES,
   ...FLOW_STATISTICS_ROUTES,
   ...INSTALLATION_ROUTES,
+  ...NODES_ROUTES,
 ];
