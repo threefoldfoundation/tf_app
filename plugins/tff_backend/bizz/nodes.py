@@ -71,15 +71,19 @@ def _refresh_jwt(jwt):
     return refresh_jwt(jwt, 3600)
 
 
+def _get_task_url(task):
+    return '/services/%s/task_list/%s' % (task.service_guid, task.guid)
+
+
 @returns([object])
 @arguments(tasks=[Task], callback=types.FunctionType, deadline=int)
 def _wait_for_tasks(tasks, callback=None, deadline=50):
     results = []
     start_time = time.time()
-    rpcs = {task.guid: (task, _async_zero_robot_call('/services/%s/task_list/%s' % (task.service_guid, task.guid)))
-            for task in tasks}
-
-    while rpcs:
+    incomplete_tasks = {t.guid: t for t in tasks}
+    while incomplete_tasks:
+        rpcs = {task.guid: (task, _async_zero_robot_call(_get_task_url(task)))
+                for task in incomplete_tasks.itervalues()}
         time.sleep(2)
         duration = time.time() - start_time
         logging.debug('Waiting for %s tasks for %.2f seconds', len(rpcs), duration)
@@ -87,25 +91,25 @@ def _wait_for_tasks(tasks, callback=None, deadline=50):
             logging.info('Deadline of %s seconds exceeded!', deadline)
             break
 
-        incomplete = defaultdict(list)
+        incomplete_by_state = defaultdict(list)
         for task, rpc in rpcs.values():
             node_id = task.service_name
             result = rpc.get_result()
             if result.status_code != 200:
                 logging.error('/task_list for node %s returned status code %s. Content:\n%s',
                               node_id, result.status_code, result.content)
-                del rpcs[task.guid]
+                del incomplete_tasks[task.guid]
                 continue
 
             task = Task(**json.loads(result.content))
             if task.state in (EnumTaskState.ok, EnumTaskState.error):
-                del rpcs[task.guid]
+                del incomplete_tasks[task.guid]
                 results.append(callback(task) if callback else task)
             else:
-                incomplete[task.state].append(task.service_name)
+                incomplete_by_state[task.state].append(task.service_name)
 
-        for state, node_ids in incomplete.iteritems():
-            logging.debug('The tasks of the following nodes have state %s: %s', state.value, ', '.join(node_ids))
+        for state, node_ids in incomplete_by_state.iteritems():
+            logging.debug('%s %s task(s) on the following nodes: %s', len(node_ids), state.value, ', '.join(node_ids))
 
     return results
 
@@ -185,7 +189,15 @@ def get_nodes_stats(nodes):
                         for node in nodes}
 
     for task in _wait_for_tasks(tasks):
-        results_per_node[task.service_name][task.action_name] = json.loads(task.result)
+        if task.state == EnumTaskState.ok:
+            results_per_node[task.service_name][task.action_name] = json.loads(task.result)
+        else:
+            logging.warn('Task %s on node %s has state ERROR:\n%s: %s\n%s',
+                         _get_task_url(task),
+                         task.service_name,
+                         task.eco and task.eco.exceptionclassname,
+                         task.eco and task.eco.errormessage,
+                         task.eco and task.eco._traceback)
 
     return [_get_stats(stats) for stats in results_per_node.itervalues()]
 
@@ -252,7 +264,7 @@ def _get_node_stats_tasks(node_ids):
         'content': {
             'actions': [{
                 'template': 'github.com/zero-os/0-templates/node/0.0.1',
-                'actions': 'info',
+                'actions': ['info', 'stats'],
                 'service': node_id
             } for node_id in node_ids]
         }
