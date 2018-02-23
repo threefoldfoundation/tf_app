@@ -58,7 +58,7 @@ def _async_zero_robot_call(path, method=urlfetch.GET, payload=None):
         msg = 'Could not refresh JWT'
         logging.exception(msg)
         raise deferred.PermanentTaskFailure(msg)
-    headers = {'Authorization': u'Bearer %s' % jwt, 'Content-Type': 'application/json'}
+    headers = {'Cookie': 'caddyoauth=%s' % jwt, 'Content-Type': 'application/json'}
     url = u'https://zero-robot.threefoldtoken.com%s' % path
     rpc = urlfetch.create_rpc(deadline=30)
     urlfetch.make_fetch_call(rpc, payload=payload, method=method, url=url, headers=headers)
