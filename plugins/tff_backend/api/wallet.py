@@ -14,16 +14,13 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
+from mcfw.exceptions import HttpBadRequestException
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.consts.payment import COIN_TO_HASTINGS
-from plugins.tff_backend.rivine import get_transactions, \
-    create_transaction, create_signature_data
-from plugins.tff_backend.to.rivine import CryptoTransactionResponseTO, \
-    CryptoTransactionTO, CreateSignatureDataTO, \
-    TransactionListTO, TransactionTO, \
-    CryptoTransactionOutputTO
+from plugins.tff_backend.rivine import get_transactions, create_transaction, create_signature_data
+from plugins.tff_backend.to.rivine import CryptoTransactionTO, CreateSignatureDataTO, TransactionListTO, \
+    TransactionTO, CryptoTransactionOutputTO
 
 
 @rest('/wallet/transactions', 'get')
@@ -55,18 +52,14 @@ def api_get_transactions(address):
 
 
 @rest('/wallet/create_signature_data', 'post')
-@returns(CryptoTransactionResponseTO)
+@returns(CryptoTransactionTO)
 @arguments(data=CreateSignatureDataTO)
 def api_create_signature_data_transaction(data):
-    to = CryptoTransactionResponseTO()
-    to.result = None
-    to.error = None
     try:
-        to.result = create_signature_data(data.from_address, data.to_address, data.amount * pow(10, data.precision) * COIN_TO_HASTINGS)
-
+        amount = data.amount * pow(10, data.precision) * COIN_TO_HASTINGS
+        return create_signature_data(data.from_address, data.to_address, amount)
     except Exception as e:
-        to.error = unicode(e.message)
-    return to
+        raise HttpBadRequestException(e.message)
 
 
 @rest('/wallet/transactions', 'post')

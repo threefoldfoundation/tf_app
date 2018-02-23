@@ -143,26 +143,15 @@ def get_output_ids(address):
 @arguments(from_address=unicode, to_address=unicode, amount=(int, long))
 def create_signature_data(from_address, to_address, amount):
     transactions = get_output_ids(to_address)
-    transaction = CryptoTransactionTO()
-    transaction.minerfees = unicode(COIN_TO_HASTINGS)
-    transaction.data = []
-    transaction.from_address = from_address
-    transaction.to_address = to_address
-
+    transaction = CryptoTransactionTO(minerfees=unicode(COIN_TO_HASTINGS), data=[], from_address=from_address,
+                                      to_address=to_address)
     fee_substracted = False
 
     amount_left = amount
     for t in transactions:
-        data = CryptoTransactionDataTO()
-        data.input = CryptoTransactionInputTO(t['output_id'], 0)
-        data.outputs = []
-        data.timelock = 0
-        data.algorithm = None
-        data.public_key_index = 0
-        data.public_key = None
-        data.signature_hash = None
-        data.signature = None
-
+        data = CryptoTransactionDataTO(timelock=0, outputs=[], algorithm=None, public_key_index=0,
+                                       public_key=None, signature_hash=None, signature=None)
+        data.input = CryptoTransactionInputTO(parent_id=t['output_id'], timelock=0)
         should_break = False
         a = long(t['amount'])
         if not fee_substracted:
@@ -170,12 +159,12 @@ def create_signature_data(from_address, to_address, amount):
             fee_substracted = True
 
         if (amount_left - a) > 0:
-            data.outputs.append(CryptoTransactionOutputTO(unicode(a), to_address))
+            data.outputs.append(CryptoTransactionOutputTO(value=unicode(a), unlockhash=to_address))
             amount_left -= a
         else:
             should_break = True
-            data.outputs.append(CryptoTransactionOutputTO(unicode(amount_left), to_address))
-            data.outputs.append(CryptoTransactionOutputTO(unicode(a - amount_left), from_address))
+            data.outputs.append(CryptoTransactionOutputTO(value=unicode(amount_left), unlockhash=to_address))
+            data.outputs.append(CryptoTransactionOutputTO(value=unicode(a - amount_left), unlockhash=from_address))
 
         transaction.data.append(data)
 
@@ -190,8 +179,15 @@ def create_signature_data(from_address, to_address, amount):
 @returns(dict)
 @arguments(crypto_transaction=CryptoTransactionTO)
 def create_transaction_payload(crypto_transaction):
-    data = {}
-    data["coininputs"] = []
+    data = {
+        'coininputs': [],
+        'blockstakeinputs': None,
+        'blockstakeoutputs': None,
+        'minerfees': [crypto_transaction.minerfees],
+        'arbitrarydata': None,
+        'transactionsignatures': [],
+        'coinoutputs': []
+    }
     for d in crypto_transaction.data:
         coininput = {
             u"parentid": d.input.parent_id,
@@ -206,7 +202,6 @@ def create_transaction_payload(crypto_transaction):
         }
         data["coininputs"].append(coininput)
 
-    data["coinoutputs"] = []
     for d in crypto_transaction.data:
         for output in d.outputs:
             coinoutput = {
@@ -216,11 +211,6 @@ def create_transaction_payload(crypto_transaction):
 
             data["coinoutputs"].append(coinoutput)
 
-    data["blockstakeinputs"] = None
-    data["blockstakeoutputs"] = None
-    data["minerfees"] = [crypto_transaction.minerfees]
-    data["arbitrarydata"] = None
-    data["transactionsignatures"] = []
     for d in crypto_transaction.data:
         transactionsignature = {
             u"parentid": d.input.parent_id,
@@ -249,8 +239,9 @@ def create_transaction(data):
     payload = create_transaction_payload(data)
     url = 'http://localhost:23110/transactionpool/transactions'
     logging.warn('url: %s\npayload: %s', url, payload)
-    headers = {}
-    headers['user-agent'] = "Rivine-Agent"
-    headers['authorization'] = 'Basic test123'
+    headers = {
+        'user-agent': "Rivine-Agent",
+        'authorization': 'Basic test123'
+    }
     response = urlfetch.fetch(url=url, payload=json.dumps(payload), method=urlfetch.POST, headers=headers, deadline=10)
     raise Exception(u'%s: %s\n%s' % (url, response.status_code, response.content))

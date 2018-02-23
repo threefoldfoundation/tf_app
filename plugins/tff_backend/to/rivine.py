@@ -60,18 +60,10 @@ class CryptoTransactionInputTO(TO):
     parent_id = unicode_property('1')
     timelock = long_property('2')
 
-    def __init__(self, parent_id=None, timelock=0):
-        self.parent_id = parent_id
-        self.timelock = timelock
-
 
 class CryptoTransactionOutputTO(TO):
     value = unicode_property('1')
     unlockhash = unicode_property('2')
-
-    def __init__(self, value=None, unlockhash=None):
-        self.value = value
-        self.unlockhash = unlockhash
 
 
 class CryptoTransactionDataTO(TO):
@@ -97,11 +89,6 @@ class CreateSignatureDataTO(TO):
     precision = long_property('3')
     from_address = unicode_property('5')
     to_address = unicode_property('6')
-
-
-class CryptoTransactionResponseTO(TO):
-    result = typed_property('1', CryptoTransactionTO, False)
-    error = unicode_property('2')
 
 
 class PaymentProviderSignatureDataTransactionTO(TO):
