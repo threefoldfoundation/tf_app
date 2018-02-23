@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Actions, Effect } from '@ngrx/effects';
+import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Observable } from 'rxjs/Observable';
 import { catchError } from 'rxjs/operators/catchError';
 import { map } from 'rxjs/operators/map';
 import { switchMap } from 'rxjs/operators/switchMap';
 import * as actions from '../actions/branding.actions';
+import { NodeStatus } from '../interfaces/node-status.interfaces';
 import { AgendaService } from '../services/agenda.service';
 import { GlobalStatsService } from '../services/global-stats.service';
 import { NodeService } from '../services/node.service';
@@ -44,9 +45,23 @@ export class BrandingEffects {
 
   @Effect() getNodeStatus$: Observable<actions.BrandingActions> = this.actions$
     .ofType<actions.GetNodeStatusAction>(actions.BrandingActionTypes.GET_NODE_STATUS)
-    .pipe(switchMap(() => this.nodeService.getStatus().pipe(
-      map(result => new actions.GetNodeStatusCompleteAction(result)),
+    .pipe(switchMap(() => this.nodeService.getLocalStatus().pipe(
+      map(result => {
+        const hasRunningNodes = result.some(node => node.status === NodeStatus.RUNNING);
+        if (hasRunningNodes) {
+          // User data update will dispatch a GetNodeStatusCompleteAction
+          return new actions.UpdateNodeStatusAction(result);
+        }
+        return new actions.GetNodeStatusCompleteAction(result);
+      }),
       catchError(err => handleApiError(actions.GetNodeStatusFailedAction, err)))));
+
+  @Effect() updateNodeStatus$: Observable<actions.BrandingActions> = this.actions$.pipe(
+    ofType(actions.BrandingActionTypes.UPDATE_NODE_STATUS),
+    switchMap(() => this.nodeService.updateNodeStatus().pipe(
+      map(() => new actions.UpdateNodeStatusCompleteAction()),
+      catchError(err => handleApiError(actions.UpdateNodeStatusFailedAction, err))),
+    ));
 
   constructor(private actions$: Actions,
               private globalStatsService: GlobalStatsService,

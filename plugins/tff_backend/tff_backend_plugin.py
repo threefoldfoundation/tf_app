@@ -117,4 +117,4 @@ class TffBackendPlugin(BrandingPlugin):
             return []
         kyc_status = (tff_profile.kyc and tff_profile.kyc.status) or KYCStatus.UNVERIFIED.value
         return [search.NumberField('kyc_status', kyc_status),
-                search.AtomField('app_email', tff_profile.app_user.email().lower())]
+                search.TextField('app_email', tff_profile.app_user.email().lower())]

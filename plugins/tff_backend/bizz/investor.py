@@ -46,8 +46,7 @@ from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.bizz.intercom_helpers import IntercomTags
-from plugins.tff_backend.bizz.iyo.see import _create_see_document, get_see_document, sign_see_document, \
-    create_see_document
+from plugins.tff_backend.bizz.iyo.see import get_see_document, sign_see_document, create_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id, get_app_user_from_iyo_username
 from plugins.tff_backend.bizz.kyc import save_utility_bill
 from plugins.tff_backend.bizz.kyc.onfido_bizz import get_applicant

@@ -5,7 +5,7 @@ import { filter } from 'rxjs/operators/filter';
 import { map } from 'rxjs/operators/map';
 import { tap } from 'rxjs/operators/tap';
 import { Subject } from 'rxjs/Subject';
-import { ApiCallAction, ApiCallCompleteAction, GetEventsAction } from '../actions/branding.actions';
+import { ApiCallAction, ApiCallCompleteAction, GetEventsAction, GetNodeStatusCompleteAction } from '../actions/branding.actions';
 import { RogerthatError } from '../manual_typings/rogerthat-errors';
 import { getApicallResult, IBrandingState } from '../state/app.state';
 import { I18nService } from './i18n.service';
@@ -37,6 +37,9 @@ export class RogerthatService {
     });
     rogerthat.callbacks.serviceDataUpdated(() => {
       this.ngZone.run(() => this.store.dispatch(new GetEventsAction()));
+    });
+    rogerthat.callbacks.userDataUpdated(() => {
+      this.ngZone.run(() => this.store.dispatch(new GetNodeStatusCompleteAction(rogerthat.user.data.nodes || [])));
     });
   }
 

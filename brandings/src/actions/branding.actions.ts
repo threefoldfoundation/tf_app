@@ -2,7 +2,6 @@ import { Action } from '@ngrx/store';
 import { AgendaEvent, EventPresence, UpdatePresenceData } from '../interfaces/agenda.interfaces';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { NodeInfo } from '../interfaces/node-status.interfaces';
-import { SetReferralResult } from '../interfaces/referrals.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
 import { ApiCallResult } from '../services/rogerthat.service';
@@ -28,6 +27,9 @@ interface IBrandingActionTypes {
   GET_NODE_STATUS: 'Get node status';
   GET_NODE_STATUS_COMPLETE: 'Get node status complete';
   GET_NODE_STATUS_FAILED: 'Get node status failed';
+  UPDATE_NODE_STATUS: 'Update node status';
+  UPDATE_NODE_STATUS_COMPLETE: 'Update node status complete';
+  UPDATE_NODE_STATUS_FAILED: 'Update node status failed';
 }
 
 export const BrandingActionTypes: IBrandingActionTypes = {
@@ -51,6 +53,9 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   GET_NODE_STATUS: 'Get node status',
   GET_NODE_STATUS_COMPLETE: 'Get node status complete',
   GET_NODE_STATUS_FAILED: 'Get node status failed',
+  UPDATE_NODE_STATUS: 'Update node status',
+  UPDATE_NODE_STATUS_COMPLETE: 'Update node status complete',
+  UPDATE_NODE_STATUS_FAILED: 'Update node status failed',
 };
 
 export class ApiCallAction implements Action {
@@ -183,6 +188,24 @@ export class GetNodeStatusFailedAction implements Action {
   }
 }
 
+export class UpdateNodeStatusAction implements Action {
+  type = BrandingActionTypes.UPDATE_NODE_STATUS;
+
+  constructor(public payload: NodeInfo[]) {
+  }
+}
+
+export class UpdateNodeStatusCompleteAction implements Action {
+  type = BrandingActionTypes.UPDATE_NODE_STATUS_COMPLETE;
+}
+
+export class UpdateNodeStatusFailedAction implements Action {
+  type = BrandingActionTypes.UPDATE_NODE_STATUS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type BrandingActions
   = ApiCallAction
   | ApiCallCompleteAction
@@ -203,4 +226,7 @@ export type BrandingActions
   | UpdateEventPresenceFailedAction
   | GetNodeStatusAction
   | GetNodeStatusCompleteAction
-  | GetNodeStatusFailedAction;
+  | GetNodeStatusFailedAction
+  | UpdateNodeStatusAction
+  | UpdateNodeStatusCompleteAction
+  | UpdateNodeStatusFailedAction;

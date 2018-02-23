@@ -106,7 +106,7 @@ export interface SetKYCStatusPayload {
 
 export interface UserNodeStatus {
   profile: Profile;
-  nodes: NodeInfo[];
+  node: NodeInfo;
 }
 
 export interface NodesQuery {
