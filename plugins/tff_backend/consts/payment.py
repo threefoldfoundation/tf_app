@@ -32,9 +32,11 @@ class TokenType(Enum):
     I = u'iTFT_A'
 
 
-TRANS_STATUS_PENDING = u'pending'
-TRANS_STATUS_CONFIRMED = u'confirmed'
-TRANS_STATUS_FAILED = u'failed'
+class TransactionStatus(Enum):
+    UNCONFIRMED = u'unconfirmed'
+    CONFIRMED = u'confirmed'
+    FAILED = u'failed'
 
-COIN_TO_HASTINGS = 1000000000000000000000000
-COIN_TO_HASTINGS_PERCISION = len(str(COIN_TO_HASTINGS)) - 1
+
+COIN_TO_HASTINGS_PRECISION = 24
+COIN_TO_HASTINGS = pow(10, COIN_TO_HASTINGS_PRECISION)

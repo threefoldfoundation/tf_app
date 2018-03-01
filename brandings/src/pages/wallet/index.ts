@@ -1,0 +1,5 @@
+export * from './confirm-send-page.component';
+export * from './receive-page.component';
+export * from './send-page.component';
+export * from './transactions-list-page.component';
+export * from './wallet-page.component';

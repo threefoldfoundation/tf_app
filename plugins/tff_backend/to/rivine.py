@@ -16,7 +16,7 @@
 # @@license_version:1.3@@
 
 from framework.to import TO
-from mcfw.properties import long_property, unicode_property, typed_property, bool_property
+from mcfw.properties import long_property, unicode_property, typed_property, bool_property, float_property
 from plugins.tff_backend.to import PaginatedResultTO
 
 
@@ -85,10 +85,10 @@ class CryptoTransactionTO(TO):
 
 
 class CreateSignatureDataTO(TO):
-    amount = long_property('2')
-    precision = long_property('3')
-    from_address = unicode_property('5')
-    to_address = unicode_property('6')
+    amount = long_property('amount')
+    precision = long_property('precision')
+    from_address = unicode_property('from_address')
+    to_address = unicode_property('to_address')
 
 
 class PaymentProviderSignatureDataTransactionTO(TO):

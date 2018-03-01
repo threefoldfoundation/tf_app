@@ -4,11 +4,18 @@ import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { NodeInfo } from '../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
+import { CreateSignatureData, GetAddressPayload, ParsedTransaction } from '../interfaces/wallet';
+import { CameraType, CryptoAddress, CryptoTransaction, QrCodeScannedContent, SupportedAlgorithms } from '../manual_typings/rogerthat';
+import { RogerthatError } from '../manual_typings/rogerthat-errors';
 import { ApiCallResult } from '../services/rogerthat.service';
 
 interface IBrandingActionTypes {
-  API_CALL: 'Api call';
-  API_CALL_COMPLETE: 'Api call complete';
+  API_CALL: '[rogerthat] Api call';
+  API_CALL_COMPLETE: '[rogerthat] Api call complete';
+  SCAN_QR_CODE: '[rogerthat] Scan QR code';
+  SCAN_QR_CODE_STARTED: '[rogerthat] Scan QR code started';
+  SCAN_QR_CODE_UPDATE: '[rogerthat] Scan QR code update';
+  SCAN_QR_CODE_FAILED: '[rogerthat] Scan QR code failed';
   GET_GLOBAL_STATS: 'Get global stats';
   GET_GLOBAL_STATS_COMPLETE: 'Get global stats complete';
   GET_GLOBAL_STATS_FAILED: 'Get global stats failed';
@@ -30,11 +37,27 @@ interface IBrandingActionTypes {
   UPDATE_NODE_STATUS: 'Update node status';
   UPDATE_NODE_STATUS_COMPLETE: 'Update node status complete';
   UPDATE_NODE_STATUS_FAILED: 'Update node status failed';
+  GET_TRANSACTIONS: 'Get transactions';
+  GET_TRANSACTIONS_COMPLETE: 'Get transactions complete';
+  GET_TRANSACTIONS_FAILED: 'Get transactions failed';
+  GET_ADDRESS: 'Get address';
+  GET_ADDRESS_COMPLETE: 'Get address complete';
+  GET_ADDRESS_FAILED: 'Get address failed';
+  CREATE_SIGNATURE_DATA: 'Create signature data';
+  CREATE_SIGNATURE_DATA_COMPLETE: 'Create signature data complete';
+  CREATE_SIGNATURE_DATA_FAILED: 'Create signature data failed';
+  CREATE_TRANSACTION: 'Create transaction';
+  CREATE_TRANSACTION_COMPLETE: 'Create transaction complete';
+  CREATE_TRANSACTION_FAILED: 'Create transaction failed';
 }
 
 export const BrandingActionTypes: IBrandingActionTypes = {
-  API_CALL: 'Api call',
-  API_CALL_COMPLETE: 'Api call complete',
+  API_CALL: '[rogerthat] Api call',
+  API_CALL_COMPLETE: '[rogerthat] Api call complete',
+  SCAN_QR_CODE: '[rogerthat] Scan QR code',
+  SCAN_QR_CODE_STARTED: '[rogerthat] Scan QR code started',
+  SCAN_QR_CODE_UPDATE: '[rogerthat] Scan QR code update',
+  SCAN_QR_CODE_FAILED: '[rogerthat] Scan QR code failed',
   GET_GLOBAL_STATS: 'Get global stats',
   GET_GLOBAL_STATS_COMPLETE: 'Get global stats complete',
   GET_GLOBAL_STATS_FAILED: 'Get global stats failed',
@@ -56,6 +79,18 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   UPDATE_NODE_STATUS: 'Update node status',
   UPDATE_NODE_STATUS_COMPLETE: 'Update node status complete',
   UPDATE_NODE_STATUS_FAILED: 'Update node status failed',
+  GET_TRANSACTIONS: 'Get transactions',
+  GET_TRANSACTIONS_COMPLETE: 'Get transactions complete',
+  GET_TRANSACTIONS_FAILED: 'Get transactions failed',
+  GET_ADDRESS: 'Get address',
+  GET_ADDRESS_COMPLETE: 'Get address complete',
+  GET_ADDRESS_FAILED: 'Get address failed',
+  CREATE_SIGNATURE_DATA: 'Create signature data',
+  CREATE_SIGNATURE_DATA_COMPLETE: 'Create signature data complete',
+  CREATE_SIGNATURE_DATA_FAILED: 'Create signature data failed',
+  CREATE_TRANSACTION: 'Create transaction',
+  CREATE_TRANSACTION_COMPLETE: 'Create transaction complete',
+  CREATE_TRANSACTION_FAILED: 'Create transaction failed',
 };
 
 export class ApiCallAction implements Action {
@@ -69,6 +104,31 @@ export class ApiCallCompleteAction implements Action {
   type = BrandingActionTypes.API_CALL_COMPLETE;
 
   constructor(public payload: ApiCallResult) {
+  }
+}
+
+export class ScanQrCodeAction implements Action {
+  type = BrandingActionTypes.SCAN_QR_CODE;
+
+  constructor(public payload: CameraType) {
+  }
+}
+
+export class ScanQrCodeStartedAction implements Action {
+  type = BrandingActionTypes.SCAN_QR_CODE_STARTED;
+}
+
+export class ScanQrCodeUpdateAction implements Action {
+  type = BrandingActionTypes.SCAN_QR_CODE_UPDATE;
+
+  constructor(public payload: QrCodeScannedContent) {
+  }
+}
+
+export class ScanQrCodeFailedAction implements Action {
+  type = BrandingActionTypes.SCAN_QR_CODE_FAILED;
+
+  constructor(public payload: RogerthatError) {
   }
 }
 
@@ -206,9 +266,95 @@ export class UpdateNodeStatusFailedAction implements Action {
   }
 }
 
+export class GetTransactionsAction implements Action {
+  type = BrandingActionTypes.GET_TRANSACTIONS;
+
+  constructor(public address: string) {
+  }
+}
+
+export class GetTransactionsCompleteAction implements Action {
+  type = BrandingActionTypes.GET_TRANSACTIONS_COMPLETE;
+
+  constructor(public payload: ParsedTransaction[]) {
+  }
+}
+
+export class GetTransactionsFailedAction implements Action {
+  type = BrandingActionTypes.GET_TRANSACTIONS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetAddresssAction implements Action {
+  type = BrandingActionTypes.GET_ADDRESS;
+
+  constructor(public payload: GetAddressPayload) {
+  }
+}
+
+export class GetAddresssCompleteAction implements Action {
+  type = BrandingActionTypes.GET_ADDRESS_COMPLETE;
+
+  constructor(public payload: CryptoAddress) {
+  }
+}
+
+export class GetAddresssFailedAction implements Action {
+  type = BrandingActionTypes.GET_ADDRESS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class CreateSignatureDataAction implements Action {
+  type = BrandingActionTypes.CREATE_SIGNATURE_DATA;
+
+  constructor(public payload: CreateSignatureData) {
+  }
+}
+
+export class CreateSignatureDataCompleteAction implements Action {
+  type = BrandingActionTypes.CREATE_SIGNATURE_DATA_COMPLETE;
+
+  constructor(public payload: CryptoTransaction) {
+  }
+}
+
+export class CreateSignatureDataFailedAction implements Action {
+  type = BrandingActionTypes.CREATE_SIGNATURE_DATA_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class CreateTransactionAction implements Action {
+  type = BrandingActionTypes.CREATE_TRANSACTION;
+
+  constructor(public payload: CryptoTransaction, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
+              public message: string) {
+  }
+}
+
+export class CreateTransactionCompleteAction implements Action {
+  type = BrandingActionTypes.CREATE_TRANSACTION_COMPLETE;
+}
+
+export class CreateTransactionFailedAction implements Action {
+  type = BrandingActionTypes.CREATE_TRANSACTION_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type BrandingActions
   = ApiCallAction
   | ApiCallCompleteAction
+  | ScanQrCodeAction
+  | ScanQrCodeStartedAction
+  | ScanQrCodeUpdateAction
+  | ScanQrCodeFailedAction
   | GetGlobalStatsAction
   | GetGlobalStatsCompleteAction
   | GetGlobalStatsFailedAction
@@ -229,4 +375,16 @@ export type BrandingActions
   | GetNodeStatusFailedAction
   | UpdateNodeStatusAction
   | UpdateNodeStatusCompleteAction
-  | UpdateNodeStatusFailedAction;
+  | UpdateNodeStatusFailedAction
+  | GetTransactionsAction
+  | GetTransactionsCompleteAction
+  | GetTransactionsFailedAction
+  | GetAddresssAction
+  | GetAddresssCompleteAction
+  | GetAddresssFailedAction
+  | CreateSignatureDataAction
+  | CreateSignatureDataCompleteAction
+  | CreateSignatureDataFailedAction
+  | CreateTransactionAction
+  | CreateTransactionCompleteAction
+  | CreateTransactionFailedAction;

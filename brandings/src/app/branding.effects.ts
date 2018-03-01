@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Observable } from 'rxjs/Observable';
-import { catchError } from 'rxjs/operators/catchError';
-import { map } from 'rxjs/operators/map';
-import { switchMap } from 'rxjs/operators/switchMap';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import * as actions from '../actions/branding.actions';
 import { NodeStatus } from '../interfaces/node-status.interfaces';
 import { AgendaService } from '../services/agenda.service';
 import { GlobalStatsService } from '../services/global-stats.service';
 import { NodeService } from '../services/node.service';
+import { RogerthatService } from '../services/rogerthat.service';
 import { SeeService } from '../services/see.service';
-import { handleApiError } from '../util/rpc';
+import { WalletService } from '../services/wallet.service';
+import { handleApiError, handleError } from '../util/rpc';
 
 @Injectable()
 export class BrandingEffects {
@@ -56,17 +56,58 @@ export class BrandingEffects {
       }),
       catchError(err => handleApiError(actions.GetNodeStatusFailedAction, err)))));
 
-  @Effect() updateNodeStatus$: Observable<actions.BrandingActions> = this.actions$.pipe(
-    ofType(actions.BrandingActionTypes.UPDATE_NODE_STATUS),
+  @Effect() updateNodeStatus$ = this.actions$.pipe(
+    ofType<actions.UpdateNodeStatusAction>(actions.BrandingActionTypes.UPDATE_NODE_STATUS),
     switchMap(() => this.nodeService.updateNodeStatus().pipe(
       map(() => new actions.UpdateNodeStatusCompleteAction()),
       catchError(err => handleApiError(actions.UpdateNodeStatusFailedAction, err))),
     ));
 
+  @Effect() getTransactions = this.actions$.pipe(
+    ofType<actions.GetTransactionsAction>(actions.BrandingActionTypes.GET_TRANSACTIONS),
+    switchMap(action => this.walletService.getTransactions(action.address).pipe(
+      map(transactions => new actions.GetTransactionsCompleteAction(transactions)),
+      catchError(err => handleError(actions.GetTransactionsFailedAction, err))),
+    ));
+
+  @Effect() getAddress$ = this.actions$.pipe(
+    ofType<actions.GetAddresssAction>(actions.BrandingActionTypes.GET_ADDRESS),
+    switchMap(action => this.rogerthatService.getAddress(action.payload).pipe(
+      map(address => new actions.GetAddresssCompleteAction(address)),
+      catchError(err => handleError(actions.GetAddresssFailedAction, err))),
+    ));
+
+  @Effect() createSignatureData$ = this.actions$.pipe(
+    ofType<actions.CreateSignatureDataAction>(actions.BrandingActionTypes.CREATE_SIGNATURE_DATA),
+    switchMap(action => this.walletService.createSignatureData(action.payload).pipe(
+      map(result => new actions.CreateSignatureDataCompleteAction(result)),
+      catchError(err => handleError(actions.CreateSignatureDataFailedAction, err))),
+    ));
+
+  @Effect() createTransaction$: Observable<actions.BrandingActions> = this.actions$.pipe(
+    ofType<actions.CreateTransactionAction>(actions.BrandingActionTypes.CREATE_TRANSACTION),
+    switchMap(action => this.rogerthatService.createTransactionData(action.payload, action.algorithm, action.keyName,
+      action.index, action.message).pipe(
+      switchMap(transactionWithSignatures => this.walletService.createTransaction(transactionWithSignatures).pipe(
+        map(() => new actions.CreateTransactionCompleteAction()),
+        catchError(err => handleError(actions.CreateTransactionFailedAction, err)),
+      )),
+      catchError(err => handleError(actions.CreateTransactionFailedAction, err))),
+    ));
+
+  @Effect() scanQrCode$ = this.actions$.pipe(
+    ofType<actions.ScanQrCodeAction>(actions.BrandingActionTypes.SCAN_QR_CODE),
+    switchMap(action => this.rogerthatService.startScanningQrCode(action.payload).pipe(
+      // Actual result is dispatched in rogerthatService via rogerthat.callbacks.qrCodeScanned
+      map(() => new actions.ScanQrCodeStartedAction()),
+      catchError(err => handleError(actions.ScanQrCodeFailedAction, err))),
+    ));
   constructor(private actions$: Actions,
               private globalStatsService: GlobalStatsService,
               private agendaService: AgendaService,
               private seeService: SeeService,
-              private nodeService: NodeService) {
+              private nodeService: NodeService,
+              private rogerthatService: RogerthatService,
+              private walletService: WalletService) {
   }
 }

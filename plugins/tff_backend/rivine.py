@@ -20,10 +20,11 @@ import logging
 
 from google.appengine.api import urlfetch
 
-from mcfw.consts import DEBUG
+from framework.plugin_loader import get_config
+from mcfw.exceptions import HttpException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
-from plugins.tff_backend.consts.payment import TOKEN_TFT, TRANS_STATUS_CONFIRMED, \
-    TRANS_STATUS_PENDING, COIN_TO_HASTINGS
+from plugins.tff_backend.consts.payment import TOKEN_TFT, COIN_TO_HASTINGS, TransactionStatus
+from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.to.rivine import CryptoTransactionTO, \
     CryptoTransactionDataTO, CryptoTransactionInputTO, CryptoTransactionOutputTO
 
@@ -31,15 +32,14 @@ MATURITY_DEPTH = 10
 
 
 def get_explorer_base_url():
-    if DEBUG:
-        return 'http://localhost:2015/explorer'
-    return 'https://explorer.rivine.io/explorer'
+    rivine_url = get_config(NAMESPACE).rivine_url
+    return '%s/explorer' % rivine_url
 
 
 def do_get_request(url):
     response = urlfetch.fetch(url, deadline=10)
     if response.status_code != 200:
-        raise Exception(u'url: %s\n%s' % (url, response.status_code, response.content))
+        raise Exception(u'%s %s\n%s' % (url, response.status_code, response.content))
     try:
         return json.loads(response.content)
     except:
@@ -61,32 +61,42 @@ def get_block_by_height(height):
 
 def get_info_by_hash(hash_):
     url = '%s/hashes/%s' % (get_explorer_base_url(), hash_)
-    r = do_get_request(url)
-    return r
+    response = urlfetch.fetch(url, deadline=10)  # type: urlfetch._URLFetchResult
+    try:
+        content = json.loads(response.content)
+    except:
+        content = response.content
+    if response.status_code == 200:
+        return content
+    elif response.status_code == 400 and 'unrecognized hash' in content['message']:
+        return None
+    else:
+        err = HttpException(content['message'])
+        err.http_code = response.status_code
+        raise err
 
 
 def get_transactions(address, status=None):
-    if status and status not in (TRANS_STATUS_PENDING, TRANS_STATUS_CONFIRMED,):
+    if status and status not in (TransactionStatus.UNCONFIRMED, TransactionStatus.CONFIRMED):
         return []
     info = get_info_by_hash(address)
-    if info['hashtype'] != "unlockhash":
+    if not info or info['hashtype'] != 'unlockhash':
         return []
 
     live_block_height = get_block_height() - MATURITY_DEPTH
     transactions = []
     for t in info['transactions']:
         if t['height'] > live_block_height:
-            t_status = TRANS_STATUS_PENDING
+            t_status = TransactionStatus.UNCONFIRMED
         else:
-            t_status = TRANS_STATUS_CONFIRMED
+            t_status = TransactionStatus.CONFIRMED
 
-        if status and status == TRANS_STATUS_CONFIRMED and t_status != TRANS_STATUS_CONFIRMED:
+        if status and status == TransactionStatus.CONFIRMED and t_status != TransactionStatus.CONFIRMED:
             continue
-        elif status and status == TRANS_STATUS_PENDING and t_status != TRANS_STATUS_PENDING:
+        elif status and status == TransactionStatus.UNCONFIRMED and t_status != TransactionStatus.UNCONFIRMED:
             continue
         if not t['coinoutputids'] or len(t['coinoutputids']) == 0:
             continue
-
 
         for sco_id, co in zip(t['coinoutputids'], t['rawtransaction']['coinoutputs']):
             # todo investigate if correct when fully spent
@@ -116,12 +126,12 @@ def get_transactions(address, status=None):
                 if ci['parentid'] != t['output_id']:
                     continue
                 t['spent'] = True
-    return transactions
+    return sorted(transactions, key=lambda k: k['timestamp'], reverse=True)
 
 
 def get_balance(address):
     amount = 0
-    transactions = get_transactions(address, TRANS_STATUS_CONFIRMED)
+    transactions = get_transactions(address, TransactionStatus.CONFIRMED)
     for t in transactions:
         if t['spent']:
             continue
@@ -131,7 +141,7 @@ def get_balance(address):
 
 def get_output_ids(address):
     d = []
-    transactions = get_transactions(address, TRANS_STATUS_CONFIRMED)
+    transactions = get_transactions(address, TransactionStatus.CONFIRMED)
     for t in transactions:
         if t['spent']:
             continue
@@ -140,9 +150,9 @@ def get_output_ids(address):
 
 
 @returns(CryptoTransactionTO)
-@arguments(from_address=unicode, to_address=unicode, amount=(int, long))
+@arguments(from_address=unicode, to_address=unicode, amount=long)
 def create_signature_data(from_address, to_address, amount):
-    transactions = get_output_ids(to_address)
+    transactions = get_output_ids(from_address)
     transaction = CryptoTransactionTO(minerfees=unicode(COIN_TO_HASTINGS), data=[], from_address=from_address,
                                       to_address=to_address)
     fee_substracted = False
@@ -171,7 +181,7 @@ def create_signature_data(from_address, to_address, amount):
         if should_break:
             break
     else:
-        raise Exception('insufficient_funds')
+        raise HttpBadRequestException('insufficient_funds')
 
     return transaction
 
@@ -229,7 +239,6 @@ def create_transaction_payload(crypto_transaction):
             u"signature": d.signature
         }
         data["transactionsignatures"].append(transactionsignature)
-
     return data
 
 
@@ -237,11 +246,10 @@ def create_transaction_payload(crypto_transaction):
 @arguments(data=CryptoTransactionTO)
 def create_transaction(data):
     payload = create_transaction_payload(data)
-    url = 'http://localhost:23110/transactionpool/transactions'
-    logging.warn('url: %s\npayload: %s', url, payload)
-    headers = {
-        'user-agent': "Rivine-Agent",
-        'authorization': 'Basic test123'
-    }
-    response = urlfetch.fetch(url=url, payload=json.dumps(payload), method=urlfetch.POST, headers=headers, deadline=10)
-    raise Exception(u'%s: %s\n%s' % (url, response.status_code, response.content))
+    url = '%s/transactionpool/transactions' % get_config(NAMESPACE).rivine_url
+    response = urlfetch.fetch(url=url, payload=json.dumps(payload), method=urlfetch.POST, deadline=10)
+    if response.status_code != 200:
+        logging.warning('%s %d: %s', url, response.status_code, response.content)
+        err = HttpException(response.content)
+        err.http_code = response.status_code
+        raise err

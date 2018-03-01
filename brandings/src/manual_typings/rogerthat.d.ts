@@ -5,6 +5,228 @@ import { RogerthatError, RogerthatMessageOpenError, StartScanningQrCodeError, St
 
 export * from './rogerthat-errors';
 
+export type RequiredActionType = 'follow_url' | 'enter_code';
+
+export interface RequiredAction {
+  /**
+   * Optional url to where the user should be redirected.
+   */
+  action: RequiredActionType;
+  /**
+   * Description of what the user is now supposed to do.
+   */
+  description: string | null;
+  /**
+   * JSON encoded optional data to be used dependent on the action
+   */
+  data: string | null;
+}
+
+export type AssetType = 'account' | 'bank' | 'creditcard' | 'cryptocurrency_wallet';
+
+export interface CreatePaymentProviderAsset {
+  type: AssetType;
+  currency: string;
+  /**
+   * Only to be used when type == 'bank'
+   */
+  iban: string | null;
+  /**
+   * Only to be used when type == 'cryptocurrency_wallet'
+   */
+  address: string | null;
+  /**
+   * Currently only to used when type == 'cryptocurrency_wallet'
+   */
+  id: string | null;
+}
+
+export type ColorSchemes = 'light' | 'primary' | 'secondary' | 'danger' | 'dark';
+
+export class PaymentProvider {
+  id: string;
+  name: string;
+  logo_url: string;
+  version: number;
+  oauth_authorize_url: string;
+  /**
+   * Whether or not the user has already authorized this provider.
+   */
+  enabled: boolean;
+  /**
+   * List of asset types that this provider supports.
+   */
+  asset_types: AssetType[];
+  /**
+   * List of currencies that this provider supports.
+   */
+  currencies: string[];
+  background_color: string;
+  text_color: string;
+  button_color: ColorSchemes;
+  black_white_logo: string;
+  authorize: (successCallback: (result: string) => void, errorCallback: (error: RogerthatError) => void) => void;
+  profile: (successCallback: (result: PaymentProviderProfile) => void,
+            errorCallback: (error: RogerthatError) => void) => void;
+  assets: (successCallback: (result: PaymentProviderAsset) => void,
+           errorCallback: (error: RogerthatError) => void) => void;
+  createAsset: (successCallback: (result: PaymentProviderAsset) => void,
+                errorCallback: (error: RogerthatError) => void,
+                asset: CreatePaymentProviderAsset) => void;
+}
+
+export interface PaymentProviderProfile {
+  first_name: string;
+  last_name: string;
+}
+
+export class PaymentTransaction {
+  asset_id: string;
+  provider_id: string;
+  id: string;
+  type: string;
+  name: string;
+  amount: number;
+  currency: string;
+  memo: string;
+  timestamp: number;
+  from_asset_id: string;
+  to_asset_id: string;
+}
+
+export interface TransactionsList {
+  cursor: string;
+  transactions: PaymentTransaction[];
+}
+
+export enum PendingPaymentStatus {
+  CREATED = 'created',
+  SCANNED = 'scanned',
+  CANCELLED_BY_RECEIVER = 'cancelled_by_receiver',
+  CANCELLED_BY_PAYER = 'cancelled_by_payer',
+  FAILED = 'failed',
+  PENDING = 'pending',
+  SIGNATURE = 'signature',
+  CONFIRMED = 'confirmed',
+}
+
+export interface PendingPaymentUpdate {
+  status: PendingPaymentStatus;
+  transaction_id: string;
+}
+
+export type GetTransactionsTypes = 'confirmed' | 'pending';
+
+export interface PaymentAssetBalance {
+  amount: number;
+  description: string | null;
+}
+
+export interface PaymentProviderAsset {
+  available_balance: PaymentAssetBalance;
+  total_balance: PaymentAssetBalance | null;
+  currency: string;
+  provider_id: string;
+  name: string;
+  verified: boolean;
+  required_action: RequiredAction | null;
+  enabled: boolean;
+  id: string;
+  type: AssetType;
+  has_balance: boolean;
+  has_transactions: boolean;
+  transactions: (successCallback: (result: TransactionsList) => void,
+                 errorCallback: (error: RogerthatError) => void,
+                 cursor: string | null,
+                 transactionType: GetTransactionsTypes) => void;
+  verify: (successCallback: () => void, errorCallback: (error: RogerthatError) => void, cursor: string | null) => void;
+  /**
+   * statusCallback is called every time the status of the transaction updates.
+   */
+  receive: (statusCallback: (result: PendingPaymentUpdate) => void,
+            errorCallback: (error: RogerthatError) => void,
+            amount: number,
+            memo: string | null) => void;
+}
+
+export interface PendingPayment {
+  id: string;
+  amount: number;
+  currency: string;
+  memo: string;
+  timestamp: number;
+  provider: PaymentProvider;
+  assets: PaymentProviderAsset[];
+  receiver: UserDetails;
+  receiver_asset: PaymentProviderAsset;
+  getSignatureData: (successCallback: (signature?: CryptoTransaction) => void,
+                     errorCallback: (error: RogerthatError) => void,
+                     assetId: string) => void;
+  getTransactionData: (successCallback: (payload: CryptoTransaction) => void,
+                       errorCallback: (error: RogerthatError) => void,
+                       algorithm: SupportedAlgorithms,
+                       name: string,
+                       index: number,
+                       signature_data: string) => void;
+  /**
+   * Executes a payment
+   * @param successCallback called in case the transaction was completed
+   * @param errorCallback called when the transaction could not be committed
+   * @param signature Signature of the transaction, if any
+   */
+  confirm: (successCallback: (status: PendingPaymentUpdate) => void,
+            errorCallback: (error: RogerthatError) => void,
+            signature?: string | null) => void;
+  cancel: (successCallback: () => void, errorCallback: (error: RogerthatError) => void) => void;
+}
+
+export interface ProviderRemovedCallbackResult {
+  provider_id: string;
+}
+
+export interface AssetsUpdatedCallbackResult {
+  provider_id: string;
+  assets: PaymentProviderAsset[];
+}
+
+export interface PaymentsCallbacks {
+  onProviderUpdated: (callback: (result: PaymentProvider) => void) => void;
+  onProviderRemoved: (callback: (result: ProviderRemovedCallbackResult) => void) => void;
+  onAssetsUpdated: (callback: (result: AssetsUpdatedCallbackResult) => void) => void;
+  onAssetUpdated: (callback: (result: PaymentProviderAsset) => void) => void;
+}
+
+export interface SignatureData {
+  data: string;
+}
+
+export interface RogerthatPayments {
+  /**
+   * Lists payment providers. If the `all` parameter is true, all available payment providers are returned.
+   * Otherwise, only the payment providers that the user is connected with are returned.
+   * The successCallback function is also called every time the payment provider has changed.
+   */
+  providers: (successCallback: (paymentProviders: PaymentProvider[]) => void,
+              errorCallback: (error: RogerthatError) => void,
+              all?: boolean) => void;
+  assets: (successCallback: (assets: PaymentProviderAsset[]) => void,
+           errorCallback: (error: RogerthatError) => void) => void;
+  getPendingPaymentDetails: (successCallback: (result: PendingPayment) => void,
+                             errorCallback: (error: RogerthatError) => void,
+                             updateCallback: (result: PendingPaymentUpdate) => void,
+                             transactionId: string) => void;
+  cancelPayment: (successCallback: () => void,
+                  errorCallback: (error: RogerthatError) => void,
+                  transactionId: string) => void;
+  callbacks: PaymentsCallbacks;
+  getTransactionData: (successCallback: (payload: SignatureData) => void,
+                       errorCallback: (error: RogerthatError) => void,
+                       algorithm: SupportedAlgorithms,
+                       name: string,
+                       index: number,
+                       signature_data: string) => void;
+}
+
 export interface AnyKeyValue {
   [key: string]: any;
 }
@@ -328,6 +550,7 @@ export interface Rogerthat {
   ui: RogerthatUI;
   user: RogerthatUserInfo;
   util: RogerthatUtil;
+  payments: RogerthatPayments;
 }
 
 declare global {

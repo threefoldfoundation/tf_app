@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEnca
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
 import { Actions } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
 import { AgendaPageComponent } from '../pages/agenda/agenda-page.component';
@@ -13,9 +12,9 @@ import { InvitePageComponent } from '../pages/referrals/invite-page.component';
 import { SeePageComponent } from '../pages/see/see-page.component';
 import { TodoListOverviewPageComponent } from '../pages/todo-list/todo-list-overview-page.component';
 import { TodoListPageComponent } from '../pages/todo-list/todo-list-page.component';
+import { WalletPageComponent } from '../pages/wallet/wallet-page.component';
 import { RogerthatService } from '../services/rogerthat.service';
 import { TodoListService } from '../services/todo-list.service';
-import { IAppState } from './app.state';
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -34,8 +33,7 @@ export class AppComponent implements OnInit {
               private todoListService: TodoListService,
               private cdRef: ChangeDetectorRef,
               private errorService: ErrorService,
-              private actions$: Actions,
-              private store: Store<IAppState>) {
+              private actions$: Actions) {
     translate.setDefaultLang('en');
     platform.ready().then(() => {
       rogerthat.callbacks.ready(() => {
@@ -64,6 +62,7 @@ export class AppComponent implements OnInit {
           { tag: 'referrals_invite', page: InvitePageComponent },
           { tag: 'agenda', page: AgendaPageComponent },
           { tag: 'node_status', page: NodeStatusPageComponent },
+          { tag: 'wallet', page: WalletPageComponent },
         ];
         // the or is for debugging
         const page = pages.find(p => sha256(p.tag) === rogerthat.menuItem.hashedTag || p.tag === rogerthat.menuItem.hashedTag);
@@ -76,10 +75,17 @@ export class AppComponent implements OnInit {
         this.cdRef.detectChanges();
       });
     });
+    setInterval(() => this.cdRef.detectChanges(), 200);
   }
 
   ngOnInit() {
     // Useful for debugging
-    this.actions$.subscribe(action => console.log(JSON.stringify(action)));
+    this.actions$.subscribe(action => {
+      // if (true || window.location.host.includes('localhost')) {
+      console.log(action);
+      // } else {
+      //   console.log(JSON.stringify(action));
+      // }
+    });
   }
 }

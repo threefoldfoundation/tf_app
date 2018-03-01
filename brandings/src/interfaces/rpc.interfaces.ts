@@ -1,12 +1,13 @@
-export interface ApiError {
+export interface ApiError<T = any> {
+  status_code?: number;
   error: string;
-  data: { [key: string]: any } | null;
+  data: T | null;
 }
 
-export interface ApiRequestStatus {
+export interface ApiRequestStatus<T = any> {
   loading: boolean;
   success: boolean;
-  error: ApiError | null;
+  error: ApiError<T> | null;
 }
 
 export const apiRequestInitial: ApiRequestStatus = {

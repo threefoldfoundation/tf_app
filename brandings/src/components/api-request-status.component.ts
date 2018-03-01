@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
+import { ErrorService } from '../pages/error.service';
 
 @Component({
   selector: 'api-request-status',
@@ -10,10 +11,13 @@ import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
       <ion-spinner [style.width]="size" [style.height]="size"></ion-spinner>
     </ion-row>
     <div *ngIf="status.error && !status.success">
-      <p class="error-message" [innerText]="status.error?.error"></p>
+      <p class="error-message" [innerText]="errorService.getErrorMessage(status.error.error)"></p>
     </div>`,
 })
 export class ApiRequestStatusComponent {
   @Input() status: ApiRequestStatus;
   @Input() size = '36px';
+
+  constructor(public errorService: ErrorService) {
+  }
 }

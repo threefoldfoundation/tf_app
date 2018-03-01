@@ -14,56 +14,54 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-from mcfw.exceptions import HttpBadRequestException
+
+from mcfw import restapi
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.consts.payment import COIN_TO_HASTINGS
 from plugins.tff_backend.rivine import get_transactions, create_transaction, create_signature_data
-from plugins.tff_backend.to.rivine import CryptoTransactionTO, CreateSignatureDataTO, TransactionListTO, \
-    TransactionTO, CryptoTransactionOutputTO
+from plugins.tff_backend.to.rivine import CryptoTransactionTO, CreateSignatureDataTO, TransactionListTO
 
 
-@rest('/wallet/transactions', 'get')
+def _set_access_control_header():
+    response = restapi.GenericRESTRequestHandler.getCurrentResponse()
+    response.headers['Access-Control-Allow-Origin'] = '*'
+
+
+@rest('/wallet/transactions', 'get', silent_result=True)
 @returns(TransactionListTO)
 @arguments(address=unicode)
 def api_get_transactions(address):
-    to = TransactionListTO()
-    to.results = []
-    for t in get_transactions(address):
-        trans_to = TransactionTO()
-        trans_to.id = t['id']
-        trans_to.status = t['status']
-        trans_to.timestamp = t['timestamp']
-        trans_to.spent = t['spent']
-        trans_to.inputs = []
-        for i in t['inputs']:
-            co = CryptoTransactionOutputTO()
-            co.value = i['value']
-            co.unlockhash = i['unlockhash']
-            trans_to.inputs.append(co)
-        trans_to.outputs = []
-        for o in t['outputs']:
-            co = CryptoTransactionOutputTO()
-            co.value = o['value']
-            co.unlockhash = o['unlockhash']
-            trans_to.outputs.append(co)
-        to.results.append(trans_to)
-    return to
+    _set_access_control_header()
+    return TransactionListTO.from_dict({'results': get_transactions(address)})
 
 
 @rest('/wallet/create_signature_data', 'post')
 @returns(CryptoTransactionTO)
 @arguments(data=CreateSignatureDataTO)
 def api_create_signature_data_transaction(data):
-    try:
-        amount = data.amount * pow(10, data.precision) * COIN_TO_HASTINGS
-        return create_signature_data(data.from_address, data.to_address, amount)
-    except Exception as e:
-        raise HttpBadRequestException(e.message)
+    _set_access_control_header()
+    amount = data.amount * COIN_TO_HASTINGS / pow(10, data.precision)
+    return create_signature_data(data.from_address, data.to_address, amount)
+
+
+@rest('/wallet/create_signature_data', 'options')
+@returns()
+@arguments()
+def api_create_signature_data_transaction_options():
+    pass
 
 
 @rest('/wallet/transactions', 'post')
 @returns()
 @arguments(data=CryptoTransactionTO)
 def api_create_transaction(data):
+    _set_access_control_header()
     create_transaction(data)
+
+
+@rest('/wallet/transactions', 'options')
+@returns()
+@arguments()
+def api_create_transaction_options():
+    pass

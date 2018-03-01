@@ -34,6 +34,10 @@ To test it, either upload it as a branding on your rogerthat server or add this 
           this._ready = callback;
         },
         serviceDataUpdated: () => {
+        },
+        userDataUpdated: () => {
+        },
+        qrCodeScanned: () => {
         }
       },
       user: {
@@ -85,9 +89,12 @@ To test it, either upload it as a branding on your rogerthat server or add this 
           }]
         }
       },
+      security: {
+        getAddress: success => success({address: 'c69ac3db0015992b7cdf3f40c4fb4912f64c975784e2d50c909ee5119734d30784842a3b9899'})
+      },
       menuItem: {
-        hashedTag: 'agenda',
-        label: 'Agenda'
+        hashedTag: 'wallet',
+        label: 'Wallet'
       },
       util: {
         uuid: () => {
@@ -95,10 +102,10 @@ To test it, either upload it as a branding on your rogerthat server or add this 
         }
       }
     };
+    sha256 = () => {
+    };
+    setTimeout(() => rogerthat.callbacks._ready(), 250);
   }
-  sha256 = () => {
-  };
-  setTimeout(() => rogerthat.callbacks._ready(), 250);
 </script>
 ```
 

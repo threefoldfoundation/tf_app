@@ -10,6 +10,23 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
         ...state,
         apiCallResult: { ...action.payload },
       };
+    case BrandingActionTypes.SCAN_QR_CODE:
+      return {
+        ...state,
+        qrCodeContent: initialState.qrCodeContent,
+        qrCodeError: initialState.qrCodeError,
+      };
+    case BrandingActionTypes.SCAN_QR_CODE_UPDATE:
+      return {
+        ...state,
+        qrCodeContent: action.payload,
+        qrCodeError: initialState.qrCodeError,
+      };
+    case BrandingActionTypes.SCAN_QR_CODE_FAILED:
+      return {
+        ...state,
+        qrCodeError: action.payload,
+      };
     case BrandingActionTypes.GET_GLOBAL_STATS:
       return {
         ...state,
@@ -118,6 +135,71 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
         ...state,
         nodes: action.payload,
         nodesStatus: apiRequestLoading,
+      };
+    case BrandingActionTypes.GET_ADDRESS:
+      return {
+        ...state,
+        addressStatus: apiRequestLoading,
+      };
+    case BrandingActionTypes.GET_ADDRESS_COMPLETE:
+      return {
+        ...state,
+        address: action.payload,
+        addressStatus: apiRequestSuccess,
+      };
+    case BrandingActionTypes.GET_ADDRESS_FAILED:
+      return {
+        ...state,
+        addressStatus: action.payload,
+      };
+    case BrandingActionTypes.GET_TRANSACTIONS:
+      return {
+        ...state,
+        transactionsStatus: apiRequestLoading,
+      };
+    case BrandingActionTypes.GET_TRANSACTIONS_COMPLETE:
+      return {
+        ...state,
+        transactions: action.payload,
+        transactionsStatus: apiRequestSuccess,
+      };
+    case BrandingActionTypes.GET_TRANSACTIONS_FAILED:
+      return {
+        ...state,
+        transactionsStatus: action.payload,
+      };
+    case BrandingActionTypes.CREATE_SIGNATURE_DATA:
+      return {
+        ...state,
+        pendingTransaction: initialState.pendingTransaction,
+        createTransactionStatus: initialState.createTransactionStatus,
+        pendingTransactionStatus: apiRequestLoading,
+      };
+    case BrandingActionTypes.CREATE_SIGNATURE_DATA_COMPLETE:
+      return {
+        ...state,
+        pendingTransaction: action.payload,
+        pendingTransactionStatus: apiRequestSuccess,
+      };
+    case BrandingActionTypes.CREATE_SIGNATURE_DATA_FAILED:
+      return {
+        ...state,
+        pendingTransactionStatus: action.payload,
+      };
+    case BrandingActionTypes.CREATE_TRANSACTION:
+      return {
+        ...state,
+        createTransactionStatus: apiRequestLoading,
+      };
+    case BrandingActionTypes.CREATE_TRANSACTION_COMPLETE:
+      return {
+        ...state,
+        createTransactionStatus: apiRequestSuccess,
+      };
+    case BrandingActionTypes.CREATE_TRANSACTION_FAILED:
+      return {
+        ...state,
+        createTransactionStatus: action.payload,
       };
   }
   return state;
