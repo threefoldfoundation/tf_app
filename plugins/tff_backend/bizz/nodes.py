@@ -126,7 +126,7 @@ def _node_status_callback(task):
 
 
 def get_nodes_status(node_ids):
-    tasks = {task.service_name: task for task in _get_node_info_tasks() if task.service_name in node_ids}
+    tasks = _get_node_info_tasks(node_ids)
     statuses = dict(_wait_for_tasks(tasks, _node_status_callback))
     return [statuses.get(node_id, u'not_found') for node_id in node_ids]
 
@@ -279,16 +279,28 @@ def _get_node_stats_tasks(node_ids):
 
 
 @returns([Task])
-@arguments()
-def _get_node_info_tasks():
-    return _execute_blueprint("""{
-  "content": {
-    "actions": {
-      "template": "github.com/zero-os/0-templates/node/0.0.1",
-      "actions": "info"
-    }
-  }
-}""")
+@arguments(node_ids=[unicode])
+def _get_node_info_tasks(node_ids=None):
+    if node_ids:
+        blueprint = {
+            'content': {
+                'actions': [{
+                    'template': 'github.com/zero-os/0-templates/node/0.0.1',
+                    'actions': 'info',
+                    'service': node_id
+                } for node_id in node_ids]
+            }
+        }
+    else:
+        blueprint = {
+            'content': {
+                'actions': {
+                    'template': 'github.com/zero-os/0-templates/node/0.0.1',
+                    'actions': 'info'
+                }
+            }
+        }
+    return _execute_blueprint(json.dumps(blueprint))
 
 
 def _execute_blueprint(blueprint):
