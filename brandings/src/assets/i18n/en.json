@@ -24,6 +24,7 @@
     "insufficient_funds": "You don't have enough tokens to complete this transaction.",
     "unknown": "An unknown error has occured, please try again later"
   },
+  "fee_x": "{{ fee }} fee",
   "from_x": "From {{ timestamp }}",
   "global_stats": "Global stats",
   "hide_full_description": "Hide full description",
@@ -82,6 +83,7 @@
   "what_still_needs_to_be_done": "What still needs to be done?",
   "x_attendees": "{{ attendees }} attendees",
   "x_from_y": "{{ x }} from {{ y }}",
+  "x_to_y": "{{ x }} to {{ y }}",
   "x_tokens_raised": "{{ count }} tokens raised",
   "yes": "Yes",
   "you_and_x_others": "You & {{ attendees }} others"

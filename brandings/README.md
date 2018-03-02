@@ -73,7 +73,8 @@ To test it, either upload it as a branding on your rogerthat server or add this 
         }
       },
       system: {
-        appId: 'em-be-threefold-token'
+        appId: 'em-be-threefold-token',
+        appVersion: '2.1.1234'
       },
       service: {
         data: {

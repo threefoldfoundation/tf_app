@@ -6,7 +6,6 @@ import { ToastController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { filter, map, startWith, withLatestFrom } from 'rxjs/operators';
 import { IAppState } from '../../app/app.state';
-import {  } from '../../state/app.state';
 import { getAddress } from '../../state/rogerthat.state';
 
 @Component({
@@ -56,6 +55,8 @@ export class ReceivePageComponent implements OnInit {
         message: this.translate.instant('address_copied_to_clipboard'),
         duration: 3000,
         position: 'bottom',
+        showCloseButton: true,
+        closeButtonText: this.translate.instant('ok'),
       }).present();
     }
   }
