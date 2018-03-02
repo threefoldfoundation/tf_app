@@ -21,8 +21,8 @@
   "error": "Error",
   "errors": {
     "address_not_found": "Address not found, please import your seed before continuing.",
-    "insufficient_funds": "You don't have enough tokens to complete this transaction.",
-    "unknown": "An unknown error has occured, please try again later"
+    "insufficient_funds": "You don't have enough tokens to complete this transaction or have another transaction pending.",
+    "unknown": "An unknown error has occurred, please try again later"
   },
   "fee_x": "{{ fee }} fee",
   "from_x": "From {{ timestamp }}",
