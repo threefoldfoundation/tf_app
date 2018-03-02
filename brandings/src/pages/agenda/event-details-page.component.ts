@@ -1,15 +1,16 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController, LoadingController, NavParams } from 'ionic-angular';
 import { Loading } from 'ionic-angular/components/loading/loading';
 import { Observable } from 'rxjs/Observable';
 import { filter } from 'rxjs/operators/filter';
 import { Subscription } from 'rxjs/Subscription';
-import { GetEventPresenceAction, UpdateEventPresenceAction } from '../../actions/branding.actions';
+import { GetEventPresenceAction, UpdateEventPresenceAction } from '../../actions';
+import { IAppState } from '../../app/app.state';
 import { AgendaEventDetail, EventPresence, UpdatePresenceData } from '../../interfaces/agenda.interfaces';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
-import { getEventPresence, getEventPresenceStatus, IBrandingState, updateEventPresenceStatus } from '../../state/app.state';
+import { getEventPresence, getEventPresenceStatus, updateEventPresenceStatus } from '../../state/app.state';
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -26,7 +27,7 @@ export class EventDetailsPageComponent implements OnInit, OnDestroy {
   private _loading: Loading;
 
   constructor(private navParams: NavParams,
-              private store: Store<IBrandingState>,
+              private store: Store<IAppState>,
               private loadingCtrl: LoadingController,
               private alertCtrl: AlertController,
               private translate: TranslateService) {
@@ -35,9 +36,9 @@ export class EventDetailsPageComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.agendaEvent = this.navParams.get('event');
     this.store.dispatch(new GetEventPresenceAction(this.agendaEvent.id));
-    this.eventPresence$ = <Observable<EventPresence>>this.store.select(getEventPresence).pipe(filter(p => p !== null));
-    this.status$ = this.store.select(getEventPresenceStatus);
-    this.updateStatus$ = this.store.select(updateEventPresenceStatus);
+    this.eventPresence$ = <Observable<EventPresence>>this.store.pipe(select(getEventPresence), filter(p => p !== null));
+    this.status$ = this.store.pipe(select(getEventPresenceStatus));
+    this.updateStatus$ = this.store.pipe(select(updateEventPresenceStatus));
   }
 
   ngOnDestroy() {
@@ -52,7 +53,7 @@ export class EventDetailsPageComponent implements OnInit, OnDestroy {
     this._loading = this.loadingCtrl.create({ content: this.translate.instant('loading') });
     this._loading.present();
     this._updateSub.unsubscribe();
-    this._updateSub = this.store.select(updateEventPresenceStatus).subscribe(status => {
+    this._updateSub = this.updateStatus$.subscribe(status => {
       if (status.success) {
         this._loading.dismissAll();
       } else if (status.error) {

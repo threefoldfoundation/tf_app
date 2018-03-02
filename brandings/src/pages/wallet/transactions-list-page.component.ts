@@ -6,19 +6,14 @@ import { Observable } from 'rxjs/Observable';
 import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
 import { first } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { GetAddresssAction, GetTransactionsAction } from '../../actions/branding.actions';
+import { GetAddresssAction, GetTransactionsAction } from '../../actions';
+import { IAppState } from '../../app/app.state';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 import { CURRENCY_TFT, KEY_NAME, ParsedTransaction, RIVINE_ALGORITHM, TransactionStatus } from '../../interfaces/wallet';
 import { CryptoAddress } from '../../manual_typings/rogerthat';
 import { RogerthatError } from '../../manual_typings/rogerthat-errors';
-import {
-  getAddress,
-  getAddressStatus,
-  getTotalAmount,
-  getTransactions,
-  getTransactionsStatus,
-  IBrandingState,
-} from '../../state/app.state';
+import { getTotalAmount, getTransactions, getTransactionsStatus } from '../../state/app.state';
+import { getAddress, getAddressStatus } from '../../state/rogerthat.state';
 import { ErrorService } from '../error.service';
 
 @Component({
@@ -38,7 +33,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   private _transactionStatusSub: Subscription;
   private _intervalSubscription: Subscription;
 
-  constructor(private store: Store<IBrandingState>,
+  constructor(private store: Store<IAppState>,
               private translate: TranslateService,
               private errorService: ErrorService,
               private alertCtrl: AlertController) {
@@ -55,7 +50,7 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     this.addressStatus$ = this.store.pipe(select(getAddressStatus));
     this.transactions$ = this.store.pipe(select(getTransactions));
     this.transactionsStatus$ = this.store.pipe(select(getTransactionsStatus));
-    this.totalAmount$ = this.store.select(getTotalAmount);
+    this.totalAmount$ = this.store.pipe(select(getTotalAmount));
     this._addressStatusSub = this.addressStatus$.subscribe(s => {
       if (!s.success && !s.loading && s.error !== null) {
         return this.showError(s.error.error!);

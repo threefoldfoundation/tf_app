@@ -5,7 +5,8 @@ import { AlertController, NavParams, ViewController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { first, map, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { CreateSignatureDataAction, CreateTransactionAction } from '../../actions/branding.actions';
+import { CreateSignatureDataAction, CreateTransactionAction } from '../../actions';
+import { CreateTransactionDataAction } from '../../actions/rogerthat.actions';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 import { CreateSignatureData, KEY_NAME, RIVINE_ALGORITHM } from '../../interfaces/wallet';
 import { CryptoTransaction, CryptoTransactionData } from '../../manual_typings/rogerthat';
@@ -60,7 +61,7 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
   submit() {
     const msg = this.translate.instant('enter_your_pin_to_sign_transaction');
     this.pendingTransaction$.pipe(first()).subscribe(transaction => {
-      this.store.dispatch(new CreateTransactionAction(transaction!, KEY_NAME, RIVINE_ALGORITHM, 0, msg));
+      this.store.dispatch(new CreateTransactionDataAction(transaction!, KEY_NAME, RIVINE_ALGORITHM, 0, msg));
     });
   }
 

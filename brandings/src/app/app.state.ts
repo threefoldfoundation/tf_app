@@ -1,24 +1,14 @@
-import { InjectionToken } from '@angular/core';
-import { ActionReducerMap } from '@ngrx/store';
+import { ServiceData, UserData } from '../interfaces/rogerthat';
+import { appReducer, rogerthatReducer } from '../reducers';
 import { IBrandingState } from '../state/app.state';
-import { appReducer } from './app.reducer';
+import { IRogerthatState } from '../state/rogerthat.state';
 
 export interface IAppState {
   app: IBrandingState;
+  rogerthat: IRogerthatState<UserData, ServiceData>;
 }
 
 export const reducers = {
   app: appReducer,
+  rogerthat: rogerthatReducer,
 };
-
-export const REDUCER_INJECTION_TOKEN = new InjectionToken<ActionReducerMap<IAppState>>('Reducers');
-
-export function getReducers() {
-  return {
-    app: appReducer,
-  };
-}
-
-export const reducerProvider = [
-  { provide: REDUCER_INJECTION_TOKEN, useFactory: getReducers },
-];

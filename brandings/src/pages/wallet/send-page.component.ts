@@ -6,10 +6,11 @@ import { AlertController, ModalController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { ScanQrCodeAction } from '../../actions/branding.actions';
+import { ScanQrCodeAction } from '../../actions';
+import { IAppState } from '../../app/app.state';
 import { ADDRESS_LENGTH, CreateSignatureData } from '../../interfaces/wallet';
 import { CryptoAddress, QrCodeScannedContent } from '../../manual_typings/rogerthat';
-import { getAddress, getQrCodeContent, IBrandingState } from '../../state/app.state';
+import { getAddress, getQrCodeContent } from '../../state/rogerthat.state';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
 
 @Component({
@@ -24,7 +25,7 @@ export class SendPageComponent implements OnInit, OnDestroy {
   private _addressSubscription: Subscription;
   private _qrCodeContentSubscription: Subscription;
 
-  constructor(private store: Store<IBrandingState>,
+  constructor(private store: Store<IAppState>,
               private modalCtrl: ModalController,
               private alertCtrl: AlertController,
               private translate: TranslateService,

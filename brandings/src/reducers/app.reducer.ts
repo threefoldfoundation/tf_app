@@ -1,32 +1,10 @@
-import { BrandingActions, BrandingActionTypes } from '../actions/branding.actions';
+import { BrandingActions, BrandingActionTypes } from '../actions';
 import { EventPresence, EventPresenceStatus } from '../interfaces/agenda.interfaces';
 import { apiRequestLoading, apiRequestSuccess } from '../interfaces/rpc.interfaces';
 import { IBrandingState, initialState } from '../state/app.state';
 
 export function appReducer(state: IBrandingState = initialState, action: BrandingActions): IBrandingState {
   switch (action.type) {
-    case BrandingActionTypes.API_CALL_COMPLETE:
-      return {
-        ...state,
-        apiCallResult: { ...action.payload },
-      };
-    case BrandingActionTypes.SCAN_QR_CODE:
-      return {
-        ...state,
-        qrCodeContent: initialState.qrCodeContent,
-        qrCodeError: initialState.qrCodeError,
-      };
-    case BrandingActionTypes.SCAN_QR_CODE_UPDATE:
-      return {
-        ...state,
-        qrCodeContent: action.payload,
-        qrCodeError: initialState.qrCodeError,
-      };
-    case BrandingActionTypes.SCAN_QR_CODE_FAILED:
-      return {
-        ...state,
-        qrCodeError: action.payload,
-      };
     case BrandingActionTypes.GET_GLOBAL_STATS:
       return {
         ...state,
@@ -58,16 +36,6 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
       return {
         ...state,
         seeDocumentsStatus: action.payload,
-      };
-    case BrandingActionTypes.GET_EVENTS:
-      return {
-        ...state,
-        events: initialState.events,
-      };
-    case BrandingActionTypes.GET_EVENTS_COMPLETE:
-      return {
-        ...state,
-        events: action.payload,
       };
     case BrandingActionTypes.GET_EVENT_PRESENCE:
       return {
@@ -122,7 +90,6 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
     case BrandingActionTypes.GET_NODE_STATUS_COMPLETE:
       return {
         ...state,
-        nodes: action.payload,
         nodesStatus: apiRequestSuccess,
       };
     case BrandingActionTypes.GET_NODE_STATUS_FAILED:
@@ -133,24 +100,12 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
     case BrandingActionTypes.UPDATE_NODE_STATUS:
       return {
         ...state,
-        nodes: action.payload,
         nodesStatus: apiRequestLoading,
       };
-    case BrandingActionTypes.GET_ADDRESS:
+    case BrandingActionTypes.UPDATE_NODE_STATUS_COMPLETE:
       return {
         ...state,
-        addressStatus: apiRequestLoading,
-      };
-    case BrandingActionTypes.GET_ADDRESS_COMPLETE:
-      return {
-        ...state,
-        address: action.payload,
-        addressStatus: apiRequestSuccess,
-      };
-    case BrandingActionTypes.GET_ADDRESS_FAILED:
-      return {
-        ...state,
-        addressStatus: action.payload,
+        nodesStatus: apiRequestSuccess,
       };
     case BrandingActionTypes.GET_TRANSACTIONS:
       return {

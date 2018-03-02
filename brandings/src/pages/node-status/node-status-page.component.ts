@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { Platform } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
-import { GetNodeStatusAction } from '../../actions/branding.actions';
+import { GetNodeStatusAction } from '../../actions';
 import { IAppState } from '../../app/app.state';
 import { NodeInfo } from '../../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
-import { getNodes, getNodesStatus } from '../../state/app.state';
+import { getNodesStatus, getUserDataNodeStatus } from '../../state/app.state';
 
 @Component({
   selector: 'node-status-page',
@@ -23,8 +23,8 @@ export class NodeStatusPageComponent implements OnInit {
 
   ngOnInit() {
     this.store.dispatch(new GetNodeStatusAction());
-    this.nodes$ = this.store.select(getNodes);
-    this.status$ = this.store.select(getNodesStatus);
+    this.nodes$ = this.store.pipe(select(getUserDataNodeStatus));
+    this.status$ = this.store.pipe(select(getNodesStatus));
   }
 
   close() {

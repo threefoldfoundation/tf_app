@@ -71,7 +71,7 @@ def get_info_by_hash(hash_):
     elif response.status_code == 400 and 'unrecognized hash' in content['message']:
         return None
     else:
-        err = HttpException(content['message'])
+        err = HttpException(content['message'] if isinstance(content, dict) else content)
         err.http_code = response.status_code
         raise err
 
@@ -250,6 +250,10 @@ def create_transaction(data):
     response = urlfetch.fetch(url=url, payload=json.dumps(payload), method=urlfetch.POST, deadline=10)
     if response.status_code != 200:
         logging.warning('%s %d: %s', url, response.status_code, response.content)
-        err = HttpException(response.content)
+        try:
+            err_msg = json.loads(response.content)['message']
+        except Exception:
+            err_msg = response.content
+        err = HttpException(err_msg)
         err.http_code = response.status_code
         raise err

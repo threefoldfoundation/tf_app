@@ -5,7 +5,9 @@ import { TranslateService } from '@ngx-translate/core';
 import { ToastController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { filter, map, startWith, withLatestFrom } from 'rxjs/operators';
-import { getAddress, IBrandingState } from '../../state/app.state';
+import { IAppState } from '../../app/app.state';
+import {  } from '../../state/app.state';
+import { getAddress } from '../../state/rogerthat.state';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,7 +23,7 @@ export class ReceivePageComponent implements OnInit {
   address$: Observable<string>;
   qrContent$: Observable<string>;
 
-  constructor(private store: Store<IBrandingState>,
+  constructor(private store: Store<IAppState>,
               private translate: TranslateService,
               private toastCtrl: ToastController) {
     this.amountControl = new FormControl();

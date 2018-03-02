@@ -21,6 +21,7 @@ import {
   SeeDocumentComponent,
   TodoItemListComponent,
 } from '../components';
+import { BrandingEffects, RogerthatEffects } from '../effects';
 import {
   AgendaPageComponent,
   ConfirmSendPageComponent,
@@ -42,8 +43,7 @@ import { MarkdownPipe } from '../pipes/markdown.pipe';
 import { SERVICES } from '../services';
 import { MissingTranslationWarnHandler } from '../util/missing-translation-handler';
 import { AppComponent } from './app.component';
-import { REDUCER_INJECTION_TOKEN, reducerProvider } from './app.state';
-import { BrandingEffects } from './branding.effects';
+import { reducers } from './app.state';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, 'assets/i18n/');
@@ -98,8 +98,8 @@ export const COMPONENTS = [
         deps: [ HttpClient ],
       },
     }),
-    StoreModule.forRoot(REDUCER_INJECTION_TOKEN),
-    EffectsModule.forRoot([ BrandingEffects ]),
+    StoreModule.forRoot(reducers),
+    EffectsModule.forRoot([ BrandingEffects, RogerthatEffects ]),
     ChartModule,
     QRCodeModule,
   ],
@@ -117,7 +117,6 @@ export const COMPONENTS = [
     I18nPluralPipe,
     SERVICES,
     IONIC_NATIVE_PLUGINS,
-    reducerProvider,
     { provide: ErrorHandler, useClass: IonicErrorHandler },
     { provide: MissingTranslationHandler, useClass: MissingTranslationWarnHandler },
   ],
