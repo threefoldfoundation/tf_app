@@ -9,7 +9,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { GetAddresssAction, GetTransactionsAction } from '../../actions';
 import { IAppState } from '../../app/app.state';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
-import { CURRENCY_TFT, KEY_NAME, ParsedTransaction, RIVINE_ALGORITHM, TransactionOutput, TransactionStatus } from '../../interfaces/wallet';
+import { CURRENCY_TFT, KEY_NAME, ParsedTransaction, RIVINE_ALGORITHM, TransactionStatus } from '../../interfaces/wallet';
 import { CryptoAddress } from '../../manual_typings/rogerthat';
 import { RogerthatError } from '../../manual_typings/rogerthat-errors';
 import { AmountPipe } from '../../pipes/amount.pipe';
@@ -92,11 +92,6 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
 
   getTransactionStatus(status: TransactionStatus) {
     return this.translate.instant(`transaction_status_${status}`);
-  }
-
-  getOutputText(output: TransactionOutput, transaction: ParsedTransaction): string {
-    const key = transaction.receiving ? 'x_from_y' : 'x_to_y';
-    return this.translate.instant(key, { x: this.amountPipe.transform(output.value), y: output.unlockhash });
   }
 
   getFee(transaction: ParsedTransaction): number {

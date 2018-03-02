@@ -82,7 +82,6 @@
   "wallet": "Wallet",
   "what_still_needs_to_be_done": "What still needs to be done?",
   "x_attendees": "{{ attendees }} attendees",
-  "x_from_y": "{{ x }} from {{ y }}",
   "x_to_y": "{{ x }} to {{ y }}",
   "x_tokens_raised": "{{ count }} tokens raised",
   "yes": "Yes",
