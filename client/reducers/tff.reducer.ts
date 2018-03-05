@@ -289,64 +289,6 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         tffProfileStatus: action.payload,
       };
-    case actions.TffActionTypes.GET_BALANCE:
-      return {
-        ...state,
-        balance: initialTffState.balance,
-        balanceStatus: apiRequestLoading,
-      };
-    case actions.TffActionTypes.GET_BALANCE_COMPLETE:
-      return {
-        ...state,
-        balance: action.payload,
-        balanceStatus: apiRequestSuccess,
-      };
-    case actions.TffActionTypes.GET_BALANCE_FAILED:
-      return {
-        ...state,
-        balanceStatus: action.payload,
-      };
-    case actions.TffActionTypes.GET_USER_TRANSACTIONS:
-      return {
-        ...state,
-        userTransactions: initialTffState.userTransactions,
-        userTransactionsStatus: apiRequestLoading,
-      };
-    case actions.TffActionTypes.GET_USER_TRANSACTIONS_COMPLETE:
-      return {
-        ...state,
-        userTransactions: action.payload,
-        userTransactionsStatus: apiRequestSuccess,
-      };
-    case actions.TffActionTypes.GET_USER_TRANSACTIONS_FAILED:
-      return {
-        ...state,
-        userTransactionsStatus: action.payload,
-      };
-    case actions.TffActionTypes.RESET_NEW_TRANSACTION:
-      return {
-        ...state,
-        createTransactionStatus: initialTffState.createTransactionStatus,
-      };
-    case actions.TffActionTypes.CREATE_TRANSACTION:
-      return {
-        ...state,
-        createTransactionStatus: apiRequestLoading,
-      };
-    case actions.TffActionTypes.CREATE_TRANSACTION_COMPLETE:
-      return {
-        ...state,
-        createTransactionStatus: apiRequestSuccess,
-        userTransactions: {
-          ...state.userTransactions,
-          results: [ ...state.userTransactions.results, action.payload ],
-        },
-      };
-    case actions.TffActionTypes.CREATE_TRANSACTION_FAILED:
-      return {
-        ...state,
-        createTransactionStatus: action.payload,
-      };
     case actions.TffActionTypes.SET_KYC_STATUS:
       return { ...state, setKYCStatus: apiRequestLoading };
     case actions.TffActionTypes.SET_KYC_STATUS_COMPLETE:

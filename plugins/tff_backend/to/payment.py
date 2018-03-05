@@ -14,13 +14,10 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-from types import NoneType
 
-from google.appengine.ext import ndb
 
 from framework.to import TO
-from mcfw.properties import long_property, unicode_property, typed_property, bool_property, float_property, \
-    long_list_property, unicode_list_property
+from mcfw.properties import long_property, unicode_property, typed_property, bool_property
 from plugins.tff_backend.to import PaginatedResultTO
 
 
@@ -33,6 +30,7 @@ class PaymentAssetRequiredActionTO(TO):
 class PaymentAssetBalanceTO(TO):
     amount = long_property('1')
     description = unicode_property('2')
+    precision = long_property('3')
 
 
 class PaymentProviderAssetTO(TO):
@@ -50,6 +48,72 @@ class PaymentProviderAssetTO(TO):
     required_action = typed_property('12', PaymentAssetRequiredActionTO)
 
 
+class PublicPaymentProviderTransactionTO(TO):
+    id = unicode_property('1')
+    timestamp = long_property('2')
+    currency = unicode_property('3')
+    amount = long_property('4')
+    precision = long_property('5')
+    status = unicode_property('6')
+
+
+class CryptoTransactionInputTO(TO):
+    parent_id = unicode_property('1')
+    timelock = long_property('2')
+
+    def __init__(self, parent_id=None, timelock=0):
+        self.parent_id = parent_id
+        self.timelock = timelock
+
+
+class CryptoTransactionOutputTO(TO):
+    value = unicode_property('1')
+    unlockhash = unicode_property('2')
+
+    def __init__(self, value=None, unlockhash=None):
+        self.value = value
+        self.unlockhash = unlockhash
+
+
+class CryptoTransactionDataTO(TO):
+    input = typed_property('1', CryptoTransactionInputTO, False)
+    outputs = typed_property('2', CryptoTransactionOutputTO, True)
+    timelock = long_property('3', default=0)
+    algorithm = unicode_property('4', default=None)
+    public_key_index = long_property('5', default=0)
+    public_key = unicode_property('6', default=None)
+    signature_hash = unicode_property('7', default=None)
+    signature = unicode_property('8', default=None)
+
+
+class CryptoTransactionTO(TO):
+    minerfees = unicode_property('1')
+    data = typed_property('2', CryptoTransactionDataTO, True)
+    from_address = unicode_property('3')
+    to_address = unicode_property('4')
+
+
+class CreateSignatureDataTO(TO):
+    amount = long_property('2')
+    precision = long_property('3')
+    from_address = unicode_property('5')
+    to_address = unicode_property('6')
+
+
+class CryptoTransactionResponseTO(TO):
+    result = typed_property('1', CryptoTransactionTO, False)
+    error = unicode_property('2')
+
+
+class PaymentProviderSignatureDataTransactionTO(TO):
+    id = unicode_property('1')
+    amount = long_property('2')
+    precision = long_property('3')
+    memo = unicode_property('4')
+    from_asset_id = unicode_property('5')
+    to_asset_id = unicode_property('6')
+
+
 class PaymentProviderTransactionTO(TO):
     id = unicode_property('1')
     type = unicode_property('2')
@@ -60,6 +124,8 @@ class PaymentProviderTransactionTO(TO):
     timestamp = long_property('7')
     from_asset_id = unicode_property('8')
     to_asset_id = unicode_property('9')
+    precision = long_property('10')
+    crypto_transaction = typed_property('11', CryptoTransactionTO, False)
 
 
 class GetPaymentTransactionsResponseTO(TO):
@@ -71,48 +137,17 @@ class CreateTransactionResponseTO(TO):
     status = unicode_property('1')
 
 
-class NewTransactionTO(TO):
-    token_count = float_property('token_count')
-    memo = unicode_property('memo')
-    date_signed = long_property('date_signed')
-    token_type = unicode_property('token_type')
-
-
-class BaseTransactionTO(TO):
-    timestamp = long_property('timestamp')
-    unlock_timestamps = long_list_property('unlock_timestamps')
-    unlock_amounts = long_list_property('unlock_amounts')
-    token = unicode_property('token')
-    token_type = unicode_property('token_type')
-    amount = long_property('amount')
-    memo = unicode_property('memo')
-    app_users = unicode_list_property('app_users')
-    from_user = unicode_property('from_user')
-    to_user = unicode_property('to_user')
-
-
-class PendingTransactionTO(BaseTransactionTO):
+class TransactionTO(TO):
     id = unicode_property('id')
-    synced = bool_property('synced')
-    synced_status = unicode_property('synced_status')
+    status = unicode_property('status')
+    timestamp = long_property('timestamp')
+    spent = bool_property('spent')
+    inputs = typed_property('inputs', CryptoTransactionOutputTO, True)
+    outputs = typed_property('outputs', CryptoTransactionOutputTO, True)
 
 
-class TransactionTO(BaseTransactionTO):
-    id = long_property('id')
-    amount_left = long_property('amount_left')
-    height = long_property('height')
-    fully_spent = bool_property('fully_spent')
-
-
-class PendingTransactionListTO(PaginatedResultTO):
-    results = typed_property('results', PendingTransactionTO, True)
-
-    @classmethod
-    def from_query(cls, models, cursor, more):
-        # type: (list[PendingTransaction], unicode, boolean) -> PendingTransactionListTO
-        assert isinstance(cursor, (ndb.Cursor, NoneType))
-        results = [PendingTransactionTO.from_model(model) for model in models]
-        return cls(cursor and cursor.to_websafe_string().decode('utf-8'), more, results)
+class TransactionListTO(PaginatedResultTO):
+    results = typed_property('results', TransactionTO, True)
 
 
 class WalletBalanceTO(TO):

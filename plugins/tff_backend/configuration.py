@@ -22,7 +22,6 @@ class RogerthatConfiguration(TO):
     api_key = unicode_property('1')
     sik = unicode_property('2')
     url = unicode_property('3')
-    payment_secret = unicode_property('4')
     app_id = unicode_property('app_id')
 
 

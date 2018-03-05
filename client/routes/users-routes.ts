@@ -1,13 +1,11 @@
 import { MetaGuard } from '@ngx-meta/core';
 import {
-  CreateTransactionPageComponent,
   KycPageComponent,
   UserDetailsPageComponent,
   UserListPageComponent,
   UserNodeOrdersPageComponent,
   UserPageComponent,
   UserPurchaseAgreementsPageComponent,
-  UserTransactionsListPageComponent,
 } from '../pages';
 import { UserFlowRunsDetailsPageComponent, UserFlowRunsPageComponent } from '../pages/users';
 
@@ -42,11 +40,6 @@ export const USERS_ROUTES = [
           route: 'kyc',
         },
         {
-          label: 'tff.transactions',
-          icon: 'compare_arrows',
-          route: 'transactions',
-        },
-        {
           label: 'tff.node_orders',
           icon: 'shop',
           route: 'node-orders',
@@ -76,18 +69,6 @@ export const USERS_ROUTES = [
         canActivate: [ MetaGuard ],
         data: { meta: { title: 'tff.kyc' } },
         component: KycPageComponent,
-      },
-      {
-        path: 'transactions',
-        canActivate: [ MetaGuard ],
-        data: { meta: { title: 'tff.transactions' } },
-        component: UserTransactionsListPageComponent,
-      },
-      {
-        path: 'transactions/create',
-        canActivate: [ MetaGuard ],
-        data: { meta: { title: 'tff.create_transaction' } },
-        component: CreateTransactionPageComponent,
       },
       {
         path: 'node-orders',

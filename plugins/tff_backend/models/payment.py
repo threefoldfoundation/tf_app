@@ -21,28 +21,7 @@ from google.appengine.ext import ndb
 from framework.models.common import NdbModel
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
-
-class ThreeFoldBlockHeight(NdbModel):
-    NAMESPACE = NAMESPACE
-    timestamp = ndb.IntegerProperty()
-    height = ndb.IntegerProperty()
-    updating = ndb.BooleanProperty()
-
-    @classmethod
-    def create_key(cls):
-        return ndb.Key(cls, u"TFFBlockHeight", namespace=NAMESPACE)
-
-    @staticmethod
-    def get_block_height():
-        bh_key = ThreeFoldBlockHeight.create_key()
-        bh = bh_key.get()
-        if bh:
-            return bh
-        bh = ThreeFoldBlockHeight(key=bh_key)
-        bh.height = -1
-        bh.timestamp = 0
-        bh.updating = False
-        return bh
+# todo remove file
 
 
 class ThreeFoldWallet(NdbModel):

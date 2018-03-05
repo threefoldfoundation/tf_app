@@ -134,27 +134,6 @@ export class TffEffects {
         catchError(err => handleApiError(actions.VerityUtilityBillFailedAction, err)),
       )));
 
-  @Effect() getBalance$ = this.actions$
-    .ofType<actions.GetBalanceAction>(actions.TffActionTypes.GET_BALANCE).pipe(
-      switchMap(action => this.tffService.getBalance(action.payload).pipe(
-        map(payload => new actions.GetBalanceCompleteAction(payload)),
-        catchError(err => handleApiError(actions.GetBalanceFailedAction, err)),
-      )));
-
-  @Effect() getUserTransactions$ = this.actions$
-    .ofType<actions.GetUserTransactionsAction>(actions.TffActionTypes.GET_USER_TRANSACTIONS).pipe(
-      switchMap(action => this.tffService.getUserTransactions(action.payload).pipe(
-        map(payload => new actions.GetUserTransactionsCompleteAction(payload)),
-        catchError(err => handleApiError(actions.GetUserTransactionsFailedAction, err)),
-      )));
-
-  @Effect() createTransaction$ = this.actions$
-    .ofType<actions.CreateTransactionAction>(actions.TffActionTypes.CREATE_TRANSACTION).pipe(
-      switchMap(action => this.tffService.createTransaction(action.payload).pipe(
-        map(payload => new actions.CreateTransactionCompleteAction(payload)),
-        catchError(err => handleApiError(actions.CreateTransactionFailedAction, err)),
-      )));
-
   @Effect() getAgendaEvents$ = this.actions$
     .ofType<actions.GetAgendaEventsAction>(actions.TffActionTypes.GET_AGENDA_EVENTS).pipe(
       switchMap(action => this.tffService.getAgendaEvents(action.payload).pipe(

@@ -14,18 +14,15 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-from plugins.rogerthat_api.plugin_utils import Enum
 
 PROVIDER_ID = u"threefold"
 
 TOKEN_ITFT = u"iTFT"
 TOKEN_TFT = u"TFT"
-TOKEN_TFT_CONTRIBUTOR = u"TFTC"
 
+TRANS_STATUS_PENDING = u'pending'
+TRANS_STATUS_CONFIRMED = u'confirmed'
+TRANS_STATUS_FAILED = u'failed'
 
-class TokenType(Enum):
-    A = u'TFT_A'
-    B = u'TFT_B'
-    C = u'TFT_C'
-    D = u'TFT_D'
-    I = u'iTFT_A'
+COIN_TO_HASTINGS = 1000000000000000000000000
+COIN_TO_HASTINGS_PERCISION = len(str(COIN_TO_HASTINGS)) - 1
