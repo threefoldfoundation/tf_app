@@ -6,9 +6,9 @@ import { AlertController, ModalController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { ScanQrCodeAction } from '../../actions';
+import { GetAddresssAction, ScanQrCodeAction } from '../../actions';
 import { IAppState } from '../../app/app.state';
-import { ADDRESS_LENGTH, CreateSignatureData } from '../../interfaces/wallet';
+import { ADDRESS_LENGTH, CreateSignatureData, KEY_NAME, RIVINE_ALGORITHM } from '../../interfaces/wallet';
 import { CryptoAddress, QrCodeScannedContent } from '../../manual_typings/rogerthat';
 import { getAddress, getQrCodeContent } from '../../state/rogerthat.state';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
@@ -34,6 +34,12 @@ export class SendPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.store.dispatch(new GetAddresssAction({
+      algorithm: RIVINE_ALGORITHM,
+      index: 0,
+      keyName: KEY_NAME,
+      message: this.translate.instant('please_enter_your_pin'),
+    }));
     this.address$ = <Observable<CryptoAddress>>this.store.pipe(select(getAddress), filter(a => a !== null));
     this._addressSubscription = this.address$.subscribe(a => {
       this.data.from_address = a.address;
@@ -59,7 +65,7 @@ export class SendPageComponent implements OnInit, OnDestroy {
   }
 
   submit(form: NgForm) {
-    if (!form.form.valid) {
+    if (!form.form.valid || !this.data.from_address) {
       return;
     }
     const modal = this.modalCtrl.create(ConfirmSendPageComponent, {
