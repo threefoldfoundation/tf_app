@@ -339,12 +339,11 @@ def _check_node_status(tff_profile_key, statuses):
                 logging.info('Node %s of user %s changed from status "%s" to "%s"',
                              tff_profile.username, node.id, node.status, status)
                 should_update = True
-                # Disable until the status doesn't change every 5 minutes, spamming the user with messages
-                # from_status = node.status
+                from_status = node.status
                 node.status = status
 
-                # now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-                # _send_node_status_update_message(tff_profile.app_user, from_status, status, now)
+                now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+                _send_node_status_update_message(tff_profile.app_user, from_status, status, now)
 
         if should_update:
             tff_profile.put()
