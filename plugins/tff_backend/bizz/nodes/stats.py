@@ -30,7 +30,7 @@ from framework.bizz.job import run_job
 from framework.plugin_loader import get_config
 from framework.utils import now
 from mcfw.cache import cached
-from mcfw.consts import DEBUG
+from mcfw.consts import DEBUG, MISSING
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import refresh_jwt
 from plugins.its_you_online_auth.models import Profile
@@ -405,6 +405,9 @@ def list_nodes_by_status(status=None):
 
 def _get_and_save_node_stats(nodes):
     # type: (list[NodeInfo]) -> None
+    client = get_influx_client()
+    if not client:
+        return
     nodes_stats = get_nodes_stats(nodes)
     points = []
     for node in nodes_stats:
@@ -444,17 +447,22 @@ def _get_and_save_node_stats(nodes):
                         'fields': fields
                     })
     logging.info('Writing %s datapoints to influxdb for nodes %s', len(points), nodes)
-    get_influx_client().write_points(points)
+    client.write_points(points)
 
 
 def get_influx_client():
     config = get_config(NAMESPACE).influxdb  # type: InfluxDBConfig
+    if config is MISSING:
+        return None
     return influxdb.InfluxDBClient(config.host, config.port, config.username, config.password, config.database,
                                    config.ssl, config.ssl)
 
 
 def get_nodes_stats_from_influx(nodes):
     # type: (list[NodeInfo]) -> list[dict]
+    client = get_influx_client()
+    if not client:
+        return []
     stats_per_node = {node.id: dict(stats=[], **node.to_dict()) for node in nodes}
     stat_types = (
         'machine.CPU.percent', 'machine.memory.ram.available', 'network.throughput.incoming',
@@ -477,7 +485,7 @@ def get_nodes_stats_from_influx(nodes):
             queries.append(qry)
     query_str = ';'.join(queries)
     logging.debug(query_str)
-    result_sets = get_influx_client().query(query_str)
+    result_sets = client.query(query_str)
     for statement_id, (node, stat_type) in enumerate(statements):
         for result_set in result_sets:
             if result_set.raw['statement_id'] == statement_id:
