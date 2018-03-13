@@ -4,11 +4,10 @@ import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { ApiRequestStatus } from '../../../../framework/client';
 import { filterNull } from '../../../../framework/client/ngrx';
-import { Profile } from '../../../../its_you_online_auth/client/interfaces';
 import { GetFlowRunAction } from '../../actions';
 import { FlowRun } from '../../interfaces';
 import { ITffState } from '../../states';
-import { getFlowRun, getFlowRunStatus, getUser } from '../../tff.state';
+import { getFlowRun, getFlowRunStatus } from '../../tff.state';
 
 @Component({
   selector: 'tff-user-flow-runs-details-page',
@@ -21,13 +20,12 @@ import { getFlowRun, getFlowRunStatus, getUser } from '../../tff.state';
       <h2>{{ 'tff.flow_statistics' | translate }}</h2>
     </mat-toolbar>
     <div class="default-component-padding">
-      <tff-flow-run-detail [flowRun]="flowRun$ | async" [user]="user$ | async" [status]="status$ | async"></tff-flow-run-detail>
+      <tff-flow-run-detail [flowRun]="flowRun$ | async" [status]="status$ | async"></tff-flow-run-detail>
     </div>`,
 })
 export class UserFlowRunsDetailsPageComponent implements OnInit {
   flowRun$: Observable<FlowRun>;
   status$: Observable<ApiRequestStatus>;
-  user$: Observable<Profile>;
 
   constructor(private store: Store<ITffState>,
               private route: ActivatedRoute) {
@@ -38,6 +36,5 @@ export class UserFlowRunsDetailsPageComponent implements OnInit {
     this.store.dispatch(new GetFlowRunAction(flowRunId));
     this.flowRun$ = this.store.select(getFlowRun).pipe(filterNull());
     this.status$ = this.store.select(getFlowRunStatus);
-    this.user$ = this.store.select(getUser).pipe(filterNull());
   }
 }
