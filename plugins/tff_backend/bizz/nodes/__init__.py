@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 GIG Technology NV
+# Copyright 2018 GIG Technology NV
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,21 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# @@license_version:1.3@@
-
-from framework.bizz.job import run_job
-from plugins.tff_backend.bizz.nodes.hoster import set_hoster_status_in_user_data
-from plugins.tff_backend.models.user import TffProfile
-
-
-def migrate(dry_run=False):
-    run_job(_get_all_tff_profiles, [], _set_status, [])
-
-
-def _get_all_tff_profiles():
-    return TffProfile.query()
-
-
-def _set_status(profile_key):
-    profile = profile_key.get()
-    set_hoster_status_in_user_data(profile.app_user)
+# @@license_version:1.4@@

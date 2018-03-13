@@ -49,18 +49,17 @@ export class BrandingEffects {
       map(result => {
         const hasRunningNodes = result.some(node => node.status === NodeStatus.RUNNING);
         if (hasRunningNodes) {
-          // User data update will dispatch a GetNodeStatusCompleteAction
-          return new actions.UpdateNodeStatusAction(result);
+          return new actions.GetNodeStatsAction(result);
         }
         return new actions.GetNodeStatusCompleteAction(result);
       }),
       catchError(err => handleApiError(actions.GetNodeStatusFailedAction, err)))));
 
   @Effect() updateNodeStatus$: Observable<actions.BrandingActions> = this.actions$.pipe(
-    ofType(actions.BrandingActionTypes.UPDATE_NODE_STATUS),
+    ofType(actions.BrandingActionTypes.GET_NODE_STATS),
     switchMap(() => this.nodeService.updateNodeStatus().pipe(
-      map(() => new actions.UpdateNodeStatusCompleteAction()),
-      catchError(err => handleApiError(actions.UpdateNodeStatusFailedAction, err))),
+      map(result => new actions.GetNodeStatsCompleteAction(result)),
+      catchError(err => handleApiError(actions.GetNodeStatsFailedAction, err))),
     ));
 
   constructor(private actions$: Actions,

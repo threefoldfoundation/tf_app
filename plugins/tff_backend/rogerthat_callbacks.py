@@ -44,7 +44,7 @@ from plugins.tff_backend.bizz.authentication import Grants
 from plugins.tff_backend.bizz.dashboard import update_firebase_installation
 from plugins.tff_backend.bizz.flow_statistics import save_flow_statistics
 from plugins.tff_backend.bizz.global_stats import ApiCallException
-from plugins.tff_backend.bizz.hoster import order_node, order_node_signed
+from plugins.tff_backend.bizz.nodes.hoster import order_node, order_node_signed
 from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \
     investment_agreement_signed_by_admin, invest_complete, start_invest, token_value_addendum_signed
 from plugins.tff_backend.bizz.iyo.user import add_grant
