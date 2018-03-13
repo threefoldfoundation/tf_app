@@ -1,13 +1,15 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { NodeInfo, NodeStatusStats, StatisticValue } from '../../interfaces/node-status.interfaces';
+import { NodeInfo, NodeStatsData, NodeStatsSeries, NodeStatsType } from '../../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 
 export interface LineChart {
   data: LinearChartData;
   options: LineChartOptions;
 }
+
+type NodesChartLabelData = [ Date[], number[] ];
 
 enum Colors {
   blue = 'rgb(54, 162, 235)',
@@ -39,7 +41,7 @@ export class NodeStatusComponent implements OnChanges {
       const nodes: NodeInfo[] = changes.nodes.currentValue;
       for (const node of nodes) {
         if (node.stats && !this.charts[ node.id ]) {
-          this.charts[ node.id ] = this.getCharts(node.stats).filter(c => c.data.labels.length > 0);
+          this.charts[ node.id ] = this.getCharts(node.stats);
         }
       }
     }
@@ -53,14 +55,9 @@ export class NodeStatusComponent implements OnChanges {
     return node.status === 'running' ? 'primary' : 'danger';
   }
 
-  getUptime(node: NodeInfo) {
-    if (!node.stats || !node.stats.bootTime) {
-      return null;
-    }
-    return this.translate.instant('online_since_x', { bootTime: this.datePipe.transform(node.stats.bootTime * 1000, 'medium') });
-  }
-
-  private getCharts(status: NodeStatusStats) {
+  private getCharts(datasets: NodeStatsData[]) {
+    console.log(datasets);
+    const charts = [];
     const options: LineChartOptions | any = {
       responsive: true,
       elements: { line: { tension: 0 } },
@@ -68,55 +65,87 @@ export class NodeStatusComponent implements OnChanges {
       legend: { display: false },
       scales: { xAxes: [ { type: 'time', time: { unit: 'hour', displayFormats: { hour: 'HH:mm' }, tooltipFormat: 'HH:mm' } } ] },
     };
-    const cpuUtilisation: LineChart = {
-      data: {
-        labels: [],
-        datasets: [ { label: this.translate.instant('cpu_usage'), data: [], fillColor: Colors.blue, strokeColor: Colors.blue } ],
-      },
-      options: {
-        ...options,
-        scales: { ...options.scales, yAxes: [ { scaleLabel: { display: true, labelString: '%' } } ] },
-        tooltips: {
-          callbacks: {
-            label: (item: any) => `${this.decimalPipe.transform(item.yLabel)} %`,
+    const cpuUsageData = datasets.find(set => set.type === NodeStatsType.CPU);
+    if (cpuUsageData) {
+      const [ labels, data ] = this._getLabelsAndData(cpuUsageData.data[ 0 ]);
+      const cpuUtilisation: LineChart = {
+        data: {
+          labels: labels as any, // types are wrong, date is accepted
+          datasets: [
+            { label: this.translate.instant('cpu_usage'), data, fillColor: Colors.blue, strokeColor: Colors.blue },
+          ],
+        },
+        options: {
+          ...options,
+          scales: { ...options.scales, yAxes: [ { scaleLabel: { display: true, labelString: '%' } } ] },
+          tooltips: {
+            callbacks: {
+              label: (item: any) => `${this.decimalPipe.transform(item.yLabel)} %`,
+            },
           },
+        },
+      };
+      charts.push(cpuUtilisation);
+    }
+    const mbOptions = {
+      ...options,
+      scales: { ...options.scales, yAxes: [ { scaleLabel: { display: true, labelString: 'MB' } } ] },
+      tooltips: {
+        callbacks: {
+          label: (item: any) => `${this.decimalPipe.transform(item.yLabel)} MB`,
         },
       },
     };
-    const networkIncoming: LineChart = {
-      data: {
-        labels: [], datasets: [
-          { label: this.translate.instant('incoming_traffic'), data: [], fillColor: Colors.green, strokeColor: Colors.green },
-        ],
-      },
-      options: {
-        ...options,
-        scales: { ...options.scales, yAxes: [ { scaleLabel: { display: true, labelString: 'MB' } } ] },
-        tooltips: {
-          callbacks: {
-            label: (item: any) => `${this.decimalPipe.transform(item.yLabel)} MB`,
-          },
+    const networkIn = datasets.find(set => set.type === NodeStatsType.NETWORK_IN);
+    if (networkIn) {
+      const [ labels, data ] = this._getLabelsAndData(networkIn.data[ 0 ]);
+      const networkChart: LineChart = {
+        data: {
+          labels: labels as any,
+          datasets: [
+            { label: this.translate.instant('incoming_traffic'), data, fillColor: Colors.green, strokeColor: Colors.green },
+          ],
         },
-      },
-    };
-    const networkOutgoing: LineChart = {
-      data: {
-        labels: [], datasets: [
-          { label: this.translate.instant('outgoing_traffic'), data: [], fillColor: Colors.red, strokeColor: Colors.red },
-        ],
-      },
-      options: networkIncoming.options,
-    };
-    const chartMap = new Map<LineChart, StatisticValue[]>();
-    chartMap.set(cpuUtilisation, status.cpu.utilisation);
-    chartMap.set(networkIncoming, status.network.incoming);
-    chartMap.set(networkOutgoing, status.network.outgoing);
-    chartMap.forEach((stats, chart) => {
-      for (const s of stats) {
-        chart.data.labels.push(<any>new Date(s.start * 1000));
-        chart.data.datasets[ 0 ].data.push(s.total);
-      }
-    });
-    return [ cpuUtilisation, networkIncoming, networkOutgoing ];
+        options: mbOptions,
+      };
+      charts.push(networkChart);
+    }
+    const networkOut = datasets.find(set => set.type === NodeStatsType.NETWORK_OUT);
+    if (networkOut) {
+      const [ labels, data ] = this._getLabelsAndData(networkOut.data[ 0 ]);
+      const networkChart: LineChart = {
+        data: {
+          labels: labels as any,
+          datasets: [
+            { label: this.translate.instant('outgoing_traffic'), data, fillColor: Colors.green, strokeColor: Colors.green },
+          ],
+        },
+        options: mbOptions,
+      };
+      charts.push(networkChart);
+    }
+    const memoryData = datasets.find(set => set.type === NodeStatsType.RAM);
+    if (memoryData) {
+      const [ labels, data ] = this._getLabelsAndData(memoryData.data[ 0 ]);
+      const networkChart: LineChart = {
+        data: {
+          labels: labels as any,
+          datasets: [
+            { label: this.translate.instant('available_ram'), data, fillColor: Colors.green, strokeColor: Colors.green },
+          ],
+        },
+        options: mbOptions,
+      };
+      charts.push(networkChart);
+    }
+    return charts;
+  }
+
+  private _getLabelsAndData(data: NodeStatsSeries): NodesChartLabelData {
+    return data.values.reduce((acc, current) => {
+      acc[ 0 ].push(new Date(current[ 0 ]));
+      acc[ 1 ].push(current[ 1 ]);
+      return acc;
+    }, <NodesChartLabelData>[ [], [] ]);
   }
 }

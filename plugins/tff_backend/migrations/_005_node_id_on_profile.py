@@ -18,10 +18,9 @@ import logging
 
 from framework.bizz.job import run_job
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-from plugins.tff_backend.bizz.nodes import add_nodes_to_profile
+from plugins.tff_backend.bizz.nodes.stats import add_nodes_to_profile
 from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo
 from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
-from plugins.tff_backend.models.user import TffProfile, NodeInfo
 
 
 def migrate(dry_run=False):

@@ -56,6 +56,9 @@
       <a mat-button [routerLink]="['/users', row.profile.username]" target="_blank">
         {{ 'tff.profile' | translate }}
       </a>
+      <a mat-button [href]="getStatisticsUrl(row.node)" target="_blank">
+        {{ 'tff.statistics' | translate }}
+      </a>
     </mat-cell>
   </ng-container>
 

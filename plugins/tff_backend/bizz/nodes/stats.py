@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 GIG Technology NV
+# Copyright 2018 GIG Technology NV
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,17 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# @@license_version:1.3@@
+# @@license_version:1.4@@
 import json
 import logging
 import time
 import types
 from collections import defaultdict
+from datetime import datetime
 
-from google.appengine.api import urlfetch, apiproxy_stub_map
+from google.appengine.api import apiproxy_stub_map, urlfetch
 from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
 
+import influxdb
 from framework.bizz.job import run_job
 from framework.plugin_loader import get_config
 from framework.utils import now
@@ -38,15 +40,19 @@ from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo
-from plugins.tff_backend.bizz.todo import HosterSteps, update_hoster_progress
+from plugins.tff_backend.bizz.todo import update_hoster_progress, HosterSteps
+from plugins.tff_backend.configuration import InfluxDBConfig
 from plugins.tff_backend.consts.hoster import DEBUG_NODE_DATA
-from plugins.tff_backend.libs.zero_robot.EnumTaskState import EnumTaskState
-from plugins.tff_backend.libs.zero_robot.Task import Task
+from plugins.tff_backend.libs.zero_robot import Task, EnumTaskState
 from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 from plugins.tff_backend.models.user import TffProfile, NodeInfo
 from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.to.nodes import UserNodeStatusTO
 from plugins.tff_backend.utils.app import get_app_user_tuple
+
+TOTAL_ONLY_STATS_KEYS = ['network.throughput.incoming', 'network.throughput.outgoing', 'network.packets.rx',
+                         'network.packets.tx']
+SKIPPED_STATS_KEYS = ['disk.size.total']
 
 
 @returns(apiproxy_stub_map.UserRPC)
@@ -115,7 +121,8 @@ def _wait_for_tasks(tasks, callback=None, deadline=50):
                 incomplete_by_state[task.state].append(task.service_name)
 
         for state, node_ids in incomplete_by_state.iteritems():
-            logging.debug('%s %s task(s) on the following nodes: %s', len(node_ids), state.value, ', '.join(node_ids))
+            logging.debug('%s %s task(s) on the following nodes: %s', len(node_ids), state.value,
+                          ', '.join(node_ids))
 
     return results
 
@@ -204,8 +211,7 @@ def get_nodes_stats(nodes):
                          task.eco and task.eco.exceptionclassname,
                          task.eco and task.eco.errormessage,
                          task.eco and task.eco._traceback)
-
-    return [_get_stats(stats) for stats in results_per_node.itervalues()]
+    return [_get_stats(r) for r in results_per_node.itervalues()]
 
 
 def get_nodes_for_user(app_user):
@@ -217,38 +223,28 @@ def get_nodes_for_user(app_user):
 
 
 def _get_stats(data):
-    node_info = {
+    stats = {}
+    if data['stats']:
+        for stat_key, values in data['stats'].iteritems():
+            last_5_min_stats = values['history']['300']
+            stats[stat_key] = last_5_min_stats
+    return {
         'id': data['id'],
-        'serial_number': data['serial_number'],
         'status': data['status'],
-        'stats': {
-            'bootTime': None,
-            'network': {'incoming': [], 'outgoing': []},
-            'cpu': {'utilisation': []}
-        }
+        'serial_number': data['serial_number'],
+        'info': data.get('info'),
+        'stats': stats
     }
-    for key, values in data.iteritems():
-        if values:
-            stats = node_info['stats']
-            if key == 'info' and values['bootTime']:
-                stats['bootTime'] = values['bootTime']
-            elif key == 'stats':
-                stats['network'] = {
-                    'incoming': values[u'network.throughput.incoming/enp1s0']['history'].get('3600', []),
-                    'outgoing': values[u'network.throughput.outgoing/enp1s0']['history'].get('3600', [])
-                }
-                stats['cpu'] = _get_cpu_stats(values)
-    return node_info
 
 
-def _get_cpu_stats(data):
+def _get_cpu_stats(data, stats_time='300'):
     # Summarize all CPU usages of each core into 1 object
     total_cpu = defaultdict(lambda: {'avg': 0.0, 'count': 0, 'max': 0.0, 'start': 0, 'total': 0.0})
     cpu_count = 0
     for key in data:
         cpu_count += 1
         if key.startswith('machine.CPU.percent'):
-            cpu_stats = data[key]['history'].get('3600', [])
+            cpu_stats = data[key]['history'].get(stats_time, [])
             for stat_obj in cpu_stats:
                 timestamp = stat_obj['start']
                 for k in total_cpu[timestamp]:
@@ -260,7 +256,7 @@ def _get_cpu_stats(data):
         for k in total_cpu[timestamp]:
             if k != 'start':
                 total_cpu[timestamp][k] = total_cpu[timestamp][k] / cpu_count
-    return {'utilisation': sorted(total_cpu.values(), key=lambda v: v['start'])}
+    return sorted(total_cpu.values(), key=lambda v: v['start'])
 
 
 @returns([Task])
@@ -353,6 +349,7 @@ def _check_node_status(tff_profile_key, statuses):
         if should_update:
             tff_profile.put()
             deferred.defer(_put_node_status_user_data, tff_profile_key, _transactional=True)
+        deferred.defer(_get_and_save_node_stats, tff_profile.nodes, _transactional=True)
     except:
         msg = 'Failure in checking node status for %s' % tff_profile_key
         logging.exception(msg, _suppress=False)
@@ -404,3 +401,88 @@ def list_nodes_by_status(status=None):
                     profile=profiles.get(tff_profile.username).to_dict() if tff_profile.username in profiles else None,
                     node=node.to_dict()))
     return sorted(results, key=lambda k: k.profile and k.profile['info']['firstname'])
+
+
+def _get_and_save_node_stats(nodes):
+    # type: (list[NodeInfo]) -> None
+    nodes_stats = get_nodes_stats(nodes)
+    points = []
+    for node in nodes_stats:
+        fields = {'id': node['id']}
+        if node['info']:
+            fields['procs'] = node['info']['procs']
+        points.append({
+            'measurement': 'node-info',
+            'tags': {
+                'status': node['status'],
+            },
+            'time': datetime.now().isoformat() + 'Z',
+            'fields': fields
+        })
+        if node['status'] == 'running' and node['stats']:
+            stats = node['stats']
+            for stat_key, values in stats.iteritems():
+                stat_key_split = stat_key.split('/')
+                if stat_key_split[0] in SKIPPED_STATS_KEYS:
+                    continue
+                tags = {
+                    'id': node['id'],
+                    'type': stat_key_split[0],
+                }
+                if len(stat_key_split) == 2:
+                    tags['subtype'] = stat_key_split[1]
+                for values_on_time in values:
+                    time_ = datetime.utcfromtimestamp(values_on_time['start']).isoformat() + 'Z'
+                    if stat_key_split[0] in TOTAL_ONLY_STATS_KEYS:
+                        fields = {'value': float(values_on_time['total'])}
+                    else:
+                        fields = {'max': float(values_on_time['max']), 'avg': float(values_on_time['avg'])}
+                    points.append({
+                        'measurement': 'node-stats',
+                        'tags': tags,
+                        'time': time_,
+                        'fields': fields
+                    })
+    logging.info('Writing %s datapoints to influxdb for nodes %s', len(points), nodes)
+    get_influx_client().write_points(points)
+
+
+def get_influx_client():
+    config = get_config(NAMESPACE).influxdb  # type: InfluxDBConfig
+    return influxdb.InfluxDBClient(config.host, config.port, config.username, config.password, config.database,
+                                   config.ssl, config.ssl)
+
+
+def get_nodes_stats_from_influx(nodes):
+    # type: (list[NodeInfo]) -> list[dict]
+    stats_per_node = {node.id: dict(stats=[], **node.to_dict()) for node in nodes}
+    stat_types = (
+        'machine.CPU.percent', 'machine.memory.ram.available', 'network.throughput.incoming',
+        'network.throughput.outgoing')
+    queries = []
+    hours_ago = 6
+    statements = []  # type: list[tuple]
+    selects = {
+        'network.throughput.incoming': 'sum("value")',
+        'network.throughput.outgoing': 'sum("value")',
+        'machine.CPU.percent': 'mean("avg")',
+        'machine.memory.ram.available': 'mean("avg")',
+    }
+    for node in nodes:
+        for stat_type in stat_types:
+            #  AND "id" = '%(node_id)s'
+            qry = """SELECT %(select)s FROM "node-stats" WHERE ("type" = '%(type)s') AND time >= now() - %(hours)dh GROUP BY time(15m)""" % {
+                'select': selects[stat_type], 'type': stat_type, 'node_id': node.id, 'hours': hours_ago}
+            statements.append((node, stat_type))
+            queries.append(qry)
+    query_str = ';'.join(queries)
+    logging.debug(query_str)
+    result_sets = get_influx_client().query(query_str)
+    for statement_id, (node, stat_type) in enumerate(statements):
+        for result_set in result_sets:
+            if result_set.raw['statement_id'] == statement_id:
+                stats_per_node[node.id]['stats'].append({
+                    'type': stat_type,
+                    'data': result_set.raw.get('series', [])
+                })
+    return stats_per_node.values()

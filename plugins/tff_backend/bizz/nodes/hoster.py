@@ -45,7 +45,7 @@ from plugins.tff_backend.bizz.intercom_helpers import tag_intercom_users, Interc
 from plugins.tff_backend.bizz.iyo.see import get_see_document, sign_see_document, create_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.messages import send_message_and_email
-from plugins.tff_backend.bizz.nodes import add_nodes_to_profile
+from plugins.tff_backend.bizz.nodes.stats import add_nodes_to_profile
 from plugins.tff_backend.bizz.odoo import create_odoo_quotation, update_odoo_quotation, QuotationState, \
     confirm_odoo_quotation, get_nodes_from_odoo
 from plugins.tff_backend.bizz.rogerthat import put_user_data, create_error_message
