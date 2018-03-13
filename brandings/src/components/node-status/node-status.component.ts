@@ -56,7 +56,6 @@ export class NodeStatusComponent implements OnChanges {
   }
 
   private getCharts(datasets: NodeStatsData[]) {
-    console.log(datasets);
     const charts = [];
     const options: LineChartOptions | any = {
       responsive: true,
