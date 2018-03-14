@@ -87,7 +87,7 @@ def _get_task_url(task):
 
 @returns([object])
 @arguments(tasks=[Task], callback=types.FunctionType, deadline=int)
-def _wait_for_tasks(tasks, callback=None, deadline=150):
+def _wait_for_tasks(tasks, callback=None, deadline=500):
     results = []
     start_time = time.time()
     incomplete_tasks = {t.guid: t for t in tasks}
