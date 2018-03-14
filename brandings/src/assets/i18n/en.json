@@ -7,6 +7,7 @@
   "amount": "Amount",
   "amount_x": "Amount: {{ amount }}",
   "attending": "Attending",
+  "available_ram": "Available memory",
   "cancel": "Cancel",
   "close": "Close",
   "confirm_transaction": "Confirm transaction",

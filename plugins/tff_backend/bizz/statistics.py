@@ -25,6 +25,9 @@ class LogTypes(object):
 
 
 def log_restapi_call_result(function, success, kwargs, result_or_error):
+    offload_plugin = get_plugin('log_offload')
+    if not offload_plugin:
+        return
     if function.meta['silent']:
         request_data = None
     else:
@@ -41,5 +44,4 @@ def log_restapi_call_result(function, success, kwargs, result_or_error):
         result = unicode(result_or_error)
     else:
         result = result_or_error
-    get_plugin('log_offload').create_log(get_current_user_id(), LogTypes.WEB, request_data, result,
-                                         function.meta['uri'], success)
+    offload_plugin.create_log(get_current_user_id(), LogTypes.WEB, request_data, result, function.meta['uri'], success)

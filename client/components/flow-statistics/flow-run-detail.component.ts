@@ -27,7 +27,7 @@ import { getStepTitle } from '../../util';
 export class FlowRunDetailComponent {
   WidgetType = WidgetType;
   @Input() flowRun: FlowRun;
-  @Input() user: Profile;
+  @Input() user?: Profile;
   @Input() status: ApiRequestStatus;
 
   constructor(private flowStatisticsService: FlowStatisticsService) {

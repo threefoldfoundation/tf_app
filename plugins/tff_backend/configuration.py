@@ -50,6 +50,15 @@ class OnfidoConfiguration(TO):
     api_key = unicode_property('api_key')
 
 
+class InfluxDBConfig(TO):
+    host = unicode_property('host')
+    ssl = bool_property('ssl')
+    port = long_property('port')
+    database = unicode_property('database')
+    username = unicode_property('username')
+    password = unicode_property('password')
+
+
 class TffConfiguration(TO):
     """
     Args:
@@ -64,6 +73,7 @@ class TffConfiguration(TO):
         intercom_admin_id(unicode)
         cloudstorage_encryption_key(unicode)
         onfido(OnfidoConfiguration)
+        influxdb(InfluxDBConfig)
     """
     rogerthat = typed_property('1', RogerthatConfiguration, False)
     ledger = typed_property('3', LedgerConfiguration, False)
@@ -76,3 +86,4 @@ class TffConfiguration(TO):
     exchangerate_key = unicode_property('exchangerate_key')
     onfido = typed_property('onfido', OnfidoConfiguration)
     rivine_url = unicode_property('rivine_url')
+    influxdb = typed_property('influxdb', InfluxDBConfig)

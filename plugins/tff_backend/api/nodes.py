@@ -21,8 +21,8 @@ from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.audit.audit import audit
 from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
-from plugins.tff_backend.bizz.hoster import put_node_order, create_node_order
-from plugins.tff_backend.bizz.nodes import list_nodes_by_status
+from plugins.tff_backend.bizz.nodes.hoster import put_node_order, create_node_order
+from plugins.tff_backend.bizz.nodes.stats import list_nodes_by_status
 from plugins.tff_backend.dal.node_orders import search_node_orders, get_node_order
 from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO, CreateNodeOrderTO, NodeOrderDetailTO, \
     UserNodeStatusTO

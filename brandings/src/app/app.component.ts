@@ -80,12 +80,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     // Useful for debugging
-    this.actions$.subscribe(action => {
-      // if (true || window.location.host.includes('localhost')) {
-      console.log(action);
-      // } else {
-      //   console.log(JSON.stringify(action));
-      // }
-    });
+    // this.actions$.subscribe(action => console.log(action));
+    this.actions$.subscribe(action => console.log(JSON.stringify(action)));
   }
 }

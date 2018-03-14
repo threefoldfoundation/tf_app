@@ -1,8 +1,9 @@
 import { SelectionModel } from '@angular/cdk/collections';
 import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { MatTableDataSource } from '@angular/material';
+import { environment } from '../../../../framework/client/environments/environment';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
-import { UserNodeStatus } from '../../interfaces';
+import { NodeInfo, UserNodeStatus } from '../../interfaces';
 import { ProfileEmailPipe } from '../../pipes/profile-email.pipe';
 import { ProfileNamePipe } from '../../pipes/profile-name.pipe';
 import { CSVService } from '../../services/csv.service';
@@ -78,6 +79,10 @@ export class NodesComponent implements OnChanges {
       { key: 'serial_number', label: 'Serial number' },
     ];
     this.csvService.generateCsv(csvData, 'nodes', { headers });
+  }
+
+  getStatisticsUrl(node: NodeInfo) {
+    return `${environment.configuration.plugins.tff_backend.grafana_url + environment.configuration.plugins.tff_backend.grafana_node_detail_dashboard}?var-nodes=${node.id}`;
   }
 
   copyText(element: HTMLElement) {

@@ -200,6 +200,7 @@
     "start_date": "Start date",
     "start_hour": "Start time",
     "started": "Started",
+    "statistics": "Statistics",
     "stats_for_last_x": "Stats for the last {{ time }}.",
     "status": "Status",
     "submit": "Submit",

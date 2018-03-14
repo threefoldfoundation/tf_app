@@ -23,6 +23,9 @@ interface IBrandingActionTypes {
   GET_NODE_STATUS: 'Get node status';
   GET_NODE_STATUS_COMPLETE: 'Get node status complete';
   GET_NODE_STATUS_FAILED: 'Get node status failed';
+  GET_NODE_STATS: 'Get node stats';
+  GET_NODE_STATS_COMPLETE: 'Get node stats complete';
+  GET_NODE_STATS_FAILED: 'Get node stats failed';
   UPDATE_NODE_STATUS: 'Update node status';
   UPDATE_NODE_STATUS_COMPLETE: 'Update node status complete';
   UPDATE_NODE_STATUS_FAILED: 'Update node status failed';
@@ -53,6 +56,9 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   GET_NODE_STATUS: 'Get node status',
   GET_NODE_STATUS_COMPLETE: 'Get node status complete',
   GET_NODE_STATUS_FAILED: 'Get node status failed',
+  GET_NODE_STATS: 'Get node stats',
+  GET_NODE_STATS_COMPLETE: 'Get node stats complete',
+  GET_NODE_STATS_FAILED: 'Get node stats failed',
   UPDATE_NODE_STATUS: 'Update node status',
   UPDATE_NODE_STATUS_COMPLETE: 'Update node status complete',
   UPDATE_NODE_STATUS_FAILED: 'Update node status failed',
@@ -162,16 +168,22 @@ export class GetNodeStatusFailedAction implements Action {
   }
 }
 
-export class UpdateNodeStatusAction implements Action {
-  type = BrandingActionTypes.UPDATE_NODE_STATUS;
+export class GetNodeStatsAction implements Action {
+  type = BrandingActionTypes.GET_NODE_STATS;
+
+  constructor(public payload: NodeInfo[]) {
+  }
 }
 
-export class UpdateNodeStatusCompleteAction implements Action {
-  type = BrandingActionTypes.UPDATE_NODE_STATUS_COMPLETE;
+export class GetNodeStatsCompleteAction implements Action {
+  type = BrandingActionTypes.GET_NODE_STATS_COMPLETE;
+
+  constructor(public payload: NodeInfo[]) {
+  }
 }
 
-export class UpdateNodeStatusFailedAction implements Action {
-  type = BrandingActionTypes.UPDATE_NODE_STATUS_FAILED;
+export class GetNodeStatsFailedAction implements Action {
+  type = BrandingActionTypes.GET_NODE_STATS_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
@@ -251,9 +263,9 @@ export type BrandingActions
   | UpdateEventPresenceAction
   | UpdateEventPresenceCompleteAction
   | UpdateEventPresenceFailedAction
-  | GetNodeStatusAction
-  | GetNodeStatusCompleteAction
-  | GetNodeStatusFailedAction
+  | GetNodeStatsAction
+  | GetNodeStatsCompleteAction
+  | GetNodeStatsFailedAction
   | UpdateNodeStatusAction
   | UpdateNodeStatusCompleteAction
   | UpdateNodeStatusFailedAction

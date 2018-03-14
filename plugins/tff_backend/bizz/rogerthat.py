@@ -18,6 +18,7 @@ import json
 import logging
 
 from google.appengine.api import users
+
 from mcfw.rpc import arguments, returns
 from plugins.rogerthat_api.api import system, messaging
 from plugins.rogerthat_api.to import MemberTO
