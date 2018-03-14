@@ -94,7 +94,7 @@ def _wait_for_tasks(tasks, callback=None, deadline=500):
     while incomplete_tasks:
         rpcs = {task.guid: (task, _async_zero_robot_call(_get_task_url(task)))
                 for task in incomplete_tasks.itervalues()}
-        time.sleep(2)
+        time.sleep(10)
         duration = time.time() - start_time
         logging.debug('Waited for %s tasks for %.2f seconds', len(rpcs), duration)
         if duration > deadline:
