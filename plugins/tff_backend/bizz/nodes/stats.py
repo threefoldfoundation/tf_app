@@ -30,7 +30,7 @@ from framework.bizz.job import run_job
 from framework.plugin_loader import get_config
 from framework.utils import now
 from mcfw.cache import cached
-from mcfw.consts import DEBUG, MISSING
+from mcfw.consts import MISSING
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import refresh_jwt
 from plugins.its_you_online_auth.models import Profile
@@ -42,7 +42,6 @@ from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo
 from plugins.tff_backend.bizz.todo import update_hoster_progress, HosterSteps
 from plugins.tff_backend.configuration import InfluxDBConfig
-from plugins.tff_backend.consts.hoster import DEBUG_NODE_DATA
 from plugins.tff_backend.libs.zero_robot import Task, EnumTaskState
 from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 from plugins.tff_backend.models.user import TffProfile, NodeInfo
@@ -50,8 +49,6 @@ from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.to.nodes import UserNodeStatusTO
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
-TOTAL_ONLY_STATS_KEYS = ['network.throughput.incoming', 'network.throughput.outgoing', 'network.packets.rx',
-                         'network.packets.tx']
 SKIPPED_STATS_KEYS = ['disk.size.total']
 
 
@@ -434,16 +431,14 @@ def _get_and_save_node_stats(nodes):
                 if len(stat_key_split) == 2:
                     tags['subtype'] = stat_key_split[1]
                 for values_on_time in values:
-                    time_ = datetime.utcfromtimestamp(values_on_time['start']).isoformat() + 'Z'
-                    if stat_key_split[0] in TOTAL_ONLY_STATS_KEYS:
-                        fields = {'value': float(values_on_time['total'])}
-                    else:
-                        fields = {'max': float(values_on_time['max']), 'avg': float(values_on_time['avg'])}
                     points.append({
                         'measurement': 'node-stats',
                         'tags': tags,
-                        'time': time_,
-                        'fields': fields
+                        'time': datetime.utcfromtimestamp(values_on_time['start']).isoformat() + 'Z',
+                        'fields': {
+                            'max': float(values_on_time['max']),
+                            'avg': float(values_on_time['avg'])
+                        }
                     })
     logging.info('Writing %s datapoints to influxdb for nodes %s', len(points), nodes)
     client.write_points(points)
@@ -469,17 +464,10 @@ def get_nodes_stats_from_influx(nodes):
     queries = []
     hours_ago = 6
     statements = []  # type: list[tuple]
-    selects = {
-        'network.throughput.incoming': 'sum("value")',
-        'network.throughput.outgoing': 'sum("value")',
-        'machine.CPU.percent': 'mean("avg")',
-        'machine.memory.ram.available': 'mean("avg")',
-    }
     for node in nodes:
         for stat_type in stat_types:
-            #  AND "id" = '%(node_id)s'
-            qry = """SELECT %(select)s FROM "node-stats" WHERE ("type" = '%(type)s') AND time >= now() - %(hours)dh GROUP BY time(15m)""" % {
-                'select': selects[stat_type], 'type': stat_type, 'node_id': node.id, 'hours': hours_ago}
+            qry = """SELECT mean("avg") FROM "node-stats" WHERE ("type" = '%(type)s' AND "id" = '%(node_id)s') AND time >= now() - %(hours)dh GROUP BY time(15m)""" % {
+                'type': stat_type, 'node_id': node.id, 'hours': hours_ago}
             statements.append((node, stat_type))
             queries.append(qry)
     query_str = ';'.join(queries)
