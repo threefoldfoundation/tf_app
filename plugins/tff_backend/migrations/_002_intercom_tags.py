@@ -21,7 +21,7 @@ from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
 
 from framework.bizz.job import run_job, MODE_BATCH
-from plugins.tff_backend.bizz.hoster import get_intercom_tags_for_node_order
+from plugins.tff_backend.bizz.nodes.hoster import get_intercom_tags_for_node_order
 from plugins.tff_backend.bizz.intercom_helpers import tag_intercom_users
 from plugins.tff_backend.bizz.investor import get_intercom_tags_for_investment
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_usernames

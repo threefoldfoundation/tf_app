@@ -31,7 +31,8 @@ export const getUserStatus = createSelector(getTffState, s => s.userStatus);
 export const getTffProfile = createSelector(getTffState, s => s.tffProfile);
 export const getTffProfileStatus = createSelector(getTffState, s => s.tffProfileStatus);
 export const setKYCStatus = createSelector(getTffState, s => s.setKYCStatus);
-
+export const getUserFlowRuns = createSelector(getTffState, s => s.userFlowRuns);
+export const getuserFlowRunsStatus = createSelector(getTffState, s => s.userFlowRunsStatus);
 export const getBalance = createSelector(getTffState, s => s.balance);
 export const getBalanceStatus = createSelector(getTffState, s => s.balanceStatus);
 export const getUserTransactions = createSelector(getTffState, s => s.userTransactions);
@@ -49,6 +50,7 @@ export const getEventParticipantsStatus = createSelector(getTffState, s => s.eve
 
 export const getKYCChecks = createSelector(getTffState, s => s.kycChecks);
 export const getKYCChecksStatus = createSelector(getTffState, s => s.kycChecksStatus);
+export const verifyUtilityBillStatus = createSelector(getTffState, s => s.verifyUtilityBillStatus);
 
 export const getDistinctFlows = createSelector(getTffState, s => s.distinctFlows);
 export const getDistinctFlowsStatus = createSelector(getTffState, s => s.distinctFlowsStatus);
@@ -65,3 +67,6 @@ export const getInstallation = createSelector(getTffState, s => s.installation);
 export const getInstallationStatus = createSelector(getTffState, s => s.installationStatus);
 export const getInstallationLogs = createSelector(getTffState, s => s.installationLogs);
 export const getInstallationLogsStatus = createSelector(getTffState, s => s.installationLogsStatus);
+
+export const getNodes = createSelector(getTffState, s => s.nodes);
+export const getNodesStatus = createSelector(getTffState, s => s.nodesStatus);

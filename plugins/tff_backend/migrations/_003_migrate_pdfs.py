@@ -18,7 +18,7 @@ from google.appengine.api import urlfetch
 
 from framework.bizz.job import run_job
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
-from plugins.tff_backend.bizz.hoster import get_node_order_details
+from plugins.tff_backend.bizz.nodes.hoster import get_node_order_details
 from plugins.tff_backend.bizz.investor import get_investment_agreement_details
 from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.models.investor import InvestmentAgreement

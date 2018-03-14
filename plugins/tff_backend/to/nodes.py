@@ -53,6 +53,10 @@ class NodeOrderTO(TO):
     document_url = unicode_property('document_url')
 
 
+class NodeOrderDetailTO(NodeOrderTO):
+    username = unicode_property('username')
+
+
 class CreateNodeOrderTO(TO):
     app_user = unicode_property('app_user')
     billing_info = typed_property('billing_info', ContactInfoTO)  # type: ContactInfoTO
@@ -90,3 +94,8 @@ class NodeOrderListTO(PaginatedResultTO):
         assert isinstance(cursor, (search.Cursor, NoneType))
         orders = [NodeOrderTO.from_model(model) for model in models]
         return cls(cursor and cursor.web_safe_string.decode('utf-8'), more, orders)
+
+
+class UserNodeStatusTO(TO):
+    profile = typed_property('profile', dict)
+    node = typed_property('node', dict)

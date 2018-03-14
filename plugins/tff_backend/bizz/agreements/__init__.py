@@ -14,19 +14,24 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+
 import codecs
 import os
 import time
 
-from babel.numbers import get_currency_name
 import jinja2
+
+import inflect
 import markdown
+from babel.numbers import get_currency_name
+from framework.utils import azzert
+from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.consts.agreements import BANK_ACCOUNTS
-from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
+from plugins.tff_backend.consts.payment import TOKEN_ITFT
+from plugins.tff_backend.models.investor import PaymentInfo, InvestmentAgreement
 from plugins.tff_backend.utils import round_currency_amount
 from xhtml2pdf import pisa
-
 
 try:
     from cStringIO import StringIO
@@ -37,8 +42,8 @@ ASSETS_FOLDER = os.path.join(os.path.dirname(__file__), 'assets')
 JINJA_ENVIRONMENT = jinja2.Environment(loader=jinja2.FileSystemLoader([ASSETS_FOLDER]))
 
 
-def _get_effective_date():
-    return time.strftime('%d %b %Y', time.gmtime())
+def _get_effective_date(t=None):
+    return time.strftime('%d %b %Y', time.gmtime(t))
 
 
 def create_hosting_agreement_pdf(full_name, address):
@@ -59,25 +64,69 @@ def create_hosting_agreement_pdf(full_name, address):
     return pdf_contents
 
 
-def get_bank_account_info(currency_short):
-    bank_file = os.path.join(ASSETS_FOLDER, 'bank_%s.md' % currency_short)
-    if not os.path.exists(bank_file):
-        bank_file = os.path.join(ASSETS_FOLDER, 'bank_USD.md')
+@returns(unicode)
+@arguments(currency_short=unicode, payment_info=[int], has_verified_utility_bill=bool)
+def get_bank_account_info(currency_short, payment_info, has_verified_utility_bill):
+    suffix = currency_short
+    if payment_info and PaymentInfo.UAE.value in payment_info or not has_verified_utility_bill:
+        suffix = 'default'
+
+    bank_file = os.path.join(ASSETS_FOLDER, 'bank_%s.md' % suffix)
     with codecs.open(bank_file, 'r', encoding='utf-8') as f:
         return f.read()
 
 
-def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short, token=TOKEN_TFT):
+def create_itft_amendment_1_pdf(app_user):
+    from plugins.tff_backend.bizz.investor import get_total_token_count
+    agreements = InvestmentAgreement.list_by_status_and_user(app_user, (InvestmentAgreement.STATUS_PAID,
+                                                                        InvestmentAgreement.STATUS_SIGNED))
+    azzert(agreements)
+    agreements.sort(key=lambda a: a.sign_time)
+    purchase_amounts = ''
+    sign_dates = ''
+    for i, agreement in enumerate(agreements):
+        if i:
+            purchase_amounts += '<br>'
+            sign_dates += '<br>'
+        purchase_amounts += '%s %s' % (agreement.amount, agreement.currency)
+        sign_dates += _get_effective_date(agreement.sign_time)
+
+    old_count = get_total_token_count(app_user, agreements)[TOKEN_ITFT]
+    new_count = old_count * 100.0
+    purchase_amount_in_usd = old_count * 5.0
+
+    fmt = lambda x: '{:.2f}'.format(x)
+    template_variables = {
+        'logo_path': 'assets/logo.jpg',
+        'agreement': _get_effective_date,
+        'full_name': agreements[0].name,
+        'purchase_amounts': purchase_amounts,
+        'sign_dates': sign_dates,
+        'old_count': fmt(old_count),
+        'new_count': fmt(new_count),
+        'purchase_amount_in_usd': fmt(purchase_amount_in_usd),
+        'title': 'iTFT Purchase Agreement - Amendment I<br>iTFT Token Price & Volume Adjustment'
+    }
+
+    md = JINJA_ENVIRONMENT.get_template('itft_amendment_1.md').render(template_variables)
+    markdown_to_html = markdown.markdown(md, extensions=['markdown.extensions.tables'])
+    template_variables['markdown_to_html'] = markdown_to_html.replace('<th', '<td')
+    return _render_pdf_from_html('token_itft.html', template_variables)
+
+
+def create_token_agreement_pdf(full_name, address, amount, currency_full, currency_short, token, payment_info,
+                               has_verified_utility_bill):
     # don't forget to update intercom tags when adding new contracts / tokens
-    if currency_short == 'BTC':
-        amount_formatted = '{:.8f}'.format(amount)
-    else:
-        amount_formatted = '{:.2f}'.format(amount)
-    conversion = {}
-    if token:
-        stats = get_global_stats(token)
-        conversion = {currency.currency: round_currency_amount(currency.currency, currency.value / stats.value) for
-                      currency in stats.currencies}
+    def fmt(x, currency):
+        if currency == 'BTC':
+            return '{:.8f}'.format(x)
+        return '{:.2f}'.format(x)
+
+    amount_formatted = fmt(amount, currency_short)
+    stats = get_global_stats(token)
+    conversion = {currency.currency: fmt(round_currency_amount(currency.currency, currency.value / stats.value),
+                                         currency.currency)
+                  for currency in stats.currencies}
 
     template_variables = {
         'logo_path': 'assets/logo.jpg',
@@ -86,18 +135,20 @@ def create_token_agreement_pdf(full_name, address, amount, currency_full, curren
         'address': address.replace('\n', ', '),
         'amount': amount_formatted,
         'currency_full': currency_full,
+        'price': stats.value,
+        'price_words': inflect.engine().number_to_words(stats.value).title(),
         'currency_short': currency_short,
         'conversion': conversion
     }
 
     if token == TOKEN_ITFT:
         html_file = 'token_itft.html'
-        bank_account = get_bank_account_info(currency_short)
-        context = {'bank_account': bank_account}
+        context = {'bank_account': get_bank_account_info(currency_short, payment_info or [], has_verified_utility_bill)}
         context.update(template_variables)
         md = JINJA_ENVIRONMENT.get_template('token_itft.md').render(context)
         markdown_to_html = markdown.markdown(md, extensions=['markdown.extensions.tables'])
         template_variables['markdown_to_html'] = markdown_to_html.replace('<th', '<td')
+        template_variables['title'] = u'iTFT Purchase Agreement'
     else:
         currency_messages = []
         for currency in BANK_ACCOUNTS:
@@ -114,10 +165,14 @@ def create_token_agreement_pdf(full_name, address, amount, currency_full, curren
         template_variables['currency_messages'] = currency_messages
         html_file = 'token_tft_btc.html' if currency_short == 'BTC' else 'token_tft.html'
 
+    return _render_pdf_from_html(html_file, template_variables)
+
+
+def _render_pdf_from_html(html_file, template_variables):
     source_html = JINJA_ENVIRONMENT.get_template(html_file).render(template_variables)
 
     output_stream = StringIO()
-    pisa.CreatePDF(src=source_html, dest=output_stream, path='%s' % ASSETS_FOLDER)
+    pisa.CreatePDF(src=source_html, dest=output_stream, path='%s' % ASSETS_FOLDER, encoding='UTF-8')
     pdf_contents = output_stream.getvalue()
     output_stream.close()
 

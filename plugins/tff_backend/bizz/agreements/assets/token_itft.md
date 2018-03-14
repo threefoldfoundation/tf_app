@@ -2,7 +2,7 @@
 |------------------------------|--------------------------------------|
 | **Address of the purchaser** | {{ address }}                        |
 | **Purchase Amount**          | **{{ amount }}** {{ currency_full }} |
-| **Purchase Price**           | Five U.S. Dollar (5 US $) per iTFT   |
+| **Purchase Price**           | {{ price_words }} U.S. Dollar ({{ price }} US $) per iTFT |
 
 This agreement (hereinafter referred to as the “**Agreement**”) is entered into on **{{ effective_date }}** (the “**Effective Date**”), by and between:
 
@@ -40,18 +40,17 @@ During such six months lock-up period, however, the Purchaser shall still be ent
 
 **5. Payment**
 
-The Company will accept payment for the iTFT's purchased under this Agreement in U.S. Dollars, Euro, Pound Sterling, United Arab Emirates Dirham and Bitcoin. Purchaser shall make the required payment to the Company in consideration for Purchaser’s purchase of the iTFT’s pursuant to the Agreement by wire transfer to the Company within three business days as from the Effective Date, as follows:
-
-{{ bank_account }}
+The Company will accept payment for the iTFT's purchased under this Agreement in U.S. Dollars, Euro, Pound Sterling, United Arab Emirates Dirham and Bitcoin. Purchaser shall make the required payment to the Company in consideration for Purchaser’s purchase of the iTFT’s pursuant to the Agreement by wire transfer to the Company within three business days. The payment information will be provided in the ThreeFold app.
 
 For purposes of this Agreement, the value of the Purchase Amount shall be deemed in U.S. Dollar even when the Purchaser pays in any of the other currencies mentioned above.
 
 Conversion of other currencies stated above to U.S. Dollars will be made as follows:
+
 - For purchases made in Bitcoin, on the day on which the Bitcoin payment has been received by the Company in its Wallet, the Purchase Amount will be converted in AED first at the conversion rate quoted on the website of BitOasis Technologies FZE, and then immediately thereafter from AED in U.S. Dollars at the conversion rate quoted on the website of Oanda.com, both on such date at 11.59 PM Gulf Standard Time.
 - For purchases made in EUR, GBP or AED, the Purchase Amount will be converted in U.S. Dollars at the following conversion rate:
-  - 1 U.S. Dollar = {{ conversion['EUR'] }} Euro;
-  - 1 U.S. Dollar = {{ conversion['GBP'] }} Pound Sterling;
-  - 1 U.S. Dollar = 3.67 United Arab Emirates Dirham.
+    - 1 U.S. Dollar = {{ conversion['EUR'] }} Euro;
+    - 1 U.S. Dollar = {{ conversion['GBP'] }} Pound Sterling;
+    - 1 U.S. Dollar = 3.67 United Arab Emirates Dirham.
 
 
 **6. Disclaimer**

@@ -2,7 +2,6 @@ import { Action } from '@ngrx/store';
 import { AgendaEvent, EventPresence, UpdatePresenceData } from '../interfaces/agenda.interfaces';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { NodeInfo } from '../interfaces/node-status.interfaces';
-import { SetReferralResult } from '../interfaces/referrals.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
 import { ApiCallResult } from '../services/rogerthat.service';
@@ -16,9 +15,6 @@ interface IBrandingActionTypes {
   GET_SEE_DOCUMENTS: 'Get see documents ';
   GET_SEE_DOCUMENTS_COMPLETE: 'Get see documents complete';
   GET_SEE_DOCUMENTS_FAILED: 'Get see documents failed';
-  SET_REFERRER: 'Set referrer';
-  SET_REFERRER_COMPLETE: 'Set referrer complete';
-  SET_REFERRER_FAILED: 'Set referrer failed';
   GET_EVENTS: 'Get events';
   GET_EVENTS_COMPLETE: 'Get events complete';
   GET_EVENTS_FAILED: 'Get events failed';
@@ -31,6 +27,9 @@ interface IBrandingActionTypes {
   GET_NODE_STATUS: 'Get node status';
   GET_NODE_STATUS_COMPLETE: 'Get node status complete';
   GET_NODE_STATUS_FAILED: 'Get node status failed';
+  GET_NODE_STATS: 'Get node stats';
+  GET_NODE_STATS_COMPLETE: 'Get node stats complete';
+  GET_NODE_STATS_FAILED: 'Get node stats failed';
 }
 
 export const BrandingActionTypes: IBrandingActionTypes = {
@@ -42,9 +41,6 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   GET_SEE_DOCUMENTS: 'Get see documents ',
   GET_SEE_DOCUMENTS_COMPLETE: 'Get see documents complete',
   GET_SEE_DOCUMENTS_FAILED: 'Get see documents failed',
-  SET_REFERRER: 'Set referrer',
-  SET_REFERRER_COMPLETE: 'Set referrer complete',
-  SET_REFERRER_FAILED: 'Set referrer failed',
   GET_EVENTS: 'Get events',
   GET_EVENTS_COMPLETE: 'Get events complete',
   GET_EVENTS_FAILED: 'Get events failed',
@@ -57,6 +53,9 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   GET_NODE_STATUS: 'Get node status',
   GET_NODE_STATUS_COMPLETE: 'Get node status complete',
   GET_NODE_STATUS_FAILED: 'Get node status failed',
+  GET_NODE_STATS: 'Get node stats',
+  GET_NODE_STATS_COMPLETE: 'Get node stats complete',
+  GET_NODE_STATS_FAILED: 'Get node stats failed',
 };
 
 export class ApiCallAction implements Action {
@@ -106,27 +105,6 @@ export class GetSeeDocumentsCompleteAction implements Action {
 
 export class GetSeeDocumentsFailedAction implements Action {
   type = BrandingActionTypes.GET_SEE_DOCUMENTS_FAILED;
-
-  constructor(public payload: ApiRequestStatus) {
-  }
-}
-
-export class SetReferrerAction implements Action {
-  type = BrandingActionTypes.SET_REFERRER;
-
-  constructor(public payload: string) {
-  }
-}
-
-export class SetReferrerCompleteAction implements Action {
-  type = BrandingActionTypes.SET_REFERRER_COMPLETE;
-
-  constructor(public payload: SetReferralResult) {
-  }
-}
-
-export class SetReferrerFailedAction implements Action {
-  type = BrandingActionTypes.SET_REFERRER_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
@@ -210,6 +188,27 @@ export class GetNodeStatusFailedAction implements Action {
   }
 }
 
+export class GetNodeStatsAction implements Action {
+  type = BrandingActionTypes.GET_NODE_STATS;
+
+  constructor(public payload: NodeInfo[]) {
+  }
+}
+
+export class GetNodeStatsCompleteAction implements Action {
+  type = BrandingActionTypes.GET_NODE_STATS_COMPLETE;
+
+  constructor(public payload: NodeInfo[]) {
+  }
+}
+
+export class GetNodeStatsFailedAction implements Action {
+  type = BrandingActionTypes.GET_NODE_STATS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type BrandingActions
   = ApiCallAction
   | ApiCallCompleteAction
@@ -219,9 +218,6 @@ export type BrandingActions
   | GetSeeDocumentsAction
   | GetSeeDocumentsCompleteAction
   | GetSeeDocumentsFailedAction
-  | SetReferrerAction
-  | SetReferrerCompleteAction
-  | SetReferrerFailedAction
   | GetEventsAction
   | GetEventsCompleteAction
   | GetEventsFailedAction
@@ -233,4 +229,7 @@ export type BrandingActions
   | UpdateEventPresenceFailedAction
   | GetNodeStatusAction
   | GetNodeStatusCompleteAction
-  | GetNodeStatusFailedAction;
+  | GetNodeStatusFailedAction
+  | GetNodeStatsAction
+  | GetNodeStatsCompleteAction
+  | GetNodeStatsFailedAction;

@@ -59,6 +59,12 @@ export interface AggregatedFlowRunStats {
 
 export type FlowRunList<DateType = Date> = PaginatedResult<FlowRun<DateType>>;
 
+export interface UserFlowRunsQuery {
+  username: string;
+  page_size?: number;
+  cursor?: string;
+}
+
 export interface StepStatistics {
   time_taken: number;
 }

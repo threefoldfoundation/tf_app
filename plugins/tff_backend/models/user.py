@@ -46,15 +46,12 @@ class KYCStatusUpdate(NdbModel):
 
 
 class KYCInformation(NdbModel):
-    """
-    Args:
-        updates(list[KYCStatusUpdate])
-        applicant_id(unicode)
-    """
     NAMESPACE = NAMESPACE
     status = ndb.IntegerProperty(choices=KYC_STATUSES)
     updates = ndb.LocalStructuredProperty(KYCStatusUpdate, repeated=True, compressed=True)
     applicant_id = ndb.StringProperty()
+    utility_bill_url = ndb.StringProperty()
+    utility_bill_verified = ndb.BooleanProperty(default=False)
 
     def set_status(self, new_status, author, comment=None):
         self.updates.append(KYCStatusUpdate(from_status=self.status,
@@ -75,25 +72,32 @@ class TffProfile(NdbModel):
     app_user = ndb.UserProperty()
     referrer_user = ndb.UserProperty()
     referrer_username = ndb.StringProperty()
-    node_id = ndb.StringProperty()  # todo Remove after migration to property `nodes`
-    node_status = ndb.StringProperty()   # todo Remove after migration to property `nodes`
     nodes = ndb.StructuredProperty(NodeInfo, repeated=True)  # type: list[NodeInfo]
     kyc = ndb.StructuredProperty(KYCInformation)  # type: KYCInformation
-
-    @classmethod
-    def create_key(cls, username):
-        return ndb.Key(cls, username, namespace=NAMESPACE)
 
     @property
     def username(self):
         return self.key.id().decode('utf8')
 
-    def to_dict(self, extra_properties=None):
-        return super(TffProfile, self).to_dict(['username'])
+    @property
+    def referral_code(self):
+        from plugins.tff_backend.bizz.user import user_code
+        return user_code(self.username)
+
+    @classmethod
+    def create_key(cls, username):
+        return ndb.Key(cls, username, namespace=NAMESPACE)
+
+    def to_dict(self, extra_properties=None, include=None, exclude=None):
+        return super(TffProfile, self).to_dict(extra_properties or ['username', 'referral_code'], include, exclude)
 
     @classmethod
     def list_with_node(cls):
         return cls.query().filter(cls.nodes.id > '')
+
+    @classmethod
+    def list_by_node_status(cls, status):
+        return cls.query().filter(cls.nodes.status == status)
 
 
 class ProfilePointer(NdbModel):

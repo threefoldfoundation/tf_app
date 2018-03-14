@@ -1,6 +1,5 @@
 import { BrandingActions, BrandingActionTypes } from '../actions/branding.actions';
 import { EventPresence, EventPresenceStatus } from '../interfaces/agenda.interfaces';
-import { SetReferralResult } from '../interfaces/referrals.interfaces';
 import { apiRequestLoading, apiRequestSuccess } from '../interfaces/rpc.interfaces';
 import { IBrandingState, initialState } from '../state/app.state';
 
@@ -42,22 +41,6 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
       return {
         ...state,
         seeDocumentsStatus: action.payload,
-      };
-    case BrandingActionTypes.SET_REFERRER:
-      return {
-        ...state,
-        setReferrerStatus: apiRequestLoading,
-      };
-    case BrandingActionTypes.SET_REFERRER_COMPLETE:
-      return {
-        ...state,
-        setReferrerResult: (<SetReferralResult>action.payload).result,
-        setReferrerStatus: apiRequestSuccess,
-      };
-    case BrandingActionTypes.SET_REFERRER_FAILED:
-      return {
-        ...state,
-        setReferrerStatus: action.payload,
       };
     case BrandingActionTypes.GET_EVENTS:
       return {
@@ -123,12 +106,24 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
       return {
         ...state,
         nodes: action.payload,
-        nodesStatus: action.payload.some(node => !node.stats) ? apiRequestLoading : apiRequestSuccess,
+        nodesStatus: apiRequestSuccess,
       };
     case BrandingActionTypes.GET_NODE_STATUS_FAILED:
       return {
         ...state,
         nodesStatus: action.payload,
+      };
+    case BrandingActionTypes.GET_NODE_STATS:
+      return {
+        ...state,
+        nodes: action.payload,
+        nodesStatus: apiRequestLoading,
+      };
+    case BrandingActionTypes.GET_NODE_STATS_COMPLETE:
+      return {
+        ...state,
+        nodes: action.payload,
+        nodesStatus: apiRequestSuccess,
       };
   }
   return state;

@@ -80,12 +80,12 @@ def create_node_order_document(order, iyo_username):
         fields.extend([search.TextField(name='shipping_name', value=order.shipping_info.name),
                        search.TextField(name='shipping_email', value=order.shipping_info.email),
                        search.TextField(name='shipping_phone', value=order.shipping_info.phone),
-                       search.TextField(name='shipping_address', value=order.shipping_info.address)])
+                       search.TextField(name='shipping_address', value=order.shipping_info.address.replace('\n', ''))])
     if order.billing_info:
         fields.extend([search.TextField(name='billing_name', value=order.billing_info.name),
                        search.TextField(name='billing_email', value=order.billing_info.email),
                        search.TextField(name='billing_phone', value=order.billing_info.phone),
-                       search.TextField(name='billing_address', value=order.billing_info.address)])
+                       search.TextField(name='billing_address', value=order.billing_info.address.replace('\n', ''))])
     return search.Document(order_id_str, fields)
 
 

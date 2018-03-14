@@ -33,10 +33,10 @@ class GlobalStats(NdbModel):
     name = ndb.StringProperty()
     token_count = ndb.IntegerProperty()
     unlocked_count = ndb.IntegerProperty()
-    value = ndb.IntegerProperty()  # Value in dollar
+    value = ndb.FloatProperty()  # Value in dollar
     # Value per other currency
     currencies = ndb.LocalStructuredProperty(CurrencyValue, repeated=True)  # type: list[CurrencyValue]
-    market_cap = ndb.ComputedProperty(lambda self: self.value * self.unlocked_count, indexed=False)
+    market_cap = ndb.ComputedProperty(lambda self: (self.value or 0) * self.unlocked_count, indexed=False)
 
     @property
     def id(self):

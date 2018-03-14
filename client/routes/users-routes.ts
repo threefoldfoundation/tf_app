@@ -1,12 +1,15 @@
 import { MetaGuard } from '@ngx-meta/core';
-import { CreateTransactionPageComponent, UserPageComponent, UserTransactionsListPageComponent } from '../components/users';
-import { KycPageComponent } from '../pages/kyc';
 import {
+  CreateTransactionPageComponent,
+  KycPageComponent,
   UserDetailsPageComponent,
   UserListPageComponent,
   UserNodeOrdersPageComponent,
+  UserPageComponent,
   UserPurchaseAgreementsPageComponent,
-} from '../pages/users';
+  UserTransactionsListPageComponent,
+} from '../pages';
+import { UserFlowRunsDetailsPageComponent, UserFlowRunsPageComponent } from '../pages/users';
 
 export const USERS_ROUTES = [
   {
@@ -52,6 +55,11 @@ export const USERS_ROUTES = [
           label: 'tff.investment_agreements',
           icon: 'attach_money',
           route: 'investment-agreements',
+        },
+        {
+          label: 'tff.flow_statistics',
+          icon: 'timeline',
+          route: 'flow-statistics',
         } ],
       meta: { title: 'tff.users' },
     },
@@ -92,6 +100,19 @@ export const USERS_ROUTES = [
         canActivate: [ MetaGuard ],
         data: { meta: { title: 'tff.investment_agreements' } },
         component: UserPurchaseAgreementsPageComponent,
-      } ],
-  },
+      },
+      {
+        path: 'flow-statistics',
+        canActivate: [ MetaGuard ],
+        data: { meta: { title: 'tff.flow_statistics' } },
+        component: UserFlowRunsPageComponent,
+      },
+      {
+        path: 'flow-statistics/:flowRunId',
+        canActivate: [ MetaGuard ],
+        data: { meta: { title: 'tff.flow_statistics' } },
+        component: UserFlowRunsDetailsPageComponent,
+      },
+    ]
+  }
 ];

@@ -1,26 +1,15 @@
 <div fxLayout="row" fxLayout.lt-md="column">
-  <div fxFlex="60" fxFlex.lt-md="100">
-    <mat-grid-list cols="3" rowHeight="350px">
-      <mat-grid-tile *ngFor="let card of cards; trackBy: trackCards">
-        <mat-card class="flow-card">
-          <mat-card-title>{{card.title}}</mat-card-title>
-          <mat-card-content>
-            <google-chart [data]="card.chart"></google-chart>
-          </mat-card-content>
-        </mat-card>
-      </mat-grid-tile>
-    </mat-grid-list>
-    <p>{{ 'tff.stats_for_last_x' | translate : { time: timeDuration | timeDuration } }}</p>
-  </div>
+  <google-chart [data]="chart"></google-chart>
   <mat-nav-list fxFlex="40" fxFlex.lt-md="100">
-    <a mat-list-item *ngFor="let entry of tickerEntries; trackBy: trackTickerEntries" fxLayout="row" class="ticker-line"
-       [routerLink]="getTickerEntryUrl(entry)" target="_blank">
-      <tff-flow-run-status [status]="entry.data.status"
-                           *ngIf="entry.type === TickerEntryType.FLOW"></tff-flow-run-status>
-      <tff-installation-status [status]="entry.data.status"
-                               *ngIf="entry.type == TickerEntryType.INSTALLATION"></tff-installation-status>
-      <p class="date">{{ entry.date | time }}</p>
-      <p class="message">{{ getTickerText(entry) }}</p>
-    </a>
+    <mat-list-item *ngFor="let entry of tickerEntries; trackBy: trackTickerEntries">
+      <a [routerLink]="getTickerEntryUrl(entry)" target="_blank" fxLayout="row" class="ticker-line">
+        <tff-flow-run-status [status]="entry.data.status"
+                             *ngIf="entry.type === TickerEntryType.FLOW"></tff-flow-run-status>
+        <tff-installation-status [status]="entry.data.status"
+                                 *ngIf="entry.type == TickerEntryType.INSTALLATION"></tff-installation-status>
+        <p class="date">{{ entry.date | time }}</p>
+        <p class="message">{{ getTickerText(entry) }}</p>
+      </a>
+    </mat-list-item>
   </mat-nav-list>
 </div>

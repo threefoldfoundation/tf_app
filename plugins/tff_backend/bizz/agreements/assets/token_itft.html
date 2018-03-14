@@ -4,7 +4,31 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="viewport" content="width=device-width"/>
   <style>
+    @font-face {
+      font-family: Roboto;
+      src: url("assets/Roboto-Regular.ttf");
+    }
+
+    @font-face {
+      font-family: Roboto;
+      src: url("assets/Roboto-Bold.ttf");
+      font-weight: bold;
+    }
+
+    @font-face {
+      font-family: Roboto;
+      src: url("assets/Roboto-Italic.ttf");
+      font-style: italic;
+    }
+
+    @font-face {
+      font-family: Roboto;
+      src: url("assets/Roboto-BoldItalic.ttf");
+      font-weight: bold;
+      font-style: italic;
+    }
     body {
+      font-family: Roboto;
       font-size: 8pt;
     }
 
@@ -63,15 +87,14 @@
 
 <div id="headerContent" align="center">
   <img class="logo" src="{{ logo_path }}" width="895" height="222"/>
-  <p class="title">iTFT Purchase Agreement</p>
+  <p class="title">{{ title }}</p>
 </div>
 <div id="footerContent" align="left">
-  Document Version 1.6
+  Document Version 1.7
 </div>
 
 <div>
   {{ markdown_to_html }}
 </div>
-
 </body>
 </html>

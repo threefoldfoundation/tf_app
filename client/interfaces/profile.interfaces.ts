@@ -1,13 +1,27 @@
-import { Profile } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
+import { Profile } from '../../../its_you_online_auth/client/interfaces';
 import { Applicant } from './onfido.interfaces';
 import { PaginatedResult } from './shared.interfaces';
 
+export enum NodeStatus {
+  RUNNING = 'running',
+  HALTED = 'halted',
+  REBOOTING = 'rebooting',
+}
+
+export interface NodeInfo {
+  status: NodeStatus;
+  id: string;
+  serial_number: string;
+}
+
 export interface TffProfile {
   app_user: string;
+  nodes: NodeStatus[];
   kyc: KYCInformation;
   referrer_user: string;
   referrer_username: string;
   username: string;
+  referral_code: string;
 }
 
 export enum KYCStatus {
@@ -57,13 +71,15 @@ export const KYC_STATUS_MAPPING: { [ key: number ]: KYCStatus[] } = {
   // [ KYCStatus.SUBMITTED ]: [ KYCStatus.INFO_SET ],
   // [ KYCStatus.INFO_SET ]: [ KYCStatus.PENDING_APPROVAL ],
   [ KYCStatus.PENDING_APPROVAL ]: [ KYCStatus.VERIFIED, KYCStatus.DENIED, KYCStatus.PENDING_SUBMIT ],
-  [ KYCStatus.VERIFIED ]: [],
+  [ KYCStatus.VERIFIED ]: [ KYCStatus.PENDING_SUBMIT ],
 };
 
 export interface KYCInformation {
   status: KYCStatus;
   updates: KYCStatusUpdate[];
   applicant_id: string;
+  utility_bill_url: string | null;
+  utility_bill_verified: boolean;
 }
 
 export interface KYCStatusUpdate {
@@ -86,4 +102,13 @@ export interface SetKYCStatusPayload {
   status: KYCStatus;
   comment?: string;
   data: Partial<Applicant>;
+}
+
+export interface UserNodeStatus {
+  profile: Profile;
+  node: NodeInfo;
+}
+
+export interface NodesQuery {
+  status: NodeStatus | null | '';
 }

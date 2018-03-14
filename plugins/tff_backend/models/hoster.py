@@ -19,11 +19,12 @@ import re
 from google.appengine.api import datastore_errors
 from google.appengine.ext import ndb
 
-from framework.consts import WEEK
+from framework.consts import DAY
 from framework.models.common import NdbModel
 from framework.plugin_loader import get_config
 from framework.utils import chunks, now
 from plugins.tff_backend.bizz.gcs import get_serving_url, encrypt_filename
+from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -114,6 +115,10 @@ class NodeOrder(NdbModel):
         has_doc = self.tos_iyo_see_id is not None or self.status in (NodeOrderStatus.ARRIVED, NodeOrderStatus.SENT)
         return get_serving_url(self.filename(self.id)) if has_doc else None
 
+    @property
+    def username(self):
+        return get_iyo_username(self.app_user) if self.app_user else None
+
     @classmethod
     def filename(cls, node_order_id):
         return u'node-orders/%s.pdf' % encrypt_filename(node_order_id)
@@ -147,22 +152,22 @@ class NodeOrder(NdbModel):
 
     @classmethod
     def has_order_for_user_or_location(cls, app_user, address):
-        user_qry = cls.list_by_user(app_user).filter(cls.status > NodeOrderStatus.CANCELED).fetch_async()
-        address_qry = cls.query().filter(cls.status > NodeOrderStatus.CANCELED).filter(
-            cls.address_hash == normalize_address(address)).fetch_async()
-        return any(user_qry.get_result()) or any(address_qry.get_result())
+        user_qry = cls.list_by_user(app_user).fetch_async()
+        address_qry = cls.query().filter(cls.address_hash == normalize_address(address)).fetch_async()
+        results = user_qry.get_result() + address_qry.get_result()
+        return any(n for n in results if n.status != NodeOrderStatus.CANCELED)
 
     @classmethod
     def list_check_online(cls):
-        two_weeks_ago = now() - (WEEK * 2)
-        return cls.list_by_status(NodeOrderStatus.SENT).filter(cls.send_time < two_weeks_ago)
+        two_days_ago = now() - (DAY * 2)
+        return cls.list_by_status(NodeOrderStatus.SENT).filter(cls.send_time < two_days_ago)
 
     @classmethod
     def list_by_so(cls, odoo_sale_order_id):
         return cls.query().filter(cls.odoo_sale_order_id == odoo_sale_order_id)
 
-    def to_dict(self, extra_properties=None):
-        return super(NodeOrder, self).to_dict(['document_url'])
+    def to_dict(self, extra_properties=[]):
+        return super(NodeOrder, self).to_dict(extra_properties + ['document_url'])
 
 
 class PublicKeyMapping(NdbModel):

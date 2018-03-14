@@ -68,20 +68,29 @@ def multi_index_investment_agreement(order_keys):
     return INVESTMENT_INDEX.put(to_put)
 
 
+def _stringify_float(value):
+    # type: (float) -> str
+    return str(value).rstrip('0').rstrip('.')
+
+
 def create_investment_agreement_document(investment, iyo_username):
     # type: (InvestmentAgreement) -> search.Document
     investment_id_str = str(investment.id)
-    return search.Document(
-        doc_id=investment_id_str,
-        fields=[
-            search.AtomField(name='id', value=investment_id_str),
-            search.AtomField(name='reference', value=investment.reference),
-            search.NumberField(name='status', value=investment.status),
-            search.TextField(name='username', value=iyo_username),
-            search.DateField(name='creation_time', value=datetime.utcfromtimestamp(investment.creation_time)),
-            search.TextField(name='name', value=investment.name),
-            search.TextField(name='address', value=investment.address),
-        ])
+    fields = [
+        search.AtomField(name='id', value=investment_id_str),
+        search.AtomField(name='reference', value=investment.reference),
+        search.NumberField(name='status', value=investment.status),
+        search.TextField(name='username', value=iyo_username),
+        search.DateField(name='creation_time', value=datetime.utcfromtimestamp(investment.creation_time)),
+        search.TextField(name='name', value=investment.name),
+        search.TextField(name='address', value=investment.address and investment.address.replace('\n', '')),
+        search.TextField(name='currency', value=investment.currency),
+    ]
+    if investment.amount:
+        fields.append(search.TextField(name='amount', value=_stringify_float(investment.amount)))
+    if investment.token_count:
+        fields.append(search.TextField(name='token_count', value=_stringify_float(investment.token_count_float)))
+    return search.Document(doc_id=investment_id_str, fields=fields)
 
 
 def search_investment_agreements(query=None, page_size=20, cursor=None):

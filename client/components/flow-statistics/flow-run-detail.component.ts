@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
+import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { Profile } from '../../../../its_you_online_auth/client/interfaces';
-import { FlowStep } from '../../../../rogerthat_api/client/interfaces';
-import { WidgetType } from '../../../../rogerthat_api/client/interfaces/forms';
-import { FlowRun } from '../../interfaces';
-import { FlowRunStatus } from '../../interfaces/flow-statistics.interfaces';
+import { FlowStep, WidgetType } from '../../../../rogerthat_api/client/interfaces';
+import { FlowRun, FlowRunStatus } from '../../interfaces';
+import { FlowStatisticsService } from '../../services';
+import { getStepTitle } from '../../util';
 
 @Component({
   selector: 'tff-flow-run-detail',
@@ -26,10 +27,14 @@ import { FlowRunStatus } from '../../interfaces/flow-statistics.interfaces';
 export class FlowRunDetailComponent {
   WidgetType = WidgetType;
   @Input() flowRun: FlowRun;
-  @Input() user: Profile;
+  @Input() user?: Profile;
+  @Input() status: ApiRequestStatus;
+
+  constructor(private flowStatisticsService: FlowStatisticsService) {
+  }
 
   getStepTitle(stepId: string) {
-    return stepId.replace('message_', '');
+    return getStepTitle(stepId);
   }
 
   shouldShowNextStep(flowRun: FlowRun) {
@@ -38,6 +43,10 @@ export class FlowRunDetailComponent {
 
   trackSteps(index: number, step: FlowStep) {
     return index;
+  }
+
+  getFlowName(flowName: string) {
+    return this.flowStatisticsService.getFlowName(flowName);
   }
 
 }

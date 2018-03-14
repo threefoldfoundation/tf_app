@@ -1,3 +1,4 @@
+<api-request-status [status]="status"></api-request-status>
 <div *ngFor="let node of nodes">
   <ion-card>
     <ion-item>
@@ -5,7 +6,6 @@
         <ion-icon [name]="getIcon(node)" [color]="getIconColor(node)" style="font-size: 40px;"></ion-icon>
       </ion-avatar>
       <h2>{{ node.serial_number}} - {{ ('node_' + node.status ) | translate }}</h2>
-      <p *ngIf="getUptime(node) as uptime">{{ uptime }}</p>
     </ion-item>
   </ion-card>
   <ion-card *ngFor="let chart of charts[node.id]">
@@ -15,4 +15,3 @@
     </ion-card-content>
   </ion-card>
 </div>
-<api-request-status [status]="status"></api-request-status>

@@ -1,23 +1,37 @@
-import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
+import { DatePipe, I18nPluralPipe } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  HostListener,
+  Input,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  ViewEncapsulation,
+} from '@angular/core';
+import { BreakPointRegistry, MatchMedia } from '@angular/flex-layout';
+import { BreakPoint } from '@angular/flex-layout/typings/media-query/breakpoints/break-point';
 import { TranslateService } from '@ngx-translate/core';
+import { Subject } from 'rxjs/Subject';
+import { Subscription } from 'rxjs/Subscription';
 import { MOBILE_TYPES } from '../../../../rogerthat_api/client/interfaces';
-import { FirebaseFlowRun, FlowRunStatus, TickerEntryType } from '../../interfaces';
-import { TickerEntry } from '../../interfaces/dashboard';
-import { AggregatedFlowRunStats, AggregatedInstallationStats } from '../../interfaces/flow-statistics.interfaces';
+import {
+  AggregatedFlowRunStats,
+  AggregatedInstallationStats,
+  FirebaseFlowRun,
+  FlowRunStatus,
+  TickerEntry,
+  TickerEntryType,
+} from '../../interfaces';
+import { TimeDurationPipe } from '../../pipes/time-duration.pipe';
+import { FlowStatisticsService } from '../../services';
 import { getStepTitle } from '../../util';
-import ChartArea = google.visualization.ChartArea;
+import BarChartOptions = google.visualization.BarChartOptions;
 import ChartSpecs = google.visualization.ChartSpecs;
-import ChartTextStyle = google.visualization.ChartTextStyle;
-import PieChartOptions = google.visualization.PieChartOptions;
 
-export interface ChartCard {
-  title: string;
-  chart: PieChart;
-}
-
-export interface PieChart extends ChartSpecs {
-  options: PieChartOptions;
+export interface BarChart extends ChartSpecs {
+  options: BarChartOptions;
 }
 
 export enum ChartColor {
@@ -35,93 +49,52 @@ export enum ChartColor {
   templateUrl: 'dashboard.component.html',
   styleUrls: [ 'dashboard.component.css' ],
 })
-export class DashboardComponent implements OnChanges {
+export class DashboardComponent implements OnChanges, OnDestroy {
+  @HostListener('window:resize')
+  onResize() {
+    this.drawChartSubject.next();
+  }
   @Input() flowStats: AggregatedFlowRunStats[];
   @Input() tickerEntries: TickerEntry[];
   @Input() installationStats: AggregatedInstallationStats;
   timeDuration = 86400 * 7;
   TickerEntryType = TickerEntryType;
-  cards: ChartCard[];
-  defaultChartOptions = {
-    is3D: true,
-    legend: <'none'>'none',
-    pieSliceText: 'label',
-    width: 220,
-    height: 220,
-    chartArea: <ChartArea>{ width: '100%', height: '100%' },
-    backgroundColor: 'transparent',
-    pieSliceTextStyle: <ChartTextStyle>{ fontSize: 13 },
-  };
+  chart: BarChart;
+  timeDurationPipe: TimeDurationPipe;
+  breakPoint: BreakPoint;
+  drawChartSubject = new Subject();
 
-  nameMapping: { [ key: string ]: string } = {
-    'kyc_part_1': 'tff.kyc_procedure',
-    'order_node_v4': 'tff.order_node',
-    'error_message': 'tff.error_message',
-    'buy_tokens_ITO_v3_async_KYC': 'tff.buy_tokens',
-    'sign_investment': 'tff.sign_investment',
-    'sign_hosting_agreement': 'tff.sign_hosting_agreement',
-  };
+  private _chartSub: Subscription;
 
   constructor(private translate: TranslateService,
-              private datePipe: DatePipe) {
+              private flowStatisticsService: FlowStatisticsService,
+              private cdRef: ChangeDetectorRef,
+              private i18nPluralPipe: I18nPluralPipe,
+              private datePipe: DatePipe,
+              private matchMedia: MatchMedia,
+              private breakPoints: BreakPointRegistry) {
+    this.timeDurationPipe = new TimeDurationPipe(cdRef, translate, i18nPluralPipe);
+    this.breakPoint = <BreakPoint>breakPoints.findByAlias('lt-md');
+    // todo debounce
+    this._chartSub = this.drawChartSubject.asObservable().subscribe(() => this.createChart());
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.flowStats || changes.installationStats) {
       if (this.flowStats && this.flowStats.length && this.installationStats) {
-        const flowCards = this.flowStats.map(f => ({
-          title: this.getFlowName(f.flowName),
-          chart: {
-            chartType: 'PieChart',
-            options: {
-              ...this.defaultChartOptions,
-              slices: {
-                0: { color: ChartColor.BLUE },
-                1: { color: ChartColor.ORANGE },
-                2: { color: ChartColor.PURPLE },
-                3: { color: ChartColor.RED },
-                4: { color: ChartColor.GREEN },
-              },
-            },
-            dataTable: [
-              [ 'Title', 'Value' ],
-              [ this.translate.instant('tff.started'), f.stats[ FlowRunStatus.STARTED ] ],
-              [ this.translate.instant('tff.in_progress'), f.stats[ FlowRunStatus.IN_PROGRESS ] ],
-              [ this.translate.instant('tff.stalled'), f.stats[ FlowRunStatus.STALLED ] ],
-              [ this.translate.instant('tff.canceled'), f.stats[ FlowRunStatus.CANCELED ] ],
-              [ this.translate.instant('tff.finished'), f.stats[ FlowRunStatus.FINISHED ] ],
-            ],
-          },
-        }));
-        const installationCard = {
-          title: this.translate.instant('tff.app_installations'),
-          chart: {
-            chartType: 'PieChart',
-            options: {
-              ...this.defaultChartOptions,
-              slices: {
-                0: { color: ChartColor.BLUE },
-                1: { color: ChartColor.ORANGE },
-                2: { color: ChartColor.GREEN },
-              },
-            },
-            dataTable: [
-              [ 'title', 'Status' ],
-              [ this.translate.instant('tff.started'), this.installationStats.started ],
-              [ this.translate.instant('tff.in_progress'), this.installationStats.in_progress ],
-              [ this.translate.instant('tff.finished'), this.installationStats.finished ],
-            ],
-          },
-        };
-        this.cards = [ installationCard, ...flowCards ];
+        this.drawChartSubject.next();
       }
     }
+  }
+
+  ngOnDestroy() {
+    this._chartSub.unsubscribe();
   }
 
   getTickerText(entry: TickerEntry): string {
     if (entry.type === TickerEntryType.FLOW) {
       const flowRun = entry.data;
-      const flowName = this.getFlowName(flowRun.flow_name);
+      const flowName = this.flowStatisticsService.getFlowName(flowRun.flow_name);
       if (flowRun.status === FlowRunStatus.STARTED) {
         return flowName;
       }
@@ -130,7 +103,7 @@ export class DashboardComponent implements OnChanges {
       }
       if (flowRun.status === FlowRunStatus.IN_PROGRESS) {
         if (flowRun.last_step) {
-          return `${flowName}: ${getStepTitle(flowRun.last_step.step_id)} -> Clicked "${getStepTitle(flowRun.last_step.button)}"`;
+          return `${flowName}: ${getStepTitle(flowRun.last_step.step_id)} → Clicked "${getStepTitle(flowRun.last_step.button)}"`;
         }
         return flowName;
       }
@@ -146,18 +119,11 @@ export class DashboardComponent implements OnChanges {
       }
     } else if (entry.type === TickerEntryType.INSTALLATION) {
       const platform = this.translate.instant(MOBILE_TYPES[ entry.data.platform ]);
-      if (entry.data.name) {
-        return this.translate.instant('tff.user_x_installed_on_platform', { name: entry.data.name, platform: platform });
-      }
-      return `${platform} installation`;
+      return this.translate.instant('tff.installation_on_platform', { platform: platform });
     } else {
       return JSON.stringify(entry);
     }
     return '';
-  }
-
-  trackCards(index: number, chart: ChartCard) {
-    return chart.title;
   }
 
   trackTickerEntries(index: number, flowRun: FirebaseFlowRun) {
@@ -172,11 +138,59 @@ export class DashboardComponent implements OnChanges {
     }
   }
 
-  private getFlowName(flowName: string): string {
-    if (flowName in this.nameMapping) {
-      return this.translate.instant(this.nameMapping[ flowName ]);
+  private createChart() {
+    if (!this.flowStats || !this.installationStats) {
+      return;
     }
-    return flowName;
+    const header = [
+      'Title',
+      this.translate.instant('tff.started'),
+      this.translate.instant('tff.in_progress'),
+      this.translate.instant('tff.stalled'),
+      this.translate.instant('tff.canceled'),
+      this.translate.instant('tff.finished'),
+      { role: 'annotation' } ];
+    const flowStats = this.flowStats.map(s => ([
+      this.flowStatisticsService.getFlowName(s.flowName),
+      s.stats[ FlowRunStatus.STARTED ],
+      s.stats[ FlowRunStatus.IN_PROGRESS ],
+      s.stats[ FlowRunStatus.STALLED ],
+      s.stats[ FlowRunStatus.CANCELED ],
+      s.stats[ FlowRunStatus.FINISHED ],
+      s.stats[ FlowRunStatus.STARTED ] + s.stats[ FlowRunStatus.IN_PROGRESS ] + s.stats[ FlowRunStatus.STALLED ]
+      + s.stats[ FlowRunStatus.CANCELED ] + s.stats[ FlowRunStatus.FINISHED ],
+    ]));
+    const installStats = [
+      this.translate.instant('tff.app_installations'),
+      this.installationStats.started,
+      this.installationStats.in_progress,
+      0,
+      0,
+      this.installationStats.finished,
+      this.installationStats.started + this.installationStats.in_progress + this.installationStats.finished,
+    ];
+    let width = Math.max(window.innerWidth - 700, 500);
+    let height = Math.max(window.innerHeight - 150, 400);
+    if (this.matchMedia.isActive(this.breakPoint.mediaQuery)) {
+      width = window.innerWidth - 50;
+      height = window.innerHeight - 90;
+    }
+
+    this.chart = {
+      chartType: 'ColumnChart',
+      options: {
+        backgroundColor: 'transparent',
+        bar: { groupWidth: '75%' },
+        chartArea: { width: '90%' },
+        colors: [ ChartColor.BLUE, ChartColor.ORANGE, ChartColor.PURPLE, ChartColor.RED, ChartColor.GREEN ],
+        title: this.translate.instant('tff.stats_for_last_x', { time: this.timeDurationPipe.transform(this.timeDuration) }),
+        width,
+        height,
+        legend: { position: 'bottom', alignment: 'center' },
+        isStacked: true,
+      },
+      dataTable: [ header, ...flowStats, installStats ],
+    };
   }
 
 }

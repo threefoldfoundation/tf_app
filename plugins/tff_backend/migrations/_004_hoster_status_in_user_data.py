@@ -16,7 +16,7 @@
 # @@license_version:1.3@@
 
 from framework.bizz.job import run_job
-from plugins.tff_backend.bizz.hoster import set_hoster_status_in_user_data
+from plugins.tff_backend.bizz.nodes.hoster import set_hoster_status_in_user_data
 from plugins.tff_backend.models.user import TffProfile
 
 

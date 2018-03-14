@@ -1,9 +1,25 @@
 {
   "name": "tff_backend",
   "dependencies": {
-    "marked": "^0.3.12",
+    "marked": "^0.3.17",
     "@types/marked": "^0.3.0",
-    "ng2-google-charts": "^3.3.0",
+    "ng2-google-charts": "^3.4.0",
     "@types/google.visualization": "^0.0.41"
+  },
+  "configuration": {
+    "lint": [
+      {
+        "project": "src/tff_backend/tslint.json",
+        "exclude": "**/node_modules/**"
+      }
+    ],
+    "apps": [
+      {
+        "styles": [
+          "tff_backend/client/styles/global.scss",
+          "tff_backend/client/styles/theme.scss"
+        ]
+      }
+    ]
   }
 }

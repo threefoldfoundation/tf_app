@@ -2,11 +2,11 @@ import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
-import { filter } from 'rxjs/operators/filter';
-import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { GetGlobalStatsAction, UpdateGlobalStatsAction } from '../../actions/threefold.action';
-import { GlobalStats } from '../../interfaces/global-stats.interfaces';
+import { filter } from 'rxjs/operators';
+import { IAppState } from '../../../../framework/client/ngrx';
+import { ApiRequestStatus } from '../../../../framework/client/rpc';
+import { GetGlobalStatsAction, UpdateGlobalStatsAction } from '../../actions';
+import { GlobalStats } from '../../interfaces';
 import { getGlobalStats, getGlobalStatsStatus, updateGlobalStatsStatus } from '../../tff.state';
 
 @Component({
@@ -16,7 +16,7 @@ import { getGlobalStats, getGlobalStatsStatus, updateGlobalStatsStatus } from '.
     <tff-global-stats-detail [globalStats]="globalStats$ | async"
                              [status]="getStatus$ | async"
                              [updateStatus]="updateStatus$ | async"
-                             (submit)="onSubmit($event)"></tff-global-stats-detail>`,
+                             (save)="onSubmit($event)"></tff-global-stats-detail>`,
 })
 
 export class GlobalStatsDetailPageComponent implements OnInit {
