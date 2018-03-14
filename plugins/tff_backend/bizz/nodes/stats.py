@@ -314,8 +314,7 @@ def _execute_blueprint(blueprint):
 
 
 def _get_node_statuses(tasks):
-    statuses = dict(_wait_for_tasks(tasks, _node_status_callback))  # {node_id: status}
-    return statuses
+    return dict(_wait_for_tasks(tasks, _node_status_callback))  # {node_id: status}
 
 
 def check_node_statuses():
@@ -336,7 +335,7 @@ def _check_node_status(tff_profile_key, statuses):
         for node in tff_profile.nodes:
             status = statuses.get(node.id)
             if not status:
-                logging.warn('Expected to find node %s in the response', node.id)
+                logging.warn('Expected to find node %s in the response for user %s', node.id, tff_profile.username)
                 continue
             if node.status != status:
                 logging.info('Node %s of user %s changed from status "%s" to "%s"',
@@ -352,9 +351,9 @@ def _check_node_status(tff_profile_key, statuses):
             tff_profile.put()
             deferred.defer(_put_node_status_user_data, tff_profile_key, _transactional=True)
         deferred.defer(_get_and_save_node_stats, tff_profile.nodes, _transactional=True)
-    except:
-        msg = 'Failure in checking node status for %s' % tff_profile_key
-        logging.exception(msg, _suppress=False)
+    except Exception as e:
+        msg = 'Failure in checking node status for %s.' % tff_profile_key
+        logging.exception(e.message, _suppress=False)
         raise deferred.PermanentTaskFailure(msg)
 
 
