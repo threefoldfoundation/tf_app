@@ -87,7 +87,7 @@ def _get_task_url(task):
 
 @returns([object])
 @arguments(tasks=[Task], callback=types.FunctionType, deadline=int)
-def _wait_for_tasks(tasks, callback=None, deadline=500):
+def _wait_for_tasks(tasks, callback=None, deadline=120):
     results = []
     start_time = time.time()
     incomplete_tasks = {t.guid: t for t in tasks}
@@ -144,7 +144,6 @@ def _get_node_orders():
     return NodeOrder.list_check_online()
 
 
-@ndb.transactional()
 def check_if_node_comes_online(order_key):
     order = order_key.get()  # type: NodeOrder
     order_id = order.id
@@ -156,17 +155,23 @@ def check_if_node_comes_online(order_key):
 
     statuses = get_nodes_status([n['id'] for n in nodes])
     if all([status == 'running' for status in statuses]):
-        logging.info('Marking nodes %s from node order %s as arrived', nodes, order_id)
-        human_user, app_id = get_app_user_tuple(order.app_user)
-        order.populate(arrival_time=now(),
-                       status=NodeOrderStatus.ARRIVED)
-        order.put()
         iyo_username = get_iyo_username(order.app_user)
-        deferred.defer(add_nodes_to_profile, iyo_username, nodes, _transactional=True)
-        deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED,
-                       _transactional=True)
+        _set_node_status_arrived(order_key, iyo_username, nodes)
     else:
         logging.info('Nodes %s from order %s are not all online yet', nodes, order_id)
+
+
+@ndb.transactional()
+def _set_node_status_arrived(order_key, iyo_username, nodes):
+    order = order_key.get()
+    logging.info('Marking nodes %s from node order %s as arrived', nodes, order_key)
+    human_user, app_id = get_app_user_tuple(order.app_user)
+    order.populate(arrival_time=now(),
+                   status=NodeOrderStatus.ARRIVED)
+    order.put()
+    deferred.defer(add_nodes_to_profile, iyo_username, nodes, _transactional=True)
+    deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED,
+                   _transactional=True)
 
 
 @ndb.transactional()
@@ -335,7 +340,7 @@ def _check_node_status(tff_profile_key, statuses):
                 continue
             if node.status != status:
                 logging.info('Node %s of user %s changed from status "%s" to "%s"',
-                             tff_profile.username, node.id, node.status, status)
+                             node.id, tff_profile.username, node.status, status)
                 should_update = True
                 from_status = node.status
                 node.status = status
