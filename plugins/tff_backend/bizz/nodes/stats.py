@@ -340,7 +340,7 @@ def _check_node_status(tff_profile_key, statuses):
                 from_status = node.status
                 node.status = status
 
-                now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+                now = datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
                 _send_node_status_update_message(tff_profile.app_user, from_status, status, now)
 
         if should_update:
