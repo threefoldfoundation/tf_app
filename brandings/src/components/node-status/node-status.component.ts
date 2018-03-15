@@ -65,7 +65,7 @@ export class NodeStatusComponent implements OnChanges {
       scales: { xAxes: [ { type: 'time', time: { unit: 'hour', displayFormats: { hour: 'HH:mm' }, tooltipFormat: 'HH:mm' } } ] },
     };
     const cpuUsageData = datasets.find(set => set.type === NodeStatsType.CPU);
-    if (cpuUsageData) {
+    if (cpuUsageData && cpuUsageData.data.length) {
       const [ labels, data ] = this._getLabelsAndData(cpuUsageData.data[ 0 ]);
       const cpuUtilisation: LineChart = {
         data: {
@@ -88,15 +88,15 @@ export class NodeStatusComponent implements OnChanges {
     }
     const mbOptions = {
       ...options,
-      scales: { ...options.scales, yAxes: [ { scaleLabel: { display: true, labelString: 'MB' } } ] },
+      scales: { ...options.scales, yAxes: [ { scaleLabel: { display: true, labelString: 'MB/s' } } ] },
       tooltips: {
         callbacks: {
-          label: (item: any) => `${this.decimalPipe.transform(item.yLabel)} MB`,
+          label: (item: any) => `${this.decimalPipe.transform(item.yLabel)} MB/s`,
         },
       },
     };
     const networkIn = datasets.find(set => set.type === NodeStatsType.NETWORK_IN);
-    if (networkIn) {
+    if (networkIn && networkIn.data.length) {
       const [ labels, data ] = this._getLabelsAndData(networkIn.data[ 0 ]);
       const networkChart: LineChart = {
         data: {
@@ -110,7 +110,7 @@ export class NodeStatusComponent implements OnChanges {
       charts.push(networkChart);
     }
     const networkOut = datasets.find(set => set.type === NodeStatsType.NETWORK_OUT);
-    if (networkOut) {
+    if (networkOut && networkOut.data.length) {
       const [ labels, data ] = this._getLabelsAndData(networkOut.data[ 0 ]);
       const networkChart: LineChart = {
         data: {
@@ -124,7 +124,7 @@ export class NodeStatusComponent implements OnChanges {
       charts.push(networkChart);
     }
     const memoryData = datasets.find(set => set.type === NodeStatsType.RAM);
-    if (memoryData) {
+    if (memoryData && memoryData.data.length) {
       const [ labels, data ] = this._getLabelsAndData(memoryData.data[ 0 ]);
       const networkChart: LineChart = {
         data: {
@@ -133,7 +133,15 @@ export class NodeStatusComponent implements OnChanges {
             { label: this.translate.instant('available_ram'), data, fillColor: Colors.green, strokeColor: Colors.green },
           ],
         },
-        options: mbOptions,
+        options: {
+          ...options,
+          scales: { ...options.scales, yAxes: [ { scaleLabel: { display: true, labelString: 'MB' } } ] },
+          tooltips: {
+            callbacks: {
+              label: (item: any) => `${this.decimalPipe.transform(item.yLabel)} MB`,
+            },
+          },
+        },
       };
       charts.push(networkChart);
     }
