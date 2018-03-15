@@ -4,7 +4,7 @@ import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { NodeInfo } from '../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
-import { CreateSignatureData, ParsedTransaction } from '../interfaces/wallet';
+import { CreateSignatureData, CreateTransactionResult, ParsedTransaction } from '../interfaces/wallet';
 import { CryptoTransaction, SupportedAlgorithms } from '../manual_typings/rogerthat';
 
 interface IBrandingActionTypes {
@@ -238,6 +238,9 @@ export class CreateTransactionAction implements Action {
 
 export class CreateTransactionCompleteAction implements Action {
   type = BrandingActionTypes.CREATE_TRANSACTION_COMPLETE;
+
+  constructor(public payload: CreateTransactionResult) {
+  }
 }
 
 export class CreateTransactionFailedAction implements Action {

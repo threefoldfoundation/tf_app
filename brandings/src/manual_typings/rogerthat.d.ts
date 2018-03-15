@@ -43,6 +43,8 @@ export interface CreatePaymentProviderAsset {
 
 export type ColorSchemes = 'light' | 'primary' | 'secondary' | 'danger' | 'dark';
 
+export type PaymentProviderId = 'paycash' | 'threefold' | 'payconiq';
+
 export class PaymentProvider {
   id: string;
   name: string;
@@ -99,6 +101,11 @@ export interface TransactionsList {
   transactions: PaymentTransaction[];
 }
 
+export interface CreateTransactionBaseResult extends PendingPaymentUpdate {
+  provider_id: PaymentProviderId;
+  success: boolean;
+}
+
 export enum PendingPaymentStatus {
   CREATED = 'created',
   SCANNED = 'scanned',
@@ -111,7 +118,7 @@ export enum PendingPaymentStatus {
 }
 
 export interface PendingPaymentUpdate {
-  status: PendingPaymentStatus;
+  status: string;
   transaction_id: string;
 }
 
@@ -532,8 +539,31 @@ export interface RogerthatMenuItem {
   coords: number[];
 }
 
+
+export enum PaymentQRCodeType {
+  TRANSACTION = 1,
+  PAY = 2
+}
+
+export interface PaymentMethod {
+  provider_id: PaymentProviderId;
+  currency: string;
+  amount: number;
+  precision: number;
+}
+
+export interface PayWidgetData {
+  t: PaymentQRCodeType.PAY;
+  result_type: string;
+  methods: PaymentMethod[];
+  memo: string;
+  target: string;
+  message_key: string;
+}
+
 export interface Rogerthat {
   api: RogerthatApi;
+  app: RogerthatApp;
   callbacks: RogerthatCallbacks;
   camera: RogerthatCamera;
   context: (successCallback: (result: any) => void,

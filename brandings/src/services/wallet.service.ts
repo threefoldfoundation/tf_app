@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators';
 import { configuration } from '../configuration';
-import { CreateSignatureData, ParsedTransaction, Transaction, TransactionList } from '../interfaces/wallet';
+import { CreateSignatureData, CreateTransactionResult, ParsedTransaction, Transaction, TransactionList } from '../interfaces/wallet';
 import { CryptoTransaction } from '../manual_typings/rogerthat';
 import { getTransactionAmount } from '../util/wallet';
 
@@ -25,7 +25,7 @@ export class WalletService {
   }
 
   createTransaction(data: CryptoTransaction) {
-    return this.http.post(`${configuration.wallet_url}/transactions`, data);
+    return this.http.post<CreateTransactionResult>(`${configuration.wallet_url}/transactions`, data);
   }
 
   private _convertTransaction(transaction: Transaction, address: string): ParsedTransaction {

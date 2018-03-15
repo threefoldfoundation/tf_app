@@ -8,7 +8,7 @@ import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import { GetAddresssAction, ScanQrCodeAction } from '../../actions';
 import { IAppState } from '../../app/app.state';
-import { ADDRESS_LENGTH, CreateSignatureData, KEY_NAME, RIVINE_ALGORITHM } from '../../interfaces/wallet';
+import { ADDRESS_LENGTH, CreateSignatureData, KEY_NAME, ParsedTransaction, RIVINE_ALGORITHM } from '../../interfaces/wallet';
 import { CryptoAddress, QrCodeScannedContent } from '../../manual_typings/rogerthat';
 import { getAddress, getQrCodeContent } from '../../state/rogerthat.state';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
@@ -74,8 +74,8 @@ export class SendPageComponent implements OnInit, OnDestroy {
         amount: Math.round(this.data.amount * Math.pow(10, 5)),
       },
     });
-    modal.onDidDismiss((successful: boolean) => {
-      if (successful) {
+    modal.onDidDismiss((transaction: ParsedTransaction | null) => {
+      if (transaction) {
         const config = {
           title: this.translate.instant('transaction_complete'),
           message: this.translate.instant('transaction_complete_message'),

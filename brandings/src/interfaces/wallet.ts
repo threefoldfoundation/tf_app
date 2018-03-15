@@ -59,9 +59,14 @@ export interface ParsedTransaction {
   receiving: boolean;
 }
 
+export interface CreateTransactionResult {
+  // todo rivine endpoint returns nothing yet
+}
+
 export const ADDRESS_LENGTH = 76;
 export const COIN_TO_HASTINGS_PRECISION = 24;
 export const COIN_TO_HASTINGS = Math.pow(10, COIN_TO_HASTINGS_PRECISION);
 export const CURRENCY_TFT = 'TFT';
 export const KEY_NAME = 'threefold';
+export const PROVIDER_ID = 'threefold';
 export const RIVINE_ALGORITHM = 'ed25519';

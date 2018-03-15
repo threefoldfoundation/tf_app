@@ -27,6 +27,7 @@
   },
   "fee_x": "{{ fee }} fee",
   "from_x": "From {{ timestamp }}",
+  "the_transaction_has_been_canceled": "The transaction has been canceled",
   "global_stats": "Global stats",
   "hide_full_description": "Hide full description",
   "incoming_traffic": "Incoming network traffic",

@@ -152,6 +152,7 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
     case BrandingActionTypes.CREATE_TRANSACTION_COMPLETE:
       return {
         ...state,
+        createdTransaction: action.payload,
         createTransactionStatus: apiRequestSuccess,
       };
     case BrandingActionTypes.CREATE_TRANSACTION_FAILED:
