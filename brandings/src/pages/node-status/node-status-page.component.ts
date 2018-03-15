@@ -6,7 +6,7 @@ import { GetNodeStatusAction } from '../../actions';
 import { IAppState } from '../../app/app.state';
 import { NodeInfo } from '../../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
-import { getNodesStatus, getUserDataNodeStatus } from '../../state/app.state';
+import { getNodes, getNodesStatus } from '../../state/app.state';
 
 @Component({
   selector: 'node-status-page',
@@ -23,7 +23,7 @@ export class NodeStatusPageComponent implements OnInit {
 
   ngOnInit() {
     this.store.dispatch(new GetNodeStatusAction());
-    this.nodes$ = this.store.pipe(select(getUserDataNodeStatus));
+    this.nodes$ = this.store.pipe(select(getNodes));
     this.status$ = this.store.pipe(select(getNodesStatus));
   }
 

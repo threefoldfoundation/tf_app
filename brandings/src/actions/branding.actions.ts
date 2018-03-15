@@ -1,5 +1,5 @@
 import { Action } from '@ngrx/store';
-import { AgendaEvent, EventPresence, UpdatePresenceData } from '../interfaces/agenda.interfaces';
+import { EventPresence, UpdatePresenceData } from '../interfaces/agenda.interfaces';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { NodeInfo } from '../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
@@ -26,9 +26,6 @@ interface IBrandingActionTypes {
   GET_NODE_STATS: 'Get node stats';
   GET_NODE_STATS_COMPLETE: 'Get node stats complete';
   GET_NODE_STATS_FAILED: 'Get node stats failed';
-  UPDATE_NODE_STATUS: 'Update node status';
-  UPDATE_NODE_STATUS_COMPLETE: 'Update node status complete';
-  UPDATE_NODE_STATUS_FAILED: 'Update node status failed';
   GET_TRANSACTIONS: 'Get transactions';
   GET_TRANSACTIONS_COMPLETE: 'Get transactions complete';
   GET_TRANSACTIONS_FAILED: 'Get transactions failed';
@@ -59,9 +56,6 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   GET_NODE_STATS: 'Get node stats',
   GET_NODE_STATS_COMPLETE: 'Get node stats complete',
   GET_NODE_STATS_FAILED: 'Get node stats failed',
-  UPDATE_NODE_STATUS: 'Update node status',
-  UPDATE_NODE_STATUS_COMPLETE: 'Update node status complete',
-  UPDATE_NODE_STATUS_FAILED: 'Update node status failed',
   GET_TRANSACTIONS: 'Get transactions',
   GET_TRANSACTIONS_COMPLETE: 'Get transactions complete',
   GET_TRANSACTIONS_FAILED: 'Get transactions failed',
@@ -159,6 +153,9 @@ export class GetNodeStatusAction implements Action {
 
 export class GetNodeStatusCompleteAction implements Action {
   type = BrandingActionTypes.GET_NODE_STATUS_COMPLETE;
+
+  constructor(public payload: NodeInfo[]) {
+  }
 }
 
 export class GetNodeStatusFailedAction implements Action {
@@ -266,9 +263,9 @@ export type BrandingActions
   | GetNodeStatsAction
   | GetNodeStatsCompleteAction
   | GetNodeStatsFailedAction
-  | UpdateNodeStatusAction
-  | UpdateNodeStatusCompleteAction
-  | UpdateNodeStatusFailedAction
+  | GetNodeStatusAction
+  | GetNodeStatusCompleteAction
+  | GetNodeStatusFailedAction
   | GetTransactionsAction
   | GetTransactionsCompleteAction
   | GetTransactionsFailedAction

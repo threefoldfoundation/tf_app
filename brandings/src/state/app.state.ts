@@ -20,6 +20,7 @@ export interface IBrandingState {
   eventPresence: EventPresence | null;
   eventPresenceStatus: ApiRequestStatus;
   updateEventPresenceStatus: ApiRequestStatus;
+  nodes: NodeInfo[];
   nodesStatus: ApiRequestStatus;
   transactions: ParsedTransaction[];
   transactionsStatus: ApiRequestStatus;
@@ -40,6 +41,7 @@ export const initialState: IBrandingState = {
   eventPresence: null,
   eventPresenceStatus: apiRequestInitial,
   updateEventPresenceStatus: apiRequestInitial,
+  nodes: [],
   nodesStatus: apiRequestInitial,
   transactions: [],
   transactionsStatus: apiRequestInitial,
@@ -61,6 +63,7 @@ export const getEventPresence = createSelector(getAppState, s => s.eventPresence
 export const getEventPresenceStatus = createSelector(getAppState, s => s.eventPresenceStatus);
 export const updateEventPresenceStatus = createSelector(getAppState, s => s.updateEventPresenceStatus);
 
+export const getNodes = createSelector(getAppState, s => s.nodes);
 export const getNodesStatus = createSelector(getAppState, s => s.nodesStatus);
 
 export const getAgendaEvents = createSelector(getServiceData, data => data.agenda_events || []);

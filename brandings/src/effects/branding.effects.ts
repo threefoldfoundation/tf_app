@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
+import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
-import { catchError, first, map, switchMap } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import * as actions from '../actions';
 import { CreateTransactionDataCompleteAction, CreateTransactionDataFailedAction } from '../actions';
 import { IAppState } from '../app/app.state';
@@ -45,21 +46,20 @@ export class BrandingEffects {
     .ofType<actions.GetNodeStatusAction>(actions.BrandingActionTypes.GET_NODE_STATUS)
     .pipe(switchMap(() => this.store.pipe(
       select(getUserDataNodeStatus),
-      first(),
       map(result => {
         const hasRunningNodes = result.some(node => node.status === NodeStatus.RUNNING);
         if (hasRunningNodes) {
-          return new actions.UpdateNodeStatusAction();
+          return new actions.GetNodeStatsAction(result);
         }
-        return new actions.GetNodeStatusCompleteAction();
+        return new actions.GetNodeStatusCompleteAction(result);
       }),
       catchError(err => handleApiError(actions.GetNodeStatusFailedAction, err)))));
 
   @Effect() updateNodeStatus$ = this.actions$.pipe(
-    ofType<actions.UpdateNodeStatusAction>(actions.BrandingActionTypes.UPDATE_NODE_STATUS),
+    ofType<actions.GetNodeStatsAction>(actions.BrandingActionTypes.GET_NODE_STATS),
     switchMap(() => this.nodeService.updateNodeStatus().pipe(
-      map(() => new actions.UpdateNodeStatusCompleteAction()),
-      catchError(err => handleApiError(actions.UpdateNodeStatusFailedAction, err))),
+      map(result => new actions.GetNodeStatsCompleteAction(result)),
+      catchError(err => handleApiError(actions.GetNodeStatsFailedAction, err))),
     ));
 
   @Effect() getTransactions = this.actions$.pipe(
