@@ -99,6 +99,10 @@ class TffProfile(NdbModel):
     def list_by_node_status(cls, status):
         return cls.query().filter(cls.nodes.status == status)
 
+    @classmethod
+    def list_all(cls):
+        return cls.query()
+
 
 class ProfilePointer(NdbModel):
     NAMESPACE = NAMESPACE
