@@ -178,12 +178,21 @@ def _set_node_status_arrived(order_key, iyo_username, nodes):
 @returns(TffProfile)
 @arguments(iyo_username=unicode, nodes=[dict])
 def add_nodes_to_profile(iyo_username, nodes):
+    dummy = TffProfile.create_key("threefold_dummy_1").get()
     profile = TffProfile.create_key(iyo_username).get()
     existing_ids = [n.id for n in profile.nodes]
+    dummies_to_remove = list()
     for node in nodes:
         if node['id'] not in existing_ids:
             profile.nodes.append(NodeInfo(**node))
+        for dni in dummy.nodes:
+            if dni.id == node['id']:
+                dummies_to_remove.append(dni)
     profile.put()
+    if dummies_to_remove:
+        for dni in dummies_to_remove:
+            dummy.nodes.remove(dni)
+        dummy.put()
     user, app_id = get_app_user_tuple(profile.app_user)
     data = {'nodes': [n.to_dict() for n in profile.nodes]}
     deferred.defer(system.put_user_data, get_rogerthat_api_key(), user.email(), app_id, data, _transactional=True)
@@ -321,6 +330,23 @@ def check_node_statuses():
     tasks = _get_node_info_tasks()
     statuses = _get_node_statuses(tasks)
     run_job(_get_profiles_with_node, [], _check_node_status, [statuses])
+    all_tffs = TffProfile.list_all()
+    dummy = TffProfile.create_key("threefold_dummy_1").get()
+    known_nodes = set()
+    for tp in all_tffs:
+        for node in tp.nodes:
+            known_nodes.add(node.id)
+    dummy = TffProfile.create_key("threefold_dummy_1").get()
+    dirty = False
+    for ns in statuses:
+        if not ns in known_nodes:
+            ni = NodeInfo()
+            ni.id = ns
+            ni.serial = "-"
+            dummy.nodes.append(ni)
+            dirty = True
+    if dirty:
+        dummy.put()
 
 
 def _get_profiles_with_node():
@@ -345,7 +371,8 @@ def _check_node_status(tff_profile_key, statuses):
                 node.status = status
 
                 now = datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-                _send_node_status_update_message(tff_profile.app_user, from_status, status, now)
+                if tff_profile.username != 'threefold_dummy_1':
+                    _send_node_status_update_message(tff_profile.app_user, from_status, status, now)
 
         if should_update:
             tff_profile.put()
