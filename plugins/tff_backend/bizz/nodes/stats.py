@@ -365,7 +365,7 @@ def _check_node_status(tff_profile_key, statuses):
             if not status:
                 # Node that possibly has never been online yet
                 logging.warn('Expected to find node %s in the response for user %s', node.id, tff_profile.username)
-                status = 'offline'
+                status = 'halted'
             from_status = node.status
             if from_status != status:
                 logging.info('Node %s of user %s changed from status "%s" to "%s"',
