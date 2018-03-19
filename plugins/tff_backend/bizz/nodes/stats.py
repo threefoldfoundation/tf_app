@@ -154,27 +154,30 @@ def check_if_node_comes_online(order_key):
         raise BusinessException('Could not find nodes for sale order %s on odoo' % order_id)
 
     statuses = get_nodes_status([n['id'] for n in nodes])
+    iyo_username = get_iyo_username(order.app_user)
+    profile = TffProfile.create_key(iyo_username).get()
+    if len(profile.nodes) != len(statuses):
+        logging.info('Saving nodes to profile %s: %s', iyo_username, nodes)
+        deferred.defer(add_nodes_to_profile, iyo_username, nodes)
     if all([status == 'running' for status in statuses]):
-        iyo_username = get_iyo_username(order.app_user)
-        _set_node_status_arrived(order_key, iyo_username, nodes)
+        _set_node_status_arrived(order_key, nodes)
     else:
         logging.info('Nodes %s from order %s are not all online yet', nodes, order_id)
 
 
 @ndb.transactional()
-def _set_node_status_arrived(order_key, iyo_username, nodes):
+def _set_node_status_arrived(order_key, nodes):
     order = order_key.get()
     logging.info('Marking nodes %s from node order %s as arrived', nodes, order_key)
     human_user, app_id = get_app_user_tuple(order.app_user)
     order.populate(arrival_time=now(),
                    status=NodeOrderStatus.ARRIVED)
     order.put()
-    deferred.defer(add_nodes_to_profile, iyo_username, nodes, _transactional=True)
     deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_POWERED,
                    _transactional=True)
 
 
-@ndb.transactional()
+@ndb.transactional(xg=True)
 @returns(TffProfile)
 @arguments(iyo_username=unicode, nodes=[dict])
 def add_nodes_to_profile(iyo_username, nodes):
