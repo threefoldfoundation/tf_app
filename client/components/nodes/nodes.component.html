@@ -27,7 +27,8 @@
     <mat-header-cell *matHeaderCellDef>
       {{ 'tff.status' | translate }}
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">
+    <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
+      <mat-icon [color]="getNodeStatusColor(row.node.status)">{{ getNodeStatusIcon(row.node.status) }}</mat-icon>
       <p>{{ ('tff.node_status_' + row.node.status) | translate }}</p>
     </mat-cell>
   </ng-container>
