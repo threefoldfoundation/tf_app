@@ -334,7 +334,6 @@ def check_node_statuses():
     statuses = _get_node_statuses(tasks)
     run_job(_get_profiles_with_node, [], _check_node_status, [statuses])
     all_tffs = TffProfile.list_all()
-    dummy = TffProfile.create_key("threefold_dummy_1").get()
     known_nodes = set()
     for tp in all_tffs:
         for node in tp.nodes:
@@ -364,17 +363,18 @@ def _check_node_status(tff_profile_key, statuses):
         for node in tff_profile.nodes:
             status = statuses.get(node.id)
             if not status:
+                # Node that possibly has never been online yet
                 logging.warn('Expected to find node %s in the response for user %s', node.id, tff_profile.username)
-                continue
-            if node.status != status:
+                status = 'offline'
+            from_status = node.status
+            if from_status != status:
                 logging.info('Node %s of user %s changed from status "%s" to "%s"',
-                             node.id, tff_profile.username, node.status, status)
+                             node.id, tff_profile.username, from_status, status)
                 should_update = True
-                from_status = node.status
                 node.status = status
 
                 now = datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-                if tff_profile.username != 'threefold_dummy_1':
+                if tff_profile.username != 'threefold_dummy_1' and from_status:
                     _send_node_status_update_message(tff_profile.app_user, from_status, status, now)
 
         if should_update:
