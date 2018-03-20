@@ -7,13 +7,13 @@ import { first, map, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import { CreateSignatureDataAction, CreateTransactionDataAction } from '../../actions';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
-import { CreateSignatureData, CreateTransactionResult, KEY_NAME, ParsedTransaction, RIVINE_ALGORITHM } from '../../interfaces/wallet';
+import { CreateSignatureData, CreateTransactionResult, KEY_NAME, RIVINE_ALGORITHM } from '../../interfaces/wallet';
 import { CryptoTransaction, CryptoTransactionData } from '../../manual_typings/rogerthat';
 import {
   createTransactionStatus,
+  getCreatedTransaction,
   getPendingTransaction,
   getPendingTransactionStatus,
-  getCreatedTransaction,
   IBrandingState,
 } from '../../state/app.state';
 import { getTransactionAmount } from '../../util/wallet';

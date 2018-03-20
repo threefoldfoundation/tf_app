@@ -101,11 +101,6 @@ export interface TransactionsList {
   transactions: PaymentTransaction[];
 }
 
-export interface CreateTransactionBaseResult extends PendingPaymentUpdate {
-  provider_id: PaymentProviderId;
-  success: boolean;
-}
-
 export enum PendingPaymentStatus {
   CREATED = 'created',
   SCANNED = 'scanned',
@@ -120,6 +115,11 @@ export enum PendingPaymentStatus {
 export interface PendingPaymentUpdate {
   status: string;
   transaction_id: string;
+}
+
+export interface CreateTransactionBaseResult extends PendingPaymentUpdate {
+  provider_id: PaymentProviderId;
+  success: boolean;
 }
 
 export type GetTransactionsTypes = 'confirmed' | 'pending';
@@ -539,12 +539,6 @@ export interface RogerthatMenuItem {
   coords: number[];
 }
 
-
-export enum PaymentQRCodeType {
-  TRANSACTION = 1,
-  PAY = 2
-}
-
 export interface PaymentMethod {
   provider_id: PaymentProviderId;
   currency: string;
@@ -553,7 +547,7 @@ export interface PaymentMethod {
 }
 
 export interface PayWidgetData {
-  t: PaymentQRCodeType.PAY;
+  t: 2;
   result_type: string;
   methods: PaymentMethod[];
   memo: string;

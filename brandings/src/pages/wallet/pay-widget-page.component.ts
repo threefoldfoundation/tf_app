@@ -17,7 +17,7 @@ import { ConfirmSendPageComponent } from './confirm-send-page.component';
   selector: 'pay-widget-page-component',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'pay-widget-page.component',
+  templateUrl: 'pay-widget-page.component.html',
 })
 export class PayWidgetPageComponent implements OnInit, OnDestroy {
   addressStatus$: Observable<ApiRequestStatus<RogerthatError>>;

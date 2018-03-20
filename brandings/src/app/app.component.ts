@@ -4,7 +4,7 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { Actions } from '@ngrx/effects';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
-import { PaymentQRCodeType, PayWidgetData } from '../manual_typings/rogerthat';
+import { PaymentQRCodeType } from '../interfaces/rogerthat';
 import {
   AgendaPageComponent,
   GlobalStatsPageComponent,
@@ -104,7 +104,7 @@ export class AppComponent implements OnInit {
           // Currently not supported, just show the wallet instead
           return [ WalletPageComponent, null ];
         case PaymentQRCodeType.PAY:
-          const payContext: PayWidgetData = data.context;
+          const payContext: any = data.context; // type PayWidgetData
           return [ PayWidgetPageComponent, { payContext } ];
         default:
           if (data.context.result_type === 'plugin') {
