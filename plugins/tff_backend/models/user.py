@@ -64,7 +64,9 @@ class KYCInformation(NdbModel):
 class NodeInfo(NdbModel):
     id = ndb.StringProperty()
     serial_number = ndb.StringProperty()
-    status = ndb.StringProperty(default='offline')
+    status = ndb.StringProperty(default='halted')
+    status_date = ndb.DateTimeProperty()  # date the status was changed to current status
+    last_check = ndb.DateTimeProperty()
 
 
 class TffProfile(NdbModel):

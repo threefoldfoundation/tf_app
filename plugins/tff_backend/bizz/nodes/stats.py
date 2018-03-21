@@ -26,6 +26,7 @@ from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
 
 import influxdb
+from dateutil import relativedelta
 from framework.bizz.job import run_job
 from framework.plugin_loader import get_config
 from framework.utils import now
@@ -87,7 +88,7 @@ def _get_task_url(task):
 
 @returns([object])
 @arguments(tasks=[Task], callback=types.FunctionType, deadline=int)
-def _wait_for_tasks(tasks, callback=None, deadline=120):
+def _wait_for_tasks(tasks, callback=None, deadline=30):
     results = []
     start_time = time.time()
     incomplete_tasks = {t.guid: t for t in tasks}
@@ -338,14 +339,11 @@ def check_node_statuses():
     for tp in all_tffs:
         for node in tp.nodes:
             known_nodes.add(node.id)
-    dummy = TffProfile.create_key("threefold_dummy_1").get()
+    dummy = TffProfile.create_key('threefold_dummy_1').get()
     dirty = False
     for ns in statuses:
-        if not ns in known_nodes:
-            ni = NodeInfo()
-            ni.id = ns
-            ni.serial = "-"
-            dummy.nodes.append(ni)
+        if ns not in known_nodes and dummy:
+            dummy.nodes.append(NodeInfo(id=ns))
             dirty = True
     if dirty:
         dummy.put()
@@ -359,6 +357,7 @@ def _get_profiles_with_node():
 def _check_node_status(tff_profile_key, statuses):
     try:
         tff_profile = tff_profile_key.get()  # type: TffProfile
+        now_ = datetime.utcnow()
         should_update = False
         for node in tff_profile.nodes:
             status = statuses.get(node.id)
@@ -367,22 +366,29 @@ def _check_node_status(tff_profile_key, statuses):
                 logging.warn('Expected to find node %s in the response for user %s', node.id, tff_profile.username)
                 status = 'halted'
             from_status = node.status
+            node.last_check = now_
+            if not node.status_date:
+                node.status_date = now_
             if from_status != status:
                 logging.info('Node %s of user %s changed from status "%s" to "%s"',
                              node.id, tff_profile.username, from_status, status)
+                node.status_date = now_
                 should_update = True
                 node.status = status
+            # Only notify after this status has been the same for 15 minutes
+            notification_date = node.status_date + relativedelta.relativedelta(minutes=15)
+            max_notification_date = node.status_date + relativedelta.relativedelta(minutes=20)
+            must_notify = notification_date < now_ < max_notification_date
+            if must_notify and tff_profile.username != 'threefold_dummy_1':
+                now = now_.isoformat() + 'Z'  # 'Z' indicates UTC time
+                deferred.defer(_send_node_status_update_message, tff_profile.app_user, status, now, _transactional=True)
 
-                now = datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-                if tff_profile.username != 'threefold_dummy_1' and from_status:
-                    _send_node_status_update_message(tff_profile.app_user, from_status, status, now)
-
+        tff_profile.put()
         if should_update:
-            tff_profile.put()
             deferred.defer(_put_node_status_user_data, tff_profile_key, _transactional=True)
         deferred.defer(_get_and_save_node_stats, tff_profile.nodes, _transactional=True)
     except Exception as e:
-        msg = 'Failure in checking node status for %s.' % tff_profile_key
+        msg = 'Failure in checking node status for %s. %s' % (tff_profile_key, e.message)
         logging.exception(e.message, _suppress=False)
         raise deferred.PermanentTaskFailure(msg)
 
@@ -394,8 +400,8 @@ def _put_node_status_user_data(tff_profile_key):
     system.put_user_data(get_rogerthat_api_key(), user.email(), app_id, data)
 
 
-def _send_node_status_update_message(app_user, from_status, to_status, now):
-    if from_status == u'running':
+def _send_node_status_update_message(app_user, to_status, now):
+    if to_status == u'halted':
         subject = u'Connection to your node has been lost since %s' % now
         msg = u'Dear ThreeFold Member,\n\n' \
               u'Connection to your node has been lost since %s. Please check the network connection of your node.\n' \
@@ -409,7 +415,7 @@ def _send_node_status_update_message(app_user, from_status, to_status, now):
               u'The ThreeFold Team' % (now)
     else:
         logging.debug(
-            "_send_node_status_update_message not sending message for status '%s' => '%s'", from_status, to_status)
+            "_send_node_status_update_message not sending message for status '%s' => '%s'", to_status)
         return
 
     send_message_and_email(app_user, msg, subject)
@@ -481,7 +487,7 @@ def _get_and_save_node_stats(nodes):
 
 def get_influx_client():
     config = get_config(NAMESPACE).influxdb  # type: InfluxDBConfig
-    if config is MISSING:
+    if config is MISSING or DEBUG:
         return None
     return influxdb.InfluxDBClient(config.host, config.port, config.username, config.password, config.database,
                                    config.ssl, config.ssl)

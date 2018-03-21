@@ -27,10 +27,10 @@ from plugins.tff_backend.utils.app import get_app_user_tuple
 
 
 def send_message_and_email(app_user, message, subject):
-    human_user, app_id = get_app_user_tuple(app_user)
-    member = MemberTO(member=human_user.email(), app_id=app_id, alert_flags=0)
-    deferred.defer(send_rogerthat_message, member, message, _transactional=ndb.in_transaction())
     if not DEBUG:
+        human_user, app_id = get_app_user_tuple(app_user)
+        member = MemberTO(member=human_user.email(), app_id=app_id, alert_flags=0)
+        deferred.defer(send_rogerthat_message, member, message, _transactional=ndb.in_transaction())
         iyo_username = get_iyo_username(app_user)
         message += '\n\nKind regards,\nThe ThreeFold Team'
         if iyo_username is None:
@@ -38,3 +38,5 @@ def send_message_and_email(app_user, message, subject):
                           '\nSubject: %s\nMessage:%s', app_user, subject, message)
         else:
             deferred.defer(send_intercom_email, iyo_username, subject, message, _transactional=ndb.in_transaction())
+    else:
+        logging.info('send_message_and_email %s %s %s', app_user, message, subject)

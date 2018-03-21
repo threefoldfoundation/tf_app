@@ -19,7 +19,8 @@ import {
   SearchUsersQuery,
   TffProfile,
   TransactionList,
-  UserList, UserNodeStatus,
+  UserList,
+  UserNodeStatus,
   WalletBalance,
 } from '../interfaces';
 

@@ -12,6 +12,8 @@ export interface NodeInfo {
   status: NodeStatus;
   id: string;
   serial_number: string;
+  status_date?: string;
+  last_check?: string;
 }
 
 export interface TffProfile {

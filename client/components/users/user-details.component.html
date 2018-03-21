@@ -7,7 +7,10 @@
   <mat-list>
     <mat-list-item *ngFor="let node of tffProfile.nodes">
       <h3 matLine>{{ node.serial_number }}</h3>
-      <p matLine>{{ ('tff.node_status_' + node.status) | translate }}</p>
+      <p matLine>{{ getStatusText(node) }}</p>
+      <p matLine *ngIf="node.last_check">
+        {{ 'tff.last_checked_date' | translate : {date: node.last_check | date : 'medium' } }}
+      </p>
       <p matLine>{{ node.id }}</p>
     </mat-list-item>
   </mat-list>

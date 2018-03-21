@@ -47,6 +47,15 @@ export class NodeStatusComponent implements OnChanges {
     }
   }
 
+  getStatusText(node: NodeInfo) {
+    const status = this.translate.instant('node_status_' + node.status);
+    if (node.status_date) {
+      const date = this.datePipe.transform(node.status_date, 'medium');
+      return this.translate.instant('status_since_x', { status, date });
+    }
+    return status;
+  }
+
   getIcon(node: NodeInfo) {
     return node.status === 'running' ? 'checkmark' : 'close';
   }
