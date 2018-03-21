@@ -79,7 +79,7 @@ export class BrandingEffects {
   @Effect() createTransactionDataSuccess$ = this.actions$.pipe(
     ofType<CreateTransactionDataCompleteAction>(actions.RogerthatActionTypes.CREATE_TRANSACTION_DATA_COMPLETE),
     switchMap(action => this.walletService.createTransaction(action.payload).pipe(
-      map(() => new actions.CreateTransactionCompleteAction()),
+      map(result => new actions.CreateTransactionCompleteAction(result)),
       catchError(err => handleError(actions.CreateTransactionFailedAction, err))),
     ));
 

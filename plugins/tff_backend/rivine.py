@@ -152,6 +152,7 @@ def get_output_ids(address):
 @returns(CryptoTransactionTO)
 @arguments(from_address=unicode, to_address=unicode, amount=long)
 def create_signature_data(from_address, to_address, amount):
+    logging.info('create_signature_data(%s, %s, %s)', from_address, to_address, amount)
     transactions = get_output_ids(from_address)
     transaction = CryptoTransactionTO(minerfees=unicode(COIN_TO_HASTINGS), data=[], from_address=from_address,
                                       to_address=to_address)
@@ -248,8 +249,8 @@ def create_transaction(data):
     payload = create_transaction_payload(data)
     url = '%s/transactionpool/transactions' % get_config(NAMESPACE).rivine_url
     response = urlfetch.fetch(url=url, payload=json.dumps(payload), method=urlfetch.POST, deadline=10)
+    logging.info('%s %d %s', response.status_code, response.content)
     if response.status_code != 200:
-        logging.warning('%s %d: %s', url, response.status_code, response.content)
         try:
             err_msg = json.loads(response.content)['message']
         except Exception:

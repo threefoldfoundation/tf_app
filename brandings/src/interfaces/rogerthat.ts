@@ -3,6 +3,10 @@ import { NodeInfo } from './node-status.interfaces';
 
 export type UserData = Readonly<Partial<UserDataInternal>>;
 
+export enum PaymentQRCodeType {
+  TRANSACTION = 1,
+  PAY = 2
+}
 
 export interface UserDataInternal {
   has_referrer: boolean;

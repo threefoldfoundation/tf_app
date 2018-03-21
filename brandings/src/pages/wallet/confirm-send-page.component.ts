@@ -5,12 +5,17 @@ import { AlertController, NavParams, ViewController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { first, map, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { CreateSignatureDataAction, CreateTransactionAction } from '../../actions';
-import { CreateTransactionDataAction } from '../../actions/rogerthat.actions';
+import { CreateSignatureDataAction, CreateTransactionDataAction } from '../../actions';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
-import { CreateSignatureData, KEY_NAME, RIVINE_ALGORITHM } from '../../interfaces/wallet';
+import { CreateSignatureData, CreateTransactionResult, KEY_NAME, RIVINE_ALGORITHM } from '../../interfaces/wallet';
 import { CryptoTransaction, CryptoTransactionData } from '../../manual_typings/rogerthat';
-import { createTransactionStatus, getPendingTransaction, getPendingTransactionStatus, IBrandingState } from '../../state/app.state';
+import {
+  createTransactionStatus,
+  getCreatedTransaction,
+  getPendingTransaction,
+  getPendingTransactionStatus,
+  IBrandingState,
+} from '../../state/app.state';
 import { getTransactionAmount } from '../../util/wallet';
 
 @Component({
@@ -23,6 +28,7 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
   pendingTransactionStatus$: Observable<ApiRequestStatus>;
   createTransactionStatus$: Observable<ApiRequestStatus>;
   disableSubmit$: Observable<boolean>;
+  transaction$: Observable<CreateTransactionResult | null>;
 
   private _transactionCompleteSub: Subscription;
 
@@ -34,7 +40,7 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
   }
 
   dismiss() {
-    this.viewCtrl.dismiss(false);
+    this.viewCtrl.dismiss(null);
   }
 
   ngOnInit() {
@@ -43,13 +49,16 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
     this.pendingTransaction$ = this.store.pipe(select(getPendingTransaction));
     this.pendingTransactionStatus$ = this.store.pipe(select(getPendingTransactionStatus));
     this.createTransactionStatus$ = this.store.pipe(select(createTransactionStatus));
+    this.transaction$ = this.store.pipe(select(getCreatedTransaction));
     this.disableSubmit$ = this.pendingTransactionStatus$.pipe(
       withLatestFrom(this.createTransactionStatus$),
       map(([ pending, create ]) => pending.loading || create.loading),
     );
-    this._transactionCompleteSub = this.createTransactionStatus$.subscribe(status => {
+    this._transactionCompleteSub = this.createTransactionStatus$.pipe(
+      withLatestFrom(this.transaction$),
+    ).subscribe(([ status, transaction ]) => {
       if (status.success) {
-        this.viewCtrl.dismiss(true);
+        this.viewCtrl.dismiss(transaction);
       }
     });
   }
