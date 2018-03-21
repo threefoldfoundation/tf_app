@@ -30,7 +30,7 @@ export class PayWidgetPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    const payContext: PayWidgetData = this.navParams.get('signatureData');
+    const payContext: PayWidgetData = this.navParams.get('payContext');
     const threefoldMethod = payContext.methods.find(m => m.provider_id === PROVIDER_ID);
     if (!threefoldMethod) {
       this.exitWithError({ code: 'provider_not_supported', message: `Provider ${payContext.methods[ 0 ].provider_id} is not supported` });
