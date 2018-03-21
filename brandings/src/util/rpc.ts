@@ -17,16 +17,14 @@ export function transformApiCallErrorResponse(response: ApiCallResult): ApiReque
 
 export function transformErrorResponse<T = any>(response: HttpErrorResponse): ApiRequestStatus<T> {
   let apiError: ApiError<T>;
-  if (typeof response.error === 'object') {
+  if (typeof response.error === 'object' && !(response.error instanceof ProgressEvent)) {
     apiError = response.error;
   } else {
     // Most likely a non-json response
     apiError = {
       status_code: response.status,
       error: response.statusText,
-      data: <any>{
-        response: response.error,
-      },
+      data: <any>{},
     };
   }
   return {
