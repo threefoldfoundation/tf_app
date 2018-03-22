@@ -5,7 +5,8 @@
       <ion-avatar item-start>
         <ion-icon [name]="getIcon(node)" [color]="getIconColor(node)" style="font-size: 40px;"></ion-icon>
       </ion-avatar>
-      <h2>{{ node.serial_number}} - {{ ('node_' + node.status ) | translate }}</h2>
+      <h2>{{ node.serial_number}}</h2>
+      <p>{{ getStatusText(node) }}</p>
     </ion-item>
   </ion-card>
   <ion-card *ngFor="let chart of charts[node.id]">

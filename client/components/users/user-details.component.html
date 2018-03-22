@@ -2,16 +2,6 @@
 <a [routerLink]="['/users', tffProfile.referrer_username]" target="_blank" *ngIf="tffProfile.referrer_username">
   {{ 'tff.referred_by_x' | translate : { user: tffProfile.referrer_username } }}
 </a>
-<div *ngIf="tffProfile.nodes.length">
-  <h4>{{ 'tff.nodes' | translate }}</h4>
-  <mat-list>
-    <mat-list-item *ngFor="let node of tffProfile.nodes">
-      <h3 matLine>{{ node.serial_number }}</h3>
-      <p matLine>{{ ('tff.node_status_' + node.status) | translate }}</p>
-      <p matLine>{{ node.id }}</p>
-    </mat-list-item>
-  </mat-list>
-</div>
 <mat-accordion>
   <mat-expansion-panel>
     <mat-expansion-panel-header>

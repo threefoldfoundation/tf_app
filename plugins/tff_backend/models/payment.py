@@ -73,6 +73,7 @@ class ThreeFoldBaseTransaction(NdbModel):
     token = ndb.StringProperty()
     token_type = ndb.StringProperty()
     amount = ndb.IntegerProperty()
+    precision = ndb.IntegerProperty(default=2)
     memo = ndb.StringProperty()
     app_users = ndb.UserProperty(repeated=True)
     from_user = ndb.UserProperty()

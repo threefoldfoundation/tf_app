@@ -45,7 +45,7 @@ from plugins.tff_backend.bizz.intercom_helpers import tag_intercom_users, Interc
 from plugins.tff_backend.bizz.iyo.see import get_see_document, sign_see_document, create_see_document
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
 from plugins.tff_backend.bizz.messages import send_message_and_email
-from plugins.tff_backend.bizz.nodes.stats import add_nodes_to_profile
+from plugins.tff_backend.bizz.nodes.stats import assign_nodes_to_user
 from plugins.tff_backend.bizz.odoo import create_odoo_quotation, update_odoo_quotation, QuotationState, \
     confirm_odoo_quotation, get_nodes_from_odoo
 from plugins.tff_backend.bizz.rogerthat import put_user_data, create_error_message
@@ -494,7 +494,7 @@ def create_node_order(data):
     order.put()
     iyo_username = get_iyo_username(app_user)
     email, app_id = get_app_user_tuple(app_user)
-    deferred.defer(add_nodes_to_profile, iyo_username, nodes)
+    deferred.defer(assign_nodes_to_user, iyo_username, nodes)
     deferred.defer(set_hoster_status_in_user_data, order.app_user, False)
     deferred.defer(add_user_to_role, UserDetailsTO(email=email.email(), app_id=app_id), RogerthatRoles.HOSTERS)
     deferred.defer(tag_intercom_users, IntercomTags.HOSTER, [iyo_username])

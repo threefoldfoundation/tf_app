@@ -18,7 +18,7 @@ import logging
 
 from framework.bizz.job import run_job
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-from plugins.tff_backend.bizz.nodes.stats import add_nodes_to_profile
+from plugins.tff_backend.bizz.nodes.stats import assign_nodes_to_user
 from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo
 from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 
@@ -38,5 +38,5 @@ def _set_node_id(order_key):
     nodes = get_nodes_from_odoo(order.odoo_sale_order_id)
     if nodes:
         username = get_iyo_username(order.app_user)
-        add_nodes_to_profile(username, nodes)
+        assign_nodes_to_user(username, nodes)
         logging.info('Saved node_id %s for user %s', nodes, username)

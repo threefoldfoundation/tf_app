@@ -31,7 +31,8 @@ from plugins.tff_backend.consts.payment import PROVIDER_ID, TOKEN_TFT_CONTRIBUTO
 from plugins.tff_backend.models.payment import ThreeFoldPendingTransaction
 from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.to.payment import PaymentProviderAssetTO, PaymentAssetBalanceTO, \
-    PaymentProviderTransactionTO, GetPaymentTransactionsResponseTO, CreateTransactionResponseTO
+    PaymentProviderTransactionTO, GetPaymentTransactionsResponseTO, CreateTransactionResponseTO, \
+    PublicPaymentProviderTransactionTO
 
 
 def custom_auth_method(f, request_handler):
@@ -62,8 +63,8 @@ def api_get_asset(asset_id):
     token = get_token_from_asset_id(asset_id)
 
     balance = get_balance(app_user, get_token_from_asset_id(asset_id))
-    available_balance = PaymentAssetBalanceTO(amount=balance.available, description=None)
-    total_balance = PaymentAssetBalanceTO(amount=balance.total, description=balance.description)
+    available_balance = PaymentAssetBalanceTO(amount=balance.available, description=None, precision=2)
+    total_balance = PaymentAssetBalanceTO(amount=balance.total, description=balance.description, precision=2)
 
     to = PaymentProviderAssetTO()
     to.provider_id = PROVIDER_ID
@@ -78,6 +79,25 @@ def api_get_asset(asset_id):
     to.has_balance = True
     to.has_transactions = True
     to.required_action = None
+    return to
+
+
+@rest('/payment/transactions/<transaction_id:[^/]+>/public', 'get', custom_auth_method=custom_auth_method)
+@returns(PublicPaymentProviderTransactionTO)
+@arguments(transaction_id=unicode)
+def api_get_public_transaction_detail(transaction_id):
+    pt = ThreeFoldPendingTransaction.create_key(transaction_id).get()
+    if not pt:
+        return None
+
+    to = PublicPaymentProviderTransactionTO()
+    to.id = pt.id
+    to.timestamp = pt.timestamp
+    to.currency = pt.token
+    to.amount = pt.amount
+    to.precision = pt.precision
+    to.status = pt.synced_status
+
     return to
 
 
@@ -117,6 +137,7 @@ def api_get_transactions(asset_id, transaction_type, cursor=None):
         to.timestamp = t.timestamp
         to.from_asset_id = get_asset_id_from_token(t.from_user, t.token) if t.from_user else None
         to.to_asset_id = get_asset_id_from_token(t.to_user, t.token)
+        to.precision = 2 # todo precision
         rto.transactions.append(to)
 
     rto.cursor = unicode(new_cursor.urlsafe()) if has_more and new_cursor else None
@@ -135,6 +156,9 @@ def api_create_transaction(data):
     if not (data.id or data.amount or data.from_asset_id or data.to_asset_id):
         to.status = ThreeFoldPendingTransaction.STATUS_FAILED
         return to
+
+    if data.precision is MISSING:
+        data.precision = 2
 
     from_user = get_app_user_from_asset_id(data.from_asset_id)
     to_user = get_app_user_from_asset_id(data.to_asset_id)
@@ -155,6 +179,7 @@ def api_create_transaction(data):
         elif pt.synced:
             return pt.synced_status
 
+        # todo precision
         pt.unlock_timestamps = [0]
         pt.unlock_amounts = [data.amount]
         pt.token = token

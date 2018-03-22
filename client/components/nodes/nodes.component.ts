@@ -3,10 +3,10 @@ import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, Vi
 import { MatTableDataSource } from '@angular/material';
 import { environment } from '../../../../framework/client/environments/environment';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
-import { NodeInfo, UserNodeStatus } from '../../interfaces';
+import { NodeInfo, NodeStatus, UserNodeStatus } from '../../interfaces';
 import { ProfileEmailPipe } from '../../pipes/profile-email.pipe';
 import { ProfileNamePipe } from '../../pipes/profile-name.pipe';
-import { CSVService } from '../../services/csv.service';
+import { CSVService } from '../../services';
 
 @Component({
   selector: 'tff-nodes',
@@ -52,7 +52,9 @@ export class NodesComponent implements OnChanges {
       this.selection.clear();
     } else {
       for (const row of this.dataSource.data) {
-        this.selection.select(row);
+        if (row.profile) {
+          this.selection.select(row);
+        }
       }
     }
   }
@@ -79,6 +81,14 @@ export class NodesComponent implements OnChanges {
       { key: 'serial_number', label: 'Serial number' },
     ];
     this.csvService.generateCsv(csvData, 'nodes', { headers });
+  }
+
+  getNodeStatusColor(nodeStatus: NodeStatus) {
+    return nodeStatus === NodeStatus.RUNNING ? 'primary' : 'warn';
+  }
+
+  getNodeStatusIcon(nodeStatus: NodeStatus) {
+    return nodeStatus === NodeStatus.RUNNING ? 'check' : 'close';
   }
 
   getStatisticsUrl(node: NodeInfo) {

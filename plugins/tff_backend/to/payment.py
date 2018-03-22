@@ -33,6 +33,7 @@ class PaymentAssetRequiredActionTO(TO):
 class PaymentAssetBalanceTO(TO):
     amount = long_property('1')
     description = unicode_property('2')
+    precision = long_property('3')
 
 
 class PaymentProviderAssetTO(TO):
@@ -50,6 +51,15 @@ class PaymentProviderAssetTO(TO):
     required_action = typed_property('12', PaymentAssetRequiredActionTO)
 
 
+class PublicPaymentProviderTransactionTO(object):
+    id = unicode_property('1')
+    timestamp = long_property('2')
+    currency = unicode_property('3')
+    amount = long_property('4')
+    precision = long_property('5')
+    status = unicode_property('6')
+
+
 class PaymentProviderTransactionTO(TO):
     id = unicode_property('1')
     type = unicode_property('2')
@@ -60,6 +70,7 @@ class PaymentProviderTransactionTO(TO):
     timestamp = long_property('7')
     from_asset_id = unicode_property('8')
     to_asset_id = unicode_property('9')
+    precision = long_property('10')
 
 
 class GetPaymentTransactionsResponseTO(TO):
