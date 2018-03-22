@@ -4,10 +4,16 @@ export enum NodeStatus {
   REBOOTING = 'rebooting',
 }
 
+export interface NodeStatusTime {
+  status: NodeStatus;
+  date: string;
+}
+
 export interface NodeInfo {
   status: NodeStatus;
   id: string;
   serial_number: string;
+  statuses?: NodeStatusTime[];
   status_date?: string;
   last_check?: string;
   stats?: NodeStatsData[];

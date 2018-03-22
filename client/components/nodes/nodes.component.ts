@@ -52,7 +52,9 @@ export class NodesComponent implements OnChanges {
       this.selection.clear();
     } else {
       for (const row of this.dataSource.data) {
-        this.selection.select(row);
+        if (row.profile) {
+          this.selection.select(row);
+        }
       }
     }
   }

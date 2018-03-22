@@ -19,6 +19,7 @@ from google.appengine.ext import ndb
 
 from enum import IntEnum
 from framework.models.common import NdbModel
+from plugins.rogerthat_api.plugin_utils import Enum
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -61,7 +62,9 @@ class KYCInformation(NdbModel):
         self.status = new_status
 
 
+# TODO: remove
 class NodeInfo(NdbModel):
+    NAMESPACE = NAMESPACE
     id = ndb.StringProperty()
     serial_number = ndb.StringProperty()
     status = ndb.StringProperty(default='halted')
@@ -74,7 +77,7 @@ class TffProfile(NdbModel):
     app_user = ndb.UserProperty()
     referrer_user = ndb.UserProperty()
     referrer_username = ndb.StringProperty()
-    nodes = ndb.StructuredProperty(NodeInfo, repeated=True)  # type: list[NodeInfo]
+    nodes = ndb.StructuredProperty(NodeInfo, repeated=True)  # todo: remove
     kyc = ndb.StructuredProperty(KYCInformation)  # type: KYCInformation
 
     @property
@@ -92,18 +95,6 @@ class TffProfile(NdbModel):
 
     def to_dict(self, extra_properties=None, include=None, exclude=None):
         return super(TffProfile, self).to_dict(extra_properties or ['username', 'referral_code'], include, exclude)
-
-    @classmethod
-    def list_with_node(cls):
-        return cls.query().filter(cls.nodes.id > '')
-
-    @classmethod
-    def list_by_node_status(cls, status):
-        return cls.query().filter(cls.nodes.status == status)
-
-    @classmethod
-    def list_all(cls):
-        return cls.query()
 
 
 class ProfilePointer(NdbModel):

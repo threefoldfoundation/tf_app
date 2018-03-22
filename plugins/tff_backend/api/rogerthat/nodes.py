@@ -23,9 +23,9 @@ from mcfw.rpc import arguments, returns
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
-from plugins.tff_backend.bizz.nodes.stats import get_nodes_for_user, add_nodes_to_profile, \
+from plugins.tff_backend.bizz.nodes.stats import get_nodes_for_user, assign_nodes_to_user, \
     get_nodes_stats_from_influx
-from plugins.tff_backend.models.user import TffProfile
+from plugins.tff_backend.models.nodes import Node
 from plugins.tff_backend.utils.app import create_app_user
 
 
@@ -34,20 +34,20 @@ from plugins.tff_backend.utils.app import create_app_user
 def api_get_node_status(params, user_detail):
     # type: (dict, UserDetailsTO) -> list[dict]
     try:
-        profile = TffProfile.create_key(get_iyo_username(user_detail)).get()  # type: TffProfile
-        if not DEBUG and not profile.nodes:
+        username = get_iyo_username(user_detail)
+        nodes = Node.list_by_user(username)
+        if not DEBUG and not nodes:
             # fallback, should only happen when user checks his node status before our cron job has ran.
-            logging.warn('Fetching node serial number from odoo since it was not set on TffProfile for user %s',
-                         user_detail.email)
+            logging.warn('Fetching node serial number from odoo since no nodes where found for user %s',
+                         username)
             app_user = create_app_user(users.User(user_detail.email), user_detail.app_id)
-            nodes = get_nodes_for_user(app_user)
-            if nodes:
-                username = get_iyo_username(app_user)
-                profile = add_nodes_to_profile(username, nodes)
+            new_nodes = get_nodes_for_user(app_user)
+            if new_nodes:
+                nodes = assign_nodes_to_user(username, new_nodes)
             else:
                 raise ApiCallException(
                     u'It looks like you either do not have a node yet or it has never been online yet.')
-        return get_nodes_stats_from_influx(profile.nodes)
+        return get_nodes_stats_from_influx(nodes)
     except ApiCallException:
         raise
     except Exception as e:
