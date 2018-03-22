@@ -88,7 +88,7 @@ def _get_task_url(task):
 
 @returns([object])
 @arguments(tasks=[Task], callback=types.FunctionType, deadline=int)
-def _wait_for_tasks(tasks, callback=None, deadline=30):
+def _wait_for_tasks(tasks, callback=None, deadline=120):
     results = []
     start_time = time.time()
     incomplete_tasks = {t.guid: t for t in tasks}
@@ -215,6 +215,7 @@ def _set_nodes_in_user_data(iyo_username, email, app_id):
 
 def get_nodes_stats(nodes):
     # type: (dict[str, str]) -> list[dict]
+    logging.info('Getting node stats for nodes %s', nodes)
     if DEBUG:
         return [_get_stats(DEBUG_NODE_DATA)]
 
@@ -411,21 +412,18 @@ def _put_node_status_user_data(tff_profile_key):
 
 
 def _send_node_status_update_message(app_user, to_status, date, node_id):
-    logging.warn('_send_node_status_update_message %s', locals())
-    # for testing
-    return
     node = Node.create_key(node_id).get()
     date_str = date.strftime('%Y-%m-%d %H:%M:%S')
     if to_status == u'halted':
-        subject = u'Connection to your node(%s) has been lost since %s' % now
+        subject = u'Connection to your node(%s) has been lost since %s' % (node.serial_number, date_str)
         msg = u'Dear ThreeFold Member,\n\n' \
-              u'Connection to your node has been lost since %s. Please check the network connection of your node.\n' \
+              u'Connection to your node(%s) has been lost since %s. Please check the network connection of your node.\n' \
               u'Kind regards,\n' \
               u'The ThreeFold Team' % (node.serial_number, date_str)
     elif to_status == u'running':
-        subject = u'Connection to your node(%s) has been resumed since %s' % now
+        subject = u'Connection to your node(%s) has been resumed since %s' % (node.serial_number, date_str)
         msg = u'Dear ThreeFold Member,\n\n' \
-              u'Congratulations! Your node is now successfully connected to our system, and has been resumed since %s.\n' \
+              u'Congratulations! Your node(%s) is now successfully connected to our system, and has been resumed since %s.\n' \
               u'Kind regards,\n' \
               u'The ThreeFold Team' % (node.serial_number, date_str)
     else:
@@ -465,7 +463,7 @@ def _get_and_save_node_stats(statuses):
                                statuses=[NodeStatusTime(status=status, date=now_)]))
             all_node_ids.append(node_id)
     ndb.put_multi(to_put)
-    nodes_stats = get_nodes_stats({node_id: statuses.get(node_id, NodeStatus.HALTED) for node_id in node_ids})
+    nodes_stats = get_nodes_stats({node_id: statuses.get(node_id, NodeStatus.HALTED) for node_id in all_node_ids})
     points = []
     for node in nodes_stats:
         fields = {'id': node['id']}
