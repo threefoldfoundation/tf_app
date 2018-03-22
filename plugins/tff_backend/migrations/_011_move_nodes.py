@@ -30,9 +30,15 @@ def migrate(dry_run=False):
                                    username=profile.username if profile.username != 'threefold_dummy_1' else None,
                                    last_check=node.last_check,
                                    statuses=[NodeStatusTime(status=node.status, date=node.status_date)]))
-        if 'nodes' in profile._properties:
-            del profile._properties['nodes']
-        to_put.append(profile)
     if dry_run:
         return to_put
+    ndb.put_multi(to_put)
+
+
+def cleanup():
+    to_put = []
+    for profile in TffProfile.query():
+        if 'nodes' in profile._properties:
+            del profile._properties['nodes']
+            to_put.append(profile)
     ndb.put_multi(to_put)
