@@ -9,7 +9,8 @@
     <mat-cell *matCellDef="let row">
       <mat-checkbox (click)="$event.stopPropagation()"
                     (change)="$event ? selection.toggle(row) : null"
-                    [checked]="selection.isSelected(row)">
+                    [checked]="selection.isSelected(row)"
+                    [disabled]="!row.profile">
       </mat-checkbox>
     </mat-cell>
   </ng-container>
@@ -54,7 +55,7 @@
   <ng-container matColumnDef="profile_link">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <a mat-button [routerLink]="['/users', row.profile.username]" target="_blank">
+      <a mat-button [routerLink]="['/users', row.profile.username]" target="_blank" *ngIf="row.profile">
         {{ 'tff.profile' | translate }}
       </a>
       <a mat-button [href]="getStatisticsUrl(row.node)" target="_blank">
