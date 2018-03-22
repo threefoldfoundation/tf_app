@@ -190,18 +190,18 @@ def assign_nodes_to_user(iyo_username, nodes):
     existing_nodes = {node.id: node for node in ndb.get_multi([Node.create_key(node['id']) for node in nodes]) if node}
     to_put = []
     for new_node in nodes:
-        if new_node['id'] not in existing_nodes:
+        node = existing_nodes.get(new_node['id'])
+        if node:
+            node.username = iyo_username
+            node.serial_number = new_node['serial_number']
+            node.status = new_node.get('status', NodeStatus.HALTED)
+            to_put.append(node)
+        else:
             to_put.append(Node(key=Node.create_key(new_node['id']),
                                serial_number=new_node['serial_number'],
                                username=iyo_username,
                                statuses=[NodeStatusTime(status=new_node.get('status', NodeStatus.HALTED),
                                                         date=datetime.now())]))
-        for node_id, node in existing_nodes.iteritems():
-            if node_id == new_node['id']:
-                node.username = iyo_username
-                node.serial_number = new_node['serial_number']
-                node.status = new_node.get('status', NodeStatus.HALTED)
-                to_put.append(node)
     ndb.put_multi(to_put)
     user, app_id = get_app_user_tuple(profile.app_user)
     deferred.defer(_set_nodes_in_user_data, iyo_username, user.email(), app_id, _countdown=5)  # ensure db consistency
