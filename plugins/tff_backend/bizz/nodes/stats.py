@@ -365,6 +365,7 @@ def _check_node_status(node_key, statuses):
         from_status = node.status
         node.last_check = now_
         node.statuses = node.statuses[-6:] + [NodeStatusTime(status=status, date=now_)]
+        node.status = status
         if from_status != status:
             logging.info('Node %s of user %s changed from status "%s" to "%s"',
                          node.id, node.username, from_status, status)
@@ -443,8 +444,9 @@ def list_nodes_by_status(status=None):
     nodes = qry.fetch()  # type: list[Node]
     profiles = {profile.username: profile for profile in
                 ndb.get_multi([Profile.create_key(node.username) for node in nodes if node.username])}
-    results = [UserNodeStatusTO(profile=profiles.get(node.username).to_dict() if node.username in profiles else None,
-                                node=node.to_dict()) for node in nodes]
+    results = [UserNodeStatusTO(profile=profiles.get(node.username).to_dict(
+        exclude=['organization_id', 'app_email', 'language']) if node.username in profiles else None,
+                                node=node.to_dict(include=['status', 'serial_number'])) for node in nodes]
     return sorted(results, key=lambda k: k.profile['info']['firstname'] if k.profile else k.node['id'])
 
 

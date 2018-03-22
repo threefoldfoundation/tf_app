@@ -38,7 +38,7 @@ class Node(NdbModel):
     statuses = ndb.LocalStructuredProperty(NodeStatusTime, repeated=True)  # type: list[NodeStatusTime]
     last_check = ndb.DateTimeProperty()
     username = ndb.StringProperty()
-    status = ndb.ComputedProperty(lambda self: self.statuses[-1].status if self.statuses else NodeStatus.HALTED)
+    status = ndb.StringProperty(default=NodeStatus.HALTED)
     status_date = ndb.DateTimeProperty()
 
     @property
