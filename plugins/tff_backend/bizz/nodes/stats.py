@@ -468,6 +468,7 @@ def _get_and_save_node_stats(statuses):
     nodes_stats = get_nodes_stats({node_id: statuses.get(node_id, NodeStatus.HALTED) for node_id in all_node_ids})
     status_points = []
     points = []
+    now_ = datetime.now().isoformat() + 'Z'
     for node in nodes_stats:
         fields = {'id': node['id']}
         if node['info']:
@@ -475,9 +476,10 @@ def _get_and_save_node_stats(statuses):
         status_points.append({
             'measurement': 'node-info',
             'tags': {
+                'node_id': node['id'],
                 'status': node['status'],
             },
-            'time': datetime.now().isoformat() + 'Z',
+            'time': now_,
             'fields': fields
         })
         if node['status'] == 'running' and node['stats']:
