@@ -214,3 +214,17 @@ def get_nodes_from_odoo(order_id):
                 if stock_production_lot.product_id.id in cfg.odoo.product_ids.values() and stock_production_lot.ref:
                     nodes.append({'id': stock_production_lot.ref, 'serial_number': serial_number})
     return nodes
+
+
+def get_serial_number_by_node_id(node_id):
+    # type: (unicode) -> unicode
+    cfg = get_config(NAMESPACE)
+    erp_client = _get_erp_client(cfg)
+    try:
+        model = erp_client.model('stock.production.lot').browse([('ref', '=', node_id)])
+        if model:
+            return model[0].name
+        # Equivalent of erp_client.read('stock.production.lot', [('ref', '=', node_id)])
+    except Exception as e:
+        logging.exception(e.message)
+        return None

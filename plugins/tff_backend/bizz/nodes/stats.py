@@ -39,7 +39,7 @@ from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.messages import send_message_and_email
-from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo
+from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo, get_serial_number_by_node_id
 from plugins.tff_backend.bizz.todo import update_hoster_progress, HosterSteps
 from plugins.tff_backend.configuration import InfluxDBConfig
 from plugins.tff_backend.consts.hoster import DEBUG_NODE_DATA
@@ -460,6 +460,7 @@ def _get_and_save_node_stats(statuses):
     for node_id, status in statuses.iteritems():
         if node_id not in node_ids:
             to_put.append(Node(key=Node.create_key(node_id),
+                               serial_number=get_serial_number_by_node_id(node_id),
                                last_check=now_,
                                status_date=now_,
                                statuses=[NodeStatusTime(status=status, date=now_)]))
