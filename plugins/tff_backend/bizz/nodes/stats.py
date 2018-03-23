@@ -466,14 +466,13 @@ def _get_and_save_node_stats(statuses):
             all_node_ids.append(node_id)
     ndb.put_multi(to_put)
     nodes_stats = get_nodes_stats({node_id: statuses.get(node_id, NodeStatus.HALTED) for node_id in all_node_ids})
-    status_points = []
     points = []
     now_ = datetime.now().isoformat() + 'Z'
     for node in nodes_stats:
         fields = {'id': node['id']}
         if node['info']:
             fields['procs'] = node['info']['procs']
-        status_points.append({
+        points.append({
             'measurement': 'node-info',
             'tags': {
                 'node_id': node['id'],
@@ -504,9 +503,6 @@ def _get_and_save_node_stats(statuses):
                             'avg': float(values_on_time['avg'])
                         }
                     })
-    logging.info('Writing %d node status datapoints to influxdb, should be %d', len(status_points), len(all_node_ids))
-    logging.debug(status_points)
-    client.write_points(status_points)
     logging.info('Writing %s datapoints to influxdb for nodes %s', len(points), all_node_ids)
     if not client:
         return
