@@ -51,10 +51,6 @@ class Node(NdbModel):
         return ndb.Key(cls, node_id, namespace=NAMESPACE)
 
     @classmethod
-    def list_with_user(cls):
-        return cls.query().filter(cls.username > '')  # noQA
-
-    @classmethod
     def list_by_user(cls, username):
         return cls.query().filter(cls.username == username)
 

@@ -348,7 +348,7 @@ def check_node_statuses():
 
 
 def _get_all_nodes_with_user():
-    return Node.list_with_user()
+    return Node.query()
 
 
 @ndb.transactional(xg=True)
@@ -366,20 +366,21 @@ def _check_node_status(node_key, statuses):
         node.last_check = now_
         node.statuses = node.statuses[-6:] + [NodeStatusTime(status=status, date=now_)]
         node.status = status
-        if from_status != status:
-            logging.info('Node %s of user %s changed from status "%s" to "%s"',
-                         node.id, node.username, from_status, status)
-            should_update = True
-        send_notification, change_status = _should_send_notification(node)
-        if should_update or send_notification:
-            if node.username:
-                tff_profile = TffProfile.create_key(node.username).get()
-        if send_notification:
-            node.status_date = change_status.date
-            deferred.defer(_send_node_status_update_message, tff_profile.app_user, status, change_status.date, node.id,
-                           _transactional=True)
-        if should_update:
-            deferred.defer(_put_node_status_user_data, tff_profile.key, _transactional=True)
+        if node.username:
+            if from_status != status:
+                logging.info('Node %s of user %s changed from status "%s" to "%s"',
+                             node.id, node.username, from_status, status)
+                should_update = True
+            send_notification, change_status = _should_send_notification(node)
+            if should_update or send_notification:
+                if node.username:
+                    tff_profile = TffProfile.create_key(node.username).get()
+            if send_notification:
+                node.status_date = change_status.date
+                deferred.defer(_send_node_status_update_message, tff_profile.app_user, status, change_status.date,
+                               node.id, _transactional=True)
+            if should_update:
+                deferred.defer(_put_node_status_user_data, tff_profile.key, _transactional=True)
         node.put()
     except Exception as e:
         msg = 'Failure in checking node status for %s. %s' % (node_key, e.message)

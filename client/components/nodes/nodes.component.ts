@@ -52,15 +52,13 @@ export class NodesComponent implements OnChanges {
       this.selection.clear();
     } else {
       for (const row of this.dataSource.data) {
-        if (row.profile) {
-          this.selection.select(row);
-        }
+        this.selection.select(row);
       }
     }
   }
 
   getSelectionCsv() {
-    return this.selection.selected.map(s => {
+    return this.selection.selected.filter(s => !!s.profile).map(s => {
       return `${this.profileNamePipe.transform(s.profile)} <${this.profileEmailPipe.transform(s.profile)}>`;
     }).join(',');
   }
@@ -71,7 +69,7 @@ export class NodesComponent implements OnChanges {
       email: this.profileEmailPipe.transform(row.profile),
       status: row.node.status,
       node_id: row.node.id,
-      serial_number: row.node.serial_number,
+      serial_number: row.node.serial_number || '',
     }));
     const headers = [
       { key: 'name', label: 'Name' },

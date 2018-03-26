@@ -9,8 +9,7 @@
     <mat-cell *matCellDef="let row">
       <mat-checkbox (click)="$event.stopPropagation()"
                     (change)="$event ? selection.toggle(row) : null"
-                    [checked]="selection.isSelected(row)"
-                    [disabled]="!row.profile">
+                    [checked]="selection.isSelected(row)">
       </mat-checkbox>
     </mat-cell>
   </ng-container>
