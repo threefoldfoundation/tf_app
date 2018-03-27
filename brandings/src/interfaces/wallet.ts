@@ -60,7 +60,7 @@ export interface ParsedTransaction {
 }
 
 export interface CreateTransactionResult {
-  // todo rivine endpoint returns nothing yet
+  transactionid: string;
 }
 
 export const ADDRESS_LENGTH = 76;

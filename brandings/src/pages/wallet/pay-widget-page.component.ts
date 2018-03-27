@@ -8,7 +8,7 @@ import { GetAddresssAction } from '../../actions';
 import { IAppState } from '../../app/app.state';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 import { CreateSignatureData, CreateTransactionResult, KEY_NAME, PROVIDER_ID, RIVINE_ALGORITHM } from '../../interfaces/wallet';
-import { PayWidgetData } from '../../manual_typings/rogerthat';
+import { CreateTransactionBaseResult, PayWidgetData } from '../../manual_typings/rogerthat';
 import { RogerthatError } from '../../manual_typings/rogerthat-errors';
 import { getAddress, getAddressStatus } from '../../state/rogerthat.state';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
@@ -63,17 +63,17 @@ export class PayWidgetPageComponent implements OnInit, OnDestroy {
   showConfirmDialog(transactionData: CreateSignatureData) {
     const modal = this.modalCtrl.create(ConfirmSendPageComponent, { transactionData });
     modal.onDidDismiss((transaction: CreateTransactionResult | null) => {
-      // todo rivine returns nothing yet
-      // if (transaction) {
-      //   const result: CreateTransactionBaseResult = {
-      //     success: true,
-      //     provider_id: PROVIDER_ID,
-      //     status: transaction.status,
-      //     transaction_id: transaction.id,
-      //   };
-      //   this.exitWithResult(result);
-      // }
-      this.exitWithError({ code: 'not_implemented', message: 'Not implemented' });
+      if (transaction) {
+        const result: CreateTransactionBaseResult = {
+          success: true,
+          provider_id: PROVIDER_ID,
+          status: 'pending',
+          transaction_id: transaction.transactionid,
+        };
+        this.exitWithResult(result);
+      } else {
+        close();
+      }
     });
     modal.present();
   }
