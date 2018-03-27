@@ -53,11 +53,11 @@ def api_create_signature_data_transaction_options():
 
 
 @rest('/wallet/transactions', 'post')
-@returns()
+@returns(dict)
 @arguments(data=CryptoTransactionTO)
 def api_create_transaction(data):
     _set_access_control_header()
-    create_transaction(data)
+    return create_transaction(data)
 
 
 @rest('/wallet/transactions', 'options')

@@ -228,7 +228,7 @@ def create_transaction_payload(crypto_transaction):
     }
 
 
-@returns()
+@returns(dict)
 @arguments(data=CryptoTransactionTO)
 def create_transaction(data):
     payload = create_transaction_payload(data)
@@ -243,3 +243,4 @@ def create_transaction(data):
         err = HttpException(err_msg)
         err.http_code = response.status_code
         raise err
+    return json.loads(response.content)

@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
+import { Actions, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController, NavParams, ViewController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
-import { first, map, withLatestFrom } from 'rxjs/operators';
+import { first, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { CreateSignatureDataAction, CreateTransactionDataAction } from '../../actions';
+import { BrandingActionTypes, CreateSignatureDataAction, CreateTransactionDataAction } from '../../actions';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
 import { CreateSignatureData, CreateTransactionResult, KEY_NAME, RIVINE_ALGORITHM } from '../../interfaces/wallet';
 import { CryptoTransaction, CryptoTransactionData } from '../../manual_typings/rogerthat';
@@ -36,7 +37,8 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
               private viewCtrl: ViewController,
               private alertCtrl: AlertController,
               private params: NavParams,
-              private translate: TranslateService) {
+              private translate: TranslateService,
+              private actions$: Actions) {
   }
 
   dismiss() {
@@ -54,12 +56,11 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
       withLatestFrom(this.createTransactionStatus$),
       map(([ pending, create ]) => pending.loading || create.loading),
     );
-    this._transactionCompleteSub = this.createTransactionStatus$.pipe(
-      withLatestFrom(this.transaction$),
-    ).subscribe(([ status, transaction ]) => {
-      if (status.success) {
+    this._transactionCompleteSub = this.actions$.pipe(
+      ofType(BrandingActionTypes.CREATE_TRANSACTION_COMPLETE),
+      switchMap(() => this.transaction$),
+    ).subscribe(transaction => {
         this.viewCtrl.dismiss(transaction);
-      }
     });
   }
 
