@@ -63,7 +63,7 @@ export interface CreateTransactionResult {
   transactionid: string;
 }
 
-export const ADDRESS_LENGTH = 76;
+export const ADDRESS_LENGTH = 78;
 export const COIN_TO_HASTINGS_PRECISION = 24;
 export const COIN_TO_HASTINGS = Math.pow(10, COIN_TO_HASTINGS_PRECISION);
 export const CURRENCY_TFT = 'TFT';

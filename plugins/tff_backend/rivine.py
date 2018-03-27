@@ -98,7 +98,7 @@ def get_transactions(address, status=None):
         if not t['coinoutputids'] or len(t['coinoutputids']) == 0:
             continue
 
-        for sco_id, co in zip(t['coinoutputids'], t['rawtransaction']['coinoutputs']):
+        for sco_id, co in zip(t['coinoutputids'], t['rawtransaction']['data']['coinoutputs']):
             # todo investigate if correct when fully spent
             if co['unlockhash'] != address:
                 continue
@@ -108,7 +108,7 @@ def get_transactions(address, status=None):
                                  'timestamp': get_block_by_height(t['height'])['rawblock']['timestamp'],
                                  'output_id': sco_id,
                                  'inputs': t['coininputoutputs'],
-                                 'outputs': t['rawtransaction']['coinoutputs'],
+                                 'outputs': t['rawtransaction']['data']['coinoutputs'],
                                  'amount': unicode(co['value']),
                                  'currency': TOKEN_TFT,
                                  'status': t_status,
@@ -118,10 +118,10 @@ def get_transactions(address, status=None):
         return []
 
     for t in info['transactions']:
-        if not t['rawtransaction']['coininputs'] or len(t['rawtransaction']['coininputs']) == 0:
+        if not t['rawtransaction']['data']['coininputs'] or len(t['rawtransaction']['data']['coininputs']) == 0:
             continue
 
-        for ci in t['rawtransaction']['coininputs']:
+        for ci in t['rawtransaction']['data']['coininputs']:
             for t in transactions:
                 if ci['parentid'] != t['output_id']:
                     continue
@@ -192,23 +192,23 @@ def create_signature_data(from_address, to_address, amount):
 def create_transaction_payload(crypto_transaction):
     data = {
         'coininputs': [],
+        'coinoutputs': [],
         'blockstakeinputs': None,
         'blockstakeoutputs': None,
         'minerfees': [crypto_transaction.minerfees],
-        'arbitrarydata': None,
-        'transactionsignatures': [],
-        'coinoutputs': []
+        'arbitrarydata': None
     }
     for d in crypto_transaction.data:
         coininput = {
             u"parentid": d.input.parent_id,
-            u"unlockconditions": {
-                u"timelock": d.input.timelock,
-                u"publickeys": [{
-                    u"algorithm": d.algorithm,
-                    u"key": d.public_key
-                }],
-                u"signaturesrequired": 1
+            u"unlocker": {
+                u"type": 1,
+                u"condition": {
+                    u"publickey": u"%s:%s" % (d.algorithm, d.public_key)
+                },
+                u"fulfillment": {
+                    u"signature": d.signature
+                }
             }
         }
         data["coininputs"].append(coininput)
@@ -222,25 +222,10 @@ def create_transaction_payload(crypto_transaction):
 
             data["coinoutputs"].append(coinoutput)
 
-    for d in crypto_transaction.data:
-        transactionsignature = {
-            u"parentid": d.input.parent_id,
-            u"publickeyindex": d.public_key_index,
-            u"timelock": d.timelock,
-            u"coveredfields": {
-                u"wholetransaction": True,
-                u"coininputs": None,
-                u"coinoutputs": None,
-                u"blockstakeinputs": None,
-                u"blockstakeoutputs": None,
-                u"minerfees": None,
-                u"arbitrarydata": None,
-                u"transactionsignatures": None
-            },
-            u"signature": d.signature
-        }
-        data["transactionsignatures"].append(transactionsignature)
-    return data
+    return {
+        'version': 0,
+        'data': data
+    }
 
 
 @returns()
@@ -249,7 +234,7 @@ def create_transaction(data):
     payload = create_transaction_payload(data)
     url = '%s/transactionpool/transactions' % get_config(NAMESPACE).rivine_url
     response = urlfetch.fetch(url=url, payload=json.dumps(payload), method=urlfetch.POST, deadline=10)
-    logging.info('%s %d %s', response.status_code, response.content)
+    logging.info('%d %s', response.status_code, response.content)
     if response.status_code != 200:
         try:
             err_msg = json.loads(response.content)['message']
