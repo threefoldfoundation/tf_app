@@ -400,7 +400,8 @@ export interface RogerthatSecurity {
          index: number,
          message: string,
          payload: string,
-         forcePin: boolean) =>
+         forcePin: boolean,
+         hashPayload: boolean) =>
     void;
   verify: (successCallback: (result: VerifyResult) => void,
            errorCallback: (error: RogerthatError) => void,

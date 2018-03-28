@@ -72,7 +72,7 @@ export class PayWidgetPageComponent implements OnInit, OnDestroy {
         };
         this.exitWithResult(result);
       } else {
-        close();
+        this.close();
       }
     });
     modal.present();
@@ -80,6 +80,7 @@ export class PayWidgetPageComponent implements OnInit, OnDestroy {
 
   close() {
     this.exitWithResult({
+      success: false,
       code: 'canceled',
       message: this.translate.instant('the_transaction_has_been_canceled'),
     });

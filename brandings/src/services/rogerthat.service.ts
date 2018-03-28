@@ -152,7 +152,7 @@ export class RogerthatService {
         let signedCounter = updatedTransaction.data.length;
         for (let i = 0; i < updatedTransaction.data.length; i++) {
           rogerthat.security.sign(signature => processSignature(signature, i), signError, algorithm, keyName, index, unlockMessage,
-            updatedTransaction.data[ i ].signature_hash, false);
+            updatedTransaction.data[ i ].signature_hash, false, false);
         }
 
         function processSignature(signature: CryptoSignature, dataIndex: number) {
