@@ -96,8 +96,23 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     return this.translate.instant(`transaction_status_${status}`);
   }
 
+  getInfoLines(transaction: ParsedTransaction): string[] {
+    const lines: string[] = [];
+    if (transaction.receiving) {
+      for (const output of transaction.otherOutputs) {
+        lines.push(this.translate.instant('from_address_x', { address: output.unlockhash }));
+      }
+    } else {
+      for (const output of transaction.otherOutputs) {
+        lines.push(this.translate.instant('x_to_y', { x: this.amountPipe.transform(output.value), y: output.unlockhash }));
+      }
+    }
+    return lines;
+  }
+
   getFee(transaction: ParsedTransaction): number {
     // inputs - outputs = fee
+    // todo just return fee from server
     return transaction.inputs.reduce(outputReducer, 0) - transaction.outputs.reduce(outputReducer, 0);
   }
 

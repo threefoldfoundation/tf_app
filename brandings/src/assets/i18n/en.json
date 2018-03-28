@@ -26,6 +26,7 @@
     "unknown": "An unknown error has occurred, please try again later"
   },
   "fee_x": "{{ fee }} fee",
+  "from_address_x":"From {{ address }}",
   "from_x": "From {{ timestamp }}",
   "global_stats": "Global stats",
   "hide_full_description": "Hide full description",

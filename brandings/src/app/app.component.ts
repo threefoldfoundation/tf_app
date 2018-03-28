@@ -48,6 +48,9 @@ export class AppComponent implements OnInit {
         console.timeEnd('loaded');
         if (rogerthat.system.appId.includes('staging')) {
           statusBar.backgroundColorByHexString('#5f9e62');
+        }
+        if (rogerthat.system.os === 'android') {
+          statusBar.styleBlackTranslucent();
         } else {
           statusBar.styleDefault();
         }
@@ -63,7 +66,6 @@ export class AppComponent implements OnInit {
         });
       });
     });
-    setInterval(() => this.cdRef.detectChanges(), 200);
   }
 
   ngOnInit() {
