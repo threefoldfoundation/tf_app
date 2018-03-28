@@ -10,15 +10,41 @@ import { StoreModule } from '@ngrx/store';
 import { MissingTranslationHandler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { ChartModule } from 'angular2-chartjs';
+import { QRCodeModule } from 'angular2-qrcode';
 import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
-import { COMPONENTS } from '../components/index';
-import { PAGES } from '../pages/index';
+import {
+  AgendaComponent,
+  ApiRequestStatusComponent,
+  EventDetailsComponent,
+  GlobalStatsComponent,
+  NodeStatusComponent,
+  SeeDocumentComponent,
+  TodoItemListComponent,
+} from '../components';
+import { BrandingEffects, RogerthatEffects } from '../effects';
+import {
+  AgendaPageComponent,
+  ConfirmSendPageComponent,
+  EventDetailsPageComponent,
+  GlobalStatsPageComponent,
+  InvitePageComponent,
+  NodeStatusPageComponent,
+  PayWidgetPageComponent,
+  ReceivePageComponent,
+  SeePageComponent,
+  SendPageComponent,
+  TodoListOverviewPageComponent,
+  TodoListPageComponent,
+  TransactionsListPageComponent,
+  WalletPageComponent,
+} from '../pages';
+import { AmountPipe } from '../pipes/amount.pipe';
+import { LocaleDecimalPipe } from '../pipes/localized-pipes';
 import { MarkdownPipe } from '../pipes/markdown.pipe';
-import { SERVICES } from '../services/index';
+import { SERVICES } from '../services';
 import { MissingTranslationWarnHandler } from '../util/missing-translation-handler';
 import { AppComponent } from './app.component';
-import { REDUCER_INJECTION_TOKEN, reducerProvider } from './app.state';
-import { BrandingEffects } from './branding.effects';
+import { reducers } from './app.state';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, 'assets/i18n/');
@@ -26,12 +52,42 @@ export function HttpLoaderFactory(http: HttpClient) {
 
 const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
 
+export const PAGES = [
+  AgendaPageComponent,
+  ConfirmSendPageComponent,
+  EventDetailsPageComponent,
+  GlobalStatsPageComponent,
+  InvitePageComponent,
+  NodeStatusPageComponent,
+  PayWidgetPageComponent,
+  ReceivePageComponent,
+  SeePageComponent,
+  SendPageComponent,
+  TodoListOverviewPageComponent,
+  TodoListPageComponent,
+  TransactionsListPageComponent,
+  WalletPageComponent,
+];
+
+export const COMPONENTS = [
+  AgendaComponent,
+  ApiRequestStatusComponent,
+  EventDetailsComponent,
+  GlobalStatsComponent,
+  NodeStatusComponent,
+  SeeDocumentComponent,
+  TodoItemListComponent,
+];
+
+
 @NgModule({
   declarations: [
     AppComponent,
     PAGES,
     COMPONENTS,
     MarkdownPipe,
+    LocaleDecimalPipe,
+    AmountPipe,
   ],
   imports: [
     BrowserModule,
@@ -44,9 +100,10 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
         deps: [ HttpClient ],
       },
     }),
-    StoreModule.forRoot(REDUCER_INJECTION_TOKEN),
-    EffectsModule.forRoot([ BrandingEffects ]),
+    StoreModule.forRoot(reducers),
+    EffectsModule.forRoot([ BrandingEffects, RogerthatEffects ]),
     ChartModule,
+    QRCodeModule,
   ],
   bootstrap: [ IonicApp ],
   entryComponents: [
@@ -57,10 +114,11 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
     DecimalPipe,
     DatePipe,
     CurrencyPipe,
+    LocaleDecimalPipe,
+    AmountPipe,
     I18nPluralPipe,
     SERVICES,
     IONIC_NATIVE_PLUGINS,
-    reducerProvider,
     { provide: ErrorHandler, useClass: IonicErrorHandler },
     { provide: MissingTranslationHandler, useClass: MissingTranslationWarnHandler },
   ],

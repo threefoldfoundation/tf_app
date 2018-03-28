@@ -1,11 +1,9 @@
-import { AgendaPageComponent } from './agenda/agenda-page.component';
-import { EventDetailsPageComponent } from './agenda/event-details-page.component';
-import { GlobalStatsPageComponent } from './global-stats/global-stats-page.component';
-import { NodeStatusPageComponent } from './node-status/node-status-page.component';
-import { InvitePageComponent } from './referrals/invite-page.component';
-import { SeePageComponent } from './see/see-page.component';
-import { TodoListOverviewPageComponent } from './todo-list/todo-list-overview-page.component';
-import { TodoListPageComponent } from './todo-list/todo-list-page.component';
-
-export const PAGES = [ TodoListPageComponent, TodoListOverviewPageComponent, GlobalStatsPageComponent, SeePageComponent,
-  InvitePageComponent, AgendaPageComponent, EventDetailsPageComponent, NodeStatusPageComponent ];
+export * from './agenda/agenda-page.component';
+export * from './agenda/event-details-page.component';
+export * from './global-stats/global-stats-page.component';
+export * from './node-status/node-status-page.component';
+export * from './referrals/invite-page.component';
+export * from './see/see-page.component';
+export * from './todo-list/todo-list-overview-page.component';
+export * from './todo-list/todo-list-page.component';
+export * from './wallet';

@@ -513,7 +513,7 @@ def _get_and_save_node_stats(statuses):
 
 def get_influx_client():
     config = get_config(NAMESPACE).influxdb  # type: InfluxDBConfig
-    if config is MISSING or DEBUG:
+    if config is MISSING:
         return None
     return influxdb.InfluxDBClient(config.host, config.port, config.username, config.password, config.database,
                                    config.ssl, config.ssl)

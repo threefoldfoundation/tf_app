@@ -1,0 +1,17 @@
+<ion-content>
+  <ion-row justify-content-center (click)="copyAddress()">
+    <p>{{ 'receive_address_info' | translate }}</p>
+  </ion-row>
+  <ion-row justify-content-center>
+    <qr-code [value]="qrContent$ | async" [size]="300" (click)="copyAddress()"></qr-code>
+  </ion-row>
+  <ion-row justify-content-center>
+    <p #address [innerText]="address$ | async" (click)="copyAddress()" class="address-line"></p>
+  </ion-row>
+  <ion-row>
+    <ion-item>
+      <ion-label color="primary" floating>{{ 'amount' | translate }}</ion-label>
+      <ion-input type="number" [formControl]="amountControl"></ion-input>
+    </ion-item>
+  </ion-row>
+</ion-content>

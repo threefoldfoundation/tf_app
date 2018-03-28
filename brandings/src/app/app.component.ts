@@ -2,20 +2,27 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEnca
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
 import { Actions } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
-import { AgendaPageComponent } from '../pages/agenda/agenda-page.component';
+import { PaymentQRCodeType } from '../interfaces/rogerthat';
+import {
+  AgendaPageComponent,
+  GlobalStatsPageComponent,
+  InvitePageComponent,
+  NodeStatusPageComponent,
+  SeePageComponent,
+  TodoListOverviewPageComponent,
+  TodoListPageComponent,
+} from '../pages';
 import { ErrorService } from '../pages/error.service';
-import { GlobalStatsPageComponent } from '../pages/global-stats/global-stats-page.component';
-import { NodeStatusPageComponent } from '../pages/node-status/node-status-page.component';
-import { InvitePageComponent } from '../pages/referrals/invite-page.component';
-import { SeePageComponent } from '../pages/see/see-page.component';
-import { TodoListOverviewPageComponent } from '../pages/todo-list/todo-list-overview-page.component';
-import { TodoListPageComponent } from '../pages/todo-list/todo-list-page.component';
+import { PayWidgetPageComponent, WalletPageComponent } from '../pages/wallet';
 import { RogerthatService } from '../services/rogerthat.service';
 import { TodoListService } from '../services/todo-list.service';
-import { IAppState } from './app.state';
+
+interface RootPage {
+  page: any;
+  params: any;
+}
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -23,7 +30,7 @@ import { IAppState } from './app.state';
   templateUrl: 'app.html',
 })
 export class AppComponent implements OnInit {
-  rootPage: any;
+  root: RootPage;
   platformReady = false;
 
   constructor(private platform: Platform,
@@ -34,8 +41,7 @@ export class AppComponent implements OnInit {
               private todoListService: TodoListService,
               private cdRef: ChangeDetectorRef,
               private errorService: ErrorService,
-              private actions$: Actions,
-              private store: Store<IAppState>) {
+              private actions$: Actions) {
     translate.setDefaultLang('en');
     platform.ready().then(() => {
       rogerthat.callbacks.ready(() => {
@@ -47,40 +53,83 @@ export class AppComponent implements OnInit {
         }
         splashScreen.hide();
         this.rogerthatService.initialize();
-        if (!rogerthat.menuItem) {
-          // old iOS app doesn't support this yet
-          this.errorService.showVersionNotSupported(this.translate.instant('not_supported_pls_update'));
-          return;
-        }
-        let todoComp: typeof TodoListOverviewPageComponent | typeof TodoListPageComponent = TodoListOverviewPageComponent;
-        const todoLists = this.todoListService.getTodoLists();
-        if (todoLists.length === 1) {
-          todoComp = TodoListPageComponent;
-        }
-        const pages = [
-          { tag: 'todo_list', page: todoComp },
-          { tag: 'global_stats', page: GlobalStatsPageComponent },
-          { tag: 'iyo_see', page: SeePageComponent },
-          { tag: 'referrals_invite', page: InvitePageComponent },
-          { tag: 'agenda', page: AgendaPageComponent },
-          { tag: 'node_status', page: NodeStatusPageComponent },
-        ];
-        // the or is for debugging
-        const page = pages.find(p => sha256(p.tag) === rogerthat.menuItem.hashedTag || p.tag === rogerthat.menuItem.hashedTag);
-        if (page) {
-          this.rootPage = page.page;
-        } else {
-          console.error('Cannot find page for menu item', JSON.stringify(rogerthat.menuItem));
-        }
-        this.platformReady = true;
-        this.cdRef.detectChanges();
+        this.rogerthatService.getContext().subscribe(context => {
+          const root = this.getRootPage(context);
+          if (root) {
+            this.root = root;
+          }
+          this.platformReady = true;
+          this.cdRef.detectChanges();
+        });
       });
     });
+    setInterval(() => this.cdRef.detectChanges(), 200);
   }
 
   ngOnInit() {
     // Useful for debugging
     // this.actions$.subscribe(action => console.log(action));
     this.actions$.subscribe(action => console.log(JSON.stringify(action)));
+  }
+
+  private getRootPage(context: any): RootPage | null {
+    const initialPage = this.processContext(context);
+    if (initialPage) {
+      return initialPage;
+    }
+    if (!rogerthat.menuItem) {
+      // old iOS app doesn't support this yet
+      this.errorService.showVersionNotSupported(this.translate.instant('not_supported_pls_update'));
+      return null;
+    }
+    let todoComp: typeof TodoListOverviewPageComponent | typeof TodoListPageComponent = TodoListOverviewPageComponent;
+    const todoLists = this.todoListService.getTodoLists();
+    if (todoLists.length === 1) {
+      todoComp = TodoListPageComponent;
+    }
+    const pages = [
+      { tag: 'todo_list', page: todoComp },
+      { tag: 'global_stats', page: GlobalStatsPageComponent },
+      { tag: 'iyo_see', page: SeePageComponent },
+      { tag: 'referrals_invite', page: InvitePageComponent },
+      { tag: 'agenda', page: AgendaPageComponent },
+      { tag: 'node_status', page: NodeStatusPageComponent },
+      { tag: 'wallet', page: WalletPageComponent },
+    ];
+    // the or is for debugging
+    const page = pages.find(p => sha256(p.tag) === rogerthat.menuItem.hashedTag || p.tag === rogerthat.menuItem.hashedTag);
+    if (page) {
+      return { page: page.page, params: null };
+    } else {
+      console.error('Cannot find page for menu item', JSON.stringify(rogerthat.menuItem));
+    }
+    return null;
+  }
+
+  private processContext(data: any): RootPage | null {
+    if (data.context && data.context.t) {
+      switch (data.context.t) {
+        case PaymentQRCodeType.TRANSACTION:
+          // Currently not supported, just show the wallet instead
+          return { page: WalletPageComponent, params: null };
+        case PaymentQRCodeType.PAY:
+          const payContext: any = data.context; // type PayWidgetData
+          return { page: PayWidgetPageComponent, params: { payContext } };
+        default:
+          if (data.context.result_type === 'plugin') {
+            const msg = this.translate.instant('not_supported_ensure_latest_version', { appName: rogerthat.system.appName });
+            const content = {
+              success: false,
+              code: 'not_supported',
+              message: msg,
+            };
+            rogerthat.app.exitWithResult(JSON.stringify(content));
+          } else {
+            const msg = this.translate.instant('qr_code_not_supported_ensure_latest_version', { appName: rogerthat.system.appName });
+            this.errorService.showVersionNotSupported(msg);
+          }
+      }
+    }
+    return null;
   }
 }

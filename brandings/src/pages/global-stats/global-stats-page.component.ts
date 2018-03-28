@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { Platform } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
-import { GetGlobalStatsAction } from '../../actions/branding.actions';
+import { GetGlobalStatsAction } from '../../actions';
 import { IAppState } from '../../app/app.state';
 import { GlobalStats } from '../../interfaces/global-stats.interfaces';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
@@ -22,8 +22,8 @@ export class GlobalStatsPageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.globalStats$ = this.store.select(getGlobalStats);
-    this.status$ = this.store.select(getGlobalStatsStatus);
+    this.globalStats$ = this.store.pipe(select(getGlobalStats));
+    this.status$ = this.store.pipe(select(getGlobalStatsStatus));
     this.store.dispatch(new GetGlobalStatsAction());
   }
 

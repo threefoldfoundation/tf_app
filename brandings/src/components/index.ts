@@ -1,10 +1,7 @@
-import { AgendaComponent } from './agenda/agenda.component';
-import { EventDetailsComponent } from './agenda/event-details.component';
-import { ApiRequestStatusComponent } from './api-request-status.component';
-import { GlobalStatsComponent } from './global-stats/global-stats.component';
-import { NodeStatusComponent } from './node-status/node-status.component';
-import { SeeDocumentComponent } from './see/see-document.component';
-import { TodoItemListComponent } from './todo-list/todo-item-list.component';
-
-export const COMPONENTS = [ ApiRequestStatusComponent, TodoItemListComponent, GlobalStatsComponent, SeeDocumentComponent,
-  AgendaComponent, EventDetailsComponent, NodeStatusComponent ];
+export * from './agenda/agenda.component';
+export * from './agenda/event-details.component';
+export * from './api-request-status.component';
+export * from './global-stats/global-stats.component';
+export * from './node-status/node-status.component';
+export * from './see/see-document.component';
+export * from './todo-list/todo-item-list.component';

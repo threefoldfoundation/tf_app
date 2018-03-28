@@ -1,23 +1,19 @@
 import { Action } from '@ngrx/store';
-import { AgendaEvent, EventPresence, UpdatePresenceData } from '../interfaces/agenda.interfaces';
+import { EventPresence, UpdatePresenceData } from '../interfaces/agenda.interfaces';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { NodeInfo } from '../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
-import { ApiCallResult } from '../services/rogerthat.service';
+import { CreateSignatureData, CreateTransactionResult, ParsedTransaction } from '../interfaces/wallet';
+import { CryptoTransaction, SupportedAlgorithms } from '../manual_typings/rogerthat';
 
 interface IBrandingActionTypes {
-  API_CALL: 'Api call';
-  API_CALL_COMPLETE: 'Api call complete';
   GET_GLOBAL_STATS: 'Get global stats';
   GET_GLOBAL_STATS_COMPLETE: 'Get global stats complete';
   GET_GLOBAL_STATS_FAILED: 'Get global stats failed';
   GET_SEE_DOCUMENTS: 'Get see documents ';
   GET_SEE_DOCUMENTS_COMPLETE: 'Get see documents complete';
   GET_SEE_DOCUMENTS_FAILED: 'Get see documents failed';
-  GET_EVENTS: 'Get events';
-  GET_EVENTS_COMPLETE: 'Get events complete';
-  GET_EVENTS_FAILED: 'Get events failed';
   GET_EVENT_PRESENCE: 'Get event presence';
   GET_EVENT_PRESENCE_COMPLETE: 'Get events presence complete';
   GET_EVENT_PRESENCE_FAILED: 'Get events presence failed';
@@ -30,20 +26,24 @@ interface IBrandingActionTypes {
   GET_NODE_STATS: 'Get node stats';
   GET_NODE_STATS_COMPLETE: 'Get node stats complete';
   GET_NODE_STATS_FAILED: 'Get node stats failed';
+  GET_TRANSACTIONS: 'Get transactions';
+  GET_TRANSACTIONS_COMPLETE: 'Get transactions complete';
+  GET_TRANSACTIONS_FAILED: 'Get transactions failed';
+  CREATE_SIGNATURE_DATA: 'Create signature data';
+  CREATE_SIGNATURE_DATA_COMPLETE: 'Create signature data complete';
+  CREATE_SIGNATURE_DATA_FAILED: 'Create signature data failed';
+  CREATE_TRANSACTION: 'Create transaction';
+  CREATE_TRANSACTION_COMPLETE: 'Create transaction complete';
+  CREATE_TRANSACTION_FAILED: 'Create transaction failed';
 }
 
 export const BrandingActionTypes: IBrandingActionTypes = {
-  API_CALL: 'Api call',
-  API_CALL_COMPLETE: 'Api call complete',
   GET_GLOBAL_STATS: 'Get global stats',
   GET_GLOBAL_STATS_COMPLETE: 'Get global stats complete',
   GET_GLOBAL_STATS_FAILED: 'Get global stats failed',
   GET_SEE_DOCUMENTS: 'Get see documents ',
   GET_SEE_DOCUMENTS_COMPLETE: 'Get see documents complete',
   GET_SEE_DOCUMENTS_FAILED: 'Get see documents failed',
-  GET_EVENTS: 'Get events',
-  GET_EVENTS_COMPLETE: 'Get events complete',
-  GET_EVENTS_FAILED: 'Get events failed',
   GET_EVENT_PRESENCE: 'Get event presence',
   GET_EVENT_PRESENCE_COMPLETE: 'Get events presence complete',
   GET_EVENT_PRESENCE_FAILED: 'Get events presence failed',
@@ -56,21 +56,16 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   GET_NODE_STATS: 'Get node stats',
   GET_NODE_STATS_COMPLETE: 'Get node stats complete',
   GET_NODE_STATS_FAILED: 'Get node stats failed',
+  GET_TRANSACTIONS: 'Get transactions',
+  GET_TRANSACTIONS_COMPLETE: 'Get transactions complete',
+  GET_TRANSACTIONS_FAILED: 'Get transactions failed',
+  CREATE_SIGNATURE_DATA: 'Create signature data',
+  CREATE_SIGNATURE_DATA_COMPLETE: 'Create signature data complete',
+  CREATE_SIGNATURE_DATA_FAILED: 'Create signature data failed',
+  CREATE_TRANSACTION: 'Create transaction',
+  CREATE_TRANSACTION_COMPLETE: 'Create transaction complete',
+  CREATE_TRANSACTION_FAILED: 'Create transaction failed',
 };
-
-export class ApiCallAction implements Action {
-  type = BrandingActionTypes.API_CALL;
-
-  constructor(public method: string, public data?: any, public tag?: string | null) {
-  }
-}
-
-export class ApiCallCompleteAction implements Action {
-  type = BrandingActionTypes.API_CALL_COMPLETE;
-
-  constructor(public payload: ApiCallResult) {
-  }
-}
 
 export class GetGlobalStatsAction implements Action {
   type = BrandingActionTypes.GET_GLOBAL_STATS;
@@ -105,24 +100,6 @@ export class GetSeeDocumentsCompleteAction implements Action {
 
 export class GetSeeDocumentsFailedAction implements Action {
   type = BrandingActionTypes.GET_SEE_DOCUMENTS_FAILED;
-
-  constructor(public payload: ApiRequestStatus) {
-  }
-}
-
-export class GetEventsAction implements Action {
-  type = BrandingActionTypes.GET_EVENTS;
-}
-
-export class GetEventsCompleteAction implements Action {
-  type = BrandingActionTypes.GET_EVENTS_COMPLETE;
-
-  constructor(public payload: AgendaEvent[]) {
-  }
-}
-
-export class GetEventsFailedAction implements Action {
-  type = BrandingActionTypes.GET_EVENTS_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
@@ -209,27 +186,95 @@ export class GetNodeStatsFailedAction implements Action {
   }
 }
 
+export class GetTransactionsAction implements Action {
+  type = BrandingActionTypes.GET_TRANSACTIONS;
+
+  constructor(public address: string) {
+  }
+}
+
+export class GetTransactionsCompleteAction implements Action {
+  type = BrandingActionTypes.GET_TRANSACTIONS_COMPLETE;
+
+  constructor(public payload: ParsedTransaction[]) {
+  }
+}
+
+export class GetTransactionsFailedAction implements Action {
+  type = BrandingActionTypes.GET_TRANSACTIONS_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class CreateSignatureDataAction implements Action {
+  type = BrandingActionTypes.CREATE_SIGNATURE_DATA;
+
+  constructor(public payload: CreateSignatureData) {
+  }
+}
+
+export class CreateSignatureDataCompleteAction implements Action {
+  type = BrandingActionTypes.CREATE_SIGNATURE_DATA_COMPLETE;
+
+  constructor(public payload: CryptoTransaction) {
+  }
+}
+
+export class CreateSignatureDataFailedAction implements Action {
+  type = BrandingActionTypes.CREATE_SIGNATURE_DATA_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class CreateTransactionAction implements Action {
+  type = BrandingActionTypes.CREATE_TRANSACTION;
+
+  constructor(public payload: CryptoTransaction, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
+              public message: string) {
+  }
+}
+
+export class CreateTransactionCompleteAction implements Action {
+  type = BrandingActionTypes.CREATE_TRANSACTION_COMPLETE;
+
+  constructor(public payload: CreateTransactionResult) {
+  }
+}
+
+export class CreateTransactionFailedAction implements Action {
+  type = BrandingActionTypes.CREATE_TRANSACTION_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type BrandingActions
-  = ApiCallAction
-  | ApiCallCompleteAction
-  | GetGlobalStatsAction
+  = GetGlobalStatsAction
   | GetGlobalStatsCompleteAction
   | GetGlobalStatsFailedAction
   | GetSeeDocumentsAction
   | GetSeeDocumentsCompleteAction
   | GetSeeDocumentsFailedAction
-  | GetEventsAction
-  | GetEventsCompleteAction
-  | GetEventsFailedAction
   | GetEventPresenceAction
   | GetEventPresenceCompleteAction
   | GetEventPresenceFailedAction
   | UpdateEventPresenceAction
   | UpdateEventPresenceCompleteAction
   | UpdateEventPresenceFailedAction
+  | GetNodeStatsAction
+  | GetNodeStatsCompleteAction
+  | GetNodeStatsFailedAction
   | GetNodeStatusAction
   | GetNodeStatusCompleteAction
   | GetNodeStatusFailedAction
-  | GetNodeStatsAction
-  | GetNodeStatsCompleteAction
-  | GetNodeStatsFailedAction;
+  | GetTransactionsAction
+  | GetTransactionsCompleteAction
+  | GetTransactionsFailedAction
+  | CreateSignatureDataAction
+  | CreateSignatureDataCompleteAction
+  | CreateSignatureDataFailedAction
+  | CreateTransactionAction
+  | CreateTransactionCompleteAction
+  | CreateTransactionFailedAction;

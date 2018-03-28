@@ -1,0 +1,20 @@
+<ion-content>
+  <ion-row justify-content-center>
+    <h2>{{ totalAmount$ | async | amount }}</h2>
+  </ion-row>
+  <ion-refresher #refresher (ionRefresh)="getTransactions()" (ionPull)="{}">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  <ion-list>
+    <ion-item *ngFor="let transaction of transactions$ | async; trackBy: trackTransactions">
+      <h2>
+        {{ transaction.timestamp | date : 'MMMM d HH:mm' }} - {{ getTransactionStatus(transaction.status) }}
+      </h2>
+      <p *ngFor="let output of transaction.otherOutputs">
+        {{ 'x_to_y' | translate : { x: output.value | amount, y: output.unlockhash } }}
+      </p>
+      <p *ngIf="!transaction.receiving">{{ 'fee_x' | translate : { fee: getFee(transaction) | amount } }}</p>
+      <button ion-button item-end [color]="getColor(transaction)">{{ transaction.amount | amount }}</button>
+    </ion-item>
+  </ion-list>
+</ion-content>

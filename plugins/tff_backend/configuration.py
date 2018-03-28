@@ -85,4 +85,5 @@ class TffConfiguration(TO):
     cloudstorage_encryption_key = unicode_property('cloudstorage_encryption_key')
     exchangerate_key = unicode_property('exchangerate_key')
     onfido = typed_property('onfido', OnfidoConfiguration)
+    rivine_url = unicode_property('rivine_url')
     influxdb = typed_property('influxdb', InfluxDBConfig)

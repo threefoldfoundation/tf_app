@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+
 from plugins.rogerthat_api.plugin_utils import Enum
 
 PROVIDER_ID = u"threefold"
@@ -29,3 +30,13 @@ class TokenType(Enum):
     C = u'TFT_C'
     D = u'TFT_D'
     I = u'iTFT_A'
+
+
+class TransactionStatus(Enum):
+    UNCONFIRMED = u'unconfirmed'
+    CONFIRMED = u'confirmed'
+    FAILED = u'failed'
+
+
+COIN_TO_HASTINGS_PRECISION = 24
+COIN_TO_HASTINGS = pow(10, COIN_TO_HASTINGS_PRECISION)
