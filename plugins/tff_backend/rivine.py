@@ -122,10 +122,10 @@ def get_transactions(address, status=None):
             continue
 
         for ci in t['rawtransaction']['data']['coininputs']:
-            for t in transactions:
-                if ci['parentid'] != t['output_id']:
+            for transaction in transactions:
+                if ci['parentid'] != transaction['output_id']:
                     continue
-                t['spent'] = True
+                transaction['spent'] = True
     return sorted(transactions, key=lambda k: k['timestamp'], reverse=True)
 
 
