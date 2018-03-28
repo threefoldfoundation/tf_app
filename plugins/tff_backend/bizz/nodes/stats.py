@@ -210,7 +210,7 @@ def assign_nodes_to_user(iyo_username, nodes):
 
 def _set_nodes_in_user_data(iyo_username, email, app_id):
     data = {'nodes': [n.to_dict() for n in Node.list_by_user(iyo_username)]}
-    system.put_user_data(get_rogerthat_api_key(), email, app_id, data, _transactional=True)
+    system.put_user_data(get_rogerthat_api_key(), email, app_id, data)
 
 
 def get_nodes_stats(nodes):
