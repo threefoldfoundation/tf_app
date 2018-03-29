@@ -98,21 +98,25 @@ def get_transactions(address, status=None):
         if not t['coinoutputids'] or len(t['coinoutputids']) == 0:
             continue
 
+        d = {'id': t['id'],
+             'height': t['height'],
+             'timestamp': get_block_by_height(t['height'])['rawblock']['timestamp'],
+             'inputs': t['coininputoutputs'],
+             'outputs': t['rawtransaction']['data']['coinoutputs'],
+             'currency': TOKEN_TFT,
+             'status': t_status,
+             'outputs_values': []}
+
         for sco_id, co in zip(t['coinoutputids'], t['rawtransaction']['data']['coinoutputs']):
-            # todo investigate if correct when fully spent
             if co['unlockhash'] != address:
                 continue
+            d['outputs_values'].append({
+                'output_id': sco_id,
+                'amount': unicode(co['value']),
+                'spent': False
+            })
 
-            transactions.append({'id': t['id'],
-                                 'height': t['height'],
-                                 'timestamp': get_block_by_height(t['height'])['rawblock']['timestamp'],
-                                 'output_id': sco_id,
-                                 'inputs': t['coininputoutputs'],
-                                 'outputs': t['rawtransaction']['data']['coinoutputs'],
-                                 'amount': unicode(co['value']),
-                                 'currency': TOKEN_TFT,
-                                 'status': t_status,
-                                 'spent': False})
+        transactions.append(d)
 
     if not transactions:
         return []
@@ -123,9 +127,10 @@ def get_transactions(address, status=None):
 
         for ci in t['rawtransaction']['data']['coininputs']:
             for transaction in transactions:
-                if ci['parentid'] != transaction['output_id']:
-                    continue
-                transaction['spent'] = True
+                for transaction_output in transaction['outputs_values']:
+                    if ci['parentid'] != transaction_output['output_id']:
+                        continue
+                    transaction_output['spent'] = True
     return sorted(transactions, key=lambda k: k['timestamp'], reverse=True)
 
 
@@ -133,9 +138,10 @@ def get_balance(address):
     amount = 0
     transactions = get_transactions(address, TransactionStatus.CONFIRMED)
     for t in transactions:
-        if t['spent']:
-            continue
-        amount += long(t['amount'])
+        for transaction_output in t['outputs_values']:
+            if transaction_output['spent']:
+                continue
+            amount += long(transaction_output['amount'])
     return amount
 
 
@@ -143,9 +149,10 @@ def get_output_ids(address):
     d = []
     transactions = get_transactions(address, TransactionStatus.CONFIRMED)
     for t in transactions:
-        if t['spent']:
-            continue
-        d.append(t)
+        for transaction_output in t['outputs_values']:
+            if transaction_output['spent']:
+                continue
+            d.append(transaction_output)
     return d
 
 
@@ -154,19 +161,21 @@ def get_output_ids(address):
 def create_signature_data(from_address, to_address, amount):
     logging.info('create_signature_data(%s, %s, %s)', from_address, to_address, amount)
     transactions = get_output_ids(from_address)
-    transaction = CryptoTransactionTO(minerfees=unicode(COIN_TO_HASTINGS), data=[], from_address=from_address,
+    minerfees = COIN_TO_HASTINGS
+    transaction = CryptoTransactionTO(minerfees=unicode(minerfees), data=[], from_address=from_address,
                                       to_address=to_address)
     fee_substracted = False
 
     amount_left = amount
     for t in transactions:
+        logging.warn(t)
         data = CryptoTransactionDataTO(timelock=0, outputs=[], algorithm=None, public_key_index=0,
                                        public_key=None, signature_hash=None, signature=None)
         data.input = CryptoTransactionInputTO(parent_id=t['output_id'], timelock=0)
         should_break = False
         a = long(t['amount'])
         if not fee_substracted:
-            a -= COIN_TO_HASTINGS
+            a -= minerfees
             fee_substracted = True
 
         if (amount_left - a) > 0:
