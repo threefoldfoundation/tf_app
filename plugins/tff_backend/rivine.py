@@ -105,6 +105,7 @@ def get_transactions(address, status=None):
              'outputs': t['rawtransaction']['data']['coinoutputs'],
              'currency': TOKEN_TFT,
              'status': t_status,
+             'minerfees': unicode(sum([long(minerfee) for minerfee in t['rawtransaction']['data']['minerfees']])),
              'outputs_values': []}
 
         for sco_id, co in zip(t['coinoutputids'], t['rawtransaction']['data']['coinoutputs']):
@@ -168,7 +169,6 @@ def create_signature_data(from_address, to_address, amount):
 
     amount_left = amount
     for t in transactions:
-        logging.warn(t)
         data = CryptoTransactionDataTO(timelock=0, outputs=[], algorithm=None, public_key_index=0,
                                        public_key=None, signature_hash=None, signature=None)
         data.input = CryptoTransactionInputTO(parent_id=t['output_id'], timelock=0)

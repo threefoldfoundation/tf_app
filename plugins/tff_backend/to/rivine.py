@@ -129,6 +129,7 @@ class TransactionTO(TO):
     timestamp = long_property('timestamp')
     inputs = typed_property('inputs', CryptoTransactionOutputTO, True)
     outputs = typed_property('outputs', CryptoTransactionOutputTO, True)
+    minerfees = unicode_property('minerfees')
 
 
 class TransactionListTO(PaginatedResultTO):
