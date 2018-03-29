@@ -85,7 +85,7 @@ class CryptoTransactionTO(TO):
 
 
 class CreateSignatureDataTO(TO):
-    amount = long_property('amount')
+    amount = float_property('amount')
     precision = long_property('precision')
     from_address = unicode_property('from_address')
     to_address = unicode_property('to_address')

@@ -41,7 +41,7 @@ def api_get_transactions(address):
 @arguments(data=CreateSignatureDataTO)
 def api_create_signature_data_transaction(data):
     _set_access_control_header()
-    amount = data.amount * COIN_TO_HASTINGS / pow(10, data.precision)
+    amount = long(round(data.amount)) * COIN_TO_HASTINGS / pow(10, data.precision)
     return create_signature_data(data.from_address, data.to_address, amount)
 
 
