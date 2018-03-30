@@ -59,13 +59,13 @@ body {
 
 // Used in TransactionListPageComponent
 .color-primary, .color-default {
-  color: map-get($colors, primary) !important;
+  color: map-get($colors, primary);
 }
 
 .color-danger {
-  color: map-get($colors, danger) !important;
+  color: map-get($colors, danger);
 }
 
 .color-secondary {
-  color: map-get($colors, secondary) !important;
+  color: map-get($colors, secondary);
 }
