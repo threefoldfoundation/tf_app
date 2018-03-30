@@ -10,9 +10,9 @@ export interface Transaction {
   id: string;
   status: TransactionStatus;
   timestamp: number;
-  spent: boolean;
   inputs: TransactionOutput[];
   outputs: TransactionOutput[];
+  minerfees: string[];
 }
 
 export interface TransactionInput {
@@ -48,7 +48,6 @@ export interface ParsedTransaction {
   id: string;
   status: TransactionStatus;
   timestamp: Date;
-  spent: boolean;
   inputs: TransactionOutput[];
   outputs: TransactionOutput[];
   /**
@@ -56,6 +55,7 @@ export interface ParsedTransaction {
    */
   otherOutputs: TransactionOutput[];
   amount: number;
+  minerfee: number;
   receiving: boolean;
 }
 
@@ -64,7 +64,7 @@ export interface CreateTransactionResult {
 }
 
 export const ADDRESS_LENGTH = 78;
-export const COIN_TO_HASTINGS_PRECISION = 24;
+export const COIN_TO_HASTINGS_PRECISION = 9;
 export const COIN_TO_HASTINGS = Math.pow(10, COIN_TO_HASTINGS_PRECISION);
 export const CURRENCY_TFT = 'TFT';
 export const KEY_NAME = 'threefold';

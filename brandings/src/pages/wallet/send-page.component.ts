@@ -1,26 +1,48 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { NgForm } from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController, ModalController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
-import { filter, first } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import { GetAddresssAction, ScanQrCodeAction } from '../../actions';
 import { IAppState } from '../../app/app.state';
-import { ADDRESS_LENGTH, CreateSignatureData, CreateTransactionResult, KEY_NAME, RIVINE_ALGORITHM } from '../../interfaces/wallet';
+import {
+  ADDRESS_LENGTH,
+  CreateSignatureData,
+  CreateTransactionResult,
+  CURRENCY_TFT,
+  KEY_NAME,
+  RIVINE_ALGORITHM,
+} from '../../interfaces/wallet';
 import { CryptoAddress, QrCodeScannedContent } from '../../manual_typings/rogerthat';
 import { getAddress, getQrCodeContent } from '../../state/rogerthat.state';
+import { parseQuery } from '../../util/rpc';
 import { ConfirmSendPageComponent } from './confirm-send-page.component';
+
+const PRECISION = 5;
+const DEFAULT_FORM_DATA = {
+  amount: 0,
+  precision: PRECISION,
+  from_address: '',
+  to_address: '',
+};
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'send-page.component.html',
+  template: `
+    <ion-content>
+      <send [data]="data"
+            [address]="address$ | async"
+            [addressLength]="addressLength"
+            (scanQr)="onScanQr()"
+            (createSignatureData)="onCreateSignatureData($event)"></send>
+    </ion-content>`,
 })
 export class SendPageComponent implements OnInit, OnDestroy {
   address$: Observable<CryptoAddress>;
   addressLength = ADDRESS_LENGTH;
-  data: CreateSignatureData;
+  data: CreateSignatureData = DEFAULT_FORM_DATA; // cant get it to work with a subject
 
   private _qrCodeContentSubscription: Subscription;
 
@@ -28,8 +50,8 @@ export class SendPageComponent implements OnInit, OnDestroy {
               private modalCtrl: ModalController,
               private alertCtrl: AlertController,
               private translate: TranslateService,
-              private cdRef: ChangeDetectorRef) {
-    this.data = this._getDefaultData();
+              private cdRef: ChangeDetectorRef,
+              private ngZone: NgZone) {
   }
 
   ngOnInit() {
@@ -44,11 +66,9 @@ export class SendPageComponent implements OnInit, OnDestroy {
       select(getQrCodeContent),
       filter(r => r !== null && r.status === 'resolved'),
     ).subscribe((result: QrCodeScannedContent) => {
-      if (result.content.includes(':')) {
-        const [ address, amount ] = result.content.split(':');
-        this.data.to_address = address;
-        this.data.amount = parseFloat(amount);
-        this.cdRef.detectChanges();
+      const parsedQr = this.parseQr(result.content);
+      if (parsedQr.token === CURRENCY_TFT && parsedQr.address && parsedQr.amount) {
+        this.setData({ ...this.data, amount: parsedQr.amount, to_address: parsedQr.address });
       } else {
         this.alertCtrl.create({
           message: this.translate.instant('unknown_qr_code_scanned'),
@@ -62,16 +82,30 @@ export class SendPageComponent implements OnInit, OnDestroy {
     this._qrCodeContentSubscription.unsubscribe();
   }
 
-  submit(form: NgForm) {
-    if (!form.form.valid) {
-      return;
+  parseQr(qr: string) {
+    let token = CURRENCY_TFT;
+    let address = null;
+    const [ url, qry ] = qr.split('?');
+    const amount = parseInt(parseQuery(qry || '').amount) || 0;
+    const splitUrl = url.split(':');
+    for (const part of splitUrl) {
+      if (part.length === 3) {
+        token = part.toUpperCase();
+      }
+      if (part.length === ADDRESS_LENGTH) {
+        address = part;
+      }
     }
-    this.address$.pipe(first()).subscribe(address => {
-      this.data.from_address = address.address;
+    return { token, address, amount };
+  }
+
+  onCreateSignatureData(data: CreateSignatureData) {
+    // for some fucking reason this does not run in ngZone leading to UI not updating
+    this.ngZone.run(() => {
       const modal = this.modalCtrl.create(ConfirmSendPageComponent, {
         transactionData: {
-          ...this.data,
-          amount: Math.round(this.data.amount * Math.pow(10, 5)),
+          ...data,
+          amount: Math.round(data.amount * Math.pow(10, PRECISION)),
         },
       });
       modal.onDidDismiss((transaction: CreateTransactionResult | null) => {
@@ -82,24 +116,19 @@ export class SendPageComponent implements OnInit, OnDestroy {
             buttons: [ { text: this.translate.instant('ok') } ],
           };
           this.alertCtrl.create(config).present();
-          this.data = this._getDefaultData();
-          this.cdRef.markForCheck();
+          this.setData(DEFAULT_FORM_DATA);
         }
       });
       modal.present();
     });
   }
 
-  scanQr() {
-    this.store.dispatch(new ScanQrCodeAction('front'));
+  setData(data: CreateSignatureData) {
+    this.data = data;
+    this.cdRef.detectChanges();
   }
 
-  private _getDefaultData() {
-    return {
-      amount: 0,
-      precision: 5,
-      from_address: '',
-      to_address: '',
-    };
+  onScanQr() {
+    this.store.dispatch(new ScanQrCodeAction('front'));
   }
 }

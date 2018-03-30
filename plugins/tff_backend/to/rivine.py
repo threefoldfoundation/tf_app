@@ -16,7 +16,8 @@
 # @@license_version:1.3@@
 
 from framework.to import TO
-from mcfw.properties import long_property, unicode_property, typed_property, bool_property, float_property
+from mcfw.properties import long_property, unicode_property, typed_property, bool_property, float_property, \
+    unicode_list_property
 from plugins.tff_backend.to import PaginatedResultTO
 
 
@@ -129,7 +130,7 @@ class TransactionTO(TO):
     timestamp = long_property('timestamp')
     inputs = typed_property('inputs', CryptoTransactionOutputTO, True)
     outputs = typed_property('outputs', CryptoTransactionOutputTO, True)
-    minerfees = unicode_property('minerfees')
+    minerfees = unicode_list_property('minerfees')
 
 
 class TransactionListTO(PaginatedResultTO):

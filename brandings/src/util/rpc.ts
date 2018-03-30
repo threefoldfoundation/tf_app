@@ -41,3 +41,13 @@ export function handleApiError(action: any, response: ApiCallError) {
 export function handleError(action: any, response: HttpErrorResponse) {
   return of(new action(transformErrorResponse(response)));
 }
+
+export function parseQuery(queryString: string): { [ key: string ]: string } {
+  const query: { [ key: string ]: string } = {};
+  const pairs = (queryString[ 0 ] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (const pair of pairs) {
+    const [ key, value ] = pair.split('=');
+    query[ decodeURIComponent(key) ] = decodeURIComponent(value || '');
+  }
+  return query;
+}

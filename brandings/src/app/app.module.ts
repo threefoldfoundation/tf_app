@@ -15,10 +15,12 @@ import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 import {
   AgendaComponent,
   ApiRequestStatusComponent,
+  ConfirmSendComponent,
   EventDetailsComponent,
   GlobalStatsComponent,
   NodeStatusComponent,
   SeeDocumentComponent,
+  SendComponent,
   TodoItemListComponent,
 } from '../components';
 import { BrandingEffects, RogerthatEffects } from '../effects';
@@ -72,10 +74,12 @@ export const PAGES = [
 export const COMPONENTS = [
   AgendaComponent,
   ApiRequestStatusComponent,
+  ConfirmSendComponent,
   EventDetailsComponent,
   GlobalStatsComponent,
   NodeStatusComponent,
   SeeDocumentComponent,
+  SendComponent,
   TodoItemListComponent,
 ];
 

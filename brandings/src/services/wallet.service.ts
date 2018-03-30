@@ -31,11 +31,15 @@ export class WalletService {
   private _convertTransaction(transaction: Transaction, address: string): ParsedTransaction {
     const amount = getTransactionAmount(address, transaction.inputs, transaction.outputs);
     return {
-      ...transaction,
+      id: transaction.id,
+      status: transaction.status,
+      inputs: transaction.inputs,
+      outputs: transaction.outputs,
       timestamp: new Date(transaction.timestamp * 1000),
       receiving: amount > 0,
       otherOutputs: transaction.outputs.filter(output => output.unlockhash !== address),
       amount,
+      minerfee: transaction.minerfees.reduce((total: number, minerfee: string) => total + parseInt(minerfee), 0),
     };
   }
 }

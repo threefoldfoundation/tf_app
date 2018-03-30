@@ -105,7 +105,7 @@ def get_transactions(address, status=None):
              'outputs': t['rawtransaction']['data']['coinoutputs'],
              'currency': TOKEN_TFT,
              'status': t_status,
-             'minerfees': unicode(sum([long(minerfee) for minerfee in t['rawtransaction']['data']['minerfees']])),
+             'minerfees': t['rawtransaction']['data']['minerfees'],
              'outputs_values': []}
 
         for sco_id, co in zip(t['coinoutputids'], t['rawtransaction']['data']['coinoutputs']):

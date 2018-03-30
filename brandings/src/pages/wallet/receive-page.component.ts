@@ -6,6 +6,7 @@ import { ToastController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { filter, map, startWith, withLatestFrom } from 'rxjs/operators';
 import { IAppState } from '../../app/app.state';
+import { CURRENCY_TFT } from '../../interfaces/wallet';
 import { getAddress } from '../../state/rogerthat.state';
 
 @Component({
@@ -38,7 +39,7 @@ export class ReceivePageComponent implements OnInit {
     this.qrContent$ = this.amountControl.valueChanges.pipe(
       startWith(''),
       withLatestFrom(this.address$),
-      map(([ amount, address ]) => `${address}:${parseFloat(amount) || 0}`),
+      map(([ amount, address ]) => `${CURRENCY_TFT}:${address}?amount=${parseFloat(amount) || 0}`),
     );
   }
 

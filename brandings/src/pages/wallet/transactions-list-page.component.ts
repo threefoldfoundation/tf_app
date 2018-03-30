@@ -110,12 +110,6 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     return lines;
   }
 
-  getFee(transaction: ParsedTransaction): number {
-    // inputs - outputs = fee
-    // todo just return fee from server
-    return transaction.inputs.reduce(outputReducer, 0) - transaction.outputs.reduce(outputReducer, 0);
-  }
-
   getColor(transaction: ParsedTransaction) {
     return transaction.receiving ? 'default' : 'danger';
   }
