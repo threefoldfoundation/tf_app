@@ -64,6 +64,10 @@ export class RogerthatService {
     this._version = { major, minor, patch };
   }
 
+  getVersion() {
+    return this._version;
+  }
+
   getContext(): Observable<any> {
     return Observable.create((emitter: Subject<any>) => {
       rogerthat.context(success, error);

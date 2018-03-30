@@ -56,8 +56,24 @@ export class AppComponent implements OnInit {
         }
         splashScreen.hide();
         this.rogerthatService.initialize();
+        const version = this.rogerthatService.getVersion();
+        let mustUpdate = false;
+        if (rogerthat.system.os === 'ios') {
+          if (version.patch < 2681) {
+            mustUpdate = true;
+          }
+        } else {
+          if (version.patch < 3916) {
+            mustUpdate = true;
+          }
+        }
         this.rogerthatService.getContext().subscribe(context => {
           const root = this.getRootPage(context);
+          if (mustUpdate && root && root.page === WalletPageComponent) {
+            const alert = this.errorService.showVersionNotSupported(this.translate.instant('not_supported_pls_update'));
+            alert.onDidDismiss(() => platform.exitApp());
+            return;
+          }
           if (root) {
             this.root = root;
           }

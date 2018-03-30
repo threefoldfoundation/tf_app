@@ -54,7 +54,7 @@ export class ErrorService {
 
   showVersionNotSupported(errorMessage: string) {
     const url = `https://rogerth.at/install?a=${rogerthat.system.appId}`;
-    return this.alertCtrl.create({
+    const alert = this.alertCtrl.create({
       title: this.translate.instant('update_required'),
       message: errorMessage,
       buttons: [ {
@@ -65,6 +65,8 @@ export class ErrorService {
       }, {
         text: this.translate.instant('close'),
       } ],
-    }).present();
+    })
+    alert.present();
+    return alert;
   }
 }
