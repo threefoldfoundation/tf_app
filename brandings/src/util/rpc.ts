@@ -27,6 +27,9 @@ export function transformErrorResponse<T = any>(response: HttpErrorResponse): Ap
       data: <any>{},
     };
   }
+  if (apiError.status_code === 500) {
+    apiError.error = 'unknown';
+  }
   return {
     error: apiError,
     loading: false,
