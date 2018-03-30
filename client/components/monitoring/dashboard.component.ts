@@ -10,8 +10,7 @@ import {
   SimpleChanges,
   ViewEncapsulation,
 } from '@angular/core';
-import { BreakPointRegistry, MatchMedia } from '@angular/flex-layout';
-import { BreakPoint } from '@angular/flex-layout/typings/media-query/breakpoints/break-point';
+import { BreakPoint, BreakPointRegistry, MatchMedia } from '@angular/flex-layout/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
