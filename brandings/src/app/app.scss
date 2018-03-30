@@ -24,10 +24,6 @@ body {
   opacity: 1 !important;
 }
 
-.error-message {
-  color: map_get($colors, danger);
-}
-
 .progress, progress[value] {
   width: 100%;
   border: none;
@@ -59,4 +55,17 @@ body {
 
 .agenda-icon {
   font-size: 26px;
+}
+
+// Used in TransactionListPageComponent
+.color-primary, .color-default {
+  color: map-get($colors, primary) !important;
+}
+
+.color-danger {
+  color: map-get($colors, danger) !important;
+}
+
+.color-secondary {
+  color: map-get($colors, secondary) !important;
 }

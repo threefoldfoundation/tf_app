@@ -9,7 +9,7 @@
     </ion-item>
     <ion-item *ngIf="toAddress.errors && toAddress.dirty">
       <p *ngIf="toAddress.errors.minlength || toAddress.errors.maxlength || toAddress.errors.required"
-         class="error-message ">
+         class="color-danger">
         {{ 'address_must_be_x_characters' | translate : { amount: addressLength, current:
         toAddress.errors.minlength?.actualLength || toAddress.errors.maxlength?.actualLength || 0 } }}</p>
     </ion-item>

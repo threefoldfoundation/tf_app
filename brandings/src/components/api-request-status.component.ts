@@ -11,7 +11,7 @@ import { ErrorService } from '../pages/error.service';
       <ion-spinner [style.width]="size" [style.height]="size"></ion-spinner>
     </ion-row>
     <div *ngIf="status.error && !status.success">
-      <p class="error-message" [innerText]="errorService.getErrorMessage(status.error.error)"></p>
+      <p class="color-danger" [innerText]="errorService.getErrorMessage(status.error.error)"></p>
     </div>`,
 })
 export class ApiRequestStatusComponent {

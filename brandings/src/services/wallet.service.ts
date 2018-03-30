@@ -34,7 +34,6 @@ export class WalletService {
 
   private _convertTransaction(transaction: Transaction, address: string): ParsedTransaction {
     const amount = getTransactionAmount(address, transaction.inputs, transaction.outputs);
-    console.log(transaction);
     return {
       id: transaction.id,
       inputs: transaction.inputs,

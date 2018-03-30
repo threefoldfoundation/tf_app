@@ -20,6 +20,10 @@ import { TransactionDetailPageComponent } from './transaction-detail-page.compon
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'transactions-list-page.component.html',
+  styles: [ `.send-receive-text {
+    text-transform: uppercase;
+    font-weight: bold;
+  }` ],
 })
 export class TransactionsListPageComponent implements OnInit, OnDestroy {
   @ViewChild(Refresher) refresher: Refresher;
@@ -97,6 +101,10 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
 
   showDetails(transaction: ParsedTransaction) {
     this.modalController.create(TransactionDetailPageComponent, { transaction }).present();
+  }
+
+  getColorClass(transaction: ParsedTransaction) {
+    return `color-${this.getColor(transaction)} send-receive-text`;
   }
 
   _showErrorDialog(err: string) {

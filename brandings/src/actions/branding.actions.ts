@@ -257,12 +257,17 @@ export class CreateTransactionFailedAction implements Action {
 export class GetLatestBlockAction implements Action {
   type = BrandingActionTypes.GET_LATEST_BLOCK;
 }
+
 export class GetLatestBlockCompleteAction implements Action {
   type = BrandingActionTypes.GET_LATEST_BLOCK_COMPLETE;
-  constructor(public payload:TfChainBlock){}
+
+  constructor(public payload: TfChainBlock) {
+  }
 }
+
 export class GetLatestBlockFailedAction implements Action {
   type = BrandingActionTypes.GET_LATEST_BLOCK_FAILED;
+
   constructor(public payload: ApiRequestStatus) {
   }
 }

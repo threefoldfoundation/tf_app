@@ -34,10 +34,7 @@ export class TransactionDetailPageComponent implements OnInit {
     );
     this.confirmations$ = this.latestBlock$.pipe(
       startWith({ height: 0 }),
-      map(block => {
-        console.log(this.transaction, block);
-        return block.height - this.transaction.height;
-      }),
+      map(block => block.height - this.transaction.height),
     );
   }
 
