@@ -52,6 +52,10 @@ export class TransactionDetailPageComponent implements OnInit {
     return lines;
   }
 
+  getAmount(amount: number) {
+    return this.amountPipe.transform(Math.abs(amount));
+  }
+
   dismiss() {
     this.viewCtrl.dismiss();
   }

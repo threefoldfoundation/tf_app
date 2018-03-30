@@ -86,7 +86,7 @@ export class SendPageComponent implements OnInit, OnDestroy {
     let token = CURRENCY_TFT;
     let address = null;
     const [ url, qry ] = qr.split('?');
-    const amount = parseInt(parseQuery(qry || '').amount) || 0;
+    const amount = parseFloat(parseQuery(qry || '').amount) || 0;
     const splitUrl = url.split(':');
     for (const part of splitUrl) {
       if (part.length === 3) {
