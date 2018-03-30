@@ -135,17 +135,6 @@ def get_transactions(address, status=None):
     return sorted(transactions, key=lambda k: k['timestamp'], reverse=True)
 
 
-def get_balance(address):
-    amount = 0
-    transactions = get_transactions(address, TransactionStatus.CONFIRMED)
-    for t in transactions:
-        for transaction_output in t['outputs_values']:
-            if transaction_output['spent']:
-                continue
-            amount += long(transaction_output['amount'])
-    return amount
-
-
 def get_output_ids(address):
     d = []
     transactions = get_transactions(address, TransactionStatus.CONFIRMED)

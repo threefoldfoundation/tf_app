@@ -13,8 +13,6 @@ import { getAddress } from '../../state/rogerthat.state';
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'receive-page.component.html',
   styles: [ `.address-line {
-    -webkit-user-select: all;
-    user-select: all;
     max-width: 100%;
   }` ],
 })

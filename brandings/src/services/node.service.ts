@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { of as observableOf } from 'rxjs/observable/of';
-import { NodeInfo, NodeStatus } from '../interfaces/node-status.interfaces';
+import { NodeInfo } from '../interfaces/node-status.interfaces';
 import { RogerthatService } from './rogerthat.service';
 
 @Injectable()

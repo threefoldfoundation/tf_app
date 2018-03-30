@@ -20,25 +20,24 @@ To test it, either upload it as a branding on your rogerthat server or add this 
 ```html
 <script>
   if (typeof rogerthat === 'undefined') {
+    function nothing() {
+    }
+
     rogerthat = {
+      context: func => func({context: null}),
       api: {
-        call: () => {
-        },
+        call: nothing,
         callbacks: {
-          resultReceived: () => {
-          }
+          resultReceived: nothing,
         }
       },
       callbacks: {
         ready: function (callback) {
           this._ready = callback;
         },
-        serviceDataUpdated: () => {
-        },
-        userDataUpdated: () => {
-        },
-        qrCodeScanned: () => {
-        }
+        serviceDataUpdated: nothing,
+        userDataUpdated: nothing,
+        qrCodeScanned: nothing,
       },
       user: {
         language: 'en',
@@ -91,7 +90,7 @@ To test it, either upload it as a branding on your rogerthat server or add this 
         }
       },
       security: {
-        getAddress: success => success({address: 'c69ac3db0015992b7cdf3f40c4fb4912f64c975784e2d50c909ee5119734d30784842a3b9899'})
+        getAddress: success => success({address: '015df22a2e82a3323bc6ffbd1730450ed844feca711c8fe0c15e218c171962fd17473296fdd9fe'})
       },
       menuItem: {
         hashedTag: 'wallet',
@@ -103,8 +102,7 @@ To test it, either upload it as a branding on your rogerthat server or add this 
         }
       }
     };
-    sha256 = () => {
-    };
+    sha256 = nothing,
     setTimeout(() => rogerthat.callbacks._ready(), 250);
   }
 </script>

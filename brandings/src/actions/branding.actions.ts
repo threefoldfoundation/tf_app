@@ -4,7 +4,7 @@ import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { NodeInfo } from '../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
-import { CreateSignatureData, CreateTransactionResult, ParsedTransaction } from '../interfaces/wallet';
+import { CreateSignatureData, CreateTransactionResult, ParsedTransaction, TfChainBlock } from '../interfaces/wallet';
 import { CryptoTransaction, SupportedAlgorithms } from '../manual_typings/rogerthat';
 
 interface IBrandingActionTypes {
@@ -35,6 +35,9 @@ interface IBrandingActionTypes {
   CREATE_TRANSACTION: 'Create transaction';
   CREATE_TRANSACTION_COMPLETE: 'Create transaction complete';
   CREATE_TRANSACTION_FAILED: 'Create transaction failed';
+  GET_LATEST_BLOCK: 'Get latest block';
+  GET_LATEST_BLOCK_COMPLETE: 'Get latest block complete';
+  GET_LATEST_BLOCK_FAILED: 'Get latest block failed';
 }
 
 export const BrandingActionTypes: IBrandingActionTypes = {
@@ -65,11 +68,13 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   CREATE_TRANSACTION: 'Create transaction',
   CREATE_TRANSACTION_COMPLETE: 'Create transaction complete',
   CREATE_TRANSACTION_FAILED: 'Create transaction failed',
+  GET_LATEST_BLOCK: 'Get latest block',
+  GET_LATEST_BLOCK_COMPLETE: 'Get latest block complete',
+  GET_LATEST_BLOCK_FAILED: 'Get latest block failed',
 };
 
 export class GetGlobalStatsAction implements Action {
   type = BrandingActionTypes.GET_GLOBAL_STATS;
-  payload: null = null;
 }
 
 export class GetGlobalStatsCompleteAction implements Action {
@@ -88,7 +93,6 @@ export class GetGlobalStatsFailedAction implements Action {
 
 export class GetSeeDocumentsAction implements Action {
   type = BrandingActionTypes.GET_SEE_DOCUMENTS;
-  payload: null = null;
 }
 
 export class GetSeeDocumentsCompleteAction implements Action {
@@ -250,6 +254,19 @@ export class CreateTransactionFailedAction implements Action {
   }
 }
 
+export class GetLatestBlockAction implements Action {
+  type = BrandingActionTypes.GET_LATEST_BLOCK;
+}
+export class GetLatestBlockCompleteAction implements Action {
+  type = BrandingActionTypes.GET_LATEST_BLOCK_COMPLETE;
+  constructor(public payload:TfChainBlock){}
+}
+export class GetLatestBlockFailedAction implements Action {
+  type = BrandingActionTypes.GET_LATEST_BLOCK_FAILED;
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type BrandingActions
   = GetGlobalStatsAction
   | GetGlobalStatsCompleteAction
@@ -277,4 +294,7 @@ export type BrandingActions
   | CreateSignatureDataFailedAction
   | CreateTransactionAction
   | CreateTransactionCompleteAction
-  | CreateTransactionFailedAction;
+  | CreateTransactionFailedAction
+  | GetLatestBlockAction
+  | GetLatestBlockCompleteAction
+  | GetLatestBlockFailedAction;

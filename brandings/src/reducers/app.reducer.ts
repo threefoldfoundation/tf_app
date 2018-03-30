@@ -160,6 +160,22 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
         ...state,
         createTransactionStatus: action.payload,
       };
+    case BrandingActionTypes.GET_LATEST_BLOCK:
+      return {
+        ...state,
+        latestBlockStatus: apiRequestLoading,
+      };
+    case BrandingActionTypes.GET_LATEST_BLOCK_COMPLETE:
+      return {
+        ...state,
+        latestBlock: action.payload,
+        latestBlockStatus: apiRequestSuccess,
+      };
+    case BrandingActionTypes.GET_LATEST_BLOCK_FAILED:
+      return {
+        ...state,
+        latestBlockStatus: action.payload,
+      };
   }
   return state;
 }

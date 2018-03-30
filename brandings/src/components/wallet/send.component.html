@@ -4,7 +4,7 @@
   <ion-list>
     <ion-item>
       <ion-label color="primary" floating>{{ 'address' | translate }}</ion-label>
-      <ion-textarea type="text" name="to_address" #toAddress="ngModel" [(ngModel)]="data.to_address" rows="2"
+      <ion-textarea type="text" name="to_address" #toAddress="ngModel" [(ngModel)]="data.to_address" rows="3"
                     required [minlength]="addressLength" [maxlength]="addressLength"></ion-textarea>
     </ion-item>
     <ion-item *ngIf="toAddress.errors && toAddress.dirty">

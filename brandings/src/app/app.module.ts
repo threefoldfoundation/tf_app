@@ -37,6 +37,7 @@ import {
   SendPageComponent,
   TodoListOverviewPageComponent,
   TodoListPageComponent,
+  TransactionDetailPageComponent,
   TransactionsListPageComponent,
   WalletPageComponent,
 } from '../pages';
@@ -67,6 +68,7 @@ export const PAGES = [
   SendPageComponent,
   TodoListOverviewPageComponent,
   TodoListPageComponent,
+  TransactionDetailPageComponent,
   TransactionsListPageComponent,
   WalletPageComponent,
 ];

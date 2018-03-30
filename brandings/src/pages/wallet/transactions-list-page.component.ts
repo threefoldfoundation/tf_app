@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { Alert, AlertController, Refresher } from 'ionic-angular';
+import { Alert, AlertController, ModalController, Refresher } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
 import { first } from 'rxjs/operators';
@@ -9,14 +9,13 @@ import { Subscription } from 'rxjs/Subscription';
 import { GetAddresssAction, GetTransactionsAction } from '../../actions';
 import { IAppState } from '../../app/app.state';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
-import { CURRENCY_TFT, KEY_NAME, ParsedTransaction, RIVINE_ALGORITHM, TransactionStatus } from '../../interfaces/wallet';
+import { CURRENCY_TFT, KEY_NAME, ParsedTransaction, RIVINE_ALGORITHM } from '../../interfaces/wallet';
 import { CryptoAddress } from '../../manual_typings/rogerthat';
 import { RogerthatError } from '../../manual_typings/rogerthat-errors';
-import { AmountPipe } from '../../pipes/amount.pipe';
 import { getTotalAmount, getTransactions, getTransactionsStatus } from '../../state/app.state';
 import { getAddress, getAddressStatus } from '../../state/rogerthat.state';
-import { outputReducer } from '../../util/wallet';
 import { ErrorService } from '../error.service';
+import { TransactionDetailPageComponent } from './transaction-detail-page.component';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,8 +38,8 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
   constructor(private store: Store<IAppState>,
               private translate: TranslateService,
               private errorService: ErrorService,
-              private amountPipe: AmountPipe,
-              private alertCtrl: AlertController) {
+              private alertCtrl: AlertController,
+              private modalController: ModalController) {
   }
 
   ngOnInit() {
@@ -92,26 +91,12 @@ export class TransactionsListPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  getTransactionStatus(status: TransactionStatus) {
-    return this.translate.instant(`transaction_status_${status}`);
-  }
-
-  getInfoLines(transaction: ParsedTransaction): string[] {
-    const lines: string[] = [];
-    if (transaction.receiving) {
-      for (const output of transaction.otherOutputs) {
-        lines.push(this.translate.instant('from_address_x', { address: output.unlockhash }));
-      }
-    } else {
-      for (const output of transaction.otherOutputs) {
-        lines.push(this.translate.instant('x_to_y', { x: this.amountPipe.transform(output.value), y: output.unlockhash }));
-      }
-    }
-    return lines;
-  }
-
   getColor(transaction: ParsedTransaction) {
     return transaction.receiving ? 'default' : 'danger';
+  }
+
+  showDetails(transaction: ParsedTransaction) {
+    this.modalController.create(TransactionDetailPageComponent, { transaction }).present();
   }
 
   _showErrorDialog(err: string) {

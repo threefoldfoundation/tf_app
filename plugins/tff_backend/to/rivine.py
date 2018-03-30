@@ -133,10 +133,6 @@ class TransactionTO(TO):
     minerfees = unicode_list_property('minerfees')
 
 
-class TransactionListTO(PaginatedResultTO):
-    results = typed_property('results', TransactionTO, True)
-
-
 class WalletBalanceTO(TO):
     available = long_property('available')
     total = long_property('total')

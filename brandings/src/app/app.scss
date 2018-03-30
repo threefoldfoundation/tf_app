@@ -44,6 +44,11 @@ body {
   }
 }
 
+.selectable {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 .agenda-toolbar h2, .agenda-toolbar p {
   color: #fff;
 }

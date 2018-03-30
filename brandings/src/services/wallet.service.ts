@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators';
 import { configuration } from '../configuration';
-import { CreateSignatureData, CreateTransactionResult, ParsedTransaction, Transaction, TransactionList } from '../interfaces/wallet';
+import { CreateSignatureData, CreateTransactionResult, ParsedTransaction, TfChainBlock, Transaction } from '../interfaces/wallet';
 import { CryptoTransaction } from '../manual_typings/rogerthat';
 import { getTransactionAmount } from '../util/wallet';
 
@@ -13,10 +13,14 @@ export class WalletService {
   constructor(private http: HttpClient) {
   }
 
+  getLatestBlock() {
+    return this.http.get<TfChainBlock>(`${configuration.wallet_url}/latest`);
+  }
+
   getTransactions(address: string): Observable<ParsedTransaction[]> {
     const params = new HttpParams({ fromObject: { address } });
-    return this.http.get<TransactionList>(`${configuration.wallet_url}/transactions`, { params }).pipe(
-      map(result => result.results.map(transaction => this._convertTransaction(transaction, address))),
+    return this.http.get<Transaction[]>(`${configuration.wallet_url}/transactions`, { params }).pipe(
+      map(results => results.map(transaction => this._convertTransaction(transaction, address))),
     );
   }
 
@@ -30,11 +34,12 @@ export class WalletService {
 
   private _convertTransaction(transaction: Transaction, address: string): ParsedTransaction {
     const amount = getTransactionAmount(address, transaction.inputs, transaction.outputs);
+    console.log(transaction);
     return {
       id: transaction.id,
-      status: transaction.status,
       inputs: transaction.inputs,
       outputs: transaction.outputs,
+      height: transaction.height,
       timestamp: new Date(transaction.timestamp * 1000),
       receiving: amount > 0,
       otherOutputs: transaction.outputs.filter(output => output.unlockhash !== address),

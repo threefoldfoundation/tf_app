@@ -1,15 +1,9 @@
 import { SupportedAlgorithms } from '../manual_typings/rogerthat';
 
-export enum TransactionStatus {
-  UNCONFIRMED = 'unconfirmed',
-  CONFIRMED = 'confirmed',
-  FAILED = 'failed',
-}
-
 export interface Transaction {
   id: string;
-  status: TransactionStatus;
   timestamp: number;
+  height: number;
   inputs: TransactionOutput[];
   outputs: TransactionOutput[];
   minerfees: string[];
@@ -23,10 +17,6 @@ export interface TransactionInput {
 export interface TransactionOutput {
   unlockhash: string;
   value: string;
-}
-
-export interface TransactionList {
-  results: Transaction[];
 }
 
 export interface CreateSignatureData {
@@ -46,8 +36,8 @@ export interface GetAddressPayload {
 // Only used by UI
 export interface ParsedTransaction {
   id: string;
-  status: TransactionStatus;
   timestamp: Date;
+  height: number;
   inputs: TransactionOutput[];
   outputs: TransactionOutput[];
   /**
@@ -61,6 +51,10 @@ export interface ParsedTransaction {
 
 export interface CreateTransactionResult {
   transactionid: string;
+}
+
+export interface TfChainBlock {
+  height: number;
 }
 
 export const ADDRESS_LENGTH = 78;

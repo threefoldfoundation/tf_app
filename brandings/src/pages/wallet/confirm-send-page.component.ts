@@ -18,8 +18,6 @@ import {
   IBrandingState,
 } from '../../state/app.state';
 
-declare var Zone: any;
-
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'confirm-send-page.component.html',
@@ -47,7 +45,6 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.data = this.params.get('transactionData');
-    console.log('=======zone=============', Zone.current.name);
     this.store.dispatch(new CreateSignatureDataAction(this.data));
     this.pendingTransaction$ = this.store.pipe(select(getPendingTransaction));
     this.pendingTransactionStatus$ = this.store.pipe(select(getPendingTransactionStatus));

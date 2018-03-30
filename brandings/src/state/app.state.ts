@@ -6,7 +6,7 @@ import { KYCStatus } from '../interfaces/rogerthat';
 import { apiRequestInitial, ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
 import { TodoList } from '../interfaces/todo-list.interfaces';
-import { CreateTransactionResult, ParsedTransaction } from '../interfaces/wallet';
+import { CreateTransactionResult, ParsedTransaction, TfChainBlock } from '../interfaces/wallet';
 import { CryptoTransaction } from '../manual_typings/rogerthat';
 import { getServiceData, getUserData } from './rogerthat.state';
 
@@ -28,6 +28,8 @@ export interface IBrandingState {
   pendingTransaction: CryptoTransaction | null;
   pendingTransactionStatus: ApiRequestStatus;
   createTransactionStatus: ApiRequestStatus;
+  latestBlock: TfChainBlock | null;
+  latestBlockStatus: ApiRequestStatus;
 }
 
 export const getAppState = createFeatureSelector<IBrandingState>('app');
@@ -50,6 +52,8 @@ export const initialState: IBrandingState = {
   pendingTransaction: null,
   pendingTransactionStatus: apiRequestInitial,
   createTransactionStatus: apiRequestInitial,
+  latestBlock: null,
+  latestBlockStatus: apiRequestInitial,
 };
 
 export const getGlobalStats = createSelector(getAppState, s => s.globalStats);
@@ -89,3 +93,6 @@ export const getPendingTransaction = createSelector(getAppState, s => s.pendingT
 export const getCreatedTransaction = createSelector(getAppState, s => s.createdTransaction);
 export const getPendingTransactionStatus = createSelector(getAppState, s => s.pendingTransactionStatus);
 export const createTransactionStatus = createSelector(getAppState, s => s.createTransactionStatus);
+export const getLatestBlock = createSelector(getAppState, s => s.latestBlock);
+export const getLatestBlockStatus = createSelector(getAppState, s => s.latestBlockStatus);
+

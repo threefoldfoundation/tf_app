@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import * as actions from '../actions';
-import { CreateTransactionDataCompleteAction, CreateTransactionDataFailedAction } from '../actions';
+import { BrandingActions, CreateTransactionDataCompleteAction, CreateTransactionDataFailedAction, GetLatestBlockAction } from '../actions';
 import { IAppState } from '../app/app.state';
 import { NodeStatus } from '../interfaces/node-status.interfaces';
 import { AgendaService } from '../services/agenda.service';
@@ -18,33 +17,33 @@ import { handleApiError, handleError } from '../util/rpc';
 
 @Injectable()
 export class BrandingEffects {
-  @Effect() getGlobalStats$ = this.actions$
-    .ofType<actions.GetGlobalStatsAction>(actions.BrandingActionTypes.GET_GLOBAL_STATS)
-    .pipe(switchMap(() => this.globalStatsService.listStats().pipe(
+  @Effect() getGlobalStats$ = this.actions$.pipe(
+    ofType<actions.GetGlobalStatsAction>(actions.BrandingActionTypes.GET_GLOBAL_STATS),
+    switchMap(() => this.globalStatsService.listStats().pipe(
       map(stats => new actions.GetGlobalStatsCompleteAction(stats)),
       catchError(err => handleApiError(actions.GetGlobalStatsFailedAction, err)))));
 
-  @Effect() getSeeDocuments$ = this.actions$
-    .ofType<actions.GetSeeDocumentsAction>(actions.BrandingActionTypes.GET_SEE_DOCUMENTS)
-    .pipe(switchMap(() => this.seeService.list().pipe(
+  @Effect() getSeeDocuments$ = this.actions$.pipe(
+    ofType<actions.GetSeeDocumentsAction>(actions.BrandingActionTypes.GET_SEE_DOCUMENTS),
+    switchMap(() => this.seeService.list().pipe(
       map(stats => new actions.GetSeeDocumentsCompleteAction(stats)),
       catchError(err => handleApiError(actions.GetSeeDocumentsFailedAction, err)))));
 
-  @Effect() getEventPresence$ = this.actions$
-    .ofType<actions.GetEventPresenceAction>(actions.BrandingActionTypes.GET_EVENT_PRESENCE)
-    .pipe(switchMap(action => this.agendaService.getPresence(action.payload).pipe(
+  @Effect() getEventPresence$ = this.actions$.pipe(
+    ofType<actions.GetEventPresenceAction>(actions.BrandingActionTypes.GET_EVENT_PRESENCE),
+    switchMap(action => this.agendaService.getPresence(action.payload).pipe(
       map(result => new actions.GetEventPresenceCompleteAction(result)),
       catchError(err => handleApiError(actions.GetEventPresenceFailedAction, err)))));
 
-  @Effect() updateEventPresence = this.actions$
-    .ofType<actions.UpdateEventPresenceAction>(actions.BrandingActionTypes.UPDATE_EVENT_PRESENCE)
-    .pipe(switchMap(action => this.agendaService.updatePresence(action.payload).pipe(
+  @Effect() updateEventPresence = this.actions$.pipe(
+    ofType<actions.UpdateEventPresenceAction>(actions.BrandingActionTypes.UPDATE_EVENT_PRESENCE),
+    switchMap(action => this.agendaService.updatePresence(action.payload).pipe(
       map(result => new actions.UpdateEventPresenceCompleteAction(result)),
       catchError(err => handleApiError(actions.UpdateEventPresenceFailedAction, err)))));
 
-  @Effect() getNodeStatus$ = this.actions$
-    .ofType<actions.GetNodeStatusAction>(actions.BrandingActionTypes.GET_NODE_STATUS)
-    .pipe(switchMap(() => this.store.pipe(
+  @Effect() getNodeStatus$ = this.actions$.pipe(
+    ofType<actions.GetNodeStatusAction>(actions.BrandingActionTypes.GET_NODE_STATUS),
+    switchMap(() => this.store.pipe(
       select(getUserDataNodeStatus),
       map(result => {
         const hasRunningNodes = result.some(node => node.status === NodeStatus.RUNNING);
@@ -88,7 +87,14 @@ export class BrandingEffects {
     switchMap(action => of(new actions.CreateTransactionFailedAction(action.payload))),
   );
 
-  constructor(private actions$: Actions,
+  @Effect() getLatestBlock$ = this.actions$.pipe(
+    ofType<GetLatestBlockAction>(actions.BrandingActionTypes.GET_LATEST_BLOCK),
+    switchMap(action => this.walletService.getLatestBlock().pipe(
+      map(result => new actions.GetLatestBlockCompleteAction(result)),
+      catchError(err => handleError(actions.GetLatestBlockFailedAction, err))),
+    ));
+
+  constructor(private actions$: Actions<BrandingActions>,
               private globalStatsService: GlobalStatsService,
               private store: Store<IAppState>,
               private agendaService: AgendaService,

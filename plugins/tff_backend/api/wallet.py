@@ -19,8 +19,8 @@ from mcfw import restapi
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.consts.payment import COIN_TO_HASTINGS
-from plugins.tff_backend.rivine import get_transactions, create_transaction, create_signature_data
-from plugins.tff_backend.to.rivine import CryptoTransactionTO, CreateSignatureDataTO, TransactionListTO
+from plugins.tff_backend.rivine import get_transactions, create_transaction, create_signature_data, get_block_height
+from plugins.tff_backend.to.rivine import CryptoTransactionTO, CreateSignatureDataTO
 
 
 def _set_access_control_header():
@@ -28,12 +28,20 @@ def _set_access_control_header():
     response.headers['Access-Control-Allow-Origin'] = '*'
 
 
+@rest('/wallet/latest', 'get', silent_result=True)
+@returns(dict)
+@arguments()
+def api_get_latest_block():
+    _set_access_control_header()
+    return {'height': get_block_height()}
+
+
 @rest('/wallet/transactions', 'get', silent_result=True)
-@returns(TransactionListTO)
+@returns([dict])
 @arguments(address=unicode)
 def api_get_transactions(address):
     _set_access_control_header()
-    return TransactionListTO.from_dict({'results': get_transactions(address)})
+    return get_transactions(address)
 
 
 @rest('/wallet/create_signature_data', 'post')

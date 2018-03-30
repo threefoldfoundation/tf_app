@@ -6,7 +6,7 @@
     <qr-code [value]="qrContent$ | async" [size]="300" (click)="copyAddress()"></qr-code>
   </ion-row>
   <ion-row justify-content-center>
-    <p #address [innerText]="address$ | async" (click)="copyAddress()" class="address-line"></p>
+    <p #address [innerText]="address$ | async" (click)="copyAddress()" class="address-line selectable"></p>
   </ion-row>
   <ion-row>
     <ion-item>

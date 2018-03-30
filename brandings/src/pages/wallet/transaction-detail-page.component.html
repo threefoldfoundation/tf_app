@@ -1,0 +1,19 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button (click)="dismiss()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{ 'transaction_details' | translate }}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding class="selectable">
+  <h3>{{ transaction.timestamp | date : 'd MMMM yyyy HH:mm:ss' }}</h3>
+  <h4>{{ (transaction.receiving ? 'received': 'sent') | translate }} {{ transaction.amount | amount }}</h4>
+  <p *ngIf="confirmations$ | async as confirmations">
+    {{ 'x_confirmations' | translate : { confirmations: confirmations } }}
+  </p>
+  <p *ngFor="let line of getInfoLines(transaction)">{{ line }}</p>
+  <p *ngIf="!transaction.receiving">{{ 'fee_x' | translate : { fee: transaction.minerfee | amount } }}</p>
+</ion-content>
