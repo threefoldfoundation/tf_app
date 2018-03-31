@@ -451,6 +451,13 @@ def list_nodes_by_status(status=None):
     return sorted(results, key=lambda k: k.profile['info']['firstname'] if k.profile else k.node['id'])
 
 
+@ndb.transactional()
+def _set_serial_number_on_node(node_id):
+    node = Node.create_key(node_id).get()
+    node.serial_number = get_serial_number_by_node_id(node_id)
+    node.put()
+
+
 def _get_and_save_node_stats(statuses):
     client = get_influx_client()
     now_ = datetime.now()
@@ -461,10 +468,10 @@ def _get_and_save_node_stats(statuses):
     for node_id, status in statuses.iteritems():
         if node_id not in node_ids:
             to_put.append(Node(key=Node.create_key(node_id),
-                               serial_number=get_serial_number_by_node_id(node_id),
                                last_check=now_,
                                status_date=now_,
                                statuses=[NodeStatusTime(status=status, date=now_)]))
+            deferred.defer(_set_serial_number_on_node, node_id, _countdown=30)
             all_node_ids.append(node_id)
     ndb.put_multi(to_put)
     nodes_stats = get_nodes_stats({node_id: statuses.get(node_id, NodeStatus.HALTED) for node_id in all_node_ids})
