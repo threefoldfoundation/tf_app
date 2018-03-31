@@ -474,6 +474,8 @@ def _get_and_save_node_stats(statuses):
             deferred.defer(_set_serial_number_on_node, node_id, _countdown=30)
             all_node_ids.append(node_id)
     ndb.put_multi(to_put)
+    if not client:
+        return
     nodes_stats = get_nodes_stats({node_id: statuses.get(node_id, NodeStatus.HALTED) for node_id in all_node_ids})
     points = []
     now_ = datetime.now().isoformat() + 'Z'
@@ -512,10 +514,13 @@ def _get_and_save_node_stats(statuses):
                             'avg': float(values_on_time['avg'])
                         }
                     })
-    logging.info('Writing %s datapoints to influxdb for nodes %s', len(points), all_node_ids)
-    if not client:
-        return
-    client.write_points(points)
+        if len(points) > 1000:
+            logging.info('Writing %s datapoints to influxdb', len(points))
+            client.write_points(points)
+            points = []
+    if points:
+        logging.info('Writing final %s datapoints to influxdb', len(points))
+        client.write_points(points)
 
 
 def get_influx_client():
