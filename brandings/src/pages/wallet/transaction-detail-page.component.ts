@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { NavParams, ViewController } from 'ionic-angular';
+import { NavParams, ToastController, ViewController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { filter, map, startWith } from 'rxjs/operators';
 import { GetLatestBlockAction } from '../../actions';
@@ -22,6 +22,7 @@ export class TransactionDetailPageComponent implements OnInit {
               private translate: TranslateService,
               private amountPipe: AmountPipe,
               private viewCtrl: ViewController,
+              private toastCtrl: ToastController,
               private store: Store<IBrandingState>) {
   }
 
@@ -38,22 +39,20 @@ export class TransactionDetailPageComponent implements OnInit {
     );
   }
 
-  getInfoLines(transaction: ParsedTransaction): string[ ] {
-    const lines: string[] = [];
-    if (transaction.receiving) {
-      for (const output of transaction.otherOutputs) {
-        lines.push(this.translate.instant('from_address_x', { address: output.unlockhash }));
-      }
-    } else {
-      for (const output of transaction.otherOutputs) {
-        lines.push(this.translate.instant('x_to_y', { x: this.amountPipe.transform(output.value), y: output.unlockhash }));
-      }
-    }
-    return lines;
-  }
-
   getAmount(amount: number) {
     return this.amountPipe.transform(Math.abs(amount));
+  }
+
+  showCopiedToast(result: { isSuccess: boolean, content?: string }) {
+    if (result.isSuccess) {
+      this.toastCtrl.create({
+        message: this.translate.instant('address_copied_to_clipboard'),
+        duration: 3000,
+        position: 'bottom',
+        showCloseButton: true,
+        closeButtonText: this.translate.instant('ok'),
+      }).present();
+    }
   }
 
   dismiss() {

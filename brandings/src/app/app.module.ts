@@ -12,6 +12,7 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { ChartModule } from 'angular2-chartjs';
 import { QRCodeModule } from 'angular2-qrcode';
 import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
+import { ClipboardModule } from 'ngx-clipboard';
 import {
   AgendaComponent,
   ApiRequestStatusComponent,
@@ -110,6 +111,7 @@ export const COMPONENTS = [
     EffectsModule.forRoot([ BrandingEffects, RogerthatEffects ]),
     ChartModule,
     QRCodeModule,
+    ClipboardModule,
   ],
   bootstrap: [ IonicApp ],
   entryComponents: [

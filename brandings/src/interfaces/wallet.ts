@@ -4,9 +4,9 @@ export interface Transaction {
   id: string;
   timestamp: number;
   height: number;
-  inputs: TransactionOutput[];
+  inputs: TransactionOutput[] | null;
   outputs: TransactionOutput[];
-  minerfees: string[];
+  minerfees: string[] | null;
 }
 
 export interface TransactionInput {

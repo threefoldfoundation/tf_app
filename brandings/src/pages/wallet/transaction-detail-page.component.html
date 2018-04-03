@@ -15,6 +15,21 @@
   <p *ngIf="confirmations$ | async as confirmations">
     {{ 'x_confirmations' | translate : { confirmations: confirmations } }}
   </p>
-  <p *ngFor="let line of getInfoLines(transaction)">{{ line }}</p>
+  <h4 *ngIf="transaction.inputs.length">{{ 'inputs' | translate }}</h4>
+  <ion-list>
+    <ion-item *ngFor="let input of transaction.inputs" ngxClipboard [cbContent]="input.unlockhash"
+              (cbOnSuccess)="showCopiedToast($event)">
+      <h2>{{ input.unlockhash }}</h2>
+      <p>{{ input.value | amount }}</p>
+    </ion-item>
+  </ion-list>
+  <h4>{{ 'outputs' | translate }}</h4>
+  <ion-list>
+    <ion-item *ngFor="let output of transaction.outputs" ngxClipboard [cbContent]="output.unlockhash"
+              (cbOnSuccess)="showCopiedToast($event)">
+      <h2>{{ output.unlockhash }}</h2>
+      <p>{{ output.value | amount }}</p>
+    </ion-item>
+  </ion-list>
   <p *ngIf="!transaction.receiving">{{ 'fee_x' | translate : { fee: transaction.minerfee | amount } }}</p>
 </ion-content>

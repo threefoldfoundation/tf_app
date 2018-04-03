@@ -41,16 +41,8 @@ export class ReceivePageComponent implements OnInit {
     );
   }
 
-  copyAddress() {
-    if (window.getSelection) {
-      const range = document.createRange();
-      range.selectNode(this.address.nativeElement);
-      window.getSelection().removeAllRanges();
-      window.getSelection().addRange(range);
-    }
-    const success = document.execCommand('copy');
-    if (success) {
-      window.getSelection().removeAllRanges();
+  showCopiedToast(event: { isSuccess: boolean }) {
+    if (event.isSuccess) {
       this.toastCtrl.create({
         message: this.translate.instant('address_copied_to_clipboard'),
         duration: 3000,

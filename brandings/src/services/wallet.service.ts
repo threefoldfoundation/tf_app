@@ -33,6 +33,7 @@ export class WalletService {
   }
 
   private _convertTransaction(transaction: Transaction, address: string): ParsedTransaction {
+    transaction.inputs = transaction.inputs || [];
     const amount = getTransactionAmount(address, transaction.inputs, transaction.outputs);
     return {
       id: transaction.id,
@@ -43,7 +44,7 @@ export class WalletService {
       receiving: amount > 0,
       otherOutputs: transaction.outputs.filter(output => output.unlockhash !== address),
       amount,
-      minerfee: transaction.minerfees.reduce((total: number, minerfee: string) => total + parseInt(minerfee), 0),
+      minerfee: (transaction.minerfees || []).reduce((total: number, minerfee: string) => total + parseInt(minerfee), 0),
     };
   }
 }

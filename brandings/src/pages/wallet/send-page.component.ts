@@ -67,7 +67,7 @@ export class SendPageComponent implements OnInit, OnDestroy {
       filter(r => r !== null && r.status === 'resolved'),
     ).subscribe((result: QrCodeScannedContent) => {
       const parsedQr = this.parseQr(result.content);
-      if (parsedQr.token === CURRENCY_TFT && parsedQr.address && parsedQr.amount) {
+      if (parsedQr.token === CURRENCY_TFT && parsedQr.address) {
         this.setData({ ...this.data, amount: parsedQr.amount, to_address: parsedQr.address });
       } else {
         this.alertCtrl.create({

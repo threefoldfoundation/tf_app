@@ -1,12 +1,15 @@
 <ion-content>
-  <ion-row justify-content-center (click)="copyAddress()">
+  <ion-row justify-content-center ngxClipboard [cbContent]="address$ | async" (cbOnSuccess)="showCopiedToast($event)">
     <p>{{ 'receive_address_info' | translate }}</p>
   </ion-row>
   <ion-row justify-content-center>
-    <qr-code [value]="qrContent$ | async" [size]="300" (click)="copyAddress()"></qr-code>
+    <qr-code [value]="qrContent$ | async" [size]="300" ngxClipboard [cbContent]="address$ | async"
+             (cbOnSuccess)="showCopiedToast($event)"></qr-code>
   </ion-row>
   <ion-row justify-content-center>
-    <p #address [innerText]="address$ | async" (click)="copyAddress()" class="address-line selectable"></p>
+    <p class="address-line" ngxClipboard [cbContent]="address$ | async" (cbOnSuccess)="showCopiedToast($event)">
+      {{ address$ | async }}
+    </p>
   </ion-row>
   <ion-row>
     <ion-item>

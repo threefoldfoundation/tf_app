@@ -65,7 +65,7 @@ export class ErrorService {
       }, {
         text: this.translate.instant('close'),
       } ],
-    })
+    });
     alert.present();
     return alert;
   }
