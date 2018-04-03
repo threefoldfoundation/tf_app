@@ -43,7 +43,7 @@ from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo, get_serial_number
 from plugins.tff_backend.bizz.todo import update_hoster_progress, HosterSteps
 from plugins.tff_backend.configuration import InfluxDBConfig
 from plugins.tff_backend.consts.hoster import DEBUG_NODE_DATA
-from plugins.tff_backend.libs.zero_robot import Task, EnumTaskState
+from plugins.tff_backend.libs.zero_robot import Task, EnumTaskState, Service, ServiceState
 from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 from plugins.tff_backend.models.nodes import Node, NodeStatusTime, NodeStatus
 from plugins.tff_backend.models.user import TffProfile
@@ -52,6 +52,7 @@ from plugins.tff_backend.to.nodes import UserNodeStatusTO
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 SKIPPED_STATS_KEYS = ['disk.size.total']
+NODE_TEMPLATE = 'github.com/zero-os/0-templates/node/0.0.1'
 
 
 @returns(apiproxy_stub_map.UserRPC)
@@ -87,25 +88,25 @@ def _get_task_url(task):
 
 
 @returns([object])
-@arguments(tasks=[Task], callback=types.FunctionType, deadline=int)
-def _wait_for_tasks(tasks, callback=None, deadline=120):
-    results = []
+@arguments(tasks=[Task], deadline=int)
+def _wait_for_tasks(tasks, deadline=150):
     start_time = time.time()
+    # Don't do any requests for the first 30 seconds as it's unlikely that they will be already finished.
+    time.sleep(30)
+    results = []
     incomplete_tasks = {t.guid: t for t in tasks}
+    # Sequentially do requests to the robot to avoid spamming it too much
     while incomplete_tasks:
-        rpcs = {task.guid: (task, _async_zero_robot_call(_get_task_url(task)))
-                for task in incomplete_tasks.itervalues()}
-        time.sleep(10)
         duration = time.time() - start_time
-        logging.debug('Waited for %s tasks for %.2f seconds', len(rpcs), duration)
+        logging.debug('Waited for %s tasks for %.2f seconds', len(incomplete_tasks), duration)
         if duration > deadline:
             logging.info('Deadline of %s seconds exceeded!', deadline)
             break
 
         incomplete_by_state = defaultdict(list)
-        for task, rpc in rpcs.values():
+        for task in incomplete_tasks.values():
+            result = _async_zero_robot_call(_get_task_url(task)).get_result()
             node_id = task.service_name
-            result = rpc.get_result()
             if result.status_code != 200:
                 logging.error('/task_list for node %s returned status code %s. Content:\n%s',
                               node_id, result.status_code, result.content)
@@ -115,7 +116,7 @@ def _wait_for_tasks(tasks, callback=None, deadline=120):
             task = Task(**json.loads(result.content))
             if task.state in (EnumTaskState.ok, EnumTaskState.error):
                 del incomplete_tasks[task.guid]
-                results.append(callback(task) if callback else task)
+                results.append(task)
             else:
                 incomplete_by_state[task.state].append(task.service_name)
 
@@ -124,16 +125,6 @@ def _wait_for_tasks(tasks, callback=None, deadline=120):
                           ', '.join(node_ids))
 
     return results
-
-
-def _node_status_callback(task):
-    status = NodeStatus.RUNNING if task.state == EnumTaskState.ok else NodeStatus.HALTED
-    return task.service_name, status
-
-
-def get_nodes_status(node_ids):
-    tasks = _get_node_info_tasks(node_ids)
-    return dict(_wait_for_tasks(tasks, _node_status_callback))
 
 
 def check_online_nodes():
@@ -152,8 +143,7 @@ def check_if_node_comes_online(order_key):
     odoo_nodes = get_nodes_from_odoo(order.odoo_sale_order_id)
     if not odoo_nodes:
         raise BusinessException('Could not find nodes for sale order %s on odoo' % order_id)
-
-    statuses = get_nodes_status([n['id'] for n in odoo_nodes])
+    statuses = get_all_nodes_statuses()
     iyo_username = get_iyo_username(order.app_user)
     nodes = {node.id: node for node in Node.list_by_user(iyo_username)}
     to_add = []
@@ -164,7 +154,7 @@ def check_if_node_comes_online(order_key):
     if to_add:
         logging.info('Saving nodes to profile %s: %s', iyo_username, to_add)
         deferred.defer(assign_nodes_to_user, iyo_username, to_add)
-    if all([status == 'running' for status in statuses.itervalues()]):
+    if all([status == NodeStatus.RUNNING for status in statuses.itervalues()]):
         _set_node_status_arrived(order_key, odoo_nodes)
     else:
         logging.info('Nodes %s from order %s are not all online yet', odoo_nodes, order_id)
@@ -213,19 +203,21 @@ def _set_nodes_in_user_data(iyo_username, email, app_id):
     system.put_user_data(get_rogerthat_api_key(), email, app_id, data)
 
 
-def get_nodes_stats(nodes):
+def get_nodes_stats(node_statuses):
     # type: (dict[str, str]) -> list[dict]
-    logging.info('Getting node stats for nodes %s', nodes)
+    logging.info('Getting node stats for node_statuses %s', node_statuses)
     if DEBUG:
         return [_get_stats(DEBUG_NODE_DATA)]
 
-    tasks = _get_node_stats_tasks(nodes.keys())
+    # Do not create tasks for halted nodes
+    online_node_ids = [node_id for node_id in node_statuses if node_statuses[node_id] == NodeStatus.RUNNING]
+    logging.info('Creating statistics tasks for %d nodes', len(online_node_ids))
+    tasks = _get_node_stats_tasks(online_node_ids)
 
-    results_per_node = {id: {'id': id,
-                             'status': status,
-                             'info': None,
-                             'stats': None}
-                        for id, status in nodes.iteritems()}
+    results_per_node = {id_: {'id': id_,
+                              'status': status,
+                              'stats': None}
+                        for id_, status in node_statuses.iteritems()}
 
     for task in _wait_for_tasks(tasks):
         if task.state == EnumTaskState.ok:
@@ -258,31 +250,8 @@ def _get_stats(data):
     return {
         'id': data['id'],
         'status': data['status'],
-        'info': data.get('info'),
         'stats': stats
     }
-
-
-def _get_cpu_stats(data, stats_time='300'):
-    # Summarize all CPU usages of each core into 1 object
-    total_cpu = defaultdict(lambda: {'avg': 0.0, 'count': 0, 'max': 0.0, 'start': 0, 'total': 0.0})
-    cpu_count = 0
-    for key in data:
-        cpu_count += 1
-        if key.startswith('machine.CPU.percent'):
-            cpu_stats = data[key]['history'].get(stats_time, [])
-            for stat_obj in cpu_stats:
-                timestamp = stat_obj['start']
-                for k in total_cpu[timestamp]:
-                    if k == 'start':
-                        total_cpu[timestamp][k] = stat_obj[k]
-                    else:
-                        total_cpu[timestamp][k] += stat_obj[k]
-    for timestamp in total_cpu:
-        for k in total_cpu[timestamp]:
-            if k != 'start':
-                total_cpu[timestamp][k] = total_cpu[timestamp][k] / cpu_count
-    return sorted(total_cpu.values(), key=lambda v: v['start'])
 
 
 @returns([Task])
@@ -291,37 +260,12 @@ def _get_node_stats_tasks(node_ids):
     blueprint = {
         'content': {
             'actions': [{
-                'template': 'github.com/zero-os/0-templates/node/0.0.1',
-                'actions': ['info', 'stats'],
+                'template': NODE_TEMPLATE,
+                'actions': ['stats'],
                 'service': node_id
             } for node_id in node_ids]
         }
     }
-    return _execute_blueprint(json.dumps(blueprint))
-
-
-@returns([Task])
-@arguments(node_ids=[unicode])
-def _get_node_info_tasks(node_ids=None):
-    if node_ids:
-        blueprint = {
-            'content': {
-                'actions': [{
-                    'template': 'github.com/zero-os/0-templates/node/0.0.1',
-                    'actions': 'info',
-                    'service': node_id
-                } for node_id in node_ids]
-            }
-        }
-    else:
-        blueprint = {
-            'content': {
-                'actions': {
-                    'template': 'github.com/zero-os/0-templates/node/0.0.1',
-                    'actions': 'info'
-                }
-            }
-        }
     return _execute_blueprint(json.dumps(blueprint))
 
 
@@ -336,22 +280,33 @@ def _execute_blueprint(blueprint):
     return [Task(**d) for d in json.loads(result.content)]
 
 
-def _get_node_statuses(tasks):
-    return dict(_wait_for_tasks(tasks, _node_status_callback))  # {node_id: status}
+def get_all_nodes_statuses():
+    # type: () -> dict[str, str]
+    # Does one call to the zero robot to get the status of all nodes
+    url = '/services?template_uid=%s' % NODE_TEMPLATE
+    services = [Service(s) for s in json.loads(_async_zero_robot_call(url).get_result().content)]
+    nodes_statuses = {}  # key: node id, value: running / halted
+    for service in services:
+        for state in service.state:  # type: ServiceState
+            if state.category == 'status':
+                nodes_statuses[service.name] = state.tag
+                break
+        else:
+            nodes_statuses[service.name] = NodeStatus.HALTED
+    return nodes_statuses
 
 
 def check_node_statuses():
     try:
-        tasks = _get_node_info_tasks()
-        statuses = _get_node_statuses(tasks)
+        statuses = get_all_nodes_statuses()
     except Exception as e:
         logging.exception(e)
         raise deferred.PermanentTaskFailure(e.message)
-    run_job(_get_all_nodes_with_user, [], _check_node_status, [statuses])
+    run_job(_get_all_nodes, [], _check_node_status, [statuses])
     deferred.defer(_get_and_save_node_stats, statuses)
 
 
-def _get_all_nodes_with_user():
+def _get_all_nodes():
     return Node.query()
 
 
@@ -364,7 +319,7 @@ def _check_node_status(node_key, statuses):
         status = statuses.get(node.id)
         if not status:
             # Node that possibly has never been online yet
-            logging.warn('Expected to find node %s in the response for user %s', node.id, node.username)
+            logging.warn('Expected to find node %s in the response', node.id)
             status = NodeStatus.HALTED
         from_status = node.status
         node.last_check = now_
@@ -488,9 +443,6 @@ def _get_and_save_node_stats(statuses):
     points = []
     now_ = datetime.now().isoformat() + 'Z'
     for node in nodes_stats:
-        fields = {'id': node['id']}
-        if node['info']:
-            fields['procs'] = node['info']['procs']
         points.append({
             'measurement': 'node-info',
             'tags': {
@@ -498,7 +450,9 @@ def _get_and_save_node_stats(statuses):
                 'status': node['status'],
             },
             'time': now_,
-            'fields': fields
+            'fields': {
+                'id': node['id']
+            }
         })
         if node['status'] == 'running' and node['stats']:
             stats = node['stats']
