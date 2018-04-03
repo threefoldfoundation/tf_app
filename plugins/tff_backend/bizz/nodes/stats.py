@@ -341,8 +341,12 @@ def _get_node_statuses(tasks):
 
 
 def check_node_statuses():
-    tasks = _get_node_info_tasks()
-    statuses = _get_node_statuses(tasks)
+    try:
+        tasks = _get_node_info_tasks()
+        statuses = _get_node_statuses(tasks)
+    except Exception as e:
+        logging.exception(e)
+        raise deferred.PermanentTaskFailure(e.message)
     run_job(_get_all_nodes_with_user, [], _check_node_status, [statuses])
     deferred.defer(_get_and_save_node_stats, statuses)
 
@@ -476,7 +480,11 @@ def _get_and_save_node_stats(statuses):
     ndb.put_multi(to_put)
     if not client:
         return
-    nodes_stats = get_nodes_stats({node_id: statuses.get(node_id, NodeStatus.HALTED) for node_id in all_node_ids})
+    try:
+        nodes_stats = get_nodes_stats({node_id: statuses.get(node_id, NodeStatus.HALTED) for node_id in all_node_ids})
+    except Exception as e:
+        logging.exception(e)
+        raise deferred.PermanentTaskFailure(e.message)
     points = []
     now_ = datetime.now().isoformat() + 'Z'
     for node in nodes_stats:
