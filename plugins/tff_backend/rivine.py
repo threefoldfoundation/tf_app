@@ -28,7 +28,7 @@ from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.to.rivine import CryptoTransactionTO, \
     CryptoTransactionDataTO, CryptoTransactionInputTO, CryptoTransactionOutputTO
 
-MATURITY_DEPTH = 10
+MATURITY_DEPTH = 0
 
 
 def get_explorer_base_url():
@@ -151,7 +151,7 @@ def get_output_ids(address):
 def create_signature_data(from_address, to_address, amount):
     logging.info('create_signature_data(%s, %s, %s)', from_address, to_address, amount)
     transactions = get_output_ids(from_address)
-    minerfees = COIN_TO_HASTINGS
+    minerfees = COIN_TO_HASTINGS / 10
     transaction = CryptoTransactionTO(minerfees=unicode(minerfees), data=[], from_address=from_address,
                                       to_address=to_address)
     fee_substracted = False
