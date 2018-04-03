@@ -22,6 +22,7 @@ import {
   MatTableModule,
   MatTabsModule,
   MatToolbarModule,
+  MatTooltipModule,
 } from '@angular/material';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
@@ -42,6 +43,7 @@ import {
   CreateAgendaEventPageComponent,
   CreateTransactionComponent,
   DashboardComponent,
+  EditNodeComponent,
   EventParticipantsComponent,
   EventParticipantsPageComponent,
   FlowRunDetailComponent,
@@ -75,12 +77,14 @@ import {
   UserSearchComponent,
   WalletBalanceComponent,
 } from './components';
+import { UserFieldComponent } from './components/users';
 import { TffEffects } from './effects';
 import {
   CreateInvestmentAgreementPageComponent,
   CreateOrderPageComponent,
   CreateTransactionPageComponent,
   DashboardPageComponent,
+  EditNodePageComponent,
   FlowStatisticsDetailPageComponent,
   FlowStatisticsOverviewPageComponent,
   FlowStatisticsPageComponent,
@@ -126,6 +130,7 @@ const MATERIAL_IMPORTS = [
   MatTableModule,
   MatTabsModule,
   MatToolbarModule,
+  MatTooltipModule,
 ];
 
 const PIPES = [
@@ -150,6 +155,7 @@ export const TFF_PAGES = [
   CreateOrderPageComponent,
   CreateTransactionPageComponent,
   DashboardPageComponent,
+  EditNodePageComponent,
   FlowStatisticsDetailPageComponent,
   FlowStatisticsOverviewPageComponent,
   FlowStatisticsPageComponent,
@@ -176,6 +182,7 @@ export const TFF_COMPONENTS: any[] = [
   CreateAgendaEventPageComponent,
   CreateTransactionComponent,
   DashboardComponent,
+  EditNodeComponent,
   EventParticipantsComponent,
   EventParticipantsPageComponent,
   FlowRunDetailComponent,
@@ -205,6 +212,7 @@ export const TFF_COMPONENTS: any[] = [
   SearchNodeOrdersComponent,
   TransactionListComponent,
   UserDetailsComponent,
+  UserFieldComponent,
   UserListComponent,
   UserSearchComponent,
   WalletBalanceComponent,

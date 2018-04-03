@@ -622,6 +622,39 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         nodesStatus: action.payload,
       };
+    case actions.TffActionTypes.GET_NODE:
+      return {
+        ...state,
+        node: initialTffState.node,
+        getNodeStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.GET_NODE_COMPLETE:
+      return {
+        ...state,
+        node: action.payload,
+        getNodeStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.GET_NODE_FAILED:
+      return {
+        ...state,
+        getNodeStatus: action.payload,
+      };
+    case actions.TffActionTypes.UPDATE_NODE:
+      return {
+        ...state,
+        updateNodeStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.UPDATE_NODE_COMPLETE:
+      return {
+        ...state,
+        node: action.payload,
+        updateNodeStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.UPDATE_NODE_FAILED:
+      return {
+        ...state,
+        updateNodeStatus: action.payload,
+      };
     default:
       return state;
   }

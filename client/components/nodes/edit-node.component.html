@@ -1,0 +1,12 @@
+<tff-api-request-status [status]="status"></tff-api-request-status>
+<form *ngIf="node" (ngSubmit)="submit()">
+  <h2>{{ 'tff.node_x' | translate : { id: node.id } }}</h2>
+  <p *ngIf="node.serial_number">{{ 'tff.serial_number' | translate }}: {{ node.serial_number }}</p>
+  <tff-user-field [(ngModel)]="node.username" name="username"></tff-user-field>
+  <tff-api-request-status [status]="updateStatus"></tff-api-request-status>
+  <button mat-raised-button>{{ 'tff.save' | translate }}</button>
+  <h3>{{ 'tff.status' | translate }}</h3>
+  <div *ngFor="let status of node.statuses">
+    <p>{{ status.date | date : 'medium' }} {{ ('tff.node_status_' + status.status) | translate }}</p>
+  </div>
+</form>

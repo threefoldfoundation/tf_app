@@ -99,3 +99,12 @@ class NodeOrderListTO(PaginatedResultTO):
 class UserNodeStatusTO(TO):
     profile = typed_property('profile', dict)
     node = typed_property('node', dict)
+
+
+class UpdateNodePayloadTO(TO):
+    username = unicode_property('username')
+
+
+class AuditLogNodeTO(TO):
+    id = unicode_property('id')
+    username = unicode_property('username')

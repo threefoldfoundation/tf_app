@@ -15,6 +15,7 @@ import {
   InvestmentAgreement,
   InvestmentAgreementList,
   InvestmentAgreementsQuery,
+  NodeInfo,
   NodeOrder,
   NodeOrderList,
   NodeOrdersQuery,
@@ -24,7 +25,7 @@ import {
   SetKYCStatusPayload,
   TffProfile,
   Transaction,
-  TransactionList,
+  TransactionList, UpdateNodePayload,
   UserList,
   UserNodeStatus,
   WalletBalance,
@@ -166,5 +167,13 @@ export class TffService {
       params = params.set('status', query.status);
     }
     return this.http.get<UserNodeStatus[]>(`${TffConfig.API_URL}/nodes`, { params });
+  }
+
+  getNode(id: string) {
+    return this.http.get<NodeInfo>(`${TffConfig.API_URL}/nodes/${id}`);
+  }
+
+  updateNode(id: string, payload: UpdateNodePayload) {
+    return this.http.put<NodeInfo>(`${TffConfig.API_URL}/nodes/${id}`, payload);
   }
 }

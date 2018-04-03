@@ -54,11 +54,16 @@
   <ng-container matColumnDef="profile_link">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <a mat-button [routerLink]="['/users', row.profile.username]" target="_blank" *ngIf="row.profile">
-        {{ 'tff.profile' | translate }}
+      <a mat-icon-button [routerLink]="['/users', row.profile.username]" target="_blank" *ngIf="row.profile"
+         [matTooltip]="'tff.profile' | translate ">
+        <mat-icon>person</mat-icon>
       </a>
-      <a mat-button [href]="getStatisticsUrl(row.node)" target="_blank">
-        {{ 'tff.statistics' | translate }}
+      <a mat-icon-button [href]="getStatisticsUrl(row.node)" target="_blank"
+         [matTooltip]="'tff.statistics' | translate">
+        <mat-icon>timeline</mat-icon>
+      </a>
+      <a mat-icon-button [routerLink]="row.node.id" [matTooltip]="'tff.edit' | translate">
+        <mat-icon>edit</mat-icon>
       </a>
     </mat-cell>
   </ng-container>

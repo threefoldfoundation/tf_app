@@ -19,6 +19,7 @@ from plugins.tff_backend.models.agenda import Event
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.models.investor import InvestmentAgreement
+from plugins.tff_backend.models.nodes import Node
 from plugins.tff_backend.models.user import TffProfile
 
 
@@ -28,6 +29,7 @@ class AuditLogType(Enum):
     UPDATE_NODE_ORDER = 'update_node_order'
     SET_KYC_STATUS = 'set_kyc_status'
     UPDATE_AGENDA_EVENT = 'update_agenda_event'
+    UPDATE_NODE = 'update_node'
 
 
 AuditLogMapping = {
@@ -36,6 +38,7 @@ AuditLogMapping = {
     AuditLogType.UPDATE_NODE_ORDER: NodeOrder,
     AuditLogType.SET_KYC_STATUS: TffProfile,
     AuditLogType.UPDATE_AGENDA_EVENT: Event,
+    AuditLogType.UPDATE_NODE: Node,
 }
 
 AuditLogMappingTypes = tuple(type(v) for v in AuditLogMapping.values())

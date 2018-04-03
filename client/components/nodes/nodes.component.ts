@@ -1,6 +1,7 @@
 import { SelectionModel } from '@angular/cdk/collections';
 import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { MatTableDataSource } from '@angular/material';
+import { DialogService } from '../../../../framework/client/dialog';
 import { environment } from '../../../../framework/client/environments/environment';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { NodeInfo, NodeStatus, UserNodeStatus } from '../../interfaces';

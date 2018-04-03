@@ -30,8 +30,10 @@ from framework.plugin_loader import get_config
 from framework.utils import now
 from mcfw.cache import cached
 from mcfw.consts import MISSING, DEBUG
+from mcfw.exceptions import HttpNotFoundException
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import refresh_jwt
+from plugins.its_you_online_auth.bizz.profile import get_profile
 from plugins.its_you_online_auth.models import Profile
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.exceptions import BusinessException
@@ -47,7 +49,7 @@ from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 from plugins.tff_backend.models.nodes import Node, NodeStatusTime, NodeStatus
 from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.plugin_consts import NAMESPACE
-from plugins.tff_backend.to.nodes import UserNodeStatusTO
+from plugins.tff_backend.to.nodes import UserNodeStatusTO, UpdateNodePayloadTO
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 SKIPPED_STATS_KEYS = ['disk.size.total']
@@ -427,6 +429,25 @@ def _set_serial_number_on_node(node_id):
     node = Node.create_key(node_id).get()
     node.serial_number = get_serial_number_by_node_id(node_id)
     node.put()
+
+
+def get_node(node_id):
+    # type: (unicode) -> Node
+    node = Node.create_key(node_id).get()
+    if not Node:
+        raise HttpNotFoundException('node_not_found', {'id': node_id})
+    return node
+
+
+@ndb.transactional(xg=True)
+def update_node(node_id, data):
+    # type: (unicode, UpdateNodePayloadTO) -> Node
+    node = get_node(node_id)
+    if data.username:
+        get_profile(data.username)
+    node.username = data.username
+    node.put()
+    return node
 
 
 def _get_and_save_node_stats(statuses):

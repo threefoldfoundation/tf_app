@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs/Observable';
 import { filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import { DialogService } from '../../../../framework/client/dialog';
 import { getIdentity } from '../../../../framework/client/identity';
+import { Identity } from '../../../../framework/client/identity/interfaces';
 import { filterNull, IAppState } from '../../../../framework/client/ngrx';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { Profile } from '../../../../its_you_online_auth/client/interfaces';
@@ -66,8 +67,9 @@ export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy
     this.investmentAgreement$ = this.store.select(getInvestmentAgreement).pipe(filterNull());
     this.status$ = this.store.select(getInvestmentAgreementStatus);
     this.updateStatus$ = this.store.select(updateInvestmentAgreementStatus);
-    this.canUpdate$ = this.store.select(getIdentity).pipe(
-      filterNull(),
+    this.canUpdate$ = this.store.pipe(
+      select(getIdentity),
+      filterNull<Identity | null>(),
       map(identity => (<TffPermission[]>identity.permissions).some(p => TffPermissions.BACKEND_ADMIN.includes(p))),
     );
     this.globalStats$ = this.store.select(getGlobalStats).pipe(filterNull());

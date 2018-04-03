@@ -253,12 +253,25 @@ export class TffEffects {
         catchError(err => handleApiError(actions.GetInstallationLogsFailedAction, err)),
       )));
 
-
   @Effect() getNodes$ = this.actions$
     .ofType<actions.GetNodesAction>(actions.TffActionTypes.GET_NODES).pipe(
       switchMap(action => this.tffService.getNodes(action.payload).pipe(
         map(result => new actions.GetNodesCompleteAction(result)),
         catchError(err => handleApiError(actions.GetNodesFailedAction, err)),
+      )));
+
+  @Effect() getNode$ = this.actions$
+    .ofType<actions.GetNodeAction>(actions.TffActionTypes.GET_NODE).pipe(
+      switchMap(action => this.tffService.getNode(action.payload).pipe(
+        map(result => new actions.GetNodeCompleteAction(result)),
+        catchError(err => handleApiError(actions.GetNodeFailedAction, err)),
+      )));
+
+  @Effect() updateNode$ = this.actions$
+    .ofType<actions.UpdateNodeAction>(actions.TffActionTypes.UPDATE_NODE).pipe(
+      switchMap(action => this.tffService.updateNode(action.id, action.payload).pipe(
+        map(result => new actions.UpdateNodeCompleteAction(result)),
+        catchError(err => handleApiError(actions.UpdateNodeFailedAction, err)),
       )));
 
   constructor(private actions$: Actions<actions.TffActions>,

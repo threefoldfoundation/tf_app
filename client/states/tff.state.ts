@@ -11,7 +11,7 @@ import {
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
-  InvestmentAgreementsQuery,
+  InvestmentAgreementsQuery, NodeInfo,
   NodeOrder,
   NodeOrderList,
   NodeOrdersQuery,
@@ -86,6 +86,9 @@ export interface ITffState {
   installationLogsStatus: ApiRequestStatus;
   nodes: UserNodeStatus[];
   nodesStatus: ApiRequestStatus;
+  node: NodeInfo | null;
+  getNodeStatus: ApiRequestStatus;
+  updateNodeStatus: ApiRequestStatus;
 }
 
 export const emptyPaginatedResult: PaginatedResult<any> = {
@@ -166,4 +169,7 @@ export const initialTffState: ITffState = {
   installationLogsStatus: apiRequestInitial,
   nodes: [],
   nodesStatus: apiRequestInitial,
+  node: null,
+  getNodeStatus: apiRequestInitial,
+  updateNodeStatus: apiRequestInitial,
 };

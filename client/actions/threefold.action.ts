@@ -20,6 +20,7 @@ import {
   InvestmentAgreement,
   InvestmentAgreementList,
   InvestmentAgreementsQuery,
+  NodeInfo,
   NodeOrder,
   NodeOrderList,
   NodeOrdersQuery,
@@ -30,6 +31,7 @@ import {
   TffProfile,
   Transaction,
   TransactionList,
+  UpdateNodePayload,
   UserFlowRunsQuery,
   UserList,
   UserNodeStatus,
@@ -145,6 +147,12 @@ export interface ITffActionTypes {
   GET_NODES: '[TFF] Get nodes';
   GET_NODES_COMPLETE: '[TFF] Get nodes complete';
   GET_NODES_FAILED: '[TFF] Get nodes failed';
+  GET_NODE: '[TFF] Get node';
+  GET_NODE_COMPLETE: '[TFF] Get node complete';
+  GET_NODE_FAILED: '[TFF] Get node failed';
+  UPDATE_NODE: '[TFF] Update node';
+  UPDATE_NODE_COMPLETE: '[TFF] Update node complete';
+  UPDATE_NODE_FAILED: '[TFF] Update node failed';
 }
 
 export const TffActionTypes: ITffActionTypes = {
@@ -254,6 +262,12 @@ export const TffActionTypes: ITffActionTypes = {
   GET_NODES: type('[TFF] Get nodes'),
   GET_NODES_COMPLETE: type('[TFF] Get nodes complete'),
   GET_NODES_FAILED: type('[TFF] Get nodes failed'),
+  GET_NODE: type('[TFF] Get node'),
+  GET_NODE_COMPLETE: type('[TFF] Get node complete'),
+  GET_NODE_FAILED: type('[TFF] Get node failed'),
+  UPDATE_NODE: type('[TFF] Update node'),
+  UPDATE_NODE_COMPLETE: type('[TFF] Update node complete'),
+  UPDATE_NODE_FAILED: type('[TFF] Update node failed'),
 };
 
 export class GetOrdersAction implements Action {
@@ -992,6 +1006,48 @@ export class GetNodesFailedAction implements Action {
   }
 }
 
+export class GetNodeAction implements Action {
+  type = TffActionTypes.GET_NODE;
+
+  constructor(public payload: string) {
+  }
+}
+
+export class GetNodeCompleteAction implements Action {
+  type = TffActionTypes.GET_NODE_COMPLETE;
+
+  constructor(public payload: NodeInfo) {
+  }
+}
+
+export class GetNodeFailedAction implements Action {
+  type = TffActionTypes.GET_NODE_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class UpdateNodeAction implements Action {
+  type = TffActionTypes.UPDATE_NODE;
+
+  constructor(public id: string, public payload: UpdateNodePayload) {
+  }
+}
+
+export class UpdateNodeCompleteAction implements Action {
+  type = TffActionTypes.UPDATE_NODE_COMPLETE;
+
+  constructor(public payload: NodeInfo) {
+  }
+}
+
+export class UpdateNodeFailedAction implements Action {
+  type = TffActionTypes.UPDATE_NODE_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type TffActions
   = GetOrdersAction
   | GetOrdersCompleteAction
@@ -1099,4 +1155,10 @@ export type TffActions
   | GetInstallationLogsFailedAction
   | GetNodesAction
   | GetNodesCompleteAction
-  | GetNodesFailedAction;
+  | GetNodeFailedAction
+  | GetNodeAction
+  | GetNodeCompleteAction
+  | GetNodesFailedAction
+  | UpdateNodeAction
+  | UpdateNodeCompleteAction
+  | UpdateNodeFailedAction;

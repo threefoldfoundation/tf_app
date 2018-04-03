@@ -1,0 +1,17 @@
+<mat-form-field>
+  <mat-chip-list #chipList>
+    <mat-chip *ngIf="selectedUser" (remove)="selectedUser = null">
+      {{ getUserInfoLine(selectedUser) }}
+      <mat-icon matChipRemove>cancel</mat-icon>
+    </mat-chip>
+    <input [placeholder]="'tff.user' | translate"
+           [formControl]="userSearchControl"
+           [matAutocomplete]="userAutoComplete"
+           [matChipInputFor]="chipList" #userSearchInput>
+  </mat-chip-list>
+  <mat-autocomplete #userAutoComplete="matAutocomplete" (optionSelected)="setSelectedUser($event)">
+    <mat-option *ngFor="let user of userList$ | async" [value]="user">
+      {{ getUserInfoLine(user) }}
+    </mat-option>
+  </mat-autocomplete>
+</mat-form-field>
