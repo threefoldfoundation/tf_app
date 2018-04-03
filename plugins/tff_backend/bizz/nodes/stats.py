@@ -17,7 +17,6 @@
 import json
 import logging
 import time
-import types
 from collections import defaultdict
 from datetime import datetime
 
@@ -26,7 +25,7 @@ from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
 
 import influxdb
-from framework.bizz.job import run_job
+from framework.bizz.job import run_job, MODE_BATCH
 from framework.plugin_loader import get_config
 from framework.utils import now
 from mcfw.cache import cached
@@ -302,8 +301,8 @@ def check_node_statuses():
     except Exception as e:
         logging.exception(e)
         raise deferred.PermanentTaskFailure(e.message)
-    run_job(_get_all_nodes, [], _check_node_status, [statuses])
     deferred.defer(_get_and_save_node_stats, statuses)
+    run_job(_get_all_nodes, [], _check_node_status, [statuses], mode=MODE_BATCH, batch_size=25, qry_transactional=False)
 
 
 def _get_all_nodes():
@@ -311,40 +310,54 @@ def _get_all_nodes():
 
 
 @ndb.transactional(xg=True)
-def _check_node_status(node_key, statuses):
-    try:
-        node = node_key.get()  # type: Node
-        now_ = datetime.utcnow()
-        should_update = False
+def _check_node_status(node_keys, statuses):
+    # type: (list[ndb.Key], dict[str, str]) -> None
+    # No more than 25 node_keys should be supplied to this function (max nr of entity groups in a single transaction)
+    nodes = ndb.get_multi(node_keys)  # type: list[Node]
+    to_notify = []  # type: list[dict]
+    # List of usernames
+    to_update = set()  # type: set[unicode]
+    now_ = datetime.utcnow()
+    for node in nodes:
         status = statuses.get(node.id)
         if not status:
             # Node that possibly has never been online yet
             logging.warn('Expected to find node %s in the response', node.id)
             status = NodeStatus.HALTED
-        from_status = node.status
+        if node.status != status and node.username:
+            logging.info('Node %s of user %s changed from status "%s" to "%s"',
+                         node.id, node.username, node.status, status)
+            to_update.add(node.username)
         node.last_check = now_
         node.statuses = node.statuses[-6:] + [NodeStatusTime(status=status, date=now_)]
         node.status = status
         if node.username:
-            if from_status != status:
-                logging.info('Node %s of user %s changed from status "%s" to "%s"',
-                             node.id, node.username, from_status, status)
-                should_update = True
             send_notification, change_status = _should_send_notification(node)
-            if should_update or send_notification:
-                if node.username:
-                    tff_profile = TffProfile.create_key(node.username).get()
             if send_notification:
                 node.status_date = change_status.date
-                deferred.defer(_send_node_status_update_message, tff_profile.app_user, status, change_status.date,
-                               node.id, _transactional=True)
-            if should_update:
-                deferred.defer(_put_node_status_user_data, tff_profile.key, _transactional=True)
-        node.put()
-    except Exception as e:
-        msg = 'Failure in checking node status for %s. %s' % (node_key, e.message)
-        logging.exception(e.message, _suppress=False)
-        raise deferred.PermanentTaskFailure(msg)
+                to_notify.append({'u': node.username,
+                                  'sn': node.serial_number,
+                                  'date': change_status.date,
+                                  'status': status})
+    ndb.put_multi(nodes)
+    if to_update or to_notify:
+        deferred.defer(after_check_node_status, to_update, to_notify, _transactional=True)
+
+
+def after_check_node_status(to_update, to_notify):
+    # type: (set[unicode], list[dict]) -> None
+    profile_keys = [TffProfile.create_key(obj['u']) for obj in to_notify]
+    profiles = {p.username: p for p in ndb.get_multi(profile_keys)}  # type: dict[str, TffProfile]
+    for obj in to_notify:
+        profile = profiles.get(obj['u'])
+        if not profile:
+            logging.error('No TffProfile found for username %s!', obj['u'])
+            continue
+        logging.info('Sending node status update message to %s. Status: %s', profile.username, obj['status'])
+        deferred.defer(_send_node_status_update_message, profile.app_user, obj['status'], obj['date'],
+                       obj['sn'])
+    for username in to_update:
+        deferred.defer(_put_node_status_user_data, TffProfile.create_key(username))
 
 
 def _should_send_notification(node):
@@ -372,21 +385,20 @@ def _put_node_status_user_data(tff_profile_key):
     system.put_user_data(get_rogerthat_api_key(), user.email(), app_id, data)
 
 
-def _send_node_status_update_message(app_user, to_status, date, node_id):
-    node = Node.create_key(node_id).get()
+def _send_node_status_update_message(app_user, to_status, date, serial_number):
     date_str = date.strftime('%Y-%m-%d %H:%M:%S')
     if to_status == u'halted':
-        subject = u'Connection to your node(%s) has been lost since %s' % (node.serial_number, date_str)
+        subject = u'Connection to your node(%s) has been lost since %s' % (serial_number, date_str)
         msg = u'Dear ThreeFold Member,\n\n' \
               u'Connection to your node(%s) has been lost since %s. Please check the network connection of your node.\n' \
               u'Kind regards,\n' \
-              u'The ThreeFold Team' % (node.serial_number, date_str)
+              u'The ThreeFold Team' % (serial_number, date_str)
     elif to_status == u'running':
-        subject = u'Connection to your node(%s) has been resumed since %s' % (node.serial_number, date_str)
+        subject = u'Connection to your node(%s) has been resumed since %s' % (serial_number, date_str)
         msg = u'Dear ThreeFold Member,\n\n' \
               u'Congratulations! Your node(%s) is now successfully connected to our system, and has been resumed since %s.\n' \
               u'Kind regards,\n' \
-              u'The ThreeFold Team' % (node.serial_number, date_str)
+              u'The ThreeFold Team' % (serial_number, date_str)
     else:
         logging.debug(
             "_send_node_status_update_message not sending message for status '%s' => '%s'", to_status)
@@ -487,7 +499,7 @@ def _get_and_save_node_stats(statuses):
 
 def get_influx_client():
     config = get_config(NAMESPACE).influxdb  # type: InfluxDBConfig
-    if config is MISSING:
+    if config is MISSING or DEBUG:
         return None
     return influxdb.InfluxDBClient(config.host, config.port, config.username, config.password, config.database,
                                    config.ssl, config.ssl)
