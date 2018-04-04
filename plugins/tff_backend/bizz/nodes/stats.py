@@ -124,6 +124,7 @@ def _wait_for_tasks(tasks, deadline=150):
         for state, node_ids in incomplete_by_state.iteritems():
             logging.debug('%s %s task(s) on the following nodes: %s', len(node_ids), state.value,
                           ', '.join(node_ids))
+        time.sleep(10)
 
     return results
 
@@ -246,7 +247,7 @@ def _get_stats(data):
     stats = {}
     if data['stats']:
         for stat_key, values in data['stats'].iteritems():
-            last_5_min_stats = values['history']['300']
+            last_5_min_stats = values['history'].get('300', [])
             stats[stat_key] = last_5_min_stats
     return {
         'id': data['id'],
