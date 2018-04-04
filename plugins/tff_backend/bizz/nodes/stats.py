@@ -324,8 +324,7 @@ def _check_node_status(node_keys, statuses):
     for node in nodes:
         status = statuses.get(node.id)
         if not status:
-            # Node that possibly has never been online yet
-            logging.warn('Expected to find node %s in the response', node.id)
+            logging.info('Node %s not found in the response', node.id)
             status = NodeStatus.HALTED
         if node.status != status and node.username:
             logging.info('Node %s of user %s changed from status "%s" to "%s"',

@@ -14,13 +14,18 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+import datetime
+import httplib
+import json
 import logging
 
 import webapp2
-from google.appengine.api import taskqueue
+from google.appengine.api import urlfetch
+from google.appengine.api.app_identity import app_identity
 from google.appengine.ext import deferred
 
 from framework.plugin_loader import get_config
+from mcfw.consts import MISSING
 from plugins.rogerthat_api.api import friends
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agenda import update_expired_events
@@ -40,52 +45,50 @@ class PaymentSyncHandler(webapp2.RequestHandler):
 
 
 class BackupHandler(webapp2.RequestHandler):
-
     def get(self):
         config = get_config(NAMESPACE)
         assert isinstance(config, TffConfiguration)
-        if config.backup_disabled is True:
-            logging.info('Backup is disabled, doing nothing')
+        if config.backup_bucket is MISSING or not config.backup_bucket:
+            logging.debug('Backup is disabled')
             return
+        access_token, _ = app_identity.get_access_token('https://www.googleapis.com/auth/datastore')
+        app_id = app_identity.get_application_id()
+        timestamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+        output_url_prefix = 'gs://%s' % config.backup_bucket
+        if '/' not in output_url_prefix[5:]:
+            # Only a bucket name has been provided - no prefix or trailing slash
+            output_url_prefix += '/' + timestamp
+        else:
+            output_url_prefix += timestamp
 
-        models_to_backup = []
-
-        # intercom_support
-        models_to_backup.extend(['IntercomConversation',
-                                 'RogerthatConversation'])
-
-        # its_tyo_online_auth
-        models_to_backup.extend(['Profile',
-                                 'ProfileAppEmailMapping',
-                                 'Session'])
-
-        # tff_backend
-        models_to_backup.extend(['Event',
-                                 'EventParticipant',
-                                 'GlobalStats',
-                                 'InvestmentAgreement',
-                                 'NodeOrder',
-                                 'ProfilePointer',
-                                 'PublicKeyMapping',
-                                 'TffProfile',
-                                 'ThreeFoldBlockHeight',
-                                 'ThreeFoldPendingTransaction',
-                                 'ThreeFoldTransaction',
-                                 'ThreeFoldWallet',
-                                 ])
-
-        for model_to_backup in models_to_backup:
-            taskqueue.add(
-                url='/_ah/datastore_admin/backup.create',
-                method='GET',
-                queue_name="data-backup",
-                params={
-                    'filesystem': 'gs',
-                    'gs_bucket_name': 'tff-backend-backups',
-                    'name': model_to_backup,
-                    'kind': [model_to_backup]
-                }
-            )
+        entity_filter = {
+            'kinds': self.request.get_all('kind'),
+            'namespace_ids': self.request.get_all('namespace_id')
+        }
+        request = {
+            'project_id': app_id,
+            'output_url_prefix': output_url_prefix,
+            'entity_filter': entity_filter
+        }
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + access_token
+        }
+        url = 'https://datastore.googleapis.com/v1/projects/%s:export' % app_id
+        try:
+            result = urlfetch.fetch(url=url,
+                                    payload=json.dumps(request),
+                                    method=urlfetch.POST,
+                                    deadline=60,
+                                    headers=headers)  # type: urlfetch._URLFetchResult
+            if result.status_code == httplib.OK:
+                logging.info(result.content)
+            else:
+                logging.error(result.content)
+            self.response.status_int = result.status_code
+        except urlfetch.Error:
+            logging.exception('Failed to initiate export.')
+            self.response.status_int = httplib.INTERNAL_SERVER_ERROR
 
 
 class RebuildSyncedRolesHandler(webapp2.RequestHandler):
