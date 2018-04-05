@@ -34,7 +34,7 @@ from plugins.tff_backend.to.user import SetKYCPayloadTO, TffProfileTO
 from plugins.tff_backend.utils.search import sanitise_search_query
 
 
-@rest('/users', 'get', Scopes.BACKEND_READONLY, silent_result=True)
+@rest('/users', 'get', Scopes.NODES_READONLY, silent_result=True)
 @returns(dict)
 @arguments(page_size=(int, long), cursor=unicode, query=unicode, kyc_status=(int, long, NoneType))
 def api_search_users(page_size=50, cursor=None, query='', kyc_status=None):
@@ -47,7 +47,7 @@ def api_search_users(page_size=50, cursor=None, query='', kyc_status=None):
     }
 
 
-@rest('/users/<username:[^/]+>', 'get', Scopes.BACKEND_READONLY, silent_result=True)
+@rest('/users/<username:[^/]+>', 'get', Scopes.NODES_READONLY, silent_result=True)
 @returns(dict)
 @arguments(username=str)
 def api_get_user(username):

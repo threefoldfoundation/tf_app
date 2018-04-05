@@ -24,7 +24,7 @@ from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_NAMESPACE
 
 config = get_config(IYO_NAMESPACE)
 ROOT_ORGANIZATION = config.root_organization.name
-USERS_REGEX = re.compile('^user:memberof:%s\.(.*)' % ROOT_ORGANIZATION)
+MEMBEROF_REGEX = re.compile('^user:memberof:%s\.(.*)' % ROOT_ORGANIZATION)
 
 
 class RogerthatRoles(object):
@@ -38,6 +38,9 @@ class Roles(object):
     BACKEND = 'backend'
     BACKEND_ADMIN = 'backend.admin'
     BACKEND_READONLY = 'backend.readonly'
+    NODES = 'backend.nodes'
+    NODES_ADMIN = 'backend.nodes.admin'
+    NODES_READONLY = 'backend.nodes.readonly'
     PUBLIC = 'public'
     HOSTERS = 'hosters'
     MEMBERS = 'members'
@@ -48,6 +51,9 @@ class Organization(object):
     BACKEND = '%s.%s' % (ROOT_ORGANIZATION, Roles.BACKEND)
     BACKEND_ADMIN = '%s.%s' % (ROOT_ORGANIZATION, Roles.BACKEND_ADMIN)
     BACKEND_READONLY = '%s.%s' % (ROOT_ORGANIZATION, Roles.BACKEND_READONLY)
+    NODES = '%s.%s' % (ROOT_ORGANIZATION, Roles.NODES)
+    NODES_ADMIN = '%s.%s' % (ROOT_ORGANIZATION, Roles.NODES_ADMIN)
+    NODES_READONLY = '%s.%s' % (ROOT_ORGANIZATION, Roles.NODES_READONLY)
 
 
 class Scope(object):
@@ -56,11 +62,16 @@ class Scope(object):
     BACKEND = _memberof % Organization.BACKEND
     BACKEND_ADMIN = _memberof % Organization.BACKEND_ADMIN
     BACKEND_READONLY = _memberof % Organization.BACKEND_READONLY
+    NODES = _memberof % Organization.NODES
+    NODES_ADMIN = _memberof % Organization.NODES_ADMIN
+    NODES_READONLY = _memberof % Organization.NODES_READONLY
 
 
 class Scopes(object):
     BACKEND_ADMIN = [Scope.ROOT_ADMINS, Scope.BACKEND, Scope.BACKEND_ADMIN]
     BACKEND_READONLY = BACKEND_ADMIN + [Scope.BACKEND_READONLY]
+    NODES_AMDIN = BACKEND_READONLY + [Scope.NODES, Scope.NODES_ADMIN]
+    NODES_READONLY = NODES_AMDIN + [Scope.NODES_READONLY]
 
 
 def get_permissions_from_scopes(scopes):
@@ -69,7 +80,7 @@ def get_permissions_from_scopes(scopes):
         if scope == Scope.ROOT_ADMINS:
             permissions.append(Roles.BACKEND_ADMIN)
             break
-        users_re = USERS_REGEX.match(scope)
+        users_re = MEMBEROF_REGEX.match(scope)
         # e.g. {root_org}.members
         if users_re:
             groups = users_re.groups()

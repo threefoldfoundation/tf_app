@@ -96,15 +96,18 @@ class TffBackendPlugin(BrandingPlugin):
     def get_modules(self):
         perms = get_permissions_from_scopes(get_current_session().scopes)
         is_admin = Roles.BACKEND_ADMIN in perms or Roles.BACKEND in perms
+        yield Module(u'tff_dashboard', [], 0)
         if is_admin or Roles.BACKEND_READONLY in perms:
-            yield Module(u'tff_dashboard', [], 0)
             yield Module(u'tff_orders', [], 1)
             yield Module(u'tff_global_stats', [], 3)
             yield Module(u'tff_users', [], 4)
             yield Module(u'tff_agenda', [], 5)
             yield Module(u'tff_flow_statistics', [], 6)
             yield Module(u'tff_installations', [], 7)
-            yield Module(u'tff_nodes', [], 8)
+        for role in [Roles.BACKEND_READONLY, Roles.NODES, Roles.NODES_READONLY , Roles.NODES_ADMIN]:
+            if is_admin or role in perms:
+                yield Module(u'tff_nodes', [], 8)
+                break
         if is_admin:
             yield Module(u'tff_investment_agreements', [], 2)
 

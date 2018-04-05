@@ -60,14 +60,14 @@ def api_put_node_order(order_id, data):
     return NodeOrderDetailTO.from_dict(put_node_order(order_id, data).to_dict(['username']))
 
 
-@rest('/nodes', 'get', Scopes.BACKEND_READONLY, silent_result=True)
+@rest('/nodes', 'get', Scopes.NODES_READONLY, silent_result=True)
 @returns([UserNodeStatusTO])
 @arguments(status=unicode)
 def api_list_nodes(status=None):
     return list_nodes_by_status(status)
 
 
-@rest('/nodes/<node_id:[^/]+>', 'get', Scopes.BACKEND_READONLY, silent_result=True)
+@rest('/nodes/<node_id:[^/]+>', 'get', Scopes.NODES_READONLY, silent_result=True)
 @returns(dict)
 @arguments(node_id=unicode)
 def api_get_node(node_id):
@@ -75,7 +75,7 @@ def api_get_node(node_id):
 
 
 @audit(AuditLogType.UPDATE_NODE, 'node_id')
-@rest('/nodes/<node_id:[^/]+>', 'put', Scopes.BACKEND_ADMIN, silent_result=True)
+@rest('/nodes/<node_id:[^/]+>', 'put', Scopes.NODES_AMDIN, silent_result=True)
 @returns(dict)
 @arguments(node_id=unicode, data=UpdateNodePayloadTO)
 def api_update_node(node_id, data):
