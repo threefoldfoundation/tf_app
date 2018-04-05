@@ -4,7 +4,13 @@ import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { NodeInfo } from '../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
-import { CreateSignatureData, CreateTransactionResult, ParsedTransaction, TfChainBlock } from '../interfaces/wallet';
+import {
+  CreateSignatureData,
+  ParsedTransaction,
+  RivineBlock,
+  RivineBlockInternal,
+  RivineCreateTransactionResult,
+} from '../interfaces/wallet';
 import { CryptoTransaction, SupportedAlgorithms } from '../manual_typings/rogerthat';
 
 interface IBrandingActionTypes {
@@ -38,6 +44,9 @@ interface IBrandingActionTypes {
   GET_LATEST_BLOCK: 'Get latest block';
   GET_LATEST_BLOCK_COMPLETE: 'Get latest block complete';
   GET_LATEST_BLOCK_FAILED: 'Get latest block failed';
+  GET_BLOCK: 'Get block';
+  GET_BLOCK_COMPLETE: 'Get block complete';
+  GET_BLOCK_FAILED: 'Get block failed';
 }
 
 export const BrandingActionTypes: IBrandingActionTypes = {
@@ -71,6 +80,9 @@ export const BrandingActionTypes: IBrandingActionTypes = {
   GET_LATEST_BLOCK: 'Get latest block',
   GET_LATEST_BLOCK_COMPLETE: 'Get latest block complete',
   GET_LATEST_BLOCK_FAILED: 'Get latest block failed',
+  GET_BLOCK: 'Get block',
+  GET_BLOCK_COMPLETE: 'Get block complete',
+  GET_BLOCK_FAILED: 'Get block failed',
 };
 
 export class GetGlobalStatsAction implements Action {
@@ -243,7 +255,7 @@ export class CreateTransactionAction implements Action {
 export class CreateTransactionCompleteAction implements Action {
   type = BrandingActionTypes.CREATE_TRANSACTION_COMPLETE;
 
-  constructor(public payload: CreateTransactionResult) {
+  constructor(public payload: RivineCreateTransactionResult) {
   }
 }
 
@@ -261,12 +273,33 @@ export class GetLatestBlockAction implements Action {
 export class GetLatestBlockCompleteAction implements Action {
   type = BrandingActionTypes.GET_LATEST_BLOCK_COMPLETE;
 
-  constructor(public payload: TfChainBlock) {
+  constructor(public payload: RivineBlockInternal) {
   }
 }
 
 export class GetLatestBlockFailedAction implements Action {
   type = BrandingActionTypes.GET_LATEST_BLOCK_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
+export class GetBlockAction implements Action {
+  type = BrandingActionTypes.GET_BLOCK;
+
+  constructor(public height: number) {
+  }
+}
+
+export class GetBlockCompleteAction implements Action {
+  type = BrandingActionTypes.GET_BLOCK_COMPLETE;
+
+  constructor(public payload: RivineBlock) {
+  }
+}
+
+export class GetBlockFailedAction implements Action {
+  type = BrandingActionTypes.GET_BLOCK_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
@@ -302,4 +335,7 @@ export type BrandingActions
   | CreateTransactionFailedAction
   | GetLatestBlockAction
   | GetLatestBlockCompleteAction
-  | GetLatestBlockFailedAction;
+  | GetLatestBlockFailedAction
+  | GetBlockAction
+  | GetBlockCompleteAction
+  | GetBlockFailedAction;

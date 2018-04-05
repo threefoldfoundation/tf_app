@@ -10,10 +10,10 @@ import { IAppState } from '../../app/app.state';
 import {
   ADDRESS_LENGTH,
   CreateSignatureData,
-  CreateTransactionResult,
   CURRENCY_TFT,
   KEY_NAME,
   RIVINE_ALGORITHM,
+  RivineCreateTransactionResult,
 } from '../../interfaces/wallet';
 import { CryptoAddress, QrCodeScannedContent } from '../../manual_typings/rogerthat';
 import { getAddress, getQrCodeContent } from '../../state/rogerthat.state';
@@ -108,7 +108,7 @@ export class SendPageComponent implements OnInit, OnDestroy {
           amount: Math.round(data.amount * Math.pow(10, PRECISION)),
         },
       });
-      modal.onDidDismiss((transaction: CreateTransactionResult | null) => {
+      modal.onDidDismiss((transaction: RivineCreateTransactionResult | null) => {
         if (transaction) {
           const config = {
             title: this.translate.instant('transaction_complete'),

@@ -3,11 +3,11 @@ import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { NavParams, ToastController, ViewController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
-import { filter, map, startWith } from 'rxjs/operators';
-import { GetLatestBlockAction } from '../../actions';
-import { ParsedTransaction, TfChainBlock } from '../../interfaces/wallet';
+import { filter, map } from 'rxjs/operators';
+import { GetBlockAction, GetLatestBlockAction } from '../../actions';
+import { ParsedTransaction, RivineBlock, RivineBlockInternal } from '../../interfaces/wallet';
 import { AmountPipe } from '../../pipes/amount.pipe';
-import { getLatestBlock, IBrandingState } from '../../state/app.state';
+import { getBlock, getLatestBlock, IBrandingState } from '../../state/app.state';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,7 +15,9 @@ import { getLatestBlock, IBrandingState } from '../../state/app.state';
 })
 export class TransactionDetailPageComponent implements OnInit {
   transaction: ParsedTransaction;
-  latestBlock$: Observable<TfChainBlock>;
+  latestBlock$: Observable<RivineBlockInternal>;
+  transactionBlock$: Observable<RivineBlock>;
+  timestamp$: Observable<Date>;
   confirmations$: Observable<number>;
 
   constructor(private params: NavParams,
@@ -29,13 +31,20 @@ export class TransactionDetailPageComponent implements OnInit {
   ngOnInit() {
     this.transaction = this.params.get('transaction');
     this.store.dispatch(new GetLatestBlockAction());
-    this.latestBlock$ = <Observable<TfChainBlock>>this.store.pipe(
+    this.store.dispatch(new GetBlockAction(this.transaction.height));
+    this.latestBlock$ = <Observable<RivineBlockInternal>>this.store.pipe(
       select(getLatestBlock),
       filter(b => b !== null),
     );
+    this.transactionBlock$ = <Observable<RivineBlock>>this.store.pipe(
+      select(getBlock),
+      filter(b => b !== null),
+    );
     this.confirmations$ = this.latestBlock$.pipe(
-      startWith({ height: 0 }),
       map(block => block.height - this.transaction.height),
+    );
+    this.timestamp$ = this.transactionBlock$.pipe(
+      map(block => new Date(block.block.rawblock.timestamp * 1000)),
     );
   }
 

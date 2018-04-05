@@ -4,7 +4,13 @@ import { select, Store } from '@ngrx/store';
 import { of } from 'rxjs/observable/of';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import * as actions from '../actions';
-import { BrandingActions, CreateTransactionDataCompleteAction, CreateTransactionDataFailedAction, GetLatestBlockAction } from '../actions';
+import {
+  BrandingActions,
+  CreateTransactionDataCompleteAction,
+  CreateTransactionDataFailedAction,
+  GetBlockAction,
+  GetLatestBlockAction,
+} from '../actions';
 import { IAppState } from '../app/app.state';
 import { NodeStatus } from '../interfaces/node-status.interfaces';
 import { AgendaService } from '../services/agenda.service';
@@ -92,6 +98,13 @@ export class BrandingEffects {
     switchMap(action => this.walletService.getLatestBlock().pipe(
       map(result => new actions.GetLatestBlockCompleteAction(result)),
       catchError(err => handleError(actions.GetLatestBlockFailedAction, err))),
+    ));
+
+  @Effect() getBlock$ = this.actions$.pipe(
+    ofType<GetBlockAction>(actions.BrandingActionTypes.GET_BLOCK),
+    switchMap(action => this.walletService.getBlock(action.height).pipe(
+      map(result => new actions.GetBlockCompleteAction(result)),
+      catchError(err => handleError(actions.GetBlockFailedAction, err))),
     ));
 
   constructor(private actions$: Actions<BrandingActions>,

@@ -6,7 +6,7 @@ import { KYCStatus } from '../interfaces/rogerthat';
 import { apiRequestInitial, ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
 import { TodoList } from '../interfaces/todo-list.interfaces';
-import { CreateTransactionResult, ParsedTransaction, TfChainBlock } from '../interfaces/wallet';
+import { ParsedTransaction, RivineBlock, RivineCreateTransactionResult } from '../interfaces/wallet';
 import { CryptoTransaction } from '../manual_typings/rogerthat';
 import { getServiceData, getUserData } from './rogerthat.state';
 
@@ -23,13 +23,15 @@ export interface IBrandingState {
   nodes: NodeInfo[];
   nodesStatus: ApiRequestStatus;
   transactions: ParsedTransaction[];
-  createdTransaction: CreateTransactionResult | null;
+  createdTransaction: RivineCreateTransactionResult | null;
   transactionsStatus: ApiRequestStatus;
   pendingTransaction: CryptoTransaction | null;
   pendingTransactionStatus: ApiRequestStatus;
   createTransactionStatus: ApiRequestStatus;
-  latestBlock: TfChainBlock | null;
+  latestBlock: RivineBlock['block'] | null;
   latestBlockStatus: ApiRequestStatus;
+  block: RivineBlock | null;
+  blockStatus: ApiRequestStatus;
 }
 
 export const getAppState = createFeatureSelector<IBrandingState>('app');
@@ -54,6 +56,8 @@ export const initialState: IBrandingState = {
   createTransactionStatus: apiRequestInitial,
   latestBlock: null,
   latestBlockStatus: apiRequestInitial,
+  block: null,
+  blockStatus: apiRequestInitial,
 };
 
 export const getGlobalStats = createSelector(getAppState, s => s.globalStats);
@@ -95,4 +99,6 @@ export const getPendingTransactionStatus = createSelector(getAppState, s => s.pe
 export const createTransactionStatus = createSelector(getAppState, s => s.createTransactionStatus);
 export const getLatestBlock = createSelector(getAppState, s => s.latestBlock);
 export const getLatestBlockStatus = createSelector(getAppState, s => s.latestBlockStatus);
+export const getBlock = createSelector(getAppState, s => s.block);
+export const getBlockStatus = createSelector(getAppState, s => s.blockStatus);
 

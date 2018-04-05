@@ -7,7 +7,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { GetAddresssAction } from '../../actions';
 import { IAppState } from '../../app/app.state';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
-import { CreateSignatureData, CreateTransactionResult, KEY_NAME, PROVIDER_ID, RIVINE_ALGORITHM } from '../../interfaces/wallet';
+import { CreateSignatureData, KEY_NAME, PROVIDER_ID, RIVINE_ALGORITHM, RivineCreateTransactionResult } from '../../interfaces/wallet';
 import { CreateTransactionBaseResult, PayWidgetData } from '../../manual_typings/rogerthat';
 import { RogerthatError } from '../../manual_typings/rogerthat-errors';
 import { getAddress, getAddressStatus } from '../../state/rogerthat.state';
@@ -62,7 +62,7 @@ export class PayWidgetPageComponent implements OnInit, OnDestroy {
 
   showConfirmDialog(transactionData: CreateSignatureData) {
     const modal = this.modalCtrl.create(ConfirmSendPageComponent, { transactionData });
-    modal.onDidDismiss((transaction: CreateTransactionResult | null) => {
+    modal.onDidDismiss((transaction: RivineCreateTransactionResult | null) => {
       if (transaction) {
         const result: CreateTransactionBaseResult = {
           success: true,

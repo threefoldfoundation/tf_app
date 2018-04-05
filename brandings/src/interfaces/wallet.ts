@@ -1,24 +1,5 @@
 import { SupportedAlgorithms } from '../manual_typings/rogerthat';
 
-export interface Transaction {
-  id: string;
-  timestamp: number;
-  height: number;
-  inputs: TransactionOutput[] | null;
-  outputs: TransactionOutput[];
-  minerfees: string[] | null;
-}
-
-export interface TransactionInput {
-  parent_id: string;
-  timelock: number;
-}
-
-export interface TransactionOutput {
-  unlockhash: string;
-  value: string;
-}
-
 export interface CreateSignatureData {
   amount: number;
   precision: number;
@@ -36,25 +17,112 @@ export interface GetAddressPayload {
 // Only used by UI
 export interface ParsedTransaction {
   id: string;
-  timestamp: Date;
   height: number;
-  inputs: TransactionOutput[];
-  outputs: TransactionOutput[];
-  /**
-   * Outputs that do not contain the current users' address
-   */
-  otherOutputs: TransactionOutput[];
+  inputs: RivineOutput[];
+  outputs: RivineOutput[];
   amount: number;
   minerfee: number;
   receiving: boolean;
 }
 
-export interface CreateTransactionResult {
+export interface RivineCreateTransactionResult {
   transactionid: string;
 }
 
-export interface TfChainBlock {
+export interface RivineBlockInternal {
+  arbitrarydatacount: number;
+  arbitrarydatatotalsize: number;
+  blockid: string;
+  blockstakeinputcount: number;
+  blockstakeoutputcount: number;
+  coininputcount: number;
+  coinoutputcount: number;
+  difficulty: string;
+  estimatedactivebs: string;
   height: number;
+  maturitytimestamp: number;
+  minerfeecount: number;
+  minerpayoutcount: number;
+  minerpayoutids: null | string[];
+  rawblock: {
+    minerpayouts: null | RivineOutput[];
+    parentid: string;
+    timestamp: number;
+    pobsindexes: {
+      BlockHeight: number;
+      OutputIndex: number;
+      TransactionIndex: number;
+    },
+    transactions: null | RivineRawTransaction[];
+  };
+  target: number[];
+  totalcoins: string;
+  transactioncount: number;
+  transactions: null | RivineTransaction[];
+}
+
+export interface RivineCreateTransaction {
+  version: number;
+  data: {
+    coininputs: RivineInput[];
+    coinoutputs: RivineOutput[];
+    blockstakeinputs: null | RivineInput[];
+    blockstakeoutputs: null | RivineInput[];
+    minerfees: string[];
+    arbitrarydata: null | string[];
+  };
+}
+
+export interface RivineBlock {
+  block: RivineBlockInternal;
+}
+
+export interface RivineInput {
+  parentid: string;
+  unlocker: {
+    type: number;
+    condition: {
+      publickey: string;
+    },
+    fulfillment: {
+      signature: string;
+    }
+  };
+}
+
+export interface RivineOutput {
+  value: string;
+  unlockhash: string;
+}
+
+export interface RivineRawTransaction {
+  version: number;
+  data: {
+    coininputs: null | RivineInput[];
+    coinoutputs?: null | RivineOutput[];
+    blockstakeinputs?: null | RivineInput[];
+    blockstakeoutputs?: null | RivineOutput[];
+    minerfees: string[] | null;
+  };
+}
+
+export interface RivineTransaction {
+  id: string;
+  height: number;
+  parent: string;
+  rawtransaction: RivineRawTransaction;
+  coininputoutputs: null | RivineOutput[];
+  coinoutputids: null | string[];
+  blockstakeinputoutputs: null | RivineInput | RivineOutput[];
+  blockstakeoutputids: null | string[];
+}
+
+export interface RivineHashInfo {
+  block: RivineBlockInternal;
+  blocks: null;
+  hashtype: 'unlockhash';
+  transaction: RivineTransaction;
+  transactions: RivineTransaction[];
 }
 
 export const ADDRESS_LENGTH = 78;

@@ -8,7 +8,7 @@
   <ion-list>
     <ion-item *ngFor="let transaction of transactions$ | async; trackBy: trackTransactions"
               (click)="showDetails(transaction)">
-      <h2>{{ transaction.timestamp | date : 'MMMM d HH:mm' }}</h2>
+      <h2>{{ transaction.id }}</h2>
       <h3 [class]="getColorClass(transaction)">
         {{ (transaction.receiving ? 'received': 'sent') | translate }}
       </h3>

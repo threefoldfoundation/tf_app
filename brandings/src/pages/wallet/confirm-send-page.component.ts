@@ -8,7 +8,7 @@ import { first, switchMap } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import { BrandingActionTypes, CreateSignatureDataAction, CreateTransactionDataAction } from '../../actions';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
-import { CreateSignatureData, CreateTransactionResult, KEY_NAME, RIVINE_ALGORITHM } from '../../interfaces/wallet';
+import { CreateSignatureData, KEY_NAME, RIVINE_ALGORITHM, RivineCreateTransactionResult } from '../../interfaces/wallet';
 import { CryptoTransaction } from '../../manual_typings/rogerthat';
 import {
   createTransactionStatus,
@@ -27,7 +27,7 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
   pendingTransaction$: Observable<CryptoTransaction | null>;
   pendingTransactionStatus$: Observable<ApiRequestStatus>;
   createTransactionStatus$: Observable<ApiRequestStatus>;
-  transaction$: Observable<CreateTransactionResult | null>;
+  transaction$: Observable<RivineCreateTransactionResult | null>;
 
   private _transactionCompleteSub: Subscription;
 
@@ -54,7 +54,7 @@ export class ConfirmSendPageComponent implements OnInit, OnDestroy {
       ofType(BrandingActionTypes.CREATE_TRANSACTION_COMPLETE),
       switchMap(() => this.transaction$),
     ).subscribe(transaction => {
-        this.viewCtrl.dismiss(transaction);
+      this.viewCtrl.dismiss(transaction);
     });
   }
 

@@ -1,7 +1,11 @@
-export interface TffClientConfiguration {
-  wallet_url: string;
+export interface WalletConfiguration {
+  explorer_urls: string[];
 }
 
-export const configuration: TffClientConfiguration = {
-  wallet_url: 'https://tff-backend.appspot.com/api/plugins/tff_backend/v1.0/wallet',
+export const configuration: WalletConfiguration = {
+  explorer_urls: [
+    'https://explorer.threefoldtoken.com',
+    'https://explorer2.threefoldtoken.com',
+    // 'https://explorer.testnet.threefoldtoken.com',
+  ],
 };

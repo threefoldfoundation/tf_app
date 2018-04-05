@@ -1,3 +1,4 @@
+import { CryptoTransactionData } from '../interfaces/wallet';
 /**
  * See http://www.rogerthat.net/developers/javascript-api/ for more info
  */
@@ -331,8 +332,8 @@ export interface CryptoTransactionInput {
 }
 
 export interface CryptoTransactionOutput {
-  unlockhash: string;
   value: string;
+  unlockhash: string;
 }
 
 export interface CryptoTransactionData {
@@ -348,7 +349,7 @@ export interface CryptoTransactionData {
   /**
    * base64 signature, this should be set by using rogerthat.security.sign by the client
    */
-  signature?: string;
+  signature: string;
   timelock: number;
 }
 
