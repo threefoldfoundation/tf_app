@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { of } from 'rxjs/observable/of';
-import { ApiError, ApiRequestStatus } from '../interfaces/rpc.interfaces';
+import { ApiError, ApiRequestStatus, TranslatedError } from '../interfaces/rpc.interfaces';
 import { ApiCallError, ApiCallResult } from '../services/rogerthat.service';
 
 export function transformApiCallErrorResponse(response: ApiCallResult): ApiRequestStatus {
@@ -15,8 +15,19 @@ export function transformApiCallErrorResponse(response: ApiCallResult): ApiReque
   };
 }
 
-export function transformErrorResponse<T = any>(response: HttpErrorResponse): ApiRequestStatus<T> {
+export function transformErrorResponse<T = any>(response: HttpErrorResponse | TranslatedError): ApiRequestStatus<T> {
   let apiError: ApiError<T>;
+  if (response instanceof TranslatedError) {
+    return {
+      loading: false,
+      success: false,
+      error: {
+        status_code: 0,
+        error: response.translationKey,
+        data: response.params,
+      },
+    };
+  }
   if (typeof response.error === 'object' && !(response.error instanceof ProgressEvent)) {
     apiError = response.error;
   } else {
@@ -41,7 +52,7 @@ export function handleApiError(action: any, response: ApiCallError) {
   return of(new action(transformApiCallErrorResponse(response.apiCallResult)));
 }
 
-export function handleError(action: any, response: HttpErrorResponse) {
+export function handleError(action: any, response: HttpErrorResponse | TranslatedError) {
   return of(new action(transformErrorResponse(response)));
 }
 

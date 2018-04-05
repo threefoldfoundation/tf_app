@@ -27,3 +27,8 @@ export const apiRequestSuccess: ApiRequestStatus = {
   success: true,
   error: null,
 };
+
+export class TranslatedError {
+  constructor(public translationKey: string, public params?: any) {
+  }
+}

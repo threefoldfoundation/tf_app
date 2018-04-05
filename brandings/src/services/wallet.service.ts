@@ -7,6 +7,7 @@ import { TimerObservable } from 'rxjs/observable/TimerObservable';
 import { map, mergeMap, retryWhen, timeout } from 'rxjs/operators';
 import { TimeoutError } from 'rxjs/util/TimeoutError';
 import { configuration } from '../configuration';
+import { TranslatedError } from '../interfaces/rpc.interfaces';
 import {
   COIN_TO_HASTINGS,
   CreateSignatureData,
@@ -52,7 +53,6 @@ export class WalletService {
     return this.getHashInfo(data.from_address).pipe(map(hashInfo => {
       const minerfees = (COIN_TO_HASTINGS / 10);
       const outputIds = this._getOutputIds(hashInfo.transactions, data.from_address);
-      console.log(outputIds);
       const transactionData: CryptoTransactionData[] = [];
       let feeSubtracted = false;
       let hasSufficientFunds = false;
@@ -81,13 +81,16 @@ export class WalletService {
           d.outputs.push({ value: amount.toString(), unlockhash: data.to_address });
         } else {
           d.outputs.push({ value: amountLeft.toString(), unlockhash: data.to_address });
-          d.outputs.push({ value: (amount - amountLeft).toString(), unlockhash: data.from_address });
+          const restAmount = amount - amountLeft;
+          if (restAmount > 0) {
+            d.outputs.push({ value: restAmount.toString(), unlockhash: data.from_address });
+          }
           hasSufficientFunds = true;
           break;
         }
       }
       if (!hasSufficientFunds) {
-        throw new Error('insufficient_funds');
+        throw new TranslatedError('insufficient_funds');
       }
       return <CryptoTransaction>{
         minerfees: minerfees.toString(),
@@ -145,7 +148,6 @@ export class WalletService {
         }
       }
     }
-    console.log(allCoinOutputs, spentOutputs);
     return allCoinOutputs.filter(output => !spentOutputs.some(o => o.output_id === output.id));
   }
 
