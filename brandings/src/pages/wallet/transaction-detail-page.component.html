@@ -16,7 +16,7 @@
     {{ 'x_confirmations' | translate : { confirmations: confirmations } }}
   </p>
   <h4 *ngIf="transaction.inputs.length">{{ 'inputs' | translate }}</h4>
-  <ion-list>
+  <ion-list class="input-output-list">
     <ion-item *ngFor="let input of transaction.inputs" ngxClipboard [cbContent]="input.unlockhash"
               (cbOnSuccess)="showCopiedToast($event)">
       <h2>{{ input.unlockhash }}</h2>
@@ -24,7 +24,7 @@
     </ion-item>
   </ion-list>
   <h4>{{ 'outputs' | translate }}</h4>
-  <ion-list>
+  <ion-list class="input-output-list">
     <ion-item *ngFor="let output of transaction.outputs" ngxClipboard [cbContent]="output.unlockhash"
               (cbOnSuccess)="showCopiedToast($event)">
       <h2>{{ output.unlockhash }}</h2>

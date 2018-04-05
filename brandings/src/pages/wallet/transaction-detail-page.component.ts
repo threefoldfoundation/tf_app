@@ -12,6 +12,10 @@ import { getBlock, getLatestBlock, IBrandingState } from '../../state/app.state'
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: 'transaction-detail-page.component.html',
+  styles: [ `.input-output-list h2 {
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }` ],
 })
 export class TransactionDetailPageComponent implements OnInit {
   transaction: ParsedTransaction;

@@ -42,7 +42,8 @@ export class WalletService {
   }
 
   getTransactions(address: string) {
-    return this.getHashInfo(address).pipe(map(info => info.transactions.map(t => this._convertTransaction(t, address))));
+    return this.getHashInfo(address).pipe(map(info => info.transactions.map(t => this._convertTransaction(t, address))
+      .sort((t1, t2) => t2.height - t1.height)));
   }
 
   getHashInfo(hash: string) {
