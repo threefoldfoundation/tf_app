@@ -20,7 +20,7 @@ import time
 from collections import defaultdict
 from datetime import datetime
 
-from google.appengine.api import apiproxy_stub_map, urlfetch
+from google.appengine.api import apiproxy_stub_map, urlfetch, users
 from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
 
@@ -37,10 +37,13 @@ from plugins.its_you_online_auth.bizz.profile import get_profile
 from plugins.its_you_online_auth.models import Profile
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.exceptions import BusinessException
+from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo, get_serial_number_by_node_id
+from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress, HosterSteps
 from plugins.tff_backend.configuration import InfluxDBConfig
 from plugins.tff_backend.consts.hoster import DEBUG_NODE_DATA
@@ -444,7 +447,11 @@ def update_node(node_id, data):
     # type: (unicode, UpdateNodePayloadTO) -> Node
     node = get_node(node_id)
     if data.username:
-        get_profile(data.username)
+        profile = get_profile(data.username)
+        if profile.app_email:
+            email, app_id = get_app_user_tuple(users.User(profile.app_email))
+            user_details = UserDetailsTO(email=email.email(), app_id=app_id)
+            deferred.defer(add_user_to_role, user_details, RogerthatRoles.HOSTERS, _transactional=True)
     node.username = data.username
     node.put()
     return node
