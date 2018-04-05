@@ -73,7 +73,7 @@ To test it, either upload it as a branding on your rogerthat server or add this 
       },
       system: {
         appId: 'em-be-threefold-token',
-        appVersion: '2.1.1234'
+        appVersion: '2.1.9999'
       },
       service: {
         data: {
@@ -90,7 +90,7 @@ To test it, either upload it as a branding on your rogerthat server or add this 
         }
       },
       security: {
-        getAddress: success => success({address: '015df22a2e82a3323bc6ffbd1730450ed844feca711c8fe0c15e218c171962fd17473296fdd9fe'})
+        getAddress: success => success({address: '015df22a2e82a3323bc6ffbd1730450ed844feca711c8fe0c15e218c171962fd17b206263220ee'})
       },
       menuItem: {
         hashedTag: 'wallet',
@@ -103,7 +103,7 @@ To test it, either upload it as a branding on your rogerthat server or add this 
       }
     };
     sha256 = nothing,
-    setTimeout(() => rogerthat.callbacks._ready(), 250);
+      setTimeout(() => rogerthat.callbacks._ready(), 250);
   }
 </script>
 ```

@@ -15,8 +15,20 @@ export function transformApiCallErrorResponse(response: ApiCallResult): ApiReque
   };
 }
 
-export function transformErrorResponse<T = any>(response: HttpErrorResponse | TranslatedError): ApiRequestStatus<T> {
+export function transformErrorResponse<T = any>(response: HttpErrorResponse | TranslatedError | Error): ApiRequestStatus<T> {
   let apiError: ApiError<T>;
+  if (response instanceof Error) {
+    console.error(response);
+    return {
+      loading: false,
+      success: false,
+      error: {
+        status_code: 0,
+        error: 'unknown',
+        data: null,
+      },
+    };
+  }
   if (response instanceof TranslatedError) {
     return {
       loading: false,
@@ -52,7 +64,7 @@ export function handleApiError(action: any, response: ApiCallError) {
   return of(new action(transformApiCallErrorResponse(response.apiCallResult)));
 }
 
-export function handleError(action: any, response: HttpErrorResponse | TranslatedError) {
+export function handleError(action: any, response: HttpErrorResponse | TranslatedError | Error) {
   return of(new action(transformErrorResponse(response)));
 }
 

@@ -219,7 +219,7 @@ export class WalletService {
     if (this.unavailableExplorers.length === configuration.explorer_urls.length) {
       this.unavailableExplorers = [];
     }
-    const urls = configuration.explorer_urls.filter(url => !this.unavailableExplorers.includes(url));
+    const urls = configuration.explorer_urls.filter(url => this.unavailableExplorers.indexOf(url) === -1);
     return urls[ Math.floor(Math.random() * urls.length) ];
   }
 }
