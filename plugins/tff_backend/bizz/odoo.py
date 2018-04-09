@@ -38,11 +38,11 @@ class QuotationState(Enum):
 class GAEXMLRPCTransport(object):
     """Handles an HTTP transaction to an XML-RPC server."""
 
-    def __init__(self):
-        pass
+    def __init__(self, secure=False):
+        self.secure = secure
 
     def request(self, host, handler, request_body, verbose=0):
-        url = 'http://%s%s' % (host, handler)
+        url = '%s://%s%s' % ('https' if self.secure else 'http', host, handler)
         try:
             response = urlfetch.fetch(url,
                                       payload=request_body,
@@ -73,7 +73,7 @@ class GAEXMLRPCTransport(object):
 
 def _get_erp_client(cfg):
     return erppeek.Client(cfg.odoo.url, cfg.odoo.database, cfg.odoo.username, cfg.odoo.password,
-                          transport=GAEXMLRPCTransport())
+                          transport=GAEXMLRPCTransport(secure='https' in cfg.odoo.url))
 
 
 def _save_customer(erp_client, customer):
