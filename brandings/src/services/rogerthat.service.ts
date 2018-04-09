@@ -1,12 +1,11 @@
 import { Injectable, NgZone } from '@angular/core';
 import { select, Store } from '@ngrx/store';
+import { CameraType, RogerthatCallbacks, RogerthatError } from 'rogerthat-plugin';
 import { Observable } from 'rxjs/Observable';
 import { filter, map, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs/Subject';
 import { ApiCallAction, ApiCallCompleteAction, ScanQrCodeUpdateAction, SetServiceDataAction, SetUserDataAction } from '../actions';
 import { IAppState } from '../app/app.state';
-import { CameraType, RogerthatCallbacks } from '../manual_typings/rogerthat';
-import { RogerthatError } from '../manual_typings/rogerthat-errors';
 import { getApicallResult } from '../state/rogerthat.state';
 import { I18nService } from './i18n.service';
 
@@ -49,7 +48,7 @@ export class RogerthatService {
     cb.qrCodeScanned(result => this.ngZone.run(() => this.store.dispatch(new ScanQrCodeUpdateAction(result))));
     cb.userDataUpdated(() => this.ngZone.run(() => this.store.dispatch(new SetUserDataAction(rogerthat.user.data))));
     cb.serviceDataUpdated(() => this.ngZone.run(() => this.store.dispatch(new SetServiceDataAction(rogerthat.service.data))));
-    const [major, minor, patch] = rogerthat.system.appVersion.split('.').slice(0, 3).map(s => parseInt(s));
+    const [ major, minor, patch ] = rogerthat.system.appVersion.split('.').slice(0, 3).map((s: string) => parseInt(s));
     this._version = { major, minor, patch };
   }
 

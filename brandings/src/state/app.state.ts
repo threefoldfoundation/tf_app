@@ -6,8 +6,6 @@ import { KYCStatus } from '../interfaces/rogerthat';
 import { apiRequestInitial, ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
 import { TodoList } from '../interfaces/todo-list.interfaces';
-import { ParsedTransaction, RivineBlock, RivineCreateTransactionResult } from '../interfaces/wallet';
-import { CryptoTransaction } from '../manual_typings/rogerthat';
 import { getServiceData, getUserData } from './rogerthat.state';
 
 export interface IBrandingState {

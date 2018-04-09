@@ -1,4 +1,4 @@
-import { SupportedAlgorithms } from '../manual_typings/rogerthat';
+import { SupportedAlgorithms } from 'rogerthat-plugin';
 
 export interface CreateSignatureData {
   amount: number;

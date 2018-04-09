@@ -1,9 +1,6 @@
 import { Action } from '@ngrx/store';
+import { CameraType, QrCodeScannedContent, RogerthatError } from 'rogerthat-plugin';
 import { ServiceData, UserData } from '../interfaces/rogerthat';
-import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
-import { GetAddressPayload } from '../interfaces/wallet';
-import { CameraType, CryptoAddress, CryptoTransaction, QrCodeScannedContent, SupportedAlgorithms } from '../manual_typings/rogerthat';
-import { RogerthatError } from '../manual_typings/rogerthat-errors';
 import { ApiCallResult } from '../services/rogerthat.service';
 
 interface IRogerthatActionTypes {
