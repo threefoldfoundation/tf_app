@@ -1,4 +1,3 @@
-import { CryptoTransactionData } from '../interfaces/wallet';
 /**
  * See http://www.rogerthat.net/developers/javascript-api/ for more info
  */

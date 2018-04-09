@@ -15,12 +15,6 @@ interface IRogerthatActionTypes {
   SCAN_QR_CODE_STARTED: '[rogerthat] Scan QR code started';
   SCAN_QR_CODE_UPDATE: '[rogerthat] Scan QR code update';
   SCAN_QR_CODE_FAILED: '[rogerthat] Scan QR code failed';
-  GET_ADDRESS: '[rogerthat]Get address';
-  GET_ADDRESS_COMPLETE: '[rogerthat]Get address complete';
-  GET_ADDRESS_FAILED: '[rogerthat]Get address failed';
-  CREATE_TRANSACTION_DATA: '[rogerthat] Create transaction data';
-  CREATE_TRANSACTION_DATA_COMPLETE: '[rogerthat] Create transaction data complete';
-  CREATE_TRANSACTION_DATA_FAILED: '[rogerthat] Create transaction data failed';
 }
 
 export const RogerthatActionTypes: IRogerthatActionTypes = {
@@ -32,12 +26,6 @@ export const RogerthatActionTypes: IRogerthatActionTypes = {
   SCAN_QR_CODE_STARTED: '[rogerthat] Scan QR code started',
   SCAN_QR_CODE_UPDATE: '[rogerthat] Scan QR code update',
   SCAN_QR_CODE_FAILED: '[rogerthat] Scan QR code failed',
-  GET_ADDRESS: '[rogerthat]Get address',
-  GET_ADDRESS_COMPLETE: '[rogerthat]Get address complete',
-  GET_ADDRESS_FAILED: '[rogerthat]Get address failed',
-  CREATE_TRANSACTION_DATA: '[rogerthat] Create transaction data',
-  CREATE_TRANSACTION_DATA_COMPLETE: '[rogerthat] Create transaction data complete',
-  CREATE_TRANSACTION_DATA_FAILED: '[rogerthat] Create transaction data failed',
 };
 
 export class ApiCallAction implements Action {
@@ -93,49 +81,6 @@ export class ScanQrCodeFailedAction implements Action {
   }
 }
 
-export class GetAddresssAction implements Action {
-  type = RogerthatActionTypes.GET_ADDRESS;
-
-  constructor(public payload: GetAddressPayload) {
-  }
-}
-
-export class GetAddresssCompleteAction implements Action {
-  type = RogerthatActionTypes.GET_ADDRESS_COMPLETE;
-
-  constructor(public payload: CryptoAddress) {
-  }
-}
-
-export class GetAddresssFailedAction implements Action {
-  type = RogerthatActionTypes.GET_ADDRESS_FAILED;
-
-  constructor(public payload: ApiRequestStatus) {
-  }
-}
-
-export class CreateTransactionDataAction implements Action {
-  type = RogerthatActionTypes.CREATE_TRANSACTION_DATA;
-
-  constructor(public payload: CryptoTransaction, public keyName: string, public algorithm: SupportedAlgorithms, public index: number,
-              public message: string) {
-  }
-}
-
-export class CreateTransactionDataCompleteAction implements Action {
-  type = RogerthatActionTypes.CREATE_TRANSACTION_DATA_COMPLETE;
-
-  constructor(public payload: CryptoTransaction) {
-  }
-}
-
-export class CreateTransactionDataFailedAction implements Action {
-  type = RogerthatActionTypes.CREATE_TRANSACTION_DATA_FAILED;
-
-  constructor(public payload: ApiRequestStatus) {
-  }
-}
-
 export type RogerthatActions
   = ApiCallAction
   | ApiCallCompleteAction
@@ -144,11 +89,5 @@ export type RogerthatActions
   | ScanQrCodeAction
   | ScanQrCodeStartedAction
   | ScanQrCodeUpdateAction
-  | ScanQrCodeFailedAction
-  | GetAddresssAction
-  | GetAddresssCompleteAction
-  | GetAddresssFailedAction
-  | CreateTransactionDataAction
-  | CreateTransactionDataCompleteAction
-  | CreateTransactionDataFailedAction;
+  | ScanQrCodeFailedAction;
 

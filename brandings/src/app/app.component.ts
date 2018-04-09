@@ -4,7 +4,6 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { Actions } from '@ngrx/effects';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
-import { PaymentQRCodeType } from '../interfaces/rogerthat';
 import {
   AgendaPageComponent,
   GlobalStatsPageComponent,
@@ -15,7 +14,6 @@ import {
   TodoListPageComponent,
 } from '../pages';
 import { ErrorService } from '../pages/error.service';
-import { PayWidgetPageComponent, WalletPageComponent } from '../pages/wallet';
 import { RogerthatService } from '../services/rogerthat.service';
 import { TodoListService } from '../services/todo-list.service';
 
@@ -56,24 +54,8 @@ export class AppComponent implements OnInit {
         }
         splashScreen.hide();
         this.rogerthatService.initialize();
-        const version = this.rogerthatService.getVersion();
-        let mustUpdate = false;
-        if (rogerthat.system.os === 'ios') {
-          if (version.patch < 2681) {
-            mustUpdate = true;
-          }
-        } else {
-          if (version.patch < 3916) {
-            mustUpdate = true;
-          }
-        }
         this.rogerthatService.getContext().subscribe(context => {
           const root = this.getRootPage(context);
-          if (mustUpdate && root && root.page === WalletPageComponent) {
-            const alert = this.errorService.showVersionNotSupported(this.translate.instant('not_supported_pls_update'));
-            alert.onDidDismiss(() => platform.exitApp());
-            return;
-          }
           if (root) {
             this.root = root;
           }
@@ -91,10 +73,6 @@ export class AppComponent implements OnInit {
   }
 
   private getRootPage(context: any): RootPage | null {
-    const initialPage = this.processContext(context);
-    if (initialPage) {
-      return initialPage;
-    }
     if (!rogerthat.menuItem) {
       // old iOS app doesn't support this yet
       this.errorService.showVersionNotSupported(this.translate.instant('not_supported_pls_update'));
@@ -112,7 +90,6 @@ export class AppComponent implements OnInit {
       { tag: 'referrals_invite', page: InvitePageComponent },
       { tag: 'agenda', page: AgendaPageComponent },
       { tag: 'node_status', page: NodeStatusPageComponent },
-      { tag: 'wallet', page: WalletPageComponent },
     ];
     // the or is for debugging
     const page = pages.find(p => sha256(p.tag) === rogerthat.menuItem.hashedTag || p.tag === rogerthat.menuItem.hashedTag);
@@ -120,33 +97,6 @@ export class AppComponent implements OnInit {
       return { page: page.page, params: null };
     } else {
       console.error('Cannot find page for menu item', JSON.stringify(rogerthat.menuItem));
-    }
-    return null;
-  }
-
-  private processContext(data: any): RootPage | null {
-    if (data.context && data.context.t) {
-      switch (data.context.t) {
-        case PaymentQRCodeType.TRANSACTION:
-          // Currently not supported, just show the wallet instead
-          return { page: WalletPageComponent, params: null };
-        case PaymentQRCodeType.PAY:
-          const payContext: any = data.context; // type PayWidgetData
-          return { page: PayWidgetPageComponent, params: { payContext } };
-        default:
-          if (data.context.result_type === 'plugin') {
-            const msg = this.translate.instant('not_supported_ensure_latest_version', { appName: rogerthat.system.appName });
-            const content = {
-              success: false,
-              code: 'not_supported',
-              message: msg,
-            };
-            rogerthat.app.exitWithResult(JSON.stringify(content));
-          } else {
-            const msg = this.translate.instant('qr_code_not_supported_ensure_latest_version', { appName: rogerthat.system.appName });
-            this.errorService.showVersionNotSupported(msg);
-          }
-      }
     }
     return null;
   }

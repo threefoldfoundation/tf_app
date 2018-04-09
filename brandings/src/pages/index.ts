@@ -6,4 +6,3 @@ export * from './referrals/invite-page.component';
 export * from './see/see-page.component';
 export * from './todo-list/todo-list-overview-page.component';
 export * from './todo-list/todo-list-page.component';
-export * from './wallet';

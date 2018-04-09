@@ -22,16 +22,6 @@ export interface IBrandingState {
   updateEventPresenceStatus: ApiRequestStatus;
   nodes: NodeInfo[];
   nodesStatus: ApiRequestStatus;
-  transactions: ParsedTransaction[];
-  createdTransaction: RivineCreateTransactionResult | null;
-  transactionsStatus: ApiRequestStatus;
-  pendingTransaction: CryptoTransaction | null;
-  pendingTransactionStatus: ApiRequestStatus;
-  createTransactionStatus: ApiRequestStatus;
-  latestBlock: RivineBlock['block'] | null;
-  latestBlockStatus: ApiRequestStatus;
-  block: RivineBlock | null;
-  blockStatus: ApiRequestStatus;
 }
 
 export const getAppState = createFeatureSelector<IBrandingState>('app');
@@ -48,16 +38,6 @@ export const initialState: IBrandingState = {
   updateEventPresenceStatus: apiRequestInitial,
   nodes: [],
   nodesStatus: apiRequestInitial,
-  transactions: [],
-  createdTransaction: null,
-  transactionsStatus: apiRequestInitial,
-  pendingTransaction: null,
-  pendingTransactionStatus: apiRequestInitial,
-  createTransactionStatus: apiRequestInitial,
-  latestBlock: null,
-  latestBlockStatus: apiRequestInitial,
-  block: null,
-  blockStatus: apiRequestInitial,
 };
 
 export const getGlobalStats = createSelector(getAppState, s => s.globalStats);
@@ -86,19 +66,3 @@ export const getUserDataNodeStatus = createSelector(getUserData, data => (data.n
   ...node,
   status: node.status || NodeStatus.HALTED,
 })));
-
-export const getTransactions = createSelector(getAppState, s => s.transactions);
-export const getTotalAmount = createSelector(getTransactions, transactions => {
-  return transactions.reduce((total: number, transaction: ParsedTransaction) => total + transaction.amount, 0);
-});
-export const getTransactionsStatus = createSelector(getAppState, s => s.transactionsStatus);
-
-export const getPendingTransaction = createSelector(getAppState, s => s.pendingTransaction);
-export const getCreatedTransaction = createSelector(getAppState, s => s.createdTransaction);
-export const getPendingTransactionStatus = createSelector(getAppState, s => s.pendingTransactionStatus);
-export const createTransactionStatus = createSelector(getAppState, s => s.createTransactionStatus);
-export const getLatestBlock = createSelector(getAppState, s => s.latestBlock);
-export const getLatestBlockStatus = createSelector(getAppState, s => s.latestBlockStatus);
-export const getBlock = createSelector(getAppState, s => s.block);
-export const getBlockStatus = createSelector(getAppState, s => s.blockStatus);
-
