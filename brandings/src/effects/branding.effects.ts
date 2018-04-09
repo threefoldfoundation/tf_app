@@ -1,25 +1,17 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { of } from 'rxjs/observable/of';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import * as actions from '../actions';
-import {
-  BrandingActions,
-  CreateTransactionDataCompleteAction,
-  CreateTransactionDataFailedAction,
-  GetBlockAction,
-  GetLatestBlockAction,
-} from '../actions';
+import { BrandingActions } from '../actions';
 import { IAppState } from '../app/app.state';
 import { NodeStatus } from '../interfaces/node-status.interfaces';
 import { AgendaService } from '../services/agenda.service';
 import { GlobalStatsService } from '../services/global-stats.service';
 import { NodeService } from '../services/node.service';
 import { SeeService } from '../services/see.service';
-import { WalletService } from '../services/wallet.service';
 import { getUserDataNodeStatus } from '../state/app.state';
-import { handleApiError, handleError } from '../util/rpc';
+import { handleApiError } from '../util/rpc';
 
 @Injectable()
 export class BrandingEffects {
@@ -67,52 +59,11 @@ export class BrandingEffects {
       catchError(err => handleApiError(actions.GetNodeStatsFailedAction, err))),
     ));
 
-  @Effect() getTransactions = this.actions$.pipe(
-    ofType<actions.GetTransactionsAction>(actions.BrandingActionTypes.GET_TRANSACTIONS),
-    switchMap(action => this.walletService.getTransactions(action.address).pipe(
-      map(transactions => new actions.GetTransactionsCompleteAction(transactions)),
-      catchError(err => handleError(actions.GetTransactionsFailedAction, err))),
-    ));
-
-  @Effect() createSignatureData$ = this.actions$.pipe(
-    ofType<actions.CreateSignatureDataAction>(actions.BrandingActionTypes.CREATE_SIGNATURE_DATA),
-    switchMap(action => this.walletService.createSignatureData(action.payload).pipe(
-      map(result => new actions.CreateSignatureDataCompleteAction(result)),
-      catchError(err => handleError(actions.CreateSignatureDataFailedAction, err))),
-    ));
-
-  @Effect() createTransactionDataSuccess$ = this.actions$.pipe(
-    ofType<CreateTransactionDataCompleteAction>(actions.RogerthatActionTypes.CREATE_TRANSACTION_DATA_COMPLETE),
-    switchMap(action => this.walletService.createTransaction(action.payload).pipe(
-      map(result => new actions.CreateTransactionCompleteAction(result)),
-      catchError(err => handleError(actions.CreateTransactionFailedAction, err))),
-    ));
-
-  @Effect() createTransactionDataFailed$ = this.actions$.pipe(
-    ofType<CreateTransactionDataFailedAction>(actions.RogerthatActionTypes.CREATE_TRANSACTION_DATA_FAILED),
-    switchMap(action => of(new actions.CreateTransactionFailedAction(action.payload))),
-  );
-
-  @Effect() getLatestBlock$ = this.actions$.pipe(
-    ofType<GetLatestBlockAction>(actions.BrandingActionTypes.GET_LATEST_BLOCK),
-    switchMap(action => this.walletService.getLatestBlock().pipe(
-      map(result => new actions.GetLatestBlockCompleteAction(result)),
-      catchError(err => handleError(actions.GetLatestBlockFailedAction, err))),
-    ));
-
-  @Effect() getBlock$ = this.actions$.pipe(
-    ofType<GetBlockAction>(actions.BrandingActionTypes.GET_BLOCK),
-    switchMap(action => this.walletService.getBlock(action.height).pipe(
-      map(result => new actions.GetBlockCompleteAction(result)),
-      catchError(err => handleError(actions.GetBlockFailedAction, err))),
-    ));
-
   constructor(private actions$: Actions<BrandingActions>,
               private globalStatsService: GlobalStatsService,
               private store: Store<IAppState>,
               private agendaService: AgendaService,
               private seeService: SeeService,
-              private nodeService: NodeService,
-              private walletService: WalletService) {
+              private nodeService: NodeService) {
   }
 }

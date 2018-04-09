@@ -1,5 +1,4 @@
 import { RogerthatActions, RogerthatActionTypes } from '../actions';
-import { apiRequestLoading, apiRequestSuccess } from '../interfaces/rpc.interfaces';
 import { initialRogerthatState, IRogerthatState } from '../state/rogerthat.state';
 
 export function rogerthatReducer(state: IRogerthatState = initialRogerthatState, action: RogerthatActions): IRogerthatState {
@@ -36,22 +35,6 @@ export function rogerthatReducer(state: IRogerthatState = initialRogerthatState,
       return {
         ...state,
         qrCodeError: action.payload,
-      };
-    case RogerthatActionTypes.GET_ADDRESS:
-      return {
-        ...state,
-        addressStatus: apiRequestLoading,
-      };
-    case RogerthatActionTypes.GET_ADDRESS_COMPLETE:
-      return {
-        ...state,
-        address: action.payload,
-        addressStatus: apiRequestSuccess,
-      };
-    case RogerthatActionTypes.GET_ADDRESS_FAILED:
-      return {
-        ...state,
-        addressStatus: action.payload,
       };
   }
   return state;

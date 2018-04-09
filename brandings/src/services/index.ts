@@ -6,7 +6,6 @@ import { NodeService } from './node.service';
 import { RogerthatService } from './rogerthat.service';
 import { SeeService } from './see.service';
 import { TodoListService } from './todo-list.service';
-import { WalletService } from './wallet.service';
 
 export const SERVICES = [ I18nService, RogerthatService, TodoListService, GlobalStatsService, SeeService, ErrorService, AgendaService,
-  NodeService, WalletService ];
+  NodeService ];
