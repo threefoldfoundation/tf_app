@@ -22,8 +22,8 @@ export interface NodeInfo {
 export enum NodeStatsType {
   CPU = 'machine.CPU.percent',
   RAM = 'machine.memory.ram.available',
-  NETWORK_OUT = 'network.throughput.incoming',
-  NETWORK_IN = 'network.throughput.outgoing',
+  NETWORK_OUT = 'network.throughput.outgoing',
+  NETWORK_IN = 'network.throughput.incoming',
 }
 
 export interface NodeStatsData {
