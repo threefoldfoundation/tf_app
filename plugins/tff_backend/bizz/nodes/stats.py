@@ -109,7 +109,11 @@ def _wait_for_tasks(tasks, deadline=150):
 
         incomplete_by_state = defaultdict(list)
         for task in incomplete_tasks.values():
-            result = _async_zero_robot_call(_get_task_url(task)).get_result()
+            try:
+                result = _async_zero_robot_call(_get_task_url(task)).get_result()
+            except urlfetch.DeadlineExceededError:
+                logging.warning('Request for task %s timed out. Node: %s', task, node_id)
+                continue
             node_id = task.service_name
             if result.status_code != 200:
                 logging.error('/task_list for node %s returned status code %s. Content:\n%s',
@@ -302,12 +306,13 @@ def get_all_nodes_statuses():
 
 
 def check_node_statuses():
+    timestamp = datetime.now().isoformat() + 'Z'
     try:
         statuses = get_all_nodes_statuses()
     except Exception as e:
         logging.exception(e)
         raise deferred.PermanentTaskFailure(e.message)
-    deferred.defer(_get_and_save_node_stats, statuses)
+    deferred.defer(_get_and_save_node_stats, statuses, timestamp)
     run_job(_get_all_nodes, [], _check_node_status, [statuses], mode=MODE_BATCH, batch_size=25, qry_transactional=False)
 
 
@@ -457,7 +462,7 @@ def update_node(node_id, data):
     return node
 
 
-def _get_and_save_node_stats(statuses):
+def _get_and_save_node_stats(statuses, timestamp):
     client = get_influx_client()
     now_ = datetime.now()
     node_ids = [key.id() for key in Node.query().fetch(keys_only=True)]
@@ -481,7 +486,6 @@ def _get_and_save_node_stats(statuses):
         logging.exception(e)
         raise deferred.PermanentTaskFailure(e.message)
     points = []
-    now_ = datetime.now().isoformat() + 'Z'
     for node in nodes_stats:
         points.append({
             'measurement': 'node-info',
@@ -489,7 +493,7 @@ def _get_and_save_node_stats(statuses):
                 'node_id': node['id'],
                 'status': node['status'],
             },
-            'time': now_,
+            'time': timestamp,
             'fields': {
                 'id': node['id']
             }
