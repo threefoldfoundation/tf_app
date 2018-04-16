@@ -3,76 +3,65 @@ import { CameraType, QrCodeScannedContent, RogerthatError } from 'rogerthat-plug
 import { ServiceData, UserData } from '../interfaces/rogerthat';
 import { ApiCallResult } from '../services/rogerthat.service';
 
-interface IRogerthatActionTypes {
-  API_CALL: '[rogerthat] Api call';
-  API_CALL_COMPLETE: '[rogerthat] Api call complete';
-  SET_USER_DATA: '[rogerthat] Set user data';
-  SET_SERVICE_DATA: '[rogerthat] Set service data';
-  SCAN_QR_CODE: '[rogerthat] Scan QR code';
-  SCAN_QR_CODE_STARTED: '[rogerthat] Scan QR code started';
-  SCAN_QR_CODE_UPDATE: '[rogerthat] Scan QR code update';
-  SCAN_QR_CODE_FAILED: '[rogerthat] Scan QR code failed';
+export enum RogerthatActionTypes {
+  API_CALL = '[rogerthat] Api call',
+  API_CALL_COMPLETE = '[rogerthat] Api call complete',
+  SET_USER_DATA = '[rogerthat] Set user data',
+  SET_SERVICE_DATA = '[rogerthat] Set service data',
+  SCAN_QR_CODE = '[rogerthat] Scan QR code',
+  SCAN_QR_CODE_STARTED = '[rogerthat] Scan QR code started',
+  SCAN_QR_CODE_UPDATE = '[rogerthat] Scan QR code update',
+  SCAN_QR_CODE_FAILED = '[rogerthat] Scan QR code failed',
 }
 
-export const RogerthatActionTypes: IRogerthatActionTypes = {
-  API_CALL: '[rogerthat] Api call',
-  API_CALL_COMPLETE: '[rogerthat] Api call complete',
-  SET_USER_DATA: '[rogerthat] Set user data',
-  SET_SERVICE_DATA: '[rogerthat] Set service data',
-  SCAN_QR_CODE: '[rogerthat] Scan QR code',
-  SCAN_QR_CODE_STARTED: '[rogerthat] Scan QR code started',
-  SCAN_QR_CODE_UPDATE: '[rogerthat] Scan QR code update',
-  SCAN_QR_CODE_FAILED: '[rogerthat] Scan QR code failed',
-};
-
 export class ApiCallAction implements Action {
-  type = RogerthatActionTypes.API_CALL;
+  readonly type = RogerthatActionTypes.API_CALL;
 
   constructor(public method: string, public data?: any, public tag?: string | null) {
   }
 }
 
 export class ApiCallCompleteAction implements Action {
-  type = RogerthatActionTypes.API_CALL_COMPLETE;
+  readonly type = RogerthatActionTypes.API_CALL_COMPLETE;
 
   constructor(public payload: ApiCallResult) {
   }
 }
 
 export class SetUserDataAction implements Action {
-  type = RogerthatActionTypes.SET_USER_DATA;
+  readonly type = RogerthatActionTypes.SET_USER_DATA;
 
   constructor(public payload: UserData) {
   }
 }
 
 export class SetServiceDataAction implements Action {
-  type = RogerthatActionTypes.SET_SERVICE_DATA;
+  readonly type = RogerthatActionTypes.SET_SERVICE_DATA;
 
   constructor(public payload: ServiceData) {
   }
 }
 
 export class ScanQrCodeAction implements Action {
-  type = RogerthatActionTypes.SCAN_QR_CODE;
+  readonly type = RogerthatActionTypes.SCAN_QR_CODE;
 
   constructor(public payload: CameraType) {
   }
 }
 
 export class ScanQrCodeStartedAction implements Action {
-  type = RogerthatActionTypes.SCAN_QR_CODE_STARTED;
+  readonly type = RogerthatActionTypes.SCAN_QR_CODE_STARTED;
 }
 
 export class ScanQrCodeUpdateAction implements Action {
-  type = RogerthatActionTypes.SCAN_QR_CODE_UPDATE;
+  readonly type = RogerthatActionTypes.SCAN_QR_CODE_UPDATE;
 
   constructor(public payload: QrCodeScannedContent) {
   }
 }
 
 export class ScanQrCodeFailedAction implements Action {
-  type = RogerthatActionTypes.SCAN_QR_CODE_FAILED;
+  readonly type = RogerthatActionTypes.SCAN_QR_CODE_FAILED;
 
   constructor(public payload: RogerthatError) {
   }
