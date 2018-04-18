@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { Profile } from '../../../../its_you_online_auth/client/interfaces';
-import { FlowStep, WidgetType } from '../../../../rogerthat_api/client/interfaces';
+import { FlowStep, FormFlowStep, WidgetType } from '../../../../rogerthat_api/client/interfaces';
 import { FlowRun, FlowRunStatus } from '../../interfaces';
 import { FlowStatisticsService } from '../../services';
 import { getStepTitle } from '../../util';
@@ -25,7 +25,6 @@ import { getStepTitle } from '../../util';
     }` ],
 })
 export class FlowRunDetailComponent {
-  WidgetType = WidgetType;
   @Input() flowRun: FlowRun;
   @Input() user?: Profile;
   @Input() status: ApiRequestStatus;
@@ -47,6 +46,10 @@ export class FlowRunDetailComponent {
 
   getFlowName(flowName: string) {
     return this.flowStatisticsService.getFlowName(flowName);
+  }
+
+  isPhotoUpload(step: FormFlowStep) {
+    return step.form_type === WidgetType.PHOTO_UPLOAD;
   }
 
 }

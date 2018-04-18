@@ -105,6 +105,11 @@ class UpdateNodePayloadTO(TO):
     username = unicode_property('username')
 
 
+class UpdateNodeChainStatusTO(TO):
+    wallet_status = unicode_property('wallet_status')
+    block_height = long_property('block_height')
+
+
 class AuditLogNodeTO(TO):
     id = unicode_property('id')
     username = unicode_property('username')

@@ -1,6 +1,6 @@
 import { Profile } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
 
-export enum AgendaEventType {
+export const enum AgendaEventType {
   EVENT = 1,
   VIDEO_CALL = 2,
 }
@@ -21,7 +21,7 @@ export interface AgendaEvent {
   location: string;
 }
 
-export enum EventPresenceStatus {
+export const enum EventPresenceStatus {
   ABSENT = -1,
   UNKNOWN = 0,
   PRESENT = 1,

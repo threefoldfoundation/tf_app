@@ -1,7 +1,7 @@
 import { FlowStep, InstallationStatus } from '../../../rogerthat_api/client/interfaces';
 import { PaginatedResult } from './shared.interfaces';
 
-export enum FlowRunStatus {
+export const enum FlowRunStatus {
   STARTED = 0,
   IN_PROGRESS = 10,
   STALLED = 20,
@@ -10,7 +10,7 @@ export enum FlowRunStatus {
 }
 
 // Translation keys
-export enum FlowRunStatusStr {
+export const enum FlowRunStatusStr {
   STARTED = 'started',
   IN_PROGRESS = 'in_progress',
   STALLED = 'stalled',

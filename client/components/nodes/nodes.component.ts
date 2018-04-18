@@ -1,10 +1,9 @@
 import { SelectionModel } from '@angular/cdk/collections';
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { MatTableDataSource } from '@angular/material';
-import { DialogService } from '../../../../framework/client/dialog';
 import { environment } from '../../../../framework/client/environments/environment';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
-import { NodeInfo, NodeStatus, UserNodeStatus } from '../../interfaces';
+import { ChainStatus, NodeInfo, NodeStatus, UserNodeStatus, WalletStatus } from '../../interfaces';
 import { ProfileEmailPipe } from '../../pipes/profile-email.pipe';
 import { ProfileNamePipe } from '../../pipes/profile-name.pipe';
 import { CSVService } from '../../services';
@@ -12,10 +11,14 @@ import { CSVService } from '../../services';
 @Component({
   selector: 'tff-nodes',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.Emulated,
   templateUrl: 'nodes.component.html',
   styles: [ `.mat-column-select {
     overflow: initial;
+    flex: 0 0 32px !important;
+  }
+
+  .mat-column-actions {
+    flex: 0 0 120px !important;
   }
 
   .email-list {
@@ -25,7 +28,7 @@ import { CSVService } from '../../services';
 export class NodesComponent implements OnChanges {
   @Input() nodes: UserNodeStatus[];
   @Input() status: ApiRequestStatus;
-  displayedColumns = [ 'select', 'name', 'email', 'status', 'node_id', 'serial_number', 'profile_link' ];
+  displayedColumns = [ 'select', 'name', 'email', 'status', 'node_id', 'serial_number', 'chain_status', 'actions' ];
   dataSource = new MatTableDataSource<UserNodeStatus>();
   selection = new SelectionModel<UserNodeStatus>(true, []);
 
@@ -92,6 +95,18 @@ export class NodesComponent implements OnChanges {
 
   getStatisticsUrl(node: NodeInfo) {
     return `${environment.configuration.plugins.tff_backend.grafana_url + environment.configuration.plugins.tff_backend.grafana_node_detail_dashboard}?var-nodes=${node.id}`;
+  }
+
+  getWalletStatusColor(chainStatus: ChainStatus) {
+    return chainStatus.wallet_status === WalletStatus.UNLOCKED ? 'primary' : 'warn';
+  }
+
+  getWalletStatusIcon(chainStatus: ChainStatus) {
+    return chainStatus.wallet_status === WalletStatus.UNLOCKED ? 'check' : 'close';
+  }
+
+  getWalletStatusTooltip(chainStatus: ChainStatus) {
+    return chainStatus.wallet_status === WalletStatus.UNLOCKED ? 'tff.unlocked' : 'tff.locked';
   }
 
   copyText(element: HTMLElement) {

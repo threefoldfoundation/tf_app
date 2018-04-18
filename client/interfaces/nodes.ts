@@ -1,10 +1,25 @@
 import { Profile } from '../../../its_you_online_auth/client/interfaces';
-import { NodeStatusTime } from '../../brandings/src/interfaces/node-status.interfaces';
 
-export enum NodeStatus {
+export const enum NodeStatus {
   RUNNING = 'running',
   HALTED = 'halted',
   REBOOTING = 'rebooting',
+}
+
+export const enum WalletStatus {
+  LOCKED = 'locked',
+  UNLOCKED = 'unlocked',
+}
+
+export interface ChainStatus {
+  block_height: number;
+  timestamp: string;
+  wallet_status: WalletStatus;
+}
+
+export interface NodeStatusTime {
+  status: NodeStatus;
+  date: string;
 }
 
 export interface NodeInfo {
@@ -15,6 +30,7 @@ export interface NodeInfo {
   statuses: NodeStatusTime[];
   status_date?: string;
   last_check?: string;
+  chain_status: ChainStatus | null;
 }
 
 export interface UpdateNodePayload {

@@ -32,6 +32,17 @@ class NodeStatusTime(NdbModel):
     date = ndb.DateTimeProperty()
 
 
+class ChainStatus(Enum):
+    LOCKED = 'locked'
+    UNLOCKED = 'unlocked'
+
+
+class NodeChainStatus(NdbModel):
+    wallet_status = ndb.StringProperty(choices=ChainStatus.all())
+    block_height = ndb.IntegerProperty(default=0)
+    timestamp = ndb.DateTimeProperty(auto_now=True)
+
+
 class Node(NdbModel):
     NAMESPACE = NAMESPACE
     serial_number = ndb.StringProperty()
@@ -40,6 +51,7 @@ class Node(NdbModel):
     username = ndb.StringProperty()
     status = ndb.StringProperty(default=NodeStatus.HALTED)
     status_date = ndb.DateTimeProperty()
+    chain_status = ndb.StructuredProperty(NodeChainStatus)
 
     @property
     def id(self):

@@ -27,7 +27,7 @@ from mcfw.rpc import parse_complex_value
 from plugins.rogerthat_api.rogerthat_api_plugin import RogerthatApiPlugin
 from plugins.tff_backend import rogerthat_callbacks
 from plugins.tff_backend.api import investor, payment, nodes, global_stats, users, audit, agenda, flow_statistics, \
-    installations
+    installations, nodes_unauthenticated
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings, Roles
 from plugins.tff_backend.bizz.statistics import log_restapi_call_result
 from plugins.tff_backend.configuration import TffConfiguration
@@ -73,7 +73,7 @@ class TffBackendPlugin(BrandingPlugin):
         for _module in authenticated_handlers:
             for url, handler in rest_functions(_module, authentication=AUTHENTICATED):
                 yield Handler(url=url, handler=handler)
-        not_authenticated_handlers = [payment]
+        not_authenticated_handlers = [payment, nodes_unauthenticated]
         for _module in not_authenticated_handlers:
             for url, handler in rest_functions(_module, authentication=NOT_AUTHENTICATED):
                 yield Handler(url=url, handler=handler)

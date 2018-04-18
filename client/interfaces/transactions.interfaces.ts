@@ -1,6 +1,6 @@
 import { PaginatedResult } from './shared.interfaces';
 
-export enum TransactionSyncedStatus {
+export const enum TransactionSyncedStatus {
   PENDING = 'pending',
   CONFIRMED = 'confirmed',
   FAILED = 'failed',
@@ -29,7 +29,7 @@ export interface Transaction {
 export interface TransactionList extends PaginatedResult<Transaction> {
 }
 
-export enum TokenTypes {
+export const enum TokenTypes {
   A = 'TFT_A',
   B = 'TFT_B',
   C = 'TFT_C',

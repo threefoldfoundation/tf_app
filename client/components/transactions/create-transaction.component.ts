@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { CreateTransactionPayload, TokenTypes } from '../../interfaces/transactions.interfaces';
+import { ApiRequestStatus } from '../../../../framework/client/rpc';
+import { CreateTransactionPayload, TokenTypes } from '../../interfaces';
 
 @Component({
   selector: 'tff-create-transaction',
@@ -11,7 +11,7 @@ import { CreateTransactionPayload, TokenTypes } from '../../interfaces/transacti
 })
 
 export class CreateTransactionComponent {
-  tokenTypes = Object.keys(TokenTypes).map(t => <TokenTypes>TokenTypes[ <any>t ]);
+  tokenTypes = [ TokenTypes.A, TokenTypes.B, TokenTypes.C, TokenTypes.D, TokenTypes.I ];
   @Input() createStatus: ApiRequestStatus;
   @Output() onCreateTransaction = new EventEmitter<CreateTransactionPayload>();
   @ViewChild('form') form: NgForm;

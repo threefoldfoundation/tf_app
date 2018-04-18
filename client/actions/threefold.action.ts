@@ -37,7 +37,7 @@ import {
   WalletBalance,
 } from '../interfaces';
 
-export enum TffActionTypes {
+export const enum TffActionTypes {
   GET_ORDERS = '[TFF] Get orders',
   GET_ORDERS_COMPLETE = '[TFF] Get orders success',
   GET_ORDERS_FAILED = '[TFF] Get orders failed',

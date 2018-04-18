@@ -3,7 +3,7 @@ import { CameraType, QrCodeScannedContent, RogerthatError } from 'rogerthat-plug
 import { ServiceData, UserData } from '../interfaces/rogerthat';
 import { ApiCallResult } from '../services/rogerthat.service';
 
-export enum RogerthatActionTypes {
+export const enum RogerthatActionTypes {
   API_CALL = '[rogerthat] Api call',
   API_CALL_COMPLETE = '[rogerthat] Api call complete',
   SET_USER_DATA = '[rogerthat] Set user data',

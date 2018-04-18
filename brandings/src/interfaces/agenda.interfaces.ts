@@ -1,4 +1,4 @@
-export enum AgendaEventType {
+export const enum AgendaEventType {
   EVENT = 1,
   VIDEO_CALL = 2,
 }
@@ -20,7 +20,7 @@ export interface AgendaEventDetail extends AgendaEvent {
   is_in_past: boolean;
 }
 
-export enum EventPresenceStatus {
+export const enum EventPresenceStatus {
   ABSENT = -1,
   UNKNOWN = 0,
   PRESENT = 1,

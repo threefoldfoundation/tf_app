@@ -21,6 +21,7 @@ from collections import defaultdict
 from datetime import datetime
 
 from google.appengine.api import apiproxy_stub_map, urlfetch, users
+from google.appengine.api.datastore_errors import BadValueError
 from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
 
@@ -30,7 +31,7 @@ from framework.plugin_loader import get_config
 from framework.utils import now
 from mcfw.cache import cached
 from mcfw.consts import MISSING, DEBUG
-from mcfw.exceptions import HttpNotFoundException
+from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import refresh_jwt
 from plugins.its_you_online_auth.bizz.profile import get_profile
@@ -49,10 +50,10 @@ from plugins.tff_backend.configuration import InfluxDBConfig
 from plugins.tff_backend.consts.hoster import DEBUG_NODE_DATA
 from plugins.tff_backend.libs.zero_robot import Task, EnumTaskState, Service, ServiceState
 from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
-from plugins.tff_backend.models.nodes import Node, NodeStatusTime, NodeStatus
+from plugins.tff_backend.models.nodes import Node, NodeStatusTime, NodeStatus, NodeChainStatus
 from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.plugin_consts import NAMESPACE
-from plugins.tff_backend.to.nodes import UserNodeStatusTO, UpdateNodePayloadTO
+from plugins.tff_backend.to.nodes import UserNodeStatusTO, UpdateNodePayloadTO, UpdateNodeChainStatusTO
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 SKIPPED_STATS_KEYS = ['disk.size.total']
@@ -426,9 +427,11 @@ def list_nodes_by_status(status=None):
     nodes = qry.fetch()  # type: list[Node]
     profiles = {profile.username: profile for profile in
                 ndb.get_multi([Profile.create_key(node.username) for node in nodes if node.username])}
-    results = [UserNodeStatusTO(profile=profiles.get(node.username).to_dict(
-        exclude=['organization_id', 'app_email', 'language']) if node.username in profiles else None,
-                                node=node.to_dict(include=['status', 'serial_number'])) for node in nodes]
+    exclude_profile = ['organization_id', 'app_email', 'language']
+    include_node = ['status', 'serial_number', 'chain_status']
+    results = [UserNodeStatusTO(
+        profile=profiles.get(node.username).to_dict(exclude=exclude_profile) if node.username in profiles else None,
+        node=node.to_dict(include=include_node)) for node in nodes]
     return sorted(results, key=lambda k: k.profile['info']['firstname'] if k.profile else k.node['id'])
 
 
@@ -442,7 +445,7 @@ def _set_serial_number_on_node(node_id):
 def get_node(node_id):
     # type: (unicode) -> Node
     node = Node.create_key(node_id).get()
-    if not Node:
+    if not node:
         raise HttpNotFoundException('node_not_found', {'id': node_id})
     return node
 
@@ -460,6 +463,31 @@ def update_node(node_id, data):
     node.username = data.username
     node.put()
     return node
+
+
+@ndb.transactional()
+def update_node_chain_status(node_id, data):
+    # type: (unicode, UpdateNodeChainStatusTO) -> NodeChainStatus
+    node = get_node(node_id)
+    if not node.chain_status:
+        node.chain_status = NodeChainStatus()
+    missing_props = []
+    required_props = ['wallet_status', 'block_height']
+    for prop in required_props:
+        p = getattr(data, prop)
+        if p is MISSING or not p:
+            missing_props.append(prop)
+    if missing_props:
+        raise HttpBadRequestException('missing_properties', {'missing_properties': missing_props})
+    try:
+        node.chain_status.populate(
+            block_height=data.block_height,
+            wallet_status=data.wallet_status,
+        )
+    except BadValueError as e:
+        raise HttpBadRequestException(e.message)
+    node.put()
+    return node.chain_status
 
 
 def _get_and_save_node_stats(statuses, timestamp):

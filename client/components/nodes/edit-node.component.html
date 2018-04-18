@@ -9,4 +9,10 @@
   <div *ngFor="let status of node.statuses">
     <p>{{ status.date | date : 'medium' }} {{ ('tff.node_status_' + status.status) | translate }}</p>
   </div>
+  <ng-container *ngIf="node.chain_status">
+    <h3>{{ 'tff.tfchain_status' | translate }}</h3>
+    <p>{{ 'tff.wallet_status_x' | translate : { status: node.chain_status.wallet_status } }}</p>
+    <p>{{ 'tff.block_height_x' | translate : { height: node.chain_status.block_height } }}</p>
+    <p>{{ 'tff.last_update_x' | translate : { date: node.chain_status.timestamp | date : 'medium'} }}</p>
+  </ng-container>
 </form>

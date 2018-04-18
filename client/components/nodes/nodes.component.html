@@ -51,9 +51,24 @@
     </mat-cell>
   </ng-container>
 
-  <ng-container matColumnDef="profile_link">
+  <ng-container matColumnDef="chain_status">
+    <mat-header-cell *matHeaderCellDef>
+      {{ 'tff.tfchain_status' | translate }}
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
+      <ng-container *ngIf="row.node.chain_status">
+        <mat-icon [color]="getWalletStatusColor(row.node.chain_status)"
+                  [matTooltip]="getWalletStatusTooltip(row.node.chain_status) | translate">
+          {{ getWalletStatusIcon(row.node.chain_status) }}
+        </mat-icon>
+        <p>{{ 'tff.block_height_x' | translate : { height: row.node.chain_status.block_height } }}</p>
+      </ng-container>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
-    <mat-cell *matCellDef="let row">
+    <mat-cell *matCellDef="let row" fxLayoutAlign="end center">
       <a mat-icon-button [routerLink]="['/users', row.profile.username]" target="_blank" *ngIf="row.profile"
          [matTooltip]="'tff.profile' | translate ">
         <mat-icon>person</mat-icon>

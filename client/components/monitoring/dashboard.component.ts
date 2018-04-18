@@ -33,7 +33,7 @@ export interface BarChart extends ChartSpecs {
   options: BarChartOptions;
 }
 
-export enum ChartColor {
+export const enum ChartColor {
   GREEN = '#109618',
   RED = '#dc3912',
   BLUE = '#3366cc',

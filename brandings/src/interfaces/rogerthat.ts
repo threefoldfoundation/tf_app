@@ -3,7 +3,7 @@ import { NodeInfo } from './node-status.interfaces';
 
 export type UserData = Readonly<Partial<UserDataInternal>>;
 
-export enum PaymentQRCodeType {
+export const enum PaymentQRCodeType {
   TRANSACTION = 1,
   PAY = 2
 }
@@ -37,7 +37,7 @@ export interface UserDataKYC {
   status: KYCStatus;
 }
 
-export enum KYCStatus {
+export const enum KYCStatus {
   DENIED = -10,
   /**
    * Not verified, and not applied to be verified yet

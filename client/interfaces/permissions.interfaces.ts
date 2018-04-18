@@ -1,4 +1,4 @@
-export enum TffPermission {
+export const enum TffPermission {
   BACKEND = 'tff.backend',
   BACKEND_ADMIN = 'tff.backend.admin',
 }

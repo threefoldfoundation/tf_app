@@ -1,4 +1,4 @@
-export enum NodeStatus {
+export const enum NodeStatus {
   RUNNING = 'running',
   HALTED = 'halted',
   REBOOTING = 'rebooting',
@@ -19,7 +19,7 @@ export interface NodeInfo {
   stats?: NodeStatsData[];
 }
 
-export enum NodeStatsType {
+export const enum NodeStatsType {
   CPU = 'machine.CPU.percent',
   RAM = 'machine.memory.ram.available',
   NETWORK_OUT = 'network.throughput.outgoing',

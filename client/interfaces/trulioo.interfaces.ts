@@ -78,7 +78,7 @@ export interface Document {
   LivePhoto: string;
 }
 
-export enum DocumentTypes {
+export const enum DocumentTypes {
   DrivingLicence = 'DrivingLicence',
   IdentityCard = 'IdentityCard',
   Passport = 'Passport',
@@ -118,7 +118,7 @@ export interface NationalIds {
   Type: NationalIdTypes;
 }
 
-export enum NationalIdTypes {
+export const enum NationalIdTypes {
   NationalID = 'NationalID',
   Health = 'Health',
   SocialService = 'SocialService',

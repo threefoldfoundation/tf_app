@@ -5,7 +5,7 @@ import { NodeInfo } from '../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
 import { SeeDocument } from '../interfaces/see.interfaces';
 
-export enum BrandingActionTypes {
+export const enum BrandingActionTypes {
   GET_GLOBAL_STATS = 'Get global stats',
   GET_GLOBAL_STATS_COMPLETE = 'Get global stats complete',
   GET_GLOBAL_STATS_FAILED = 'Get global stats failed',
