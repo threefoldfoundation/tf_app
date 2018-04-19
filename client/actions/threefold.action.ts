@@ -150,6 +150,9 @@ export const enum TffActionTypes {
   UPDATE_NODE = '[TFF] Update node',
   UPDATE_NODE_COMPLETE = '[TFF] Update node complete',
   UPDATE_NODE_FAILED = '[TFF] Update node failed',
+  DELETE_NODE = '[TFF] Delete node',
+  DELETE_NODE_COMPLETE = '[TFF] Delete node complete',
+  DELETE_NODE_FAILED = '[TFF] Delete node failed',
 }
 
 export class GetOrdersAction implements Action {
@@ -930,6 +933,27 @@ export class UpdateNodeFailedAction implements Action {
   }
 }
 
+export class DeleteNodeAction implements Action {
+  readonly type = TffActionTypes.DELETE_NODE;
+
+  constructor(public payload: NodeInfo) {
+  }
+}
+
+export class DeleteNodeCompleteAction implements Action {
+  readonly type = TffActionTypes.DELETE_NODE_COMPLETE;
+
+  constructor(public payload: NodeInfo) {
+  }
+}
+
+export class DeleteNodeFailedAction implements Action {
+  readonly type = TffActionTypes.DELETE_NODE_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export type TffActions
   = GetOrdersAction
   | GetOrdersCompleteAction
@@ -1043,4 +1067,7 @@ export type TffActions
   | GetNodesFailedAction
   | UpdateNodeAction
   | UpdateNodeCompleteAction
-  | UpdateNodeFailedAction;
+  | UpdateNodeFailedAction
+  | DeleteNodeAction
+  | DeleteNodeCompleteAction
+  | DeleteNodeFailedAction;
