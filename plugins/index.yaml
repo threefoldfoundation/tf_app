@@ -123,3 +123,10 @@ indexes:
   - name: user
   - name: start_date
     direction: desc
+
+# ======================================================= Nodes ========================================================
+
+- kind: Node
+  properties:
+  - name: status
+  - name: last_update

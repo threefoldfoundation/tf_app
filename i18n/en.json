@@ -131,7 +131,6 @@
     "kyc_withdrawn": "Withdrawn",
     "language_x": "Language: {{ language }}",
     "last_activity_x": "Last activity: {{ date }}",
-    "last_checked_date": "Last checked {{ date }}",
     "last_update_x": "Last update: {{ date }}",
     "list_of_emails": "List of email addresses",
     "load_more": "Load more",

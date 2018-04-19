@@ -26,6 +26,7 @@ from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
 
 import influxdb
+from dateutil.relativedelta import relativedelta
 from framework.bizz.job import run_job, MODE_BATCH
 from framework.plugin_loader import get_config
 from framework.utils import now
@@ -44,8 +45,9 @@ from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo, get_serial_number_by_node_id
-from plugins.tff_backend.bizz.service import add_user_to_role
+from plugins.tff_backend.bizz.service import add_user_to_role, remove_user_from_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress, HosterSteps
+from plugins.tff_backend.bizz.user import get_tff_profile
 from plugins.tff_backend.configuration import InfluxDBConfig
 from plugins.tff_backend.consts.hoster import DEBUG_NODE_DATA
 from plugins.tff_backend.libs.zero_robot import Task, EnumTaskState, Service, ServiceState
@@ -53,7 +55,7 @@ from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 from plugins.tff_backend.models.nodes import Node, NodeStatusTime, NodeStatus, NodeChainStatus
 from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.plugin_consts import NAMESPACE
-from plugins.tff_backend.to.nodes import UserNodeStatusTO, UpdateNodePayloadTO, UpdateNodeChainStatusTO
+from plugins.tff_backend.to.nodes import UserNodeStatusTO, UpdateNodePayloadTO, NodeChainStatusTO, UpdateNodeStatusTO
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 SKIPPED_STATS_KEYS = ['disk.size.total']
@@ -186,7 +188,6 @@ def _set_node_status_arrived(order_key, nodes):
 @returns([Node])
 @arguments(iyo_username=unicode, nodes=[dict])
 def assign_nodes_to_user(iyo_username, nodes):
-    profile = TffProfile.create_key(iyo_username).get()
     existing_nodes = {node.id: node for node in ndb.get_multi([Node.create_key(node['id']) for node in nodes]) if node}
     to_put = []
     for new_node in nodes:
@@ -203,14 +204,8 @@ def assign_nodes_to_user(iyo_username, nodes):
                                statuses=[NodeStatusTime(status=new_node.get('status', NodeStatus.HALTED),
                                                         date=datetime.now())]))
     ndb.put_multi(to_put)
-    user, app_id = get_app_user_tuple(profile.app_user)
-    deferred.defer(_set_nodes_in_user_data, iyo_username, user.email(), app_id, _countdown=5)  # ensure db consistency
+    deferred.defer(_put_node_status_user_data, TffProfile.create_key(iyo_username), _countdown=5)
     return to_put
-
-
-def _set_nodes_in_user_data(iyo_username, email, app_id):
-    data = {'nodes': [n.to_dict() for n in Node.list_by_user(iyo_username)]}
-    system.put_user_data(get_rogerthat_api_key(), email, app_id, data)
 
 
 def get_nodes_stats(node_statuses):
@@ -321,6 +316,38 @@ def _get_all_nodes():
     return Node.query()
 
 
+def check_offline_nodes():
+    date = datetime.now() - relativedelta(minutes=30)
+    run_job(_get_offline_nodes, [date], _handle_offline_nodes, [date], mode=MODE_BATCH, batch_size=25,
+            qry_transactional=False)
+
+
+def _get_offline_nodes(date):
+    return Node.list_running_by_last_update(date)
+
+
+@ndb.transactional(xg=True)
+def _handle_offline_nodes(node_keys, date):
+    # type: (list[ndb.Key], datetime) -> None
+    # No more than 25 node_keys should be supplied to this function (max nr of entity groups in a single transaction)
+    nodes = ndb.get_multi(node_keys)  # type: list[Node]
+    to_notify = []  # type: list[dict]
+    # List of usernames
+    to_update = set()  # type: set[unicode]
+    for node in nodes:
+        node.status = NodeStatus.HALTED
+        node.status_date = date
+        if node.username:
+            to_update.add(node.username)
+            to_notify.append({'u': node.username,
+                              'sn': node.serial_number,
+                              'date': date,
+                              'status': NodeStatus.HALTED})
+    ndb.put_multi(nodes)
+    if to_update or to_notify:
+        deferred.defer(after_check_node_status, to_update, to_notify, _transactional=True, _countdown=5)
+
+
 @ndb.transactional(xg=True)
 def _check_node_status(node_keys, statuses):
     # type: (list[ndb.Key], dict[str, str]) -> None
@@ -339,7 +366,7 @@ def _check_node_status(node_keys, statuses):
             logging.info('Node %s of user %s changed from status "%s" to "%s"',
                          node.id, node.username, node.status, status)
             to_update.add(node.username)
-        node.last_check = now_
+        node.last_update = now_
         node.statuses = node.statuses[-6:] + [NodeStatusTime(status=status, date=now_)]
         node.status = status
         if node.username:
@@ -357,16 +384,9 @@ def _check_node_status(node_keys, statuses):
 
 def after_check_node_status(to_update, to_notify):
     # type: (set[unicode], list[dict]) -> None
-    profile_keys = [TffProfile.create_key(obj['u']) for obj in to_notify]
-    profiles = {p.username: p for p in ndb.get_multi(profile_keys)}  # type: dict[str, TffProfile]
     for obj in to_notify:
-        profile = profiles.get(obj['u'])
-        if not profile:
-            logging.error('No TffProfile found for username %s!', obj['u'])
-            continue
-        logging.info('Sending node status update message to %s. Status: %s', profile.username, obj['status'])
-        deferred.defer(_send_node_status_update_message, profile.app_user, obj['status'], obj['date'],
-                       obj['sn'])
+        logging.info('Sending node status update message to %s. Status: %s', obj['u'], obj['status'])
+        deferred.defer(_send_node_status_update_message, obj['u'], obj['status'], obj['date'], obj['sn'])
     for username in to_update:
         deferred.defer(_put_node_status_user_data, TffProfile.create_key(username))
 
@@ -394,20 +414,27 @@ def _put_node_status_user_data(tff_profile_key):
     user, app_id = get_app_user_tuple(tff_profile.app_user)
     data = {'nodes': [n.to_dict() for n in Node.list_by_user(tff_profile.username)]}
     system.put_user_data(get_rogerthat_api_key(), user.email(), app_id, data)
+    if not data['nodes']:
+        user_detail = UserDetailsTO(email=user.email(), app_id=app_id)
+        deferred.defer(remove_user_from_role, user_detail, RogerthatRoles.HOSTERS, _transactional=True)
 
 
-def _send_node_status_update_message(app_user, to_status, date, serial_number):
+def _send_node_status_update_message(username, to_status, date, serial_number):
+    profile = get_tff_profile(username)
+    app_user = profile.app_user
     date_str = date.strftime('%Y-%m-%d %H:%M:%S')
     if to_status == u'halted':
-        subject = u'Connection to your node(%s) has been lost since %s' % (serial_number, date_str)
+        subject = u'Connection to your node(%s) has been lost since %s UTC' % (serial_number, date_str)
         msg = u'Dear ThreeFold Member,\n\n' \
-              u'Connection to your node(%s) has been lost since %s. Please check the network connection of your node.\n' \
+              u'Connection to your node(%s) has been lost since %s UTC.' \
+              u' Please check the network connection of your node.\n' \
               u'Kind regards,\n' \
               u'The ThreeFold Team' % (serial_number, date_str)
     elif to_status == u'running':
-        subject = u'Connection to your node(%s) has been resumed since %s' % (serial_number, date_str)
+        subject = u'Connection to your node(%s) has been resumed since %s UTC' % (serial_number, date_str)
         msg = u'Dear ThreeFold Member,\n\n' \
-              u'Congratulations! Your node(%s) is now successfully connected to our system, and has been resumed since %s.\n' \
+              u'Congratulations!' \
+              u' Your node(%s) is now successfully connected to our system, and has been resumed since %s UTC.\n' \
               u'Kind regards,\n' \
               u'The ThreeFold Team' % (serial_number, date_str)
     else:
@@ -439,7 +466,9 @@ def list_nodes_by_status(status=None):
 def _set_serial_number_on_node(node_id):
     node = Node.create_key(node_id).get()
     node.serial_number = get_serial_number_by_node_id(node_id)
-    node.put()
+    if node.serial_number:
+        node.put()
+    return node
 
 
 def get_node(node_id):
@@ -466,8 +495,17 @@ def update_node(node_id, data):
 
 
 @ndb.transactional()
+def delete_node(node_id):
+    # type: (unicode) -> None
+    node = get_node(node_id)
+    if node.username:
+        deferred.defer(_put_node_status_user_data, node.username, _transactional=True, _countdown=5)
+    node.key.delete()
+
+
+@ndb.transactional()
 def update_node_chain_status(node_id, data):
-    # type: (unicode, UpdateNodeChainStatusTO) -> NodeChainStatus
+    # type: (unicode, NodeChainStatusTO) -> NodeChainStatus
     node = get_node(node_id)
     if not node.chain_status:
         node.chain_status = NodeChainStatus()
@@ -488,6 +526,71 @@ def update_node_chain_status(node_id, data):
         raise HttpBadRequestException(e.message)
     node.put()
     return node.chain_status
+
+
+@ndb.transactional()
+def save_node_stats(node_id, data, date):
+    # type: (unicode, UpdateNodeStatusTO, datetime) -> None
+    node_key = Node.create_key(node_id)
+    node = node_key.get()
+    if not node:
+        node = Node(key=node_key,
+                    last_check=date,
+                    status_date=date)
+        deferred.defer(_set_serial_number_on_node, node_id, _transactional=True)
+    if not node.chain_status:
+        node.chain_status = NodeChainStatus()
+    node.chain_status.populate(**data.chain_status.to_dict())
+    node.populate(info=data.info,
+                  last_update=date)
+    if node.status != NodeStatus.RUNNING and node.username:
+        deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username))
+        deferred.defer(_send_node_status_update_message, node.username, NodeStatus.RUNNING, date, node.serial_number,
+                       _transactional=True)
+    node.status = NodeStatus.RUNNING
+    node.put()
+    timestamp = date.isoformat() + 'Z'
+    deferred.defer(_save_node_stats_to_influx, node.id, node.status, timestamp, data.stats, _transactional=True)
+
+
+def _save_node_stats_to_influx(node_id, status, timestamp, stats):
+    # type: (unicode, unicode, unicode, dict) -> None
+    points = [{
+        'measurement': 'node-info',
+        'tags': {
+            'node_id': node_id,
+            'status': status,
+        },
+        'time': timestamp,
+        'fields': {
+            'id': node_id
+        }
+    }]
+    if status == NodeStatus.RUNNING and stats and stats is not MISSING:
+        for stat_key, values in stats.iteritems():
+            stat_key_split = stat_key.split('/')
+            if stat_key_split[0] in SKIPPED_STATS_KEYS:
+                continue
+            tags = {
+                'id': node_id,
+                'type': stat_key_split[0],
+            }
+            if len(stat_key_split) == 2:
+                tags['subtype'] = stat_key_split[1]
+            for values_on_time in values:
+                points.append({
+                    'measurement': 'node-stats',
+                    'tags': tags,
+                    'time': datetime.utcfromtimestamp(values_on_time['start']).isoformat() + 'Z',
+                    'fields': {
+                        'max': float(values_on_time['max']),
+                        'avg': float(values_on_time['avg'])
+                    }
+                })
+    logging.info('Writing %s datapoints to influxdb for node %s', len(points), node_id)
+    client = get_influx_client()
+    if client:
+        client.write_points(points)
 
 
 def _get_and_save_node_stats(statuses, timestamp):
@@ -559,7 +662,7 @@ def _get_and_save_node_stats(statuses, timestamp):
 
 def get_influx_client():
     config = get_config(NAMESPACE).influxdb  # type: InfluxDBConfig
-    if config is MISSING or DEBUG:
+    if config is MISSING:
         return None
     return influxdb.InfluxDBClient(config.host, config.port, config.username, config.password, config.database,
                                    config.ssl, config.ssl)

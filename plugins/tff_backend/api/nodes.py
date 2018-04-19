@@ -22,7 +22,7 @@ from plugins.tff_backend.bizz.audit.audit import audit
 from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.bizz.nodes.hoster import put_node_order, create_node_order
-from plugins.tff_backend.bizz.nodes.stats import list_nodes_by_status, get_node, update_node
+from plugins.tff_backend.bizz.nodes.stats import list_nodes_by_status, get_node, update_node, delete_node
 from plugins.tff_backend.dal.node_orders import search_node_orders, get_node_order
 from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderListTO, CreateNodeOrderTO, NodeOrderDetailTO, \
     UserNodeStatusTO, UpdateNodePayloadTO
@@ -75,8 +75,15 @@ def api_get_node(node_id):
 
 
 @audit(AuditLogType.UPDATE_NODE, 'node_id')
-@rest('/nodes/<node_id:[^/]+>', 'put', Scopes.NODES_AMDIN, silent_result=True)
+@rest('/nodes/<node_id:[^/]+>', 'put', Scopes.NODES_ADMIN, silent_result=True)
 @returns(dict)
 @arguments(node_id=unicode, data=UpdateNodePayloadTO)
 def api_update_node(node_id, data):
     return update_node(node_id, data).to_dict()
+
+
+@rest('/nodes/<node_id:[^/]+>', 'delete', Scopes.NODES_ADMIN, silent_result=True)
+@returns()
+@arguments(node_id=unicode)
+def api_delete_node(node_id):
+    return delete_node(node_id)
