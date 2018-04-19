@@ -447,6 +447,17 @@ def _send_node_status_update_message(username, to_status, date, serial_number):
     send_message_and_email(app_user, msg, subject)
 
 
+def _get_limited_profile(profile):
+    if not profile:
+        return None
+    assert isinstance(profile, Profile)
+    return {
+        'username': profile.username,
+        'full_name': profile.full_name,
+        'email': profile.email,
+    }
+
+
 def list_nodes_by_status(status=None):
     # type: (unicode) -> list[UserNodeStatusTO]
     if status:
@@ -456,12 +467,10 @@ def list_nodes_by_status(status=None):
     nodes = qry.fetch()  # type: list[Node]
     profiles = {profile.username: profile for profile in
                 ndb.get_multi([Profile.create_key(node.username) for node in nodes if node.username])}
-    exclude_profile = ['organization_id', 'app_email', 'language']
     include_node = ['status', 'serial_number', 'chain_status']
-    results = [UserNodeStatusTO(
-        profile=profiles.get(node.username).to_dict(exclude=exclude_profile) if node.username in profiles else None,
-        node=node.to_dict(include=include_node)) for node in nodes]
-    return sorted(results, key=lambda k: k.profile['info']['firstname'] if k.profile else k.node['id'])
+    results = [UserNodeStatusTO(profile=_get_limited_profile(profiles.get(node.username)),
+                                node=node.to_dict(include=include_node)) for node in nodes]
+    return sorted(results, key=lambda k: (k.profile['full_name']) if k.profile else k.node['id'])
 
 
 @ndb.transactional()
