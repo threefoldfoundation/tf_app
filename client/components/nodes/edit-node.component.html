@@ -4,15 +4,21 @@
   <p *ngIf="node.serial_number">{{ 'tff.serial_number' | translate }}: {{ node.serial_number }}</p>
   <tff-user-field [(ngModel)]="node.username" name="username"></tff-user-field>
   <tff-api-request-status [status]="updateStatus"></tff-api-request-status>
-  <button mat-raised-button>{{ 'tff.save' | translate }}</button>
+  <div fxLayoutGap="16px">
+    <button mat-raised-button color="warn" type="button" (click)="deleteNode.emit(node)">
+      {{ 'tff.remove' | translate }}
+    </button>
+    <button mat-raised-button fxLayoutGap="">{{ 'tff.save' | translate }}</button>
+  </div>
   <h3>{{ 'tff.status' | translate }}</h3>
   <div *ngFor="let status of node.statuses">
     <p>{{ status.date | date : 'medium' }} {{ ('tff.node_status_' + status.status) | translate }}</p>
   </div>
+  <p>{{ ('tff.node_status_' + node.status) | translate }}</p>
+  <p *ngIf="node.last_update">{{ 'tff.last_update_x' | translate : { date: node.last_update | date : 'medium'} }}</p>
   <ng-container *ngIf="node.chain_status">
     <h3>{{ 'tff.tfchain_status' | translate }}</h3>
     <p>{{ 'tff.wallet_status_x' | translate : { status: node.chain_status.wallet_status } }}</p>
     <p>{{ 'tff.block_height_x' | translate : { height: node.chain_status.block_height } }}</p>
-    <p>{{ 'tff.last_update_x' | translate : { date: node.chain_status.timestamp | date : 'medium'} }}</p>
   </ng-container>
 </form>

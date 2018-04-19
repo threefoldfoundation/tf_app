@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { map } from 'rxjs/operators';
 import { Profile } from '../../../its_you_online_auth/client/interfaces';
 import { Installation, InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces';
 import {
@@ -25,7 +26,8 @@ import {
   SetKYCStatusPayload,
   TffProfile,
   Transaction,
-  TransactionList, UpdateNodePayload,
+  TransactionList,
+  UpdateNodePayload,
   UserList,
   UserNodeStatus,
   WalletBalance,
@@ -175,5 +177,9 @@ export class TffService {
 
   updateNode(id: string, payload: UpdateNodePayload) {
     return this.http.put<NodeInfo>(`${TffConfig.API_URL}/nodes/${id}`, payload);
+  }
+
+  deleteNode(node: NodeInfo) {
+    return this.http.delete(`${TffConfig.API_URL}/nodes/${node.id}`).pipe(map(() => node));
   }
 }

@@ -16,6 +16,7 @@
 # @@license_version:1.4@@
 import json
 import logging
+import re
 import time
 from collections import defaultdict
 from datetime import datetime
@@ -60,6 +61,7 @@ from plugins.tff_backend.utils.app import get_app_user_tuple
 
 SKIPPED_STATS_KEYS = ['disk.size.total']
 NODE_TEMPLATE = 'github.com/zero-os/0-templates/node/0.0.1'
+NODE_ID_REGEX = re.compile('([a-f0-9]{12})')
 
 
 @returns(apiproxy_stub_map.UserRPC)
@@ -499,8 +501,13 @@ def delete_node(node_id):
     # type: (unicode) -> None
     node = get_node(node_id)
     if node.username:
-        deferred.defer(_put_node_status_user_data, node.username, _transactional=True, _countdown=5)
+        deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username), _transactional=True,
+                       _countdown=5)
     node.key.delete()
+    client = get_influx_client()
+    client.query('DELETE FROM "node-stats" WHERE ("id" = \'%(id)s\');'
+                 'DELETE FROM "node-info" WHERE ("node_id" = \'%(id)s\')' % {'id': node_id})
+
 
 
 @ndb.transactional()
@@ -528,9 +535,15 @@ def update_node_chain_status(node_id, data):
     return node.chain_status
 
 
+def _validate_node_id(node_id):
+    if len(node_id) != 12 or not NODE_ID_REGEX.match(node_id):
+        raise HttpBadRequestException('invalid_node_id')
+
+
 @ndb.transactional()
 def save_node_stats(node_id, data, date):
     # type: (unicode, UpdateNodeStatusTO, datetime) -> None
+    _validate_node_id(node_id)
     node_key = Node.create_key(node_id)
     node = node_key.get()
     if not node:
@@ -662,7 +675,7 @@ def _get_and_save_node_stats(statuses, timestamp):
 
 def get_influx_client():
     config = get_config(NAMESPACE).influxdb  # type: InfluxDBConfig
-    if config is MISSING:
+    if config is MISSING or (DEBUG and 'localhost' not in config.host):
         return None
     return influxdb.InfluxDBClient(config.host, config.port, config.username, config.password, config.database,
                                    config.ssl, config.ssl)

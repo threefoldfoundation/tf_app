@@ -12,6 +12,7 @@ export class EditNodeComponent {
   @Input() status: ApiRequestStatus;
   @Input() updateStatus: ApiRequestStatus;
   @Output() update = new EventEmitter<UpdateNodePayload>();
+  @Output() deleteNode = new EventEmitter<NodeInfo>();
 
   submit() {
     this.update.emit({ username: this.node.username });

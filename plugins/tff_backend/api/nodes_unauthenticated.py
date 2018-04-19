@@ -45,7 +45,7 @@ def api_update_node(node_id, data):
     return update_node_chain_status(node_id, data).to_dict()
 
 
-@rest('/nodes/<node_id:[^/]+>/status', 'put', [])
+@rest('/nodes/<node_id:[^/]+>/status', 'put', [], silent=True)
 @returns()
 @arguments(node_id=unicode, data=UpdateNodeStatusTO)
 def api_save_node_stats(node_id, data):
