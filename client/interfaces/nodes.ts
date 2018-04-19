@@ -7,7 +7,7 @@ export const enum NodeStatus {
 }
 
 export const enum WalletStatus {
-  LOCKED = 'locked',
+  ERROR = 'error',
   UNLOCKED = 'unlocked',
 }
 

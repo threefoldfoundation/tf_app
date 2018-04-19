@@ -106,7 +106,7 @@ export class NodesComponent implements OnChanges {
   }
 
   getWalletStatusTooltip(chainStatus: ChainStatus) {
-    return chainStatus.wallet_status === WalletStatus.UNLOCKED ? 'tff.unlocked' : 'tff.locked';
+    return chainStatus.wallet_status === WalletStatus.UNLOCKED ? 'tff.unlocked' : 'tff.error';
   }
 
   copyText(element: HTMLElement) {

@@ -33,7 +33,7 @@ class NodeStatusTime(NdbModel):
 
 
 class ChainStatus(Enum):
-    LOCKED = 'locked'
+    ERROR = 'error'
     UNLOCKED = 'unlocked'
 
 
