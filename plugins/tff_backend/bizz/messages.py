@@ -39,4 +39,4 @@ def send_message_and_email(app_user, message, subject):
         else:
             deferred.defer(send_intercom_email, iyo_username, subject, message, _transactional=ndb.in_transaction())
     else:
-        logging.info('send_message_and_email %s %s %s', app_user, message, subject)
+        logging.info('send_message_and_email %s\n %s\n %s', app_user, message, subject)

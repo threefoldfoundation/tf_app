@@ -31,7 +31,7 @@ from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.agenda import update_expired_events
 from plugins.tff_backend.bizz.dashboard import rebuild_firebase_data
 from plugins.tff_backend.bizz.global_stats import update_currencies
-from plugins.tff_backend.bizz.nodes.stats import check_online_nodes, check_node_statuses
+from plugins.tff_backend.bizz.nodes.stats import check_online_nodes, check_node_statuses, check_offline_nodes
 from plugins.tff_backend.bizz.payment import sync_transactions, sync_wallets
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.plugin_consts import NAMESPACE
@@ -116,6 +116,12 @@ class CheckNodesStatusesHandler(webapp2.RequestHandler):
         cfg = get_config(NAMESPACE)
         if cfg.orchestator and cfg.orchestator.jwt:
             deferred.defer(check_node_statuses)
+
+
+class CheckOfflineNodesHandler(webapp2.RequestHandler):
+
+    def get(self):
+        check_offline_nodes()
 
 
 class ExpiredEventsHandler(webapp2.RequestHandler):

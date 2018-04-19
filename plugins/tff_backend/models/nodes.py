@@ -32,25 +32,28 @@ class NodeStatusTime(NdbModel):
     date = ndb.DateTimeProperty()
 
 
-class ChainStatus(Enum):
+class WalletStatus(Enum):
     ERROR = 'error'
     UNLOCKED = 'unlocked'
 
 
 class NodeChainStatus(NdbModel):
-    wallet_status = ndb.StringProperty(choices=ChainStatus.all())
+    wallet_status = ndb.StringProperty(choices=WalletStatus.all())
     block_height = ndb.IntegerProperty(default=0)
-    timestamp = ndb.DateTimeProperty(auto_now=True)
 
 
 class Node(NdbModel):
     NAMESPACE = NAMESPACE
     serial_number = ndb.StringProperty()
+    # todo: remove
     statuses = ndb.LocalStructuredProperty(NodeStatusTime, repeated=True)  # type: list[NodeStatusTime]
+    # todo: remove
     last_check = ndb.DateTimeProperty()
+    last_update = ndb.DateTimeProperty()
     username = ndb.StringProperty()
     status = ndb.StringProperty(default=NodeStatus.HALTED)
     status_date = ndb.DateTimeProperty()
+    info = ndb.JsonProperty()
     chain_status = ndb.StructuredProperty(NodeChainStatus)
 
     @property
@@ -69,3 +72,7 @@ class Node(NdbModel):
     @classmethod
     def list_by_status(cls, status):
         return cls.query().filter(cls.status == status)
+
+    @classmethod
+    def list_running_by_last_update(cls, date):
+        return cls.query().filter(cls.last_update < date).filter(cls.status == NodeStatus.RUNNING)

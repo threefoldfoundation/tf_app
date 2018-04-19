@@ -70,8 +70,8 @@ class Scope(object):
 class Scopes(object):
     BACKEND_ADMIN = [Scope.ROOT_ADMINS, Scope.BACKEND, Scope.BACKEND_ADMIN]
     BACKEND_READONLY = BACKEND_ADMIN + [Scope.BACKEND_READONLY]
-    NODES_AMDIN = BACKEND_READONLY + [Scope.NODES, Scope.NODES_ADMIN]
-    NODES_READONLY = NODES_AMDIN + [Scope.NODES_READONLY]
+    NODES_ADMIN = BACKEND_READONLY + [Scope.NODES, Scope.NODES_ADMIN]
+    NODES_READONLY = NODES_ADMIN + [Scope.NODES_READONLY]
 
 
 def get_permissions_from_scopes(scopes):

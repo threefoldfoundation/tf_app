@@ -105,9 +105,15 @@ class UpdateNodePayloadTO(TO):
     username = unicode_property('username')
 
 
-class UpdateNodeChainStatusTO(TO):
+class NodeChainStatusTO(TO):
     wallet_status = unicode_property('wallet_status')
     block_height = long_property('block_height')
+
+
+class UpdateNodeStatusTO(TO):
+    info = typed_property('info', dict)
+    stats = typed_property('stats', dict)
+    chain_status = typed_property('chain_status', NodeChainStatusTO)  # type: NodeChainStatusTO
 
 
 class AuditLogNodeTO(TO):

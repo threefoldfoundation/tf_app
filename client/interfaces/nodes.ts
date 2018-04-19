@@ -30,6 +30,22 @@ export interface NodeInfo {
   statuses: NodeStatusTime[];
   status_date?: string;
   last_check?: string;
+  last_update?: string;
+  info: {
+    kernelVersion: string;
+    virtualizationRole: string;
+    virtualizationSystem: string;
+    uptime: number;
+    procs: number;
+    os: string;
+    hostname: string;
+    platformVersion: string;
+    platform: string;
+    platformFamily: string;
+    bootTime: number;
+    hostid: string;
+
+  } | null;
   chain_status: ChainStatus | null;
 }
 
