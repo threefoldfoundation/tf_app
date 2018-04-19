@@ -1,19 +1,18 @@
 import { SelectionModel } from '@angular/cdk/collections';
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { MatTableDataSource } from '@angular/material';
 import { environment } from '../../../../framework/client/environments/environment';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
-import { ChainStatus, NodeInfo, NodeStatus, UserNodeStatus, WalletStatus } from '../../interfaces';
-import { ProfileEmailPipe } from '../../pipes/profile-email.pipe';
-import { ProfileNamePipe } from '../../pipes/profile-name.pipe';
+import { ChainStatus, LimitedProfile, NodeInfo, NodeStatus, UserNodeStatus, WalletStatus } from '../../interfaces';
 import { CSVService } from '../../services';
 
 @Component({
   selector: 'tff-nodes',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   templateUrl: 'nodes.component.html',
   styles: [ `.mat-column-select {
-    overflow: initial;
+    overflow: initial !important;
     flex: 0 0 32px !important;
   }
 
@@ -32,9 +31,7 @@ export class NodesComponent implements OnChanges {
   dataSource = new MatTableDataSource<UserNodeStatus>();
   selection = new SelectionModel<UserNodeStatus>(true, []);
 
-  constructor(private profileNamePipe: ProfileNamePipe,
-              private profileEmailPipe: ProfileEmailPipe,
-              private csvService: CSVService) {
+  constructor(private csvService: CSVService) {
 
   }
 
@@ -62,15 +59,16 @@ export class NodesComponent implements OnChanges {
   }
 
   getSelectionCsv() {
-    return this.selection.selected.filter(s => !!s.profile).map(s => {
-      return `${this.profileNamePipe.transform(s.profile)} <${this.profileEmailPipe.transform(s.profile)}>`;
+    return this.selection.selected.filter(s => s.profile !== null && s.profile.email !== null).map(s => {
+      const p = <LimitedProfile>s.profile;
+      return `${p.full_name || p.username} <${p.email}>`;
     }).join(',');
   }
 
   generateCsv(selection: UserNodeStatus[]) {
     const csvData = selection.map(row => ({
-      name: this.profileNamePipe.transform(row.profile),
-      email: this.profileEmailPipe.transform(row.profile),
+      name: row.profile ? row.profile.full_name : '',
+      email: row.profile ? row.profile.email : '',
       status: row.node.status,
       node_id: row.node.id,
       serial_number: row.node.serial_number || '',

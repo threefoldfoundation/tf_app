@@ -15,12 +15,12 @@
   </ng-container>
   <ng-container matColumnDef="name">
     <mat-header-cell *matHeaderCellDef>{{ 'tff.name' | translate }}</mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.profile| profileName }}</mat-cell>
+    <mat-cell *matCellDef="let row">{{ row.profile ? (row.profile.full_name || row.profile.username) : '' }}</mat-cell>
   </ng-container>
 
   <ng-container matColumnDef="email">
     <mat-header-cell *matHeaderCellDef>{{ 'tff.email' | translate }}</mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.profile | profileEmail }}</mat-cell>
+    <mat-cell *matCellDef="let row">{{ row.profile?.email }}</mat-cell>
   </ng-container>
 
   <ng-container matColumnDef="status">

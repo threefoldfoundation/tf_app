@@ -1,5 +1,3 @@
-import { Profile } from '../../../its_you_online_auth/client/interfaces';
-
 export const enum NodeStatus {
   RUNNING = 'running',
   HALTED = 'halted',
@@ -53,8 +51,14 @@ export interface UpdateNodePayload {
   username: string | null;
 }
 
+export interface LimitedProfile {
+  username: string;
+  full_name: string | null;
+  email: string | null;
+}
+
 export interface UserNodeStatus {
-  profile: Profile | null;
+  profile: LimitedProfile | null;
   node: NodeInfo;
 }
 
