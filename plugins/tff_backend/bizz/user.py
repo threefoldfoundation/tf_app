@@ -17,6 +17,7 @@
 
 import datetime
 import hashlib
+import httplib
 import json
 import logging
 import os
@@ -45,14 +46,14 @@ from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAME
 from plugins.rogerthat_api.api import system, messaging
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
-from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_QR, REGISTRATION_ORIGIN_OAUTH
+from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_OAUTH
 from plugins.rogerthat_api.to.messaging import AnswerTO, Message
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import Roles, RogerthatRoles, Grants
 from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user, tag_intercom_users, IntercomTags
 from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
-from plugins.tff_backend.bizz.iyo.user import get_user, has_grant
+from plugins.tff_backend.bizz.iyo.user import get_user, has_grant, list_grants
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.bizz.kyc.onfido_bizz import create_check, update_applicant, deserialize, list_checks, serialize
 from plugins.tff_backend.bizz.messages import send_message_and_email
@@ -67,6 +68,7 @@ from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyDa
 from plugins.tff_backend.to.user import SetKYCPayloadTO
 from plugins.tff_backend.utils import convert_to_str
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+from requests import HTTPError
 
 FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     trim_blocks=True,
@@ -259,8 +261,7 @@ def store_public_key(user_detail):
         if rt_key.name == KEY_NAME and rt_key.algorithm == KEY_ALGORITHM:
             break
     else:
-        raise PermanentTaskFailure('No key with name "%s" and algorithm "%s" in %s'
-                                   % (KEY_NAME, KEY_ALGORITHM, repr(user_detail)))
+        return
 
     username = get_iyo_username(user_detail)
     keys = get_keystore(username)
@@ -291,15 +292,20 @@ def store_public_key(user_detail):
 @arguments(user_detail=UserDetailsTO, roles=[RoleTO])
 def is_user_in_roles(user_detail, roles):
     result = []
-    client = get_itsyouonline_client()
     username = get_iyo_username(user_detail)
     if not username:
+        return result
+    try:
+        grants = list_grants(username)
+    except HTTPError as e:
+        if e.response.status_code != httplib.FORBIDDEN:
+            raise
         return result
     for role in roles:
         grant = Grants.get_by_role_name(role.name)
         if not grant:
             continue
-        if has_grant(client, username, grant):
+        if grant in grants:
             result.append(role.id)
     return result
 
