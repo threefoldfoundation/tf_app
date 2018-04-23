@@ -673,7 +673,7 @@ def _get_and_save_node_stats(statuses, timestamp):
                             'avg': float(values_on_time['avg'])
                         }
                     })
-        if len(points) > 1000:
+        if len(points) > 500:
             logging.info('Writing %s datapoints to influxdb', len(points))
             client.write_points(points)
             points = []
