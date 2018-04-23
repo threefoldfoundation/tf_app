@@ -117,7 +117,7 @@ def _wait_for_tasks(tasks, deadline=150):
             try:
                 result = _async_zero_robot_call(_get_task_url(task)).get_result()
             except urlfetch.DeadlineExceededError:
-                logging.warning('Request for task %s timed out. Node: %s', task, node_id)
+                logging.warning('Request for task %s timed out.', task)
                 continue
             node_id = task.service_name
             if result.status_code != 200:

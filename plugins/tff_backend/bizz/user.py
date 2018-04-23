@@ -28,6 +28,7 @@ from google.appengine.api import users, urlfetch
 from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
+import requests
 from framework.bizz.session import create_session
 from framework.i18n_utils import DEFAULT_LANGUAGE, translate
 from framework.models.session import Session
@@ -68,7 +69,6 @@ from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyDa
 from plugins.tff_backend.to.user import SetKYCPayloadTO
 from plugins.tff_backend.utils import convert_to_str
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
-from requests import HTTPError
 
 FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     trim_blocks=True,
@@ -297,7 +297,8 @@ def is_user_in_roles(user_detail, roles):
         return result
     try:
         grants = list_grants(username)
-    except HTTPError as e:
+    except requests.HTTPError as e:
+        logging.warn(e.response)
         if e.response.status_code != httplib.FORBIDDEN:
             raise
         return result
