@@ -676,7 +676,7 @@ def _get_and_save_node_stats(statuses, timestamp):
         if len(points) > 500:
             logging.info('Writing %s datapoints to influxdb', len(points))
             client.write_points(points)
-            points = []
+            points[:] = []
     if points:
         logging.info('Writing final %s datapoints to influxdb', len(points))
         client.write_points(points)
