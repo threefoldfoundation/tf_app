@@ -588,8 +588,9 @@ def save_node_stats(node_id, data, date):
         deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username), _transactional=True)
         deferred.defer(_send_node_status_update_message, node.username, NodeStatus.RUNNING, date, node.serial_number,
                        _transactional=True)
-    node.populate(info=data.info,
-                  last_update=date,
+    if data.info and data.info is not MISSING:
+        node.info = data.info
+    node.populate(last_update=date,
                   status=NodeStatus.RUNNING)
     node.put()
     deferred.defer(_save_node_stats_to_influx, node.id, data.stats, _transactional=True)
