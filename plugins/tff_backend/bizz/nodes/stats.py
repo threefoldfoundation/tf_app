@@ -581,9 +581,10 @@ def save_node_stats(node_id, data, date):
                     last_check=date,
                     status_date=date)
         deferred.defer(_set_serial_number_on_node, node_id, _transactional=True)
-    if not node.chain_status:
-        node.chain_status = NodeChainStatus()
-    node.chain_status.populate(**data.chain_status.to_dict())
+    if data.chain_status and data.chain_status is not MISSING:
+        if not node.chain_status:
+            node.chain_status = NodeChainStatus()
+        node.chain_status.populate(**data.chain_status.to_dict())
     if node.status != NodeStatus.RUNNING and node.username:
         deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username), _transactional=True)
         deferred.defer(_send_node_status_update_message, node.username, NodeStatus.RUNNING, date, node.serial_number,
