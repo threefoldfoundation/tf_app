@@ -304,13 +304,12 @@ def get_all_nodes_statuses():
 
 
 def check_node_statuses():
-    timestamp = datetime.now().isoformat() + 'Z'
     try:
         statuses = get_all_nodes_statuses()
     except Exception as e:
         logging.exception(e)
         raise deferred.PermanentTaskFailure(e.message)
-    deferred.defer(_get_and_save_node_stats, statuses, timestamp)
+    deferred.defer(_get_and_save_node_stats, statuses)
     run_job(_get_all_nodes, [], _check_node_status, [statuses], mode=MODE_BATCH, batch_size=25, qry_transactional=False)
 
 
@@ -319,7 +318,7 @@ def _get_all_nodes():
 
 
 def check_offline_nodes():
-    date = datetime.now() - relativedelta(minutes=30)
+    date = datetime.now() - relativedelta(minutes=20)
     run_job(_get_offline_nodes, [date], _handle_offline_nodes, [date], mode=MODE_BATCH, batch_size=25,
             qry_transactional=False)
 
@@ -348,6 +347,29 @@ def _handle_offline_nodes(node_keys, date):
     ndb.put_multi(nodes)
     if to_update or to_notify:
         deferred.defer(after_check_node_status, to_update, to_notify, _transactional=True, _countdown=5)
+
+
+def save_node_statuses():
+    points = []
+    date = datetime.now()
+    # Round to 5 minutes to always have consistent results
+    date = date - relativedelta(minutes=date.minute % 5, seconds=date.second, microseconds=date.microsecond)
+    timestamp = date.isoformat() + 'Z'
+    for node in Node.query(projection=[Node.status]):
+        points.append({
+            'measurement': 'node-info',
+            'tags': {
+                'node_id': node.id,
+                'status': node.status,
+            },
+            'time': timestamp,
+            'fields': {
+                'id': node.id
+            }
+        })
+    client = get_influx_client()
+    if client:
+        client.write_points(points, time_precision='m')
 
 
 @ndb.transactional(xg=True)
@@ -518,7 +540,6 @@ def delete_node(node_id):
                  'DELETE FROM "node-info" WHERE ("node_id" = \'%(id)s\')' % {'id': node_id})
 
 
-
 @ndb.transactional()
 def update_node_chain_status(node_id, data):
     # type: (unicode, NodeChainStatusTO) -> NodeChainStatus
@@ -563,59 +584,49 @@ def save_node_stats(node_id, data, date):
     if not node.chain_status:
         node.chain_status = NodeChainStatus()
     node.chain_status.populate(**data.chain_status.to_dict())
-    node.populate(info=data.info,
-                  last_update=date)
     if node.status != NodeStatus.RUNNING and node.username:
-        deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username))
+        deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username), _transactional=True)
         deferred.defer(_send_node_status_update_message, node.username, NodeStatus.RUNNING, date, node.serial_number,
                        _transactional=True)
-    node.status = NodeStatus.RUNNING
+    node.populate(info=data.info,
+                  last_update=date,
+                  status=NodeStatus.RUNNING)
     node.put()
-    timestamp = date.isoformat() + 'Z'
-    deferred.defer(_save_node_stats_to_influx, node.id, node.status, timestamp, data.stats, _transactional=True)
+    deferred.defer(_save_node_stats_to_influx, node.id, data.stats, _transactional=True)
 
 
-def _save_node_stats_to_influx(node_id, status, timestamp, stats):
-    # type: (unicode, unicode, unicode, dict) -> None
-    points = [{
-        'measurement': 'node-info',
-        'tags': {
-            'node_id': node_id,
-            'status': status,
-        },
-        'time': timestamp,
-        'fields': {
-            'id': node_id
+def _save_node_stats_to_influx(node_id, stats):
+    # type: (unicode, dict) -> None
+    if not stats or stats is MISSING:
+        return
+    points = []
+    for stat_key, values in stats.iteritems():
+        stat_key_split = stat_key.split('/')
+        if stat_key_split[0] in SKIPPED_STATS_KEYS:
+            continue
+        tags = {
+            'id': node_id,
+            'type': stat_key_split[0],
         }
-    }]
-    if status == NodeStatus.RUNNING and stats and stats is not MISSING:
-        for stat_key, values in stats.iteritems():
-            stat_key_split = stat_key.split('/')
-            if stat_key_split[0] in SKIPPED_STATS_KEYS:
-                continue
-            tags = {
-                'id': node_id,
-                'type': stat_key_split[0],
-            }
-            if len(stat_key_split) == 2:
-                tags['subtype'] = stat_key_split[1]
-            for values_on_time in values:
-                points.append({
-                    'measurement': 'node-stats',
-                    'tags': tags,
-                    'time': datetime.utcfromtimestamp(values_on_time['start']).isoformat() + 'Z',
-                    'fields': {
-                        'max': float(values_on_time['max']),
-                        'avg': float(values_on_time['avg'])
-                    }
-                })
+        if len(stat_key_split) == 2:
+            tags['subtype'] = stat_key_split[1]
+        for values_on_time in values:
+            points.append({
+                'measurement': 'node-stats',
+                'tags': tags,
+                'time': datetime.utcfromtimestamp(values_on_time['start']).isoformat() + 'Z',
+                'fields': {
+                    'max': float(values_on_time['max']),
+                    'avg': float(values_on_time['avg'])
+                }
+            })
     logging.info('Writing %s datapoints to influxdb for node %s', len(points), node_id)
     client = get_influx_client()
-    if client:
+    if client and points:
         client.write_points(points)
 
 
-def _get_and_save_node_stats(statuses, timestamp):
+def _get_and_save_node_stats(statuses):
     client = get_influx_client()
     now_ = datetime.now()
     node_ids = [key.id() for key in Node.query().fetch(keys_only=True)]
@@ -640,17 +651,6 @@ def _get_and_save_node_stats(statuses, timestamp):
         raise deferred.PermanentTaskFailure(e.message)
     points = []
     for node in nodes_stats:
-        points.append({
-            'measurement': 'node-info',
-            'tags': {
-                'node_id': node['id'],
-                'status': node['status'],
-            },
-            'time': timestamp,
-            'fields': {
-                'id': node['id']
-            }
-        })
         if node['status'] == 'running' and node['stats']:
             stats = node['stats']
             for stat_key, values in stats.iteritems():

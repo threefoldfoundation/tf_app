@@ -33,7 +33,7 @@ from plugins.tff_backend.bizz.statistics import log_restapi_call_result
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler, \
     BackupHandler, CheckNodesOnlineHandler, CheckNodesStatusesHandler, ExpiredEventsHandler, RebuildFirebaseHandler, \
-    CheckOfflineNodesHandler
+    CheckOfflineNodesHandler, SaveNodeStatusesHandler
 from plugins.tff_backend.handlers.flow_statistics import CheckStuckFlowsHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
@@ -86,6 +86,7 @@ class TffBackendPlugin(BrandingPlugin):
             yield Handler(url='/admin/cron/tff_backend/check_nodes_online', handler=CheckNodesOnlineHandler)
             yield Handler(url='/admin/cron/tff_backend/check_nodes_statuses', handler=CheckNodesStatusesHandler)
             yield Handler(url='/admin/cron/tff_backend/check_offline_nodes', handler=CheckOfflineNodesHandler)
+            yield Handler(url='/admin/cron/tff_backend/save_node_statuses', handler=SaveNodeStatusesHandler)
             yield Handler(url='/admin/cron/tff_backend/events/expired', handler=ExpiredEventsHandler)
             yield Handler(url='/admin/cron/tff_backend/check_stuck_flows', handler=CheckStuckFlowsHandler)
             yield Handler(url='/admin/cron/tff_backend/rebuild_firebase', handler=RebuildFirebaseHandler)
