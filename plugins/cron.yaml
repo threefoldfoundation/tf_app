@@ -27,6 +27,10 @@ cron:
   url: /admin/cron/tff_backend/check_offline_nodes
   schedule: every 5 minutes
 
+- description: Save node statuses
+  url: /admin/cron/tff_backend/save_node_statuses
+  schedule: every 5 minutes
+
 - description: Process expired events
   url: /admin/cron/tff_backend/events/expired
   schedule: every day 00:00

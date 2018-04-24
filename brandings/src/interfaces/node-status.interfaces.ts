@@ -1,7 +1,6 @@
 export const enum NodeStatus {
   RUNNING = 'running',
   HALTED = 'halted',
-  REBOOTING = 'rebooting',
 }
 
 

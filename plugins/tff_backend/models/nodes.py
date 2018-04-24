@@ -24,7 +24,6 @@ from plugins.tff_backend.plugin_consts import NAMESPACE
 class NodeStatus(Enum):
     HALTED = 'halted'
     RUNNING = 'running'
-    REBOOTING = 'rebooting'
 
 
 class NodeStatusTime(NdbModel):

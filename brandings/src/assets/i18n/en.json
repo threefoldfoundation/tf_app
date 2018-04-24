@@ -36,7 +36,6 @@
   "no_work_to_finish": "Congratulations, you have no work to finish!",
   "node_status": "Node status",
   "node_status_halted": "Node offline",
-  "node_status_rebooting": "Node rebooting",
   "node_status_running": "Node online",
   "not_attending": "Not attending",
   "not_supported_pls_update": "Please update your app to use this functionality.",
