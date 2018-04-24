@@ -19,10 +19,6 @@ cron:
   url: /admin/cron/tff_backend/check_nodes_online
   schedule: every day 10:00
 
-- description: Check nodes statuses
-  url: /admin/cron/tff_backend/check_nodes_statuses
-  schedule: every 5 minutes
-
 - description: Check offline nodes
   url: /admin/cron/tff_backend/check_offline_nodes
   schedule: every 5 minutes

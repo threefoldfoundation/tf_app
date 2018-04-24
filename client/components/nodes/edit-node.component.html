@@ -11,9 +11,6 @@
     <button mat-raised-button fxLayoutGap="">{{ 'tff.save' | translate }}</button>
   </div>
   <h3>{{ 'tff.status' | translate }}</h3>
-  <div *ngFor="let status of node.statuses">
-    <p>{{ status.date | date : 'medium' }} {{ ('tff.node_status_' + status.status) | translate }}</p>
-  </div>
   <p>{{ ('tff.node_status_' + node.status) | translate }}</p>
   <p *ngIf="node.last_update">{{ 'tff.last_update_x' | translate : { date: node.last_update | date : 'medium'} }}</p>
   <ng-container *ngIf="node.chain_status">

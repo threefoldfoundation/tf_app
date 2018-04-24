@@ -16,7 +16,7 @@
 # @@license_version:1.4@@
 from google.appengine.ext import ndb
 
-from plugins.tff_backend.models.nodes import Node, NodeStatusTime
+from plugins.tff_backend.models.nodes import Node
 from plugins.tff_backend.models.user import TffProfile
 
 
@@ -28,8 +28,7 @@ def migrate(dry_run=False):
                 to_put.append(Node(key=Node.create_key(node.id),
                                    serial_number=node.serial_number,
                                    username=profile.username if profile.username != 'threefold_dummy_1' else None,
-                                   last_check=node.last_check,
-                                   statuses=[NodeStatusTime(status=node.status, date=node.status_date)]))
+                                   last_update=node.last_update))
     if dry_run:
         return to_put
     ndb.put_multi(to_put)

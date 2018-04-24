@@ -42,10 +42,6 @@ class OdooConfiguration(TO):
     product_ids = typed_property('product_ids', dict)  # key: the node's socket type, value: product id
 
 
-class OrchestatorConfiguration(TO):
-    jwt = unicode_property('1')
-
-
 class OnfidoConfiguration(TO):
     api_key = unicode_property('api_key')
 
@@ -78,7 +74,6 @@ class TffConfiguration(TO):
     rogerthat = typed_property('1', RogerthatConfiguration, False)
     ledger = typed_property('3', LedgerConfiguration, False)
     odoo = typed_property('4', OdooConfiguration, False)
-    orchestator = typed_property('5', OrchestatorConfiguration, False)
     support_emails = unicode_list_property('support_emails')
     backup_bucket = unicode_property('backup_bucket')
     intercom_admin_id = long_property('intercom_admin_id')

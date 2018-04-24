@@ -14,19 +14,12 @@ export interface ChainStatus {
   wallet_status: WalletStatus;
 }
 
-export interface NodeStatusTime {
-  status: NodeStatus;
-  date: string;
-}
-
 export interface NodeInfo {
   status: NodeStatus;
   id: string;
   serial_number: string;
   username: string;
-  statuses: NodeStatusTime[];
   status_date?: string;
-  last_check?: string;
   last_update?: string;
   info: {
     kernelVersion: string;

@@ -62,22 +62,11 @@ class KYCInformation(NdbModel):
         self.status = new_status
 
 
-# TODO: remove
-class NodeInfo(NdbModel):
-    NAMESPACE = NAMESPACE
-    id = ndb.StringProperty()
-    serial_number = ndb.StringProperty()
-    status = ndb.StringProperty(default='halted')
-    status_date = ndb.DateTimeProperty()  # date the status was changed to current status
-    last_check = ndb.DateTimeProperty()
-
-
 class TffProfile(NdbModel):
     NAMESPACE = NAMESPACE
     app_user = ndb.UserProperty()
     referrer_user = ndb.UserProperty()
     referrer_username = ndb.StringProperty()
-    nodes = ndb.StructuredProperty(NodeInfo, repeated=True)  # todo: remove
     kyc = ndb.StructuredProperty(KYCInformation)  # type: KYCInformation
 
     @property

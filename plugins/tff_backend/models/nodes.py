@@ -26,11 +26,6 @@ class NodeStatus(Enum):
     RUNNING = 'running'
 
 
-class NodeStatusTime(NdbModel):
-    status = ndb.StringProperty(choices=NodeStatus.all())
-    date = ndb.DateTimeProperty()
-
-
 class WalletStatus(Enum):
     ERROR = 'error'
     UNLOCKED = 'unlocked'
@@ -44,10 +39,6 @@ class NodeChainStatus(NdbModel):
 class Node(NdbModel):
     NAMESPACE = NAMESPACE
     serial_number = ndb.StringProperty()
-    # todo: remove
-    statuses = ndb.LocalStructuredProperty(NodeStatusTime, repeated=True)  # type: list[NodeStatusTime]
-    # todo: remove
-    last_check = ndb.DateTimeProperty()
     last_update = ndb.DateTimeProperty()
     username = ndb.StringProperty()
     status = ndb.StringProperty(default=NodeStatus.HALTED)

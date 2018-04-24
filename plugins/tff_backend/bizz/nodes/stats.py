@@ -14,15 +14,11 @@
 # limitations under the License.
 #
 # @@license_version:1.4@@
-import json
 import logging
 import re
-import time
-from collections import defaultdict
 from datetime import datetime
 
-from google.appengine.api import apiproxy_stub_map, urlfetch, users
-from google.appengine.api.datastore_errors import BadValueError
+from google.appengine.api import users
 from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
 
@@ -31,11 +27,9 @@ from dateutil.relativedelta import relativedelta
 from framework.bizz.job import run_job, MODE_BATCH
 from framework.plugin_loader import get_config
 from framework.utils import now
-from mcfw.cache import cached
 from mcfw.consts import MISSING, DEBUG
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
-from plugins.its_you_online_auth.bizz.authentication import refresh_jwt
 from plugins.its_you_online_auth.bizz.profile import get_profile
 from plugins.its_you_online_auth.models import Profile
 from plugins.rogerthat_api.api import system
@@ -50,95 +44,15 @@ from plugins.tff_backend.bizz.service import add_user_to_role, remove_user_from_
 from plugins.tff_backend.bizz.todo import update_hoster_progress, HosterSteps
 from plugins.tff_backend.bizz.user import get_tff_profile
 from plugins.tff_backend.configuration import InfluxDBConfig
-from plugins.tff_backend.consts.hoster import DEBUG_NODE_DATA
-from plugins.tff_backend.libs.zero_robot import Task, EnumTaskState, Service, ServiceState
 from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
-from plugins.tff_backend.models.nodes import Node, NodeStatusTime, NodeStatus, NodeChainStatus
+from plugins.tff_backend.models.nodes import Node, NodeStatus, NodeChainStatus
 from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.plugin_consts import NAMESPACE
-from plugins.tff_backend.to.nodes import UserNodeStatusTO, UpdateNodePayloadTO, NodeChainStatusTO, UpdateNodeStatusTO
+from plugins.tff_backend.to.nodes import UpdateNodePayloadTO, UpdateNodeStatusTO
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 SKIPPED_STATS_KEYS = ['disk.size.total']
-NODE_TEMPLATE = 'github.com/zero-os/0-templates/node/0.0.1'
 NODE_ID_REGEX = re.compile('([a-f0-9]{12})')
-
-
-@returns(apiproxy_stub_map.UserRPC)
-def _async_zero_robot_call(path, method=urlfetch.GET, payload=None):
-    cfg = get_config(NAMESPACE)
-    try:
-        jwt = _refresh_jwt(cfg.orchestator.jwt)
-    except:
-        msg = 'Could not refresh JWT'
-        logging.exception(msg)
-        raise deferred.PermanentTaskFailure(msg)
-    headers = {'Cookie': 'caddyoauth=%s' % jwt, 'Content-Type': 'application/json'}
-    url = u'https://zero-robot.threefoldtoken.com%s' % path
-    rpc = urlfetch.create_rpc(deadline=30)
-    urlfetch.make_fetch_call(rpc, payload=payload, method=method, url=url, headers=headers)
-    return rpc
-
-
-@cached(1, 3600)
-@returns(unicode)
-@arguments(jwt=unicode)
-def _refresh_jwt(jwt):
-    """
-        Cached method to refresh JWT only when it's needed (once every hour, at most)
-    Returns:
-        unicode
-    """
-    return refresh_jwt(jwt, 3600)
-
-
-def _get_task_url(task):
-    return '/services/%s/task_list/%s' % (task.service_guid, task.guid)
-
-
-@returns([object])
-@arguments(tasks=[Task], deadline=int)
-def _wait_for_tasks(tasks, deadline=150):
-    start_time = time.time()
-    # Don't do any requests for the first 30 seconds as it's unlikely that they will be already finished.
-    time.sleep(30)
-    results = []
-    incomplete_tasks = {t.guid: t for t in tasks}
-    # Sequentially do requests to the robot to avoid spamming it too much
-    while incomplete_tasks:
-        duration = time.time() - start_time
-        logging.debug('Waited for %s tasks for %.2f seconds', len(incomplete_tasks), duration)
-        if duration > deadline:
-            logging.info('Deadline of %s seconds exceeded!', deadline)
-            break
-
-        incomplete_by_state = defaultdict(list)
-        for task in incomplete_tasks.values():
-            try:
-                result = _async_zero_robot_call(_get_task_url(task)).get_result()
-            except urlfetch.DeadlineExceededError:
-                logging.warning('Request for task %s timed out.', task)
-                continue
-            node_id = task.service_name
-            if result.status_code != 200:
-                logging.error('/task_list for node %s returned status code %s. Content:\n%s',
-                              node_id, result.status_code, result.content)
-                del incomplete_tasks[task.guid]
-                continue
-
-            task = Task(**json.loads(result.content))
-            if task.state in (EnumTaskState.ok, EnumTaskState.error):
-                del incomplete_tasks[task.guid]
-                results.append(task)
-            else:
-                incomplete_by_state[task.state].append(task.service_name)
-
-        for state, node_ids in incomplete_by_state.iteritems():
-            logging.debug('%s %s task(s) on the following nodes: %s', len(node_ids), state.value,
-                          ', '.join(node_ids))
-        time.sleep(10)
-
-    return results
 
 
 def check_online_nodes():
@@ -155,18 +69,19 @@ def check_if_node_comes_online(order_key):
     if not order.odoo_sale_order_id:
         raise BusinessException('Cannot check status of node order without odoo_sale_order_id')
     odoo_nodes = get_nodes_from_odoo(order.odoo_sale_order_id)
+    odoo_node_keys = [Node.create_key(n['id']) for n in odoo_nodes]
     if not odoo_nodes:
         raise BusinessException('Could not find nodes for sale order %s on odoo' % order_id)
-    statuses = get_all_nodes_statuses()
+    statuses = {n.id: n.status for n in ndb.get_multi(odoo_node_keys) if n}
     iyo_username = get_iyo_username(order.app_user)
-    nodes = {node.id: node for node in Node.list_by_user(iyo_username)}
+    user_nodes = {node.id: node for node in Node.list_by_user(iyo_username)}
     to_add = []
+    logging.debug('odoo_nodes: %s\n statuses: %s\n', odoo_nodes, statuses)
     for node in odoo_nodes:
-        if node['id'] not in nodes:
-            node['status'] = statuses.get(node['id'], NodeStatus.HALTED)
+        if node['id'] not in user_nodes:
             to_add.append(node)
     if to_add:
-        logging.info('Saving nodes to profile %s: %s', iyo_username, to_add)
+        logging.info('Setting username %s on nodes %s', iyo_username, to_add)
         deferred.defer(assign_nodes_to_user, iyo_username, to_add)
     if all([status == NodeStatus.RUNNING for status in statuses.itervalues()]):
         _set_node_status_arrived(order_key, odoo_nodes)
@@ -197,46 +112,14 @@ def assign_nodes_to_user(iyo_username, nodes):
         if node:
             node.username = iyo_username
             node.serial_number = new_node['serial_number']
-            node.status = new_node.get('status', NodeStatus.HALTED)
             to_put.append(node)
         else:
             to_put.append(Node(key=Node.create_key(new_node['id']),
                                serial_number=new_node['serial_number'],
-                               username=iyo_username,
-                               statuses=[NodeStatusTime(status=new_node.get('status', NodeStatus.HALTED),
-                                                        date=datetime.now())]))
+                               username=iyo_username))
     ndb.put_multi(to_put)
     deferred.defer(_put_node_status_user_data, TffProfile.create_key(iyo_username), _countdown=5)
     return to_put
-
-
-def get_nodes_stats(node_statuses):
-    # type: (dict[str, str]) -> list[dict]
-    logging.info('Getting node stats for node_statuses %s', node_statuses)
-    if DEBUG:
-        return [_get_stats(DEBUG_NODE_DATA)]
-
-    # Do not create tasks for halted nodes
-    online_node_ids = [node_id for node_id in node_statuses if node_statuses[node_id] == NodeStatus.RUNNING]
-    logging.info('Creating statistics tasks for %d nodes', len(online_node_ids))
-    tasks = _get_node_stats_tasks(online_node_ids)
-
-    results_per_node = {id_: {'id': id_,
-                              'status': status,
-                              'stats': None}
-                        for id_, status in node_statuses.iteritems()}
-
-    for task in _wait_for_tasks(tasks):
-        if task.state == EnumTaskState.ok:
-            results_per_node[task.service_name][task.action_name] = json.loads(task.result)
-        else:
-            logging.warn('Task %s on node %s has state ERROR:\n%s: %s\n%s',
-                         _get_task_url(task),
-                         task.service_name,
-                         task.eco and task.eco.exceptionclassname,
-                         task.eco and task.eco.errormessage,
-                         task.eco and task.eco._traceback)
-    return [_get_stats(r) for r in results_per_node.itervalues()]
 
 
 def get_nodes_for_user(app_user):
@@ -246,75 +129,6 @@ def get_nodes_for_user(app_user):
         if order.status in (NodeOrderStatus.SENT, NodeOrderStatus.ARRIVED):
             nodes.extend(get_nodes_from_odoo(order.odoo_sale_order_id))
     return nodes
-
-
-def _get_stats(data):
-    stats = {}
-    if data['stats']:
-        for stat_key, values in data['stats'].iteritems():
-            last_5_min_stats = values['history'].get('300', [])
-            stats[stat_key] = last_5_min_stats
-    return {
-        'id': data['id'],
-        'status': data['status'],
-        'stats': stats
-    }
-
-
-@returns([Task])
-@arguments(node_ids=[unicode])
-def _get_node_stats_tasks(node_ids):
-    blueprint = {
-        'content': {
-            'actions': [{
-                'template': NODE_TEMPLATE,
-                'actions': ['stats'],
-                'service': node_id
-            } for node_id in node_ids]
-        }
-    }
-    return _execute_blueprint(json.dumps(blueprint))
-
-
-def _execute_blueprint(blueprint):
-    logging.debug('Executing blueprint: %s', blueprint)
-    result = _async_zero_robot_call('/blueprints', urlfetch.POST, blueprint).get_result()
-    msg = '/blueprints returned status code %s. Content:\n%s' % (result.status_code, result.content)
-    if result.status_code != 200:
-        raise deferred.PermanentTaskFailure(msg)
-
-    logging.debug(msg)
-    return [Task(**d) for d in json.loads(result.content)]
-
-
-def get_all_nodes_statuses():
-    # type: () -> dict[str, str]
-    # Does one call to the zero robot to get the status of all nodes
-    url = '/services?template_uid=%s' % NODE_TEMPLATE
-    services = [Service(s) for s in json.loads(_async_zero_robot_call(url).get_result().content)]
-    nodes_statuses = {}  # key: node id, value: running / halted
-    for service in services:
-        for state in service.state:  # type: ServiceState
-            if state.category == 'status':
-                nodes_statuses[service.name] = state.tag
-                break
-        else:
-            nodes_statuses[service.name] = NodeStatus.HALTED
-    return nodes_statuses
-
-
-def check_node_statuses():
-    try:
-        statuses = get_all_nodes_statuses()
-    except Exception as e:
-        logging.exception(e)
-        raise deferred.PermanentTaskFailure(e.message)
-    deferred.defer(_get_and_save_node_stats, statuses)
-    run_job(_get_all_nodes, [], _check_node_status, [statuses], mode=MODE_BATCH, batch_size=25, qry_transactional=False)
-
-
-def _get_all_nodes():
-    return Node.query()
 
 
 def check_offline_nodes():
@@ -372,40 +186,6 @@ def save_node_statuses():
         client.write_points(points, time_precision='m')
 
 
-@ndb.transactional(xg=True)
-def _check_node_status(node_keys, statuses):
-    # type: (list[ndb.Key], dict[str, str]) -> None
-    # No more than 25 node_keys should be supplied to this function (max nr of entity groups in a single transaction)
-    nodes = ndb.get_multi(node_keys)  # type: list[Node]
-    to_notify = []  # type: list[dict]
-    # List of usernames
-    to_update = set()  # type: set[unicode]
-    now_ = datetime.utcnow()
-    for node in nodes:
-        status = statuses.get(node.id)
-        if not status:
-            logging.info('Node %s not found in the response', node.id)
-            status = NodeStatus.HALTED
-        if node.status != status and node.username:
-            logging.info('Node %s of user %s changed from status "%s" to "%s"',
-                         node.id, node.username, node.status, status)
-            to_update.add(node.username)
-        node.last_update = now_
-        node.statuses = node.statuses[-6:] + [NodeStatusTime(status=status, date=now_)]
-        node.status = status
-        if node.username:
-            send_notification, change_status = _should_send_notification(node)
-            if send_notification:
-                node.status_date = change_status.date
-                to_notify.append({'u': node.username,
-                                  'sn': node.serial_number,
-                                  'date': change_status.date,
-                                  'status': status})
-    ndb.put_multi(nodes)
-    if to_update or to_notify:
-        deferred.defer(after_check_node_status, to_update, to_notify, _transactional=True)
-
-
 def after_check_node_status(to_update, to_notify):
     # type: (set[unicode], list[dict]) -> None
     for obj in to_notify:
@@ -413,24 +193,6 @@ def after_check_node_status(to_update, to_notify):
         deferred.defer(_send_node_status_update_message, obj['u'], obj['status'], obj['date'], obj['sn'])
     for username in to_update:
         deferred.defer(_put_node_status_user_data, TffProfile.create_key(username))
-
-
-def _should_send_notification(node):
-    # type: (Node) -> tuple[bool, NodeStatusTime]
-    # Only notify after this status has been the same for 3 times (so roughly 15 min since this job runs every 5 min)
-    current_status = node.status
-    same_count = 0
-    for i, status in enumerate(reversed(node.statuses)):
-        if status.status == current_status:
-            same_count += 1
-        if same_count == 3 and i == 3:
-            if len(node.statuses) > same_count:
-                change_status = node.statuses[-same_count]
-                if len(node.statuses) >= 6:
-                    # Check if all old statuses were different than the current newest 3 statuses
-                    if all(s.status != current_status for s in node.statuses[:same_count]):
-                        return True, change_status
-    return False, None
 
 
 def _put_node_status_user_data(tff_profile_key):
@@ -447,14 +209,14 @@ def _send_node_status_update_message(username, to_status, date, serial_number):
     profile = get_tff_profile(username)
     app_user = profile.app_user
     date_str = date.strftime('%Y-%m-%d %H:%M:%S')
-    if to_status == u'halted':
+    if to_status == NodeStatus.HALTED:
         subject = u'Connection to your node(%s) has been lost since %s UTC' % (serial_number, date_str)
         msg = u'Dear ThreeFold Member,\n\n' \
               u'Connection to your node(%s) has been lost since %s UTC.' \
               u' Please check the network connection of your node.\n' \
               u'Kind regards,\n' \
               u'The ThreeFold Team' % (serial_number, date_str)
-    elif to_status == u'running':
+    elif to_status == NodeStatus.RUNNING:
         subject = u'Connection to your node(%s) has been resumed since %s UTC' % (serial_number, date_str)
         msg = u'Dear ThreeFold Member,\n\n' \
               u'Congratulations!' \
@@ -481,7 +243,7 @@ def _get_limited_profile(profile):
 
 
 def list_nodes_by_status(status=None):
-    # type: (unicode) -> list[UserNodeStatusTO]
+    # type: (unicode) -> list[dict]
     if status:
         qry = Node.list_by_status(status)
     else:
@@ -490,9 +252,9 @@ def list_nodes_by_status(status=None):
     profiles = {profile.username: profile for profile in
                 ndb.get_multi([Profile.create_key(node.username) for node in nodes if node.username])}
     include_node = ['status', 'serial_number', 'chain_status']
-    results = [UserNodeStatusTO(profile=_get_limited_profile(profiles.get(node.username)),
-                                node=node.to_dict(include=include_node)) for node in nodes]
-    return sorted(results, key=lambda k: (k.profile['full_name']) if k.profile else k.node['id'])
+    results = [{'profile': _get_limited_profile(profiles.get(node.username)),
+                'node': node.to_dict(include=include_node)} for node in nodes]
+    return sorted(results, key=lambda k: (k['profile']['full_name']) if k['profile'] else k['node']['id'])
 
 
 @ndb.transactional()
@@ -536,33 +298,9 @@ def delete_node(node_id):
                        _countdown=5)
     node.key.delete()
     client = get_influx_client()
-    client.query('DELETE FROM "node-stats" WHERE ("id" = \'%(id)s\');'
-                 'DELETE FROM "node-info" WHERE ("node_id" = \'%(id)s\')' % {'id': node_id})
-
-
-@ndb.transactional()
-def update_node_chain_status(node_id, data):
-    # type: (unicode, NodeChainStatusTO) -> NodeChainStatus
-    node = get_node(node_id)
-    if not node.chain_status:
-        node.chain_status = NodeChainStatus()
-    missing_props = []
-    required_props = ['wallet_status', 'block_height']
-    for prop in required_props:
-        p = getattr(data, prop)
-        if p is MISSING or not p:
-            missing_props.append(prop)
-    if missing_props:
-        raise HttpBadRequestException('missing_properties', {'missing_properties': missing_props})
-    try:
-        node.chain_status.populate(
-            block_height=data.block_height,
-            wallet_status=data.wallet_status,
-        )
-    except BadValueError as e:
-        raise HttpBadRequestException(e.message)
-    node.put()
-    return node.chain_status
+    if client:
+        client.query('DELETE FROM "node-stats" WHERE ("id" = \'%(id)s\');'
+                     'DELETE FROM "node-info" WHERE ("node_id" = \'%(id)s\')' % {'id': node_id})
 
 
 def _validate_node_id(node_id):
@@ -571,14 +309,12 @@ def _validate_node_id(node_id):
 
 
 @ndb.transactional()
-def save_node_stats(node_id, data, date):
+def _save_node_stats(node_id, data, date):
     # type: (unicode, UpdateNodeStatusTO, datetime) -> None
-    _validate_node_id(node_id)
     node_key = Node.create_key(node_id)
     node = node_key.get()
     if not node:
         node = Node(key=node_key,
-                    last_check=date,
                     status_date=date)
         deferred.defer(_set_serial_number_on_node, node_id, _transactional=True)
     if data.chain_status and data.chain_status is not MISSING:
@@ -594,13 +330,18 @@ def save_node_stats(node_id, data, date):
     node.populate(last_update=date,
                   status=NodeStatus.RUNNING)
     node.put()
-    deferred.defer(_save_node_stats_to_influx, node.id, data.stats, _transactional=True)
+
+
+def save_node_stats(node_id, data, date):
+    # type: (unicode, UpdateNodeStatusTO, datetime) -> None
+    _validate_node_id(node_id)
+    _save_node_stats(node_id, data, date)
+    if data.stats and data.stats is not MISSING:
+        _save_node_stats_to_influx(node_id, data.stats)
 
 
 def _save_node_stats_to_influx(node_id, stats):
     # type: (unicode, dict) -> None
-    if not stats or stats is MISSING:
-        return
     points = []
     for stat_key, values in stats.iteritems():
         stat_key_split = stat_key.split('/')
@@ -625,62 +366,6 @@ def _save_node_stats_to_influx(node_id, stats):
     logging.info('Writing %s datapoints to influxdb for node %s', len(points), node_id)
     client = get_influx_client()
     if client and points:
-        client.write_points(points)
-
-
-def _get_and_save_node_stats(statuses):
-    client = get_influx_client()
-    now_ = datetime.now()
-    node_ids = [key.id() for key in Node.query().fetch(keys_only=True)]
-    to_put = []
-    all_node_ids = node_ids[:]
-    # Add non-existent nodes
-    for node_id, status in statuses.iteritems():
-        if node_id not in node_ids:
-            to_put.append(Node(key=Node.create_key(node_id),
-                               last_check=now_,
-                               status_date=now_,
-                               statuses=[NodeStatusTime(status=status, date=now_)]))
-            deferred.defer(_set_serial_number_on_node, node_id, _countdown=30)
-            all_node_ids.append(node_id)
-    ndb.put_multi(to_put)
-    if not client:
-        return
-    try:
-        nodes_stats = get_nodes_stats({node_id: statuses.get(node_id, NodeStatus.HALTED) for node_id in all_node_ids})
-    except Exception as e:
-        logging.exception(e)
-        raise deferred.PermanentTaskFailure(e.message)
-    points = []
-    for node in nodes_stats:
-        if node['status'] == 'running' and node['stats']:
-            stats = node['stats']
-            for stat_key, values in stats.iteritems():
-                stat_key_split = stat_key.split('/')
-                if stat_key_split[0] in SKIPPED_STATS_KEYS:
-                    continue
-                tags = {
-                    'id': node['id'],
-                    'type': stat_key_split[0],
-                }
-                if len(stat_key_split) == 2:
-                    tags['subtype'] = stat_key_split[1]
-                for values_on_time in values:
-                    points.append({
-                        'measurement': 'node-stats',
-                        'tags': tags,
-                        'time': datetime.utcfromtimestamp(values_on_time['start']).isoformat() + 'Z',
-                        'fields': {
-                            'max': float(values_on_time['max']),
-                            'avg': float(values_on_time['avg'])
-                        }
-                    })
-        if len(points) > 500:
-            logging.info('Writing %s datapoints to influxdb', len(points))
-            client.write_points(points)
-            points[:] = []
-    if points:
-        logging.info('Writing final %s datapoints to influxdb', len(points))
         client.write_points(points)
 
 

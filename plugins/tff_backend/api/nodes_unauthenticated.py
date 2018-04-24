@@ -34,15 +34,8 @@ from datetime import datetime
 
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
-from plugins.tff_backend.bizz.nodes.stats import update_node_chain_status, save_node_stats
-from plugins.tff_backend.to.nodes import NodeChainStatusTO, UpdateNodeStatusTO
-
-
-@rest('/nodes/<node_id:[^/]+>/chain-status', 'put', [])
-@returns(dict)
-@arguments(node_id=unicode, data=NodeChainStatusTO)
-def api_update_node(node_id, data):
-    return update_node_chain_status(node_id, data).to_dict()
+from plugins.tff_backend.bizz.nodes.stats import save_node_stats
+from plugins.tff_backend.to.nodes import UpdateNodeStatusTO
 
 
 @rest('/nodes/<node_id:[^/]+>/status', 'put', [], silent=True)
