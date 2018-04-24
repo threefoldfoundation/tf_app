@@ -32,8 +32,8 @@ from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes,
 from plugins.tff_backend.bizz.statistics import log_restapi_call_result
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler, \
-    BackupHandler, CheckNodesOnlineHandler, CheckNodesStatusesHandler, ExpiredEventsHandler, RebuildFirebaseHandler, \
-    CheckOfflineNodesHandler, SaveNodeStatusesHandler
+    SaveNodeStatusesHandler, BackupHandler, CheckNodesOnlineHandler, ExpiredEventsHandler, RebuildFirebaseHandler, \
+    CheckOfflineNodesHandler
 from plugins.tff_backend.handlers.flow_statistics import CheckStuckFlowsHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
@@ -84,7 +84,6 @@ class TffBackendPlugin(BrandingPlugin):
             yield Handler(url='/admin/cron/tff_backend/rebuild_synced_roles', handler=RebuildSyncedRolesHandler)
             yield Handler(url='/admin/cron/tff_backend/global_stats', handler=UpdateGlobalStatsHandler)
             yield Handler(url='/admin/cron/tff_backend/check_nodes_online', handler=CheckNodesOnlineHandler)
-            yield Handler(url='/admin/cron/tff_backend/check_nodes_statuses', handler=CheckNodesStatusesHandler)
             yield Handler(url='/admin/cron/tff_backend/check_offline_nodes', handler=CheckOfflineNodesHandler)
             yield Handler(url='/admin/cron/tff_backend/save_node_statuses', handler=SaveNodeStatusesHandler)
             yield Handler(url='/admin/cron/tff_backend/events/expired', handler=ExpiredEventsHandler)

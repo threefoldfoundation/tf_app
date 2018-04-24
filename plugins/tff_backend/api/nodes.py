@@ -61,7 +61,7 @@ def api_put_node_order(order_id, data):
 
 
 @rest('/nodes', 'get', Scopes.NODES_READONLY, silent_result=True)
-@returns([UserNodeStatusTO])
+@returns([dict])
 @arguments(status=unicode)
 def api_list_nodes(status=None):
     return list_nodes_by_status(status)

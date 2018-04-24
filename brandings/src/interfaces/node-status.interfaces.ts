@@ -9,7 +9,7 @@ export interface NodeInfo {
   id: string;
   serial_number: string;
   status_date?: string;
-  last_check?: string;
+  last_update?: string;
   stats?: NodeStatsData[];
 }
 
