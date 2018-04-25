@@ -200,9 +200,11 @@ def _put_node_status_user_data(tff_profile_key):
     user, app_id = get_app_user_tuple(tff_profile.app_user)
     data = {'nodes': [n.to_dict() for n in Node.list_by_user(tff_profile.username)]}
     system.put_user_data(get_rogerthat_api_key(), user.email(), app_id, data)
+    user_detail = UserDetailsTO(email=user.email(), app_id=app_id)
     if not data['nodes']:
-        user_detail = UserDetailsTO(email=user.email(), app_id=app_id)
-        deferred.defer(remove_user_from_role, user_detail, RogerthatRoles.HOSTERS)
+        remove_user_from_role(user_detail, RogerthatRoles.HOSTERS)
+    else:
+        add_user_to_role(user_detail, RogerthatRoles.HOSTERS)
 
 
 def _send_node_status_update_message(username, to_status, date, serial_number):

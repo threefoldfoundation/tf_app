@@ -493,10 +493,8 @@ def create_node_order(data):
                       **data.to_dict(exclude=['document', 'app_user']))
     order.put()
     iyo_username = get_iyo_username(app_user)
-    email, app_id = get_app_user_tuple(app_user)
     deferred.defer(assign_nodes_to_user, iyo_username, nodes)
     deferred.defer(set_hoster_status_in_user_data, order.app_user, False)
-    deferred.defer(add_user_to_role, UserDetailsTO(email=email.email(), app_id=app_id), RogerthatRoles.HOSTERS)
     deferred.defer(tag_intercom_users, IntercomTags.HOSTER, [iyo_username])
     deferred.defer(_order_node_iyo_see, order.app_user, order.id, pdf_url, len(doc_content), create_quotation=False)
     return order
