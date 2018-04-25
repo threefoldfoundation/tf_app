@@ -101,13 +101,13 @@ class RebuildSyncedRolesHandler(webapp2.RequestHandler):
 class UpdateGlobalStatsHandler(webapp2.RequestHandler):
 
     def get(self):
-        deferred.defer(update_currencies)
+        update_currencies()
 
 
 class CheckNodesOnlineHandler(webapp2.RequestHandler):
 
     def get(self):
-        deferred.defer(check_online_nodes)
+        check_online_nodes()
 
 
 class CheckOfflineNodesHandler(webapp2.RequestHandler):
@@ -125,7 +125,7 @@ class SaveNodeStatusesHandler(webapp2.RequestHandler):
 class ExpiredEventsHandler(webapp2.RequestHandler):
 
     def get(self):
-        deferred.defer(update_expired_events)
+        update_expired_events()
 
 
 class RebuildFirebaseHandler(webapp2.RequestHandler):
