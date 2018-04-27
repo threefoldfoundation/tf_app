@@ -108,6 +108,8 @@ class UpdateNodePayloadTO(TO):
 class NodeChainStatusTO(TO):
     wallet_status = unicode_property('wallet_status')
     block_height = long_property('block_height')
+    active_blockstakes = long_property('active_blockstakes')
+    network = unicode_property('network')   # testnet, standard, devnet
 
 
 class UpdateNodeStatusTO(TO):

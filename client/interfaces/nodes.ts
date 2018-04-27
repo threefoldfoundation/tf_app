@@ -10,8 +10,9 @@ export const enum WalletStatus {
 
 export interface ChainStatus {
   block_height: number;
-  timestamp: string;
   wallet_status: WalletStatus;
+  active_blockstakes: number;
+  network: 'devnet' | 'testnet' | 'standard';
 }
 
 export interface NodeInfo {

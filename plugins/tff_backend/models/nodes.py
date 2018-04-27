@@ -34,6 +34,8 @@ class WalletStatus(Enum):
 class NodeChainStatus(NdbModel):
     wallet_status = ndb.StringProperty(choices=WalletStatus.all())
     block_height = ndb.IntegerProperty(default=0)
+    active_blockstakes = ndb.IntegerProperty(default=0)
+    network = ndb.StringProperty(default='standard', choices=['devnet', 'testnet', 'standard'])
 
 
 class Node(NdbModel):

@@ -27,7 +27,7 @@ import { CSVService } from '../../services';
 export class NodesComponent implements OnChanges {
   @Input() nodes: UserNodeStatus[];
   @Input() status: ApiRequestStatus;
-  displayedColumns = [ 'select', 'name', 'email', 'status', 'node_id', 'serial_number', 'chain_status', 'actions' ];
+  displayedColumns = [ 'select', 'name', 'email', 'status', 'node_id', 'serial_number', 'chain_status', 'active_blockstakes', 'actions' ];
   dataSource = new MatTableDataSource<UserNodeStatus>();
   selection = new SelectionModel<UserNodeStatus>(true, []);
 

@@ -17,5 +17,7 @@
     <h3>{{ 'tff.tfchain_status' | translate }}</h3>
     <p>{{ 'tff.wallet_status_x' | translate : { status: node.chain_status.wallet_status } }}</p>
     <p>{{ 'tff.block_height_x' | translate : { height: node.chain_status.block_height } }}</p>
+    <p>{{ 'tff.active_blockstakes_x' | translate : { blockstakes: node.chain_status.active_blockstakes } }}</p>
+    <p>{{ 'tff.network_x' | translate : { network: node.chain_status.network } }}</p>
   </ng-container>
 </form>
