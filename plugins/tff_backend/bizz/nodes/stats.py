@@ -257,7 +257,6 @@ def list_nodes(sort_by=None, ascending=False):
     results = [{'profile': _get_limited_profile(profiles.get(node.username)),
                 'node': node.to_dict(include=include_node)} for node in nodes]
     return results
-    return sorted(results, key=lambda k: (k['profile']['full_name']) if k['profile'] else k['node']['id'])
 
 
 @ndb.transactional()
