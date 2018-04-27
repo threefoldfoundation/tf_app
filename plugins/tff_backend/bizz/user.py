@@ -419,6 +419,7 @@ def generate_kyc_flow(country_code, iyo_username):
     steps = []
     branding_key = get_main_branding_hash()
     must_ask_passport = 'passport' not in REQUIRED_DOCUMENT_TYPES[country_code]
+    must_ask_passport = False
     for prop in properties:
         step_info = _get_step_info(prop)
         if not step_info:
