@@ -165,8 +165,9 @@ export class TffService {
 
   getNodes(query: NodesQuery) {
     let params = new HttpParams();
-    if (query.status) {
-      params = params.set('status', query.status);
+    params = params.set('direction', query.direction);
+    if (query.sort_by) {
+      params = params.set('sort_by', query.sort_by);
     }
     return this.http.get<UserNodeStatus[]>(`${TffConfig.API_URL}/nodes`, { params });
   }

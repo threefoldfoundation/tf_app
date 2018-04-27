@@ -19,6 +19,7 @@ import {
   MatProgressSpinnerModule,
   MatSelectModule,
   MatSlideToggleModule,
+  MatSortModule,
   MatTableModule,
   MatTabsModule,
   MatToolbarModule,
@@ -131,6 +132,7 @@ const MATERIAL_IMPORTS = [
   MatTabsModule,
   MatToolbarModule,
   MatTooltipModule,
+  MatSortModule,
 ];
 
 const PIPES = [

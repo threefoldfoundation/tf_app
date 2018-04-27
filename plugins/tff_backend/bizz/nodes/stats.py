@@ -244,10 +244,10 @@ def _get_limited_profile(profile):
     }
 
 
-def list_nodes_by_status(status=None):
+def list_nodes(sort_by=None, ascending=False):
     # type: (unicode) -> list[dict]
-    if status:
-        qry = Node.list_by_status(status)
+    if sort_by:
+        qry = Node.list_by_property(sort_by, ascending)
     else:
         qry = Node.query()
     nodes = qry.fetch()  # type: list[Node]
@@ -256,6 +256,7 @@ def list_nodes_by_status(status=None):
     include_node = ['status', 'serial_number', 'chain_status']
     results = [{'profile': _get_limited_profile(profiles.get(node.username)),
                 'node': node.to_dict(include=include_node)} for node in nodes]
+    return results
     return sorted(results, key=lambda k: (k['profile']['full_name']) if k['profile'] else k['node']['id'])
 
 

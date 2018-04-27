@@ -16,8 +16,11 @@
   <ng-container *ngIf="node.chain_status">
     <h3>{{ 'tff.tfchain_status' | translate }}</h3>
     <p>{{ 'tff.wallet_status_x' | translate : { status: node.chain_status.wallet_status } }}</p>
-    <p>{{ 'tff.block_height_x' | translate : { height: node.chain_status.block_height } }}</p>
-    <p>{{ 'tff.active_blockstakes_x' | translate : { blockstakes: node.chain_status.active_blockstakes } }}</p>
-    <p>{{ 'tff.network_x' | translate : { network: node.chain_status.network } }}</p>
+    <p>{{ 'tff.block_height' | translate }} {{ node.chain_status.block_height }}</p>
+    <p>{{ 'tff.active_blockstakes' | translate }}: {{ node.chain_status.active_blockstakes }}</p>
+    <p>{{ 'tff.confirmed_balance' | translate }}: {{ node.chain_status.confirmed_balance }}</p>
+    <p>{{ 'tff.network' | translate }}: {{ node.chain_status.network }}</p>
+    <p>{{ 'tff.connected_peers' | translate }}: {{ node.chain_status.connected_peers}}</p>
+    <p>{{ 'tff.address' | translate }}: {{ node.chain_status.address }}</p>
   </ng-container>
 </form>

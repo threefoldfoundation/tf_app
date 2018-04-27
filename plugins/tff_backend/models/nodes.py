@@ -36,6 +36,9 @@ class NodeChainStatus(NdbModel):
     block_height = ndb.IntegerProperty(default=0)
     active_blockstakes = ndb.IntegerProperty(default=0)
     network = ndb.StringProperty(default='standard', choices=['devnet', 'testnet', 'standard'])
+    confirmed_balance = ndb.FloatProperty(default=0)
+    connected_peers = ndb.IntegerProperty(default=0)
+    address = ndb.StringProperty()
 
 
 class Node(NdbModel):
@@ -62,8 +65,14 @@ class Node(NdbModel):
         return cls.query().filter(cls.username == username)
 
     @classmethod
-    def list_by_status(cls, status):
-        return cls.query().filter(cls.status == status)
+    def list_by_property(cls, property_name, ascending):
+        prop = None
+        if '.' in property_name:
+            for part in property_name.split('.'):
+                prop = getattr(prop if prop else cls, part)
+        else:
+            prop = getattr(cls, property_name)
+        return cls.query().order(prop if ascending else - prop)
 
     @classmethod
     def list_running_by_last_update(cls, date):

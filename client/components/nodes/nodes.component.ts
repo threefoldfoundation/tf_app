@@ -1,9 +1,18 @@
 import { SelectionModel } from '@angular/cdk/collections';
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
-import { MatTableDataSource } from '@angular/material';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewEncapsulation,
+} from '@angular/core';
+import { MatTableDataSource, Sort } from '@angular/material';
 import { environment } from '../../../../framework/client/environments/environment';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
-import { ChainStatus, LimitedProfile, NodeInfo, NodeStatus, UserNodeStatus, WalletStatus } from '../../interfaces';
+import { ChainStatus, LimitedProfile, NodeInfo, NodesQuery, NodeStatus, UserNodeStatus, WalletStatus } from '../../interfaces';
 import { CSVService } from '../../services';
 
 @Component({
@@ -27,7 +36,9 @@ import { CSVService } from '../../services';
 export class NodesComponent implements OnChanges {
   @Input() nodes: UserNodeStatus[];
   @Input() status: ApiRequestStatus;
-  displayedColumns = [ 'select', 'name', 'email', 'status', 'node_id', 'serial_number', 'chain_status', 'active_blockstakes', 'actions' ];
+  @Output() searchNodes = new EventEmitter<NodesQuery>();
+  displayedColumns = [ 'select', 'name', 'status', 'node_id', 'serial_number', 'chain_status.block_height',
+    'chain_status.confirmed_balance', 'chain_status.active_blockstakes', 'chain_status.connected_peers', 'actions' ];
   dataSource = new MatTableDataSource<UserNodeStatus>();
   selection = new SelectionModel<UserNodeStatus>(true, []);
 
@@ -115,5 +126,9 @@ export class NodesComponent implements OnChanges {
       window.getSelection().addRange(range);
     }
     document.execCommand('copy');
+  }
+
+  onSortNodes(event: Sort) {
+    this.searchNodes.emit({ sort_by: event.direction ? event.active : null, direction: event.direction });
   }
 }

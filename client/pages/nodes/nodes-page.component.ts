@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { environment } from '../../../../framework/client/environments/environment';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
+import { AddToolbarItemAction, RemoveToolbarItemAction } from '../../../../framework/client/toolbar/actions';
+import { ToolbarItemTypes } from '../../../../framework/client/toolbar/interfaces';
 import { GetNodesAction } from '../../actions';
-import { NodesQuery, NodeStatus, UserNodeStatus } from '../../interfaces';
+import { NodesQuery, UserNodeStatus } from '../../interfaces';
 import { ITffState } from '../../states';
 import { getNodes, getNodesStatus } from '../../tff.state';
 
@@ -13,25 +15,12 @@ const tffConf = environment.configuration.plugins.tff_backend;
   selector: 'tff-nodes-pages',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="default-component-padding">
-      <mat-form-field>
-        <mat-select [(ngModel)]="query.status" (ngModelChange)="search()">
-          <mat-option *ngFor="let status of nodeStatuses" [value]="status.value">{{ status.label | translate }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <a mat-raised-button [href]="statisticsUrl" target="_blank" style="padding-left: 16px;">{{ 'tff.statistics' | translate }}</a>
-    </div>
-    <tff-nodes [nodes]="nodes$ | async" [status]="nodesStatus$ | async"></tff-nodes>`,
+    <tff-nodes [nodes]="nodes$ | async" [status]="nodesStatus$ | async" (searchNodes)="onSearchNodes($event)"></tff-nodes>`,
 })
-export class NodesPageComponent implements OnInit {
+export class NodesPageComponent implements OnInit, OnDestroy {
   nodes$: Observable<UserNodeStatus[]>;
   nodesStatus$: Observable<ApiRequestStatus>;
-  nodeStatuses = [
-    { value: '', label: 'tff.all' },
-    { value: NodeStatus.RUNNING, label: 'tff.node_status_running' },
-    { value: NodeStatus.HALTED, label: 'tff.node_status_halted' },
-  ];
-  query: NodesQuery = { status: '' };
+  query: NodesQuery = { sort_by: null, direction: '' };
   statisticsUrl = tffConf.grafana_url + tffConf.grafana_node_dashboard;
 
   constructor(private store: Store<ITffState>) {
@@ -41,9 +30,26 @@ export class NodesPageComponent implements OnInit {
     this.nodes$ = this.store.pipe(select(getNodes));
     this.nodesStatus$ = this.store.pipe(select(getNodesStatus));
     this.search();
+    this.store.dispatch(new AddToolbarItemAction({
+      icon: 'timeline',
+      id: 'node-statistics',
+      label: 'tff.statistics',
+      type: ToolbarItemTypes.BUTTON,
+      persistent: false,
+      href: this.statisticsUrl,
+    }));
+  }
+
+  ngOnDestroy() {
+    this.store.dispatch(new RemoveToolbarItemAction('node-statistics'));
   }
 
   search() {
     this.store.dispatch(new GetNodesAction(this.query));
+  }
+
+  onSearchNodes(query: NodesQuery) {
+    this.query = { ...query };
+    this.search();
   }
 }

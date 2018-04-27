@@ -1,4 +1,4 @@
-<mat-table [dataSource]="dataSource">
+<mat-table matSort [dataSource]="dataSource" (matSortChange)="onSortNodes($event)">
   <ng-container matColumnDef="select">
     <mat-header-cell *matHeaderCellDef>
       <mat-checkbox (change)="$event ? masterToggle() : null"
@@ -18,13 +18,8 @@
     <mat-cell *matCellDef="let row">{{ row.profile ? (row.profile.full_name || row.profile.username) : '' }}</mat-cell>
   </ng-container>
 
-  <ng-container matColumnDef="email">
-    <mat-header-cell *matHeaderCellDef>{{ 'tff.email' | translate }}</mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.profile?.email }}</mat-cell>
-  </ng-container>
-
   <ng-container matColumnDef="status">
-    <mat-header-cell *matHeaderCellDef>
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
       {{ 'tff.status' | translate }}
     </mat-header-cell>
     <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
@@ -34,7 +29,7 @@
   </ng-container>
 
   <ng-container matColumnDef="serial_number">
-    <mat-header-cell *matHeaderCellDef>
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
       {{ 'tff.serial_number' | translate }}
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
@@ -51,29 +46,44 @@
     </mat-cell>
   </ng-container>
 
-  <ng-container matColumnDef="chain_status">
-    <mat-header-cell *matHeaderCellDef>
-      {{ 'tff.tfchain_status' | translate }}
-    </mat-header-cell>
+  <ng-container matColumnDef="chain_status.block_height">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'tff.block_height' | translate }}</mat-header-cell>
     <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
       <ng-container *ngIf="row.node.chain_status">
         <mat-icon [color]="getWalletStatusColor(row.node.chain_status)"
                   [matTooltip]="getWalletStatusTooltip(row.node.chain_status) | translate">
           {{ getWalletStatusIcon(row.node.chain_status) }}
         </mat-icon>
-        <p>{{ 'tff.block_height_x' | translate : { height: row.node.chain_status.block_height } }}</p>
+        <p>{{ row.node.chain_status.block_height }}</p>
       </ng-container>
     </mat-cell>
   </ng-container>
 
-  <ng-container matColumnDef="active_blockstakes">
-    <mat-header-cell *matHeaderCellDef>
-      {{ 'tff.active_blockstakes' | translate }}
-    </mat-header-cell>
+  <ng-container matColumnDef="chain_status.active_blockstakes">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'tff.active_blockstakes' | translate }}</mat-header-cell>
     <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
-      <p *ngIf="row.node.chain_status">
-        {{ row.node.chain_status.active_blockstakes }} ({{row.node.chain_status.network}})
-      </p>
+      <p *ngIf="row.node.chain_status">{{ row.node.chain_status.active_blockstakes }}</p>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="chain_status.connected_peers">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'tff.connected_peers' | translate }}</mat-header-cell>
+    <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
+      <p *ngIf="row.node.chain_status">{{ row.node.chain_status.connected_peers }}</p>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="chain_status.network">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'tff.network' | translate }}</mat-header-cell>
+    <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
+      <p *ngIf="row.node.chain_status">{{ row.node.chain_status.network }}</p>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="chain_status.confirmed_balance">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'tff.confirmed_balance' | translate }}</mat-header-cell>
+    <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
+      <p *ngIf="row.node.chain_status">{{ row.node.chain_status.confirmed_balance }}</p>
     </mat-cell>
   </ng-container>
 

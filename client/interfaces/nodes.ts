@@ -1,3 +1,5 @@
+import { SortDirection } from '@angular/material';
+
 export const enum NodeStatus {
   RUNNING = 'running',
   HALTED = 'halted',
@@ -13,6 +15,9 @@ export interface ChainStatus {
   wallet_status: WalletStatus;
   active_blockstakes: number;
   network: 'devnet' | 'testnet' | 'standard';
+  confirmed_balance: number;
+  connected_peers: number;
+  address: string | null;
 }
 
 export interface NodeInfo {
@@ -56,5 +61,6 @@ export interface UserNodeStatus {
 }
 
 export interface NodesQuery {
-  status: NodeStatus | null | '';
+  sort_by: string | null;
+  direction: SortDirection;
 }

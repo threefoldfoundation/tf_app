@@ -20,7 +20,7 @@ from google.appengine.api import search
 from google.appengine.ext import ndb
 
 from framework.to import TO
-from mcfw.properties import long_property, unicode_property, typed_property
+from mcfw.properties import long_property, unicode_property, typed_property, float_property
 from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.to import PaginatedResultTO
 from plugins.tff_backend.to.iyo.see import IYOSeeDocument
@@ -110,6 +110,9 @@ class NodeChainStatusTO(TO):
     block_height = long_property('block_height')
     active_blockstakes = long_property('active_blockstakes')
     network = unicode_property('network')   # testnet, standard, devnet
+    confirmed_balance = float_property('confirmed_balance')
+    connected_peers = long_property('connected_peers')
+    address = unicode_property('address')
 
 
 class UpdateNodeStatusTO(TO):
