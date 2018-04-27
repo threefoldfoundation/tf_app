@@ -26,7 +26,7 @@ import influxdb
 from dateutil.relativedelta import relativedelta
 from framework.bizz.job import run_job, MODE_BATCH
 from framework.plugin_loader import get_config
-from framework.utils import now
+from framework.utils import now, try_or_defer
 from mcfw.consts import MISSING, DEBUG
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
@@ -339,7 +339,7 @@ def save_node_stats(node_id, data, date):
     _validate_node_id(node_id)
     _save_node_stats(node_id, data, date)
     if data.stats and data.stats is not MISSING:
-        _save_node_stats_to_influx(node_id, data.stats)
+        try_or_defer(_save_node_stats_to_influx, node_id, data.stats)
 
 
 def _save_node_stats_to_influx(node_id, stats):
