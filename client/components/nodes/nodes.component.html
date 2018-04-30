@@ -13,8 +13,8 @@
       </mat-checkbox>
     </mat-cell>
   </ng-container>
-  <ng-container matColumnDef="name">
-    <mat-header-cell *matHeaderCellDef>{{ 'tff.name' | translate }}</mat-header-cell>
+  <ng-container matColumnDef="username">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'tff.name' | translate }}</mat-header-cell>
     <mat-cell *matCellDef="let row">{{ row.profile ? (row.profile.full_name || row.profile.username) : '' }}</mat-cell>
   </ng-container>
 

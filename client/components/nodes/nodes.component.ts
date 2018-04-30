@@ -37,7 +37,7 @@ export class NodesComponent implements OnChanges {
   @Input() nodes: UserNodeStatus[];
   @Input() status: ApiRequestStatus;
   @Output() searchNodes = new EventEmitter<NodesQuery>();
-  displayedColumns = [ 'select', 'name', 'status', 'node_id', 'serial_number', 'chain_status.block_height',
+  displayedColumns = [ 'select', 'username', 'status', 'node_id', 'serial_number', 'chain_status.block_height',
     'chain_status.confirmed_balance', 'chain_status.active_blockstakes', 'chain_status.connected_peers', 'actions' ];
   dataSource = new MatTableDataSource<UserNodeStatus>();
   selection = new SelectionModel<UserNodeStatus>(true, []);
