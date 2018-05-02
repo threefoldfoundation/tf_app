@@ -33,7 +33,7 @@
             return result.value ? true : "{% translate language, 'tff', 'this_field_is_required' %}";
           }
         </javascriptValidation>
-        <widget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="TextLineWidget" maxChars="100"
+        <widget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="TextLineWidget" maxChars="{{ step.max_chars }}"
                 value="{{ step.value }}"
                 keyboardType="{{ step.keyboard_type }}"/>
         {% elif step.type == 'SelectDateWidget' %}

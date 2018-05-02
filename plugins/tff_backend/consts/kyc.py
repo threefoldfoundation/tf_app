@@ -361,6 +361,7 @@ kyc_steps = [
     {
         'type': 'address_street',
         'message': 'Please enter the street name of your home address.',
+        'max_chars': 32,
         'order': 10
     },
     {

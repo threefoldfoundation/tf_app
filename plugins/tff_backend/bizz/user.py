@@ -457,7 +457,8 @@ Note: If you do not have a passport (and only a national id), you will only be a
             'choices': step_info.get('choices', []),
             'message': step_info['message'],
             'branding_key': branding_key,
-            'order': step_info['order']
+            'order': step_info['order'],
+            'max_chars': step_info.get('max_chars', 100)
         })
     sorted_steps = sorted(steps, key=lambda k: k['order'])
     for i, step in enumerate(sorted_steps):
