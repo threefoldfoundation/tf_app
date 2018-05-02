@@ -373,20 +373,20 @@ def send_kyc_flow(app_user, message=None):
                                push_message=push_message, flow_params=json.dumps({'message': message}))
 
 
-def generate_kyc_flow(country_code, iyo_username):
-    logging.info('Generating KYC flow for user %s and country %s', iyo_username, country_code)
-    flow_params = {'nationality': country_code}
-    properties = DEFAULT_KYC_STEPS.union(_get_extra_properties(country_code))
+def generate_kyc_flow(nationality, country, iyo_username):
+    logging.info('Generating KYC flow for user %s and country %s', iyo_username, nationality)
+    flow_params = {'nationality': nationality, 'country': country}
+    properties = DEFAULT_KYC_STEPS.union(_get_extra_properties(nationality))
     try:
         known_information = _get_known_information(iyo_username)
-        known_information['address_country'] = country_code
+        known_information['address_country'] = country
     except HttpNotFoundException:
         logging.error('No profile found for user %s!', iyo_username)
         return create_error_message()
 
     steps = []
     branding_key = get_main_branding_hash()
-    must_ask_passport = 'passport' not in REQUIRED_DOCUMENT_TYPES[country_code]
+    must_ask_passport = 'passport' not in REQUIRED_DOCUMENT_TYPES[country]
     must_ask_passport = False
     for prop in properties:
         step_info = _get_step_info(prop)

@@ -68,12 +68,14 @@ def kyc_part_1(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
         return result
     if flush_id == 'flush_corporation':
         return
-    step = get_step(steps, 'message_nationality') or get_step(steps, 'message_nationality_with_vibration')
-    assert isinstance(step, FormFlowStepTO)
-    assert isinstance(step.form_result, FormResultTO)
-    assert isinstance(step.form_result.result, UnicodeWidgetResultTO)
-    country_code = step.form_result.result.value
-    xml, flow_params = generate_kyc_flow(country_code, iyo_username)
+    nationality_step = get_step(steps, 'message_nationality') or get_step(steps, 'message_nationality_with_vibration')
+    assert isinstance(nationality_step, FormFlowStepTO)
+    assert isinstance(nationality_step.form_result, FormResultTO)
+    assert isinstance(nationality_step.form_result.result, UnicodeWidgetResultTO)
+    country_step = get_step(steps, 'message_country')
+    nationality = nationality_step.form_result.result.value
+    country = country_step.form_result.result.value
+    xml, flow_params = generate_kyc_flow(nationality, country, iyo_username)
     result = FlowCallbackResultTypeTO(flow=xml, tag=KYC_FLOW_PART_2_TAG, force_language=None,
                                       flow_params=json.dumps(flow_params))
     return FlowMemberResultCallbackResultTO(type=TYPE_FLOW, value=result)
@@ -99,7 +101,8 @@ def kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                 result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     parsed_flow_params = json.loads(flow_params)
-    applicant = Applicant(nationality=parsed_flow_params['nationality'], addresses=[Address()])
+    applicant = Applicant(nationality=parsed_flow_params['nationality'],
+                          addresses=[Address(country=parsed_flow_params.get('country'))])
     documents = []
     username = get_iyo_username(user_details[0])
     if not username:

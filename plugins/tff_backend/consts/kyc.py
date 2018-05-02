@@ -396,14 +396,14 @@ kyc_steps = [
     },
     {
         'type': 'address_state',
-        'message': 'Please enter the state of your home address.',
+        'message': 'Please select the state of your home address.',
         'widget': 'SelectSingleWidget',
         'choices': state_choices,
         'order': 17
     },
     {
         'type': 'address_country',
-        'message': 'Please enter the country of your home address.',
+        'message': 'Please select the country of your home address.',
         'widget': 'SelectSingleWidget',
         'choices': country_choices,
         'order': 19
@@ -441,7 +441,7 @@ kyc_steps = [
 ]
 
 DEFAULT_KYC_STEPS = {'first_name', 'last_name', 'email', 'gender', 'dob', 'address_building_number',
-                     'address_street', 'address_town', 'address_country', 'address_postcode', 'passport', 'utility_bill'}
+                     'address_street', 'address_town', 'address_postcode', 'passport', 'utility_bill'}
 
 """
 From https://info.onfido.com/supported-documents
