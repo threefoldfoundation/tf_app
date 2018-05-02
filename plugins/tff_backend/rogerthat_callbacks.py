@@ -40,18 +40,18 @@ from plugins.tff_backend.api.rogerthat.global_stats import api_list_global_stats
 from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, api_iyo_see_detail
 from plugins.tff_backend.api.rogerthat.nodes import api_get_node_status
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
-from plugins.tff_backend.bizz.authentication import Grants
+from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.dashboard import update_firebase_installation
 from plugins.tff_backend.bizz.flow_statistics import save_flow_statistics
 from plugins.tff_backend.bizz.global_stats import ApiCallException
-from plugins.tff_backend.bizz.nodes.hoster import order_node, order_node_signed
 from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \
     investment_agreement_signed_by_admin, invest_complete, start_invest, token_value_addendum_signed
-from plugins.tff_backend.bizz.iyo.user import add_grant
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1, kyc_part_2
+from plugins.tff_backend.bizz.nodes.hoster import order_node, order_node_signed
+from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_info_in_userdata, \
-    is_user_in_roles, populate_intercom_user, add_user_to_public_role
+    is_user_in_roles, populate_intercom_user
 from plugins.tff_backend.plugin_consts import NAMESPACE, BUY_TOKENS_TAG, KYC_FLOW_PART_1_TAG, KYC_FLOW_PART_2_TAG, \
     INVEST_FLOW_TAG, SIGN_TOKEN_VALUE_ADDENDUM_TAG
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
@@ -190,8 +190,7 @@ def friend_invite_result(rt_settings, request_id, params, response):
     if user_detail.public_keys:
         deferred.defer(store_public_key, user_detail)
     deferred.defer(store_info_in_userdata, username, user_detail)
-    deferred.defer(add_grant, username, Grants.PUBLIC)
-    deferred.defer(add_user_to_public_role, user_detail)
+    deferred.defer(add_user_to_role, user_detail, RogerthatRoles.MEMBERS)
     deferred.defer(populate_intercom_user, Session.create_key(username), user_detail)
 
 

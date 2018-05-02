@@ -28,7 +28,6 @@ MEMBEROF_REGEX = re.compile('^user:memberof:%s\.(.*)' % ROOT_ORGANIZATION)
 
 
 class RogerthatRoles(object):
-    PUBLIC = 'public'
     HOSTERS = 'hosters'
     MEMBERS = 'members'
     INVESTOR = 'investors'
@@ -90,17 +89,3 @@ def get_permissions_from_scopes(scopes):
 
 def get_permission_strings(scopes):
     return ['tff.%s' % p for p in get_permissions_from_scopes(scopes)]
-
-
-class Grants(object):
-    PUBLIC = 'public'
-    MEMBERS = 'members'
-
-    ROLES = {
-        Roles.PUBLIC: PUBLIC,
-        Roles.MEMBERS: MEMBERS,
-    }
-
-    @staticmethod
-    def get_by_role_name(role_name):
-        return Grants.ROLES.get(role_name, None)

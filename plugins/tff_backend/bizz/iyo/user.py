@@ -15,13 +15,9 @@
 #
 # @@license_version:1.3@@
 
-from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client, get_itsyouonline_client_from_jwt
-from plugins.its_you_online_auth.libs import itsyouonline
-from plugins.its_you_online_auth.libs.itsyouonline.CreateGrantBody import CreateGrantBody
-from plugins.its_you_online_auth.libs.itsyouonline.UpdateGrantBody import UpdateGrantBody
+from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_jwt
 from plugins.its_you_online_auth.libs.itsyouonline.userview import userview
-from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username, \
-    get_iyo_organization_id
+from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username
 from plugins.tff_backend.utils import convert_to_str
 
 
@@ -32,41 +28,3 @@ def get_user(username, jwt=None):
         client = get_itsyouonline_client_from_username(username)
     result = client.users.GetUserInformation(convert_to_str(username))
     return userview(convert_to_str(result.json()))
-
-
-def has_grant(client, username, grant):
-    assert isinstance(client, itsyouonline.Client)
-    grants = client.organizations.GetUserGrants(convert_to_str(username), get_iyo_organization_id()).json()
-    return grants and grant in grants
-
-
-def list_grants(username):
-    client = get_itsyouonline_client()
-    return client.organizations.GetUserGrants(convert_to_str(username), get_iyo_organization_id())
-
-
-def list_all_users_with_grant(grant):
-    client = get_itsyouonline_client()
-    return client.organizations.ListUsersWithGrant(grant, get_iyo_organization_id())
-
-
-def add_grant(username, grant):
-    client = get_itsyouonline_client()
-    data = CreateGrantBody(username=convert_to_str(username), grant=grant)
-    return client.organizations.CreateUserGrant(data, get_iyo_organization_id())
-
-
-def update_grant(username, oldgrant, newgrant):
-    client = get_itsyouonline_client()
-    data = UpdateGrantBody(username=convert_to_str(username), oldgrant=oldgrant, newgrant=newgrant)
-    return client.organizations.UpdateUserGrant(data, get_iyo_organization_id())
-
-
-def remove_grant(username, grant):
-    client = get_itsyouonline_client()
-    return client.organizations.DeleteUserGrant(grant, convert_to_str(username), get_iyo_organization_id())
-
-
-def remove_all_grants(username):
-    client = get_itsyouonline_client()
-    return client.organizations.DeleteAllUserGrants(convert_to_str(username), get_iyo_organization_id())

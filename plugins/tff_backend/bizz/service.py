@@ -37,7 +37,7 @@ def get_main_branding_hash():
 @returns()
 @arguments(user_detail=UserDetailsTO, role_name=unicode)
 def add_user_to_role(user_detail, role_name):
-    logging.info('Adding user to role "%s"', role_name)
+    logging.info('Adding user %s to role "%s"', user_detail.email, role_name)
     api_key = get_rogerthat_api_key()
     role_id = get_role_id_by_name(api_key, role_name)
     member = BaseMemberTO()
@@ -49,7 +49,7 @@ def add_user_to_role(user_detail, role_name):
 @returns()
 @arguments(user_detail=UserDetailsTO, role_name=unicode)
 def remove_user_from_role(user_detail, role_name):
-    logging.info('Deleting user from role "%s"', role_name)
+    logging.info('Deleting user %s from role "%s"', user_detail.email, role_name)
     api_key = get_rogerthat_api_key()
     role_id = get_role_id_by_name(api_key, role_name)
     member = BaseMemberTO()
