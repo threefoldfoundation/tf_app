@@ -376,7 +376,7 @@ def send_kyc_flow(app_user, message=None):
 def generate_kyc_flow(nationality, country, iyo_username):
     logging.info('Generating KYC flow for user %s and country %s', iyo_username, nationality)
     flow_params = {'nationality': nationality, 'country': country}
-    properties = DEFAULT_KYC_STEPS.union(_get_extra_properties(nationality))
+    properties = DEFAULT_KYC_STEPS.union(_get_extra_properties(country))
     try:
         known_information = _get_known_information(iyo_username)
         known_information['address_country'] = country
