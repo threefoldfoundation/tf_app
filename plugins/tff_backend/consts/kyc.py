@@ -441,7 +441,7 @@ kyc_steps = [
 ]
 
 DEFAULT_KYC_STEPS = {'first_name', 'last_name', 'email', 'gender', 'dob', 'address_building_number',
-                     'address_street', 'address_town', 'address_postcode', 'passport', 'utility_bill'}
+                     'address_street', 'address_town', 'address_postcode', 'passport'}
 
 """
 From https://info.onfido.com/supported-documents

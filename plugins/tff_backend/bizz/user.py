@@ -429,11 +429,13 @@ Note: If you do not have a passport (and only a national id), you will only be a
             'max_chars': step_info.get('max_chars', 100)
         })
     sorted_steps = sorted(steps, key=lambda k: k['order'])
+    has_passport_step = False
     for i, step in enumerate(sorted_steps):
         if len(sorted_steps) > i + 1:
             if 'positive_reference' in step:
                 if step['reference'] == 'message_passport':
                     sorted_steps[i - 1]['positive_reference'] = 'flowcode_check_skip_passport'
+                    has_passport_step = True
                 step['positive_reference'] = sorted_steps[i + 1]['reference']
         else:
             step['positive_reference'] = 'flush_results'
@@ -441,7 +443,8 @@ Note: If you do not have a passport (and only a national id), you will only be a
         'start_reference': sorted_steps[0]['reference'],
         'steps': sorted_steps,
         'language': DEFAULT_LANGUAGE,
-        'branding_key': branding_key
+        'branding_key': branding_key,
+        'has_passport_step': has_passport_step
     }
     return FLOWS_JINJA_ENVIRONMENT.get_template('kyc_part_2.xml').render(template_params), flow_params
 

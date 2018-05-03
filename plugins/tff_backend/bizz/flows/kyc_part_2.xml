@@ -6,6 +6,7 @@
     name="kyc_part_2"
     language="en"
     startReference="{{ start_reference }}">
+    {% if has_passport_step %}
     <flowCode id="flowcode_check_skip_passport" exceptionReference="message_passport">
       <javascriptCode>function run(rogerthat, messageFlowRun) {
         var stepId = messageFlowRun.steps[messageFlowRun.steps.length - 1].step_id;
@@ -14,6 +15,7 @@
       <outlet value="message_passport" name="message_passport" reference="message_passport"></outlet>
       <outlet value="flush_results" name="flush_results" reference="flush_results"></outlet>
     </flowCode>
+    {% endif %}
     {% for step in steps %}
     {% if step.type %}
     <formMessage id="{{ step.reference }}"
