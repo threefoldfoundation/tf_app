@@ -23,7 +23,8 @@
               </a>
             </p>
             <ng-template #displayValue>
-              {{ 'tff.input_value_x' | translate : { value : step.display_value || '' } }}
+              {{ 'tff.input_value_x' | translate : { value : step.display_value || step.form_result?.result?.value || ''
+              } }}
             </ng-template>
           </div>
         </mat-card-content>
