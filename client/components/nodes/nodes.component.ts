@@ -31,6 +31,22 @@ import { CSVService } from '../../services';
 
   .email-list {
     margin: 16px;
+  }
+
+  .flex-layout-row {
+    box-sizing: border-box;
+    flex-direction: row;
+    display: flex;
+  }
+  .flex-layout-align-start-center {
+    flex: 1 1 0%;
+    place-content: center flex-start;
+    align-items: center;
+  }
+
+  .flex-layout-align-end-center {
+    place-content: center flex-end;
+    align-items: center;
   }` ],
 })
 export class NodesComponent implements OnChanges {

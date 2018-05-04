@@ -22,7 +22,7 @@
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       {{ 'tff.status' | translate }}
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
+    <mat-cell *matCellDef="let row" class="flex-layout-row flex-layout-align-start-center">
       <mat-icon [color]="getNodeStatusColor(row.node.status)">{{ getNodeStatusIcon(row.node.status) }}</mat-icon>
       <p>{{ ('tff.node_status_' + row.node.status) | translate }}</p>
     </mat-cell>
@@ -48,7 +48,7 @@
 
   <ng-container matColumnDef="chain_status.block_height">
     <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'tff.block_height' | translate }}</mat-header-cell>
-    <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
+    <mat-cell *matCellDef="let row" class="flex-layout-row flex-layout-align-start-center">
       <ng-container *ngIf="row.node.chain_status">
         <mat-icon [color]="getWalletStatusColor(row.node.chain_status)"
                   [matTooltip]="getWalletStatusTooltip(row.node.chain_status) | translate">
@@ -61,35 +61,35 @@
 
   <ng-container matColumnDef="chain_status.active_blockstakes">
     <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'tff.active_blockstakes' | translate }}</mat-header-cell>
-    <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
+    <mat-cell *matCellDef="let row" class="flex-layout-row flex-layout-align-start-center">
       <p *ngIf="row.node.chain_status">{{ row.node.chain_status.active_blockstakes }}</p>
     </mat-cell>
   </ng-container>
 
   <ng-container matColumnDef="chain_status.connected_peers">
     <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'tff.connected_peers' | translate }}</mat-header-cell>
-    <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
+    <mat-cell *matCellDef="let row" class="flex-layout-row flex-layout-align-start-center">
       <p *ngIf="row.node.chain_status">{{ row.node.chain_status.connected_peers }}</p>
     </mat-cell>
   </ng-container>
 
   <ng-container matColumnDef="chain_status.network">
     <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'tff.network' | translate }}</mat-header-cell>
-    <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
+    <mat-cell *matCellDef="let row" class="flex-layout-row flex-layout-align-start-center">
       <p *ngIf="row.node.chain_status">{{ row.node.chain_status.network }}</p>
     </mat-cell>
   </ng-container>
 
   <ng-container matColumnDef="chain_status.confirmed_balance">
     <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'tff.confirmed_balance' | translate }}</mat-header-cell>
-    <mat-cell *matCellDef="let row" fxFlex fxLayout="row" fxLayoutAlign="start center">
+    <mat-cell *matCellDef="let row" class="flex-layout-row flex-layout-align-start-center">
       <p *ngIf="row.node.chain_status">{{ row.node.chain_status.confirmed_balance }}</p>
     </mat-cell>
   </ng-container>
 
   <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
-    <mat-cell *matCellDef="let row" fxLayoutAlign="end center">
+    <mat-cell *matCellDef="let row" class="flex-layout-row flex-layout-align-end-center">
       <a mat-icon-button [routerLink]="['/users', row.profile.username]" target="_blank" *ngIf="row.profile"
          [matTooltip]="'tff.profile' | translate ">
         <mat-icon>person</mat-icon>
