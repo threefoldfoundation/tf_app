@@ -1,9 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
+import { Observable, Subscription } from 'rxjs';
 import { filter, take, withLatestFrom } from 'rxjs/operators';
-import { Subscription } from 'rxjs/Subscription';
 import { filterNull, IAppState } from '../../../../framework/client/ngrx';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { Profile } from '../../../../its_you_online_auth/client/interfaces';
@@ -31,6 +30,7 @@ export class OrderDetailPageComponent implements OnInit, OnDestroy {
 
   private _errorSub: Subscription;
   private _getUserSubscription: Subscription;
+
   constructor(private store: Store<IAppState>,
               private route: ActivatedRoute,
               private apiErrorService: ApiErrorService) {

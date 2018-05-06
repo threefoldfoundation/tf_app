@@ -1,10 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { Observable } from 'rxjs/Observable';
-import { map } from 'rxjs/operators/map';
-import { FirebaseFlowStats, FlowRun, FlowRunList, FlowRunQuery } from '../interfaces';
-import { UserFlowRunsQuery } from '../interfaces/flow-statistics.interfaces';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { FirebaseFlowStats, FlowRun, FlowRunList, FlowRunQuery, UserFlowRunsQuery } from '../interfaces';
 import { getQueryParams } from '../util';
 import { TffConfig } from './tff-config.service';
 

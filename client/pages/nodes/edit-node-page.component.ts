@@ -3,8 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Actions, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
+import { Observable, Subscription } from 'rxjs';
 import { DialogService } from '../../../../framework/client/dialog';
 import { filterNull } from '../../../../framework/client/ngrx';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
@@ -36,6 +35,7 @@ export class EditNodePageComponent implements OnInit, OnDestroy {
   updateNodeStatus$: Observable<ApiRequestStatus>;
 
   private _actionSubscription: Subscription;
+
   constructor(private store: Store<ITffState>,
               private route: ActivatedRoute,
               private dialogService: DialogService,
@@ -52,7 +52,7 @@ export class EditNodePageComponent implements OnInit, OnDestroy {
     this.updateNodeStatus$ = this.store.pipe(select(updateNodeStatus));
     this._actionSubscription = this.actions$.pipe(ofType(TffActionTypes.DELETE_NODE_COMPLETE)).subscribe(action => {
       this.router.navigate([ '..' ], { relativeTo: this.route });
-    })
+    });
   }
 
   ngOnDestroy() {

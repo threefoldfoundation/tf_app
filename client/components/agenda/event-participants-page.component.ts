@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { GetEventParticipantsAction } from '../../actions/threefold.action';
-import { EventParticipant } from '../../interfaces/agenda-events.interfaces';
-import { ITffState } from '../../states/tff.state';
+import { Observable } from 'rxjs';
+import { ApiRequestStatus } from '../../../../framework/client/rpc';
+import { GetEventParticipantsAction } from '../../actions';
+import { EventParticipant } from '../../interfaces';
+import { ITffState } from '../../states';
 import { getEventParticipants, getEventParticipantsStatus } from '../../tff.state';
 
 @Component({
@@ -13,7 +13,7 @@ import { getEventParticipants, getEventParticipantsStatus } from '../../tff.stat
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <tff-event-participants [participants]="participants$ | async" [status]="status$ | async"></tff-event-participants>`
+    <tff-event-participants [participants]="participants$ | async" [status]="status$ | async"></tff-event-participants>`,
 })
 export class EventParticipantsPageComponent implements OnInit {
   participants$: Observable<EventParticipant[]>;

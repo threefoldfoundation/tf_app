@@ -1,9 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
-import { filter } from 'rxjs/operators';
-import { IAppState } from '../../../../framework/client/ngrx';
+import { Observable } from 'rxjs';
+import { filterNull, IAppState } from '../../../../framework/client/ngrx';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { GetGlobalStatsAction, UpdateGlobalStatsAction } from '../../actions';
 import { GlobalStats } from '../../interfaces';
@@ -31,7 +30,7 @@ export class GlobalStatsDetailPageComponent implements OnInit {
   ngOnInit() {
     const statsId = this.route.snapshot.params.globalStatsId;
     this.store.dispatch(new GetGlobalStatsAction(statsId));
-    this.globalStats$ = <Observable<GlobalStats>>this.store.select(getGlobalStats).pipe(filter(s => s !== null));
+    this.globalStats$ = this.store.select(getGlobalStats).pipe(filterNull());
     this.getStatus$ = this.store.select(getGlobalStatsStatus);
     this.updateStatus$ = this.store.select(updateGlobalStatsStatus);
   }

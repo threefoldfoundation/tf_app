@@ -10,7 +10,7 @@ import { GlobalStats, INVESTMENT_AGREEMENT_STATUSES, InvestmentAgreement, Invest
   templateUrl: 'investment-agreement-detail.component.html',
   styles: [ `.investment-agreement-content {
     padding: 16px;
-  }` ]
+  }` ],
 })
 export class InvestmentAgreementDetailComponent {
   statuses = InvestmentAgreementsStatuses;
@@ -63,7 +63,7 @@ export class InvestmentAgreementDetailComponent {
     // When the admin user has signed that message, only then it will be marked as paid
     const updatedProperties = {
       status: InvestmentAgreementsStatuses.SIGNED,
-      token_count_float: this.getTokenCount()
+      token_count_float: this.getTokenCount(),
     };
     this.onUpdate.emit({ ...this.investmentAgreement, ...updatedProperties });
   }

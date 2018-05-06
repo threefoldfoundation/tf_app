@@ -113,6 +113,6 @@ export const USERS_ROUTES = [
         data: { meta: { title: 'tff.flow_statistics' } },
         component: UserFlowRunsDetailsPageComponent,
       },
-    ]
-  }
+    ],
+  },
 ];

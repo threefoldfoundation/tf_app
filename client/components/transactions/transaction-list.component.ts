@@ -6,7 +6,7 @@ import { Transaction, TransactionList } from '../../interfaces/transactions.inte
   selector: 'tff-transaction-list',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'transaction-list.component.html'
+  templateUrl: 'transaction-list.component.html',
 })
 
 export class TransactionListComponent {

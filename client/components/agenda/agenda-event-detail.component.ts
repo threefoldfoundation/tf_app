@@ -17,7 +17,7 @@ import { AGENDA_EVENT_TYPES, AgendaEvent } from '../../interfaces/agenda-events.
   tff-agenda-event-detail .time-input {
     width: 100px;
     margin-left: 16px;
-  }` ]
+  }` ],
 })
 
 export class AgendaEventDetailComponent {

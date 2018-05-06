@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { Profile } from '../../../../its_you_online_auth/client/interfaces';
-import { ORDER_STATUSES_DICT } from '../../interfaces';
-import { NODE_ORDER_STATUS_MAPPING, NodeOrder, NodeOrderStatuses } from '../../interfaces';
+import { NODE_ORDER_STATUS_MAPPING, NodeOrder, NodeOrderStatuses, ORDER_STATUSES_DICT } from '../../interfaces';
 
 @Component({
   selector: 'tff-order-detail',
@@ -10,7 +9,7 @@ import { NODE_ORDER_STATUS_MAPPING, NodeOrder, NodeOrderStatuses } from '../../i
   templateUrl: 'order-detail.component.html',
   styles: [ `.order-content {
     padding: 16px;
-  }` ]
+  }` ],
 })
 
 export class OrderDetailComponent implements OnChanges {

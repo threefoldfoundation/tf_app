@@ -12,8 +12,7 @@ import {
 } from '@angular/core';
 import { BreakPoint, BreakPointRegistry, MatchMedia } from '@angular/flex-layout/core';
 import { TranslateService } from '@ngx-translate/core';
-import { Subject } from 'rxjs/Subject';
-import { Subscription } from 'rxjs/Subscription';
+import { Subject, Subscription } from 'rxjs';
 import { MOBILE_TYPES } from '../../../../rogerthat_api/client/interfaces';
 import {
   AggregatedFlowRunStats,
@@ -49,10 +48,6 @@ export const enum ChartColor {
   styleUrls: [ 'dashboard.component.css' ],
 })
 export class DashboardComponent implements OnChanges, OnDestroy {
-  @HostListener('window:resize')
-  onResize() {
-    this.drawChartSubject.next();
-  }
   @Input() flowStats: AggregatedFlowRunStats[];
   @Input() tickerEntries: TickerEntry[];
   @Input() installationStats: AggregatedInstallationStats;
@@ -62,7 +57,6 @@ export class DashboardComponent implements OnChanges, OnDestroy {
   timeDurationPipe: TimeDurationPipe;
   breakPoint: BreakPoint;
   drawChartSubject = new Subject();
-
   private _chartSub: Subscription;
 
   constructor(private translate: TranslateService,
@@ -76,6 +70,11 @@ export class DashboardComponent implements OnChanges, OnDestroy {
     this.breakPoint = <BreakPoint>breakPoints.findByAlias('lt-md');
     // todo debounce
     this._chartSub = this.drawChartSubject.asObservable().subscribe(() => this.createChart());
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.drawChartSubject.next();
   }
 
   ngOnChanges(changes: SimpleChanges) {

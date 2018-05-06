@@ -11,8 +11,8 @@ import {
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
-import { MonoTypeOperatorFunction } from 'rxjs/interfaces';
-import { filter } from 'rxjs/operators/filter';
+import { MonoTypeOperatorFunction } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { DialogService, PromptDialogResult } from '../../../../framework/client/dialog';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { Applicant, Check, KYC_STATUS_MAPPING, KYCStatus, KYCStatuses, SetKYCStatusPayload, TffProfile } from '../../interfaces';

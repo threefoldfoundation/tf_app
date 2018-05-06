@@ -3,10 +3,10 @@ import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { filter } from 'rxjs/operators/filter';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { GetAgendaEventAction, UpdateAgendaEventAction } from '../../actions/threefold.action';
-import { AgendaEvent } from '../../interfaces/agenda-events.interfaces';
-import { ITffState } from '../../states/tff.state';
+import { ApiRequestStatus } from '../../../../framework/client/rpc';
+import { GetAgendaEventAction, UpdateAgendaEventAction } from '../../actions';
+import { AgendaEvent } from '../../interfaces';
+import { ITffState } from '../../states';
 import { getAgendaEvent, getAgendaEventStatus, updateAgendaEventStatus } from '../../tff.state';
 
 @Component({
@@ -17,7 +17,7 @@ import { getAgendaEvent, getAgendaEventStatus, updateAgendaEventStatus } from '.
     <div class="default-component-padding">
       <tff-agenda-event-detail [event]="agendaEvent$ | async" [status]="status$ | async" [updateStatus]="updateStatus$ | async"
                                (submitted)="onSubmitted($event)"></tff-agenda-event-detail>
-    </div>`
+    </div>`,
 })
 
 export class AgendaEventDetailPageComponent implements OnInit {

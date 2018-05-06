@@ -3,7 +3,7 @@
   <!--TODO generic user search component -->
   <mat-form-field>
     <mat-chip-list #chipList>
-      <mat-chip *ngIf="selectedUser" (remove)="selectedUser = null">
+      <mat-chip *ngIf="selectedUser" (removed)="selectedUser = null">
         {{ getUserInfoLine(selectedUser) }}
         <mat-icon matChipRemove>cancel</mat-icon>
       </mat-chip>
@@ -66,7 +66,7 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <mat-form-field >
+  <mat-form-field>
     <input matInput
            required
            name="order_time"

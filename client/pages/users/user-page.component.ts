@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { filterNull } from '../../../../framework/client/ngrx';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { UpdateSecondaryTitleAction } from '../../../../framework/client/sidebar/actions/sidebar.action';
@@ -15,7 +15,7 @@ import { getUser } from '../../tff.state';
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <router-outlet></router-outlet>`
+    <router-outlet></router-outlet>`,
 })
 
 export class UserPageComponent implements OnInit, OnDestroy {

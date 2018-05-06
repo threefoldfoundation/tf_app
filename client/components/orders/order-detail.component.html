@@ -37,7 +37,8 @@
     </p>
     <p *ngIf="nodeOrder.cancel_time">
       {{ 'tff.cancel_time' | translate }}: {{ nodeOrder.cancel_time | timestamp }}</p>
-    <button *ngIf="allowedStatuses.includes(statuses.CANCELED)" mat-button (click)="setOrderStatus(statuses.CANCELED)" color="warn">
+    <button *ngIf="allowedStatuses.includes(statuses.CANCELED)" mat-button (click)="setOrderStatus(statuses.CANCELED)"
+            color="warn">
       {{ 'tff.cancel_order' | translate }}
     </button>
     <button *ngIf="allowedStatuses.includes(statuses.SENT)" mat-button (click)="setOrderStatus(statuses.SENT)">

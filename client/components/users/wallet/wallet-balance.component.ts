@@ -11,7 +11,7 @@ import { WalletBalance } from '../../../interfaces/transactions.interfaces';
     width: 200px;
     display: inline-block !important;
     margin: 16px;
-  }` ]
+  }` ],
 })
 export class WalletBalanceComponent {
   @Input() balance: WalletBalance[];

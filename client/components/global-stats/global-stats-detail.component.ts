@@ -26,7 +26,7 @@ export class GlobalStatsDetailComponent {
 
   private _globalStats: GlobalStats;
 
-   addCurrency() {
+  addCurrency() {
     if (this.globalStats.currencies.every(c => c.currency !== this.newCurrency)) {
       const newCurrency: CurrencyValue = {
         currency: this.newCurrency,

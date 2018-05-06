@@ -1,11 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
-import {
-  INVESTMENT_AGREEMENT_STATUSES,
-  InvestmentAgreement,
-  InvestmentAgreementList,
-  InvestmentAgreementsQuery,
-} from '../../interfaces';
+import { INVESTMENT_AGREEMENT_STATUSES, InvestmentAgreement, InvestmentAgreementList, InvestmentAgreementsQuery } from '../../interfaces';
 
 @Component({
   selector: 'tff-investment-agreements',

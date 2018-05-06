@@ -1,10 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
-import { first } from 'rxjs/operators/first';
-import { map } from 'rxjs/operators/map';
-import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
-import { Subscription } from 'rxjs/Subscription';
+import { Observable, Subscription } from 'rxjs';
+import { first, map, withLatestFrom } from 'rxjs/operators';
 import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
 import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
 import { GetOrdersAction } from '../../actions/threefold.action';
@@ -26,7 +23,7 @@ import { getNodeOrdersQuery, getOrders, getOrdersStatus } from '../../tff.state'
         <mat-icon>add</mat-icon>
       </a>
     </div>
-  `
+  `,
 })
 export class OrderListPageComponent implements OnInit, OnDestroy {
   orders$: Observable<NodeOrderList>;

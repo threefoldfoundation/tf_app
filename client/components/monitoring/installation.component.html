@@ -15,7 +15,8 @@
   </div>
   <div *ngIf="installation.user_details">
     <h3>{{ 'tff.profile' | translate }}</h3>
-    <p *ngIf="installation.user_details.name">{{ 'tff.name_x' | translate : { name: installation.user_details.name } }}</p>
+    <p *ngIf="installation.user_details.name">{{ 'tff.name_x' | translate : { name: installation.user_details.name }
+      }}</p>
     <p>{{ 'tff.language_x' | translate : { language: installation.user_details.language } }}</p>
   </div>
 </div>

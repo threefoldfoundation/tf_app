@@ -2,9 +2,8 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulatio
 import { ActivatedRoute } from '@angular/router';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable, Subscription } from 'rxjs';
 import { filter, map, take, withLatestFrom } from 'rxjs/operators';
-import { Subscription } from 'rxjs/Subscription';
 import { DialogService } from '../../../../framework/client/dialog';
 import { getIdentity } from '../../../../framework/client/identity';
 import { Identity } from '../../../../framework/client/identity/interfaces';
@@ -38,7 +37,7 @@ import {
                               [updateStatus]="updateStatus$ | async"
                               [canUpdate]="canUpdate$ | async"
                               [user]="user$ | async"
-                              (onUpdate)="onUpdate($event)"></tff-investment-agreement>`
+                              (onUpdate)="onUpdate($event)"></tff-investment-agreement>`,
 })
 
 export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy {
@@ -97,7 +96,7 @@ export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy
     if (agreement.status === InvestmentAgreementsStatuses.SIGNED) {
       this.dialogService.openAlert({
         message: this.translate.instant('tff.mark_as_paid_info'),
-        ok: this.translate.instant('tff.close')
+        ok: this.translate.instant('tff.close'),
       });
     }
   }

@@ -309,6 +309,7 @@ export class UpdateInvestmentAgreementFailedAction implements Action {
   constructor(public payload: ApiRequestStatus) {
   }
 }
+
 export class CreateInvestmentAgreementAction implements Action {
   readonly type = TffActionTypes.CREATE_INVESTMENT_AGREEMENT;
 
