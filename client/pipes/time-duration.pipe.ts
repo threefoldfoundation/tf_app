@@ -1,7 +1,7 @@
 import { AsyncPipe, I18nPluralPipe } from '@angular/common';
 import { ChangeDetectorRef, Pipe, PipeTransform } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { getTimePipeValue, TIME_DURATION_MAPPING, TimePipeTranslationMapping } from './time-pipe-data';
 
 @Pipe({

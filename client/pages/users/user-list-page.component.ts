@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
-import { first } from 'rxjs/operators/first';
+import { Observable } from 'rxjs';
+import { first } from 'rxjs/operators';
 import { IAppState } from '../../../../framework/client/ngrx';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { SearchUsersAction } from '../../actions';
@@ -16,7 +16,7 @@ import { getUserList, getUserListStatus, getUserQueryList } from '../../tff.stat
       <tff-user-search [query]="query$ | async" (submitSearch)="onQuery($event)"></tff-user-search>
       <tff-api-request-status [status]="status$ | async"></tff-api-request-status>
       <tff-user-list [userList]="userList$ | async" (loadMore)="onLoadMore()"></tff-user-list>
-    </div>`
+    </div>`,
 })
 export class UserListPageComponent implements OnInit {
   userList$: Observable<UserList>;

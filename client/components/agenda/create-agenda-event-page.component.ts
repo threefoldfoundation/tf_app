@@ -1,15 +1,13 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
-import { filter } from 'rxjs/operators/filter';
-import { withLatestFrom } from 'rxjs/operators/withLatestFrom';
-import { Subscription } from 'rxjs/Subscription';
+import { Observable, Subscription } from 'rxjs';
+import { filter, withLatestFrom } from 'rxjs/operators';
 import { filterNull } from '../../../../framework/client/ngrx';
-import { ApiRequestStatus, apiRequestSuccess } from '../../../../framework/client/rpc/rpc.interfaces';
-import { CreateAgendaEventAction, ResetAgendaEventAction } from '../../actions/threefold.action';
-import { AgendaEvent, AgendaEventType } from '../../interfaces/agenda-events.interfaces';
-import { ITffState } from '../../states/tff.state';
+import { ApiRequestStatus, apiRequestSuccess } from '../../../../framework/client/rpc';
+import { CreateAgendaEventAction, ResetAgendaEventAction } from '../../actions';
+import { AgendaEvent, AgendaEventType } from '../../interfaces';
+import { ITffState } from '../../states';
 import { createAgendaEventStatus, getAgendaEvent } from '../../tff.state';
 
 @Component({
@@ -20,7 +18,7 @@ import { createAgendaEventStatus, getAgendaEvent } from '../../tff.state';
     <div class="default-component-padding">
       <tff-agenda-event-detail [event]="event" [status]="status" [updateStatus]="createStatus$ | async"
                                (submitted)="onSubmitted($event)"></tff-agenda-event-detail>
-    </div>`
+    </div>`,
 })
 
 export class CreateAgendaEventPageComponent implements OnInit, OnDestroy {
@@ -29,6 +27,7 @@ export class CreateAgendaEventPageComponent implements OnInit, OnDestroy {
   status = apiRequestSuccess;
 
   private _createStatusSubscription: Subscription;
+
   constructor(private store: Store<ITffState>,
               private router: Router,
               private route: ActivatedRoute) {
@@ -49,8 +48,8 @@ export class CreateAgendaEventPageComponent implements OnInit, OnDestroy {
       filter(status => status.success),
       withLatestFrom(this.store.select(getAgendaEvent).pipe(filterNull<AgendaEvent>())),
     ).subscribe(([ status, event ]: [ ApiRequestStatus, AgendaEvent ]) => {
-        return this.router.navigate([ '..', event.id ], { relativeTo: this.route });
-      });
+      return this.router.navigate([ '..', event.id ], { relativeTo: this.route });
+    });
   }
 
   ngOnDestroy() {

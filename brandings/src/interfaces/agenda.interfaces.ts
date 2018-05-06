@@ -20,7 +20,7 @@ export interface AgendaEventDetail extends AgendaEvent {
   is_in_past: boolean;
 }
 
-export const enum EventPresenceStatus {
+export enum EventPresenceStatus {
   ABSENT = -1,
   UNKNOWN = 0,
   PRESENT = 1,

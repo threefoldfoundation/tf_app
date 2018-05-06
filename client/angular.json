@@ -1,0 +1,31 @@
+{
+  "projects": {
+    "gae-plugin-framework-cli": {
+      "architect": {
+        "build": {
+          "options": {
+            "styles": [
+              "src/tff_backend/client/styles/global.scss",
+              "src/tff_backend/client/styles/theme.scss"
+            ]
+          }
+        },
+        "test": {
+          "options": {
+            "styles": [
+              "src/tff_backend/client/styles/global.scss",
+              "src/tff_backend/client/styles/theme.scss"
+            ]
+          }
+        },
+        "lint": {
+          "options": {
+            "tsConfig": [
+              "src/tff_backend/tslint.json"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -7,7 +7,7 @@ import { CreateTransactionPayload, TokenTypes } from '../../interfaces';
   selector: 'tff-create-transaction',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'create-transaction.component.html'
+  templateUrl: 'create-transaction.component.html',
 })
 
 export class CreateTransactionComponent {

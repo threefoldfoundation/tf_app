@@ -6,14 +6,14 @@ import { EventParticipant, EventPresenceStatus } from '../../interfaces/agenda-e
   selector: 'tff-event-participants',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'event-participants.component.html'
+  templateUrl: 'event-participants.component.html',
 })
 export class EventParticipantsComponent implements OnChanges {
   @Input() participants: EventParticipant[];
   @Input() status: ApiRequestStatus;
 
   wantsRecording = 42;
-  presence: { [key: number]: EventParticipant[] } = {
+  presence: { [ key: number ]: EventParticipant[] } = {
     [ EventPresenceStatus.PRESENT ]: [],
     [ EventPresenceStatus.ABSENT ]: [],
     [ this.wantsRecording ]: [],
@@ -30,7 +30,7 @@ export class EventParticipantsComponent implements OnChanges {
       const presence: EventParticipant[] = changes.participants.currentValue;
       this.presence[ EventPresenceStatus.PRESENT ] = presence.filter(p => p.status === EventPresenceStatus.PRESENT);
       this.presence[ EventPresenceStatus.ABSENT ] = presence.filter(p => p.status === EventPresenceStatus.ABSENT);
-      this.presence[this.wantsRecording] = presence.filter(p => p.wants_recording);
+      this.presence[ this.wantsRecording ] = presence.filter(p => p.wants_recording);
     }
   }
 

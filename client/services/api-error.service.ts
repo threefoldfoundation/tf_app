@@ -5,7 +5,7 @@ import { DialogService } from '../../../framework/client/dialog/index';
 import { ApiError } from '../../../framework/client/rpc/rpc.interfaces';
 
 export interface TranslationParams {
-  [key: string]: string;
+  [ key: string ]: string;
 }
 
 @Injectable()

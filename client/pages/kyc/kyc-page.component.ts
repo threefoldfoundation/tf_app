@@ -1,9 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
-import { map } from 'rxjs/operators/map';
-import { take } from 'rxjs/operators/take';
-import { Subscription } from 'rxjs/Subscription';
+import { Observable, Subscription } from 'rxjs';
+import { map, take } from 'rxjs/operators';
 import { filterNull, IAppState } from '../../../../framework/client/ngrx';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { GetKYCChecksAction, SetKYCStatusAction, VerityUtilityBillAction } from '../../actions';
@@ -34,7 +32,7 @@ import {
                [utilityBillStatus]="utilityBillStatus$ | async"
                (setStatus)="onSetStatus($event)"
                (verifyUtilityBill)="onVerifyUtilityBill($event)"></tff-kyc>
-    </div>`
+    </div>`,
 })
 
 export class KycPageComponent implements OnInit, OnDestroy {
@@ -46,6 +44,7 @@ export class KycPageComponent implements OnInit, OnDestroy {
   utilityBillStatus$: Observable<ApiRequestStatus>;
 
   private _sub: Subscription;
+
   constructor(private store: Store<IAppState>) {
   }
 
@@ -55,8 +54,8 @@ export class KycPageComponent implements OnInit, OnDestroy {
       map(profile => ({
         ...profile, kyc: {
           ...profile.kyc,
-          updates: profile.kyc.updates.concat().reverse()
-        }
+          updates: profile.kyc.updates.concat().reverse(),
+        },
       })));
     this.status$ = this.store.select(getTffProfileStatus);
     this.updateStatus$ = this.store.select(setKYCStatus);

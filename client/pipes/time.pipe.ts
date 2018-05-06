@@ -1,8 +1,7 @@
 import { AsyncPipe, I18nPluralPipe } from '@angular/common';
 import { ChangeDetectorRef, OnDestroy, Pipe, PipeTransform } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { Observable } from 'rxjs/Observable';
-import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
+import { interval, Observable } from 'rxjs';
 import { distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
 import { getTimePipeValue, TimePipeTranslationMapping, TRANSLATION_MAPPING } from './time-pipe-data';
 
@@ -52,7 +51,7 @@ export class TimePipe implements OnDestroy, PipeTransform {
   }
 
   private getObservable() {
-    return IntervalObservable.create(5000).pipe(
+    return interval(5000).pipe(
       startWith(0),
       map(() => getTimePipeValue(this.getTimeDiff())),
       distinctUntilChanged((first, second) => first.value === second.value && first.timeType === second.timeType),

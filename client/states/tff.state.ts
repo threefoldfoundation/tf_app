@@ -11,7 +11,8 @@ import {
   GlobalStats,
   InvestmentAgreement,
   InvestmentAgreementList,
-  InvestmentAgreementsQuery, NodeInfo,
+  InvestmentAgreementsQuery,
+  NodeInfo,
   NodeOrder,
   NodeOrderList,
   NodeOrdersQuery,
@@ -94,7 +95,7 @@ export interface ITffState {
 export const emptyPaginatedResult: PaginatedResult<any> = {
   cursor: null,
   more: false,
-  results: []
+  results: [],
 };
 
 export const initialTffState: ITffState = {

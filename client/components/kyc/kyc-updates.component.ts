@@ -9,13 +9,13 @@ import { KYCStatus, KYCStatuses, KYCStatusUpdate } from '../../interfaces/profil
   styles: [ `.mat-card.kyc-card {
     width: 350px;
     margin: 16px 0;
-  }` ]
+  }` ],
 })
 
 export class KycUpdatesComponent {
   @Input() updates: KYCStatusUpdate[];
 
-  private statuses: { [key: number]: string } = KYCStatuses.reduce((acc, current) => ({ ...acc, [ current.value ]: current.label }), {});
+  private statuses: { [ key: number ]: string } = KYCStatuses.reduce((acc, current) => ({ ...acc, [ current.value ]: current.label }), {});
 
   getStatusString(status: KYCStatus) {
     return this.statuses[ status ];

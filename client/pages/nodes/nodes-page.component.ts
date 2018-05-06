@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { environment } from '../../../../framework/client/environments/environment';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { AddToolbarItemAction, RemoveToolbarItemAction } from '../../../../framework/client/toolbar/actions';
@@ -11,6 +11,7 @@ import { ITffState } from '../../states';
 import { getNodes, getNodesStatus } from '../../tff.state';
 
 const tffConf = environment.configuration.plugins.tff_backend;
+
 @Component({
   selector: 'tff-nodes-pages',
   changeDetection: ChangeDetectionStrategy.OnPush,

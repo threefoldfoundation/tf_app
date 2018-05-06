@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { MatTabChangeEvent } from '@angular/material';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { GetAgendaEventsAction } from '../../actions/threefold.action';
-import { AgendaEvent } from '../../interfaces/agenda-events.interfaces';
-import { ITffState } from '../../states/tff.state';
+import { Observable } from 'rxjs';
+import { ApiRequestStatus } from '../../../../framework/client/rpc';
+import { GetAgendaEventsAction } from '../../actions';
+import { AgendaEvent } from '../../interfaces';
+import { ITffState } from '../../states';
 import { getAgendaEvents, getAgendaEventsStatus } from '../../tff.state';
 
 @Component({
@@ -13,7 +13,7 @@ import { getAgendaEvents, getAgendaEventsStatus } from '../../tff.state';
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <mat-tab-group (selectChange)="loadEvents($event)">
+    <mat-tab-group (selectedTabChange)="loadEvents($event)">
       <mat-tab [label]="tab.label | translate" *ngFor="let tab of tabs">
         <tff-agenda-events-list [events]="events$ | async" [status]="status$ | async"></tff-agenda-events-list>
       </mat-tab>

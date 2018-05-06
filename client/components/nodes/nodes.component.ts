@@ -26,7 +26,7 @@ import { CSVService } from '../../services';
   }
 
   .mat-column-actions {
-    flex: 0 0 120px !important;
+    flex: 0 0 144px !important;
   }
 
   .email-list {

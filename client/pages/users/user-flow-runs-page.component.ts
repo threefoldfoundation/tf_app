@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { GetUserFlowRunsAction } from '../../actions';

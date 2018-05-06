@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
-import { filter } from 'rxjs/operators/filter';
-import { Subscription } from 'rxjs/Subscription';
-import { IAppState } from '../../../../../framework/client/ngrx/state/app.state';
-import { ApiRequestStatus } from '../../../../../framework/client/rpc/rpc.interfaces';
-import { CreateTransactionAction, ResetNewTransactionAction } from '../../../actions/threefold.action';
-import { CreateTransactionPayload, TokenTypes } from '../../../interfaces/transactions.interfaces';
+import { Observable, Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { IAppState } from '../../../../../framework/client/ngrx';
+import { ApiRequestStatus } from '../../../../../framework/client/rpc';
+import { CreateTransactionAction, ResetNewTransactionAction } from '../../../actions';
+import { CreateTransactionPayload, TokenTypes } from '../../../interfaces';
 import { createTransactionStatus } from '../../../tff.state';
 
 @Component({
@@ -20,7 +19,7 @@ import { createTransactionStatus } from '../../../tff.state';
       <tff-create-transaction [transaction]="transaction"
                               [createStatus]="createStatus$ | async"
                               (onCreateTransaction)="createTransaction($event)"></tff-create-transaction>
-    </div>`
+    </div>`,
 })
 export class CreateTransactionPageComponent implements OnInit, OnDestroy {
   transaction: CreateTransactionPayload;

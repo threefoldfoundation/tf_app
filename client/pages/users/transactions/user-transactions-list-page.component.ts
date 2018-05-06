@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { IAppState } from '../../../../../framework/client/ngrx';
 import { ApiRequestStatus } from '../../../../../framework/client/rpc';
 import { GetBalanceAction, GetUserTransactionsAction } from '../../../actions';
