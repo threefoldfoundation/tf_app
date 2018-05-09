@@ -28,6 +28,7 @@ class NodeStatus(Enum):
 
 class WalletStatus(Enum):
     ERROR = 'error'
+    LOCKED = 'locked'
     UNLOCKED = 'unlocked'
 
 
