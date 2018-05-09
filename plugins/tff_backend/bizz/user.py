@@ -74,7 +74,7 @@ FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader([os.path.join(os.path.dirname(__file__), 'flows')]))
 
 
-@returns()
+@returns(unicode)
 @arguments(user_detail=UserDetailsTO, origin=unicode, data=unicode)
 def user_registered(user_detail, origin, data):
     logging.info('User %s:%s registered', user_detail.email, user_detail.app_id)
@@ -102,6 +102,7 @@ def user_registered(user_detail, origin, data):
     scopes = decoded_jwt['scope']
     # Creation session such that the JWT is automatically up to date
     _, session = create_session(username, scopes, jwt, secret=username)
+    return username
 
 
 def populate_intercom_user(session_key, user_detail=None):

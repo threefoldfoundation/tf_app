@@ -165,13 +165,12 @@ def friend_register(rt_settings, request_id, params, response):
     if response['result'] == DECLINE_ID:
         return
     user_detail = log_and_parse_user_details(params['user_details'])[0]
-    username = get_iyo_username(user_detail)
+    username = user_registered(user_detail, params['origin'], params['data'])
     if user_detail.public_keys:
         deferred.defer(store_public_key, user_detail)
     deferred.defer(store_info_in_userdata, username, user_detail)
     deferred.defer(add_user_to_role, user_detail, RogerthatRoles.MEMBERS)
     deferred.defer(populate_intercom_user, Session.create_key(username), user_detail)
-    return user_registered(user_detail, params['origin'], params['data'])
 
 
 def friend_invited(rt_settings, request_id, user_details, **kwargs):
@@ -191,6 +190,7 @@ def friend_update(rt_settings, request_id, user_details, changed_properties, **k
 
 def friend_invite_result(rt_settings, request_id, params, response):
     pass
+
 
 def friend_is_in_roles(rt_settings, request_id, service_identity, user_details, roles, **kwargs):
     user_details = log_and_parse_user_details(user_details)
