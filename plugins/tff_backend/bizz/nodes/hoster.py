@@ -175,7 +175,7 @@ def _order_node(order_key, user_email, app_id, steps):
             deferred.defer(_inform_support_of_new_node_order, order_key.id(), _transactional=True)
         deferred.defer(set_hoster_status_in_user_data, order.app_user, False, _transactional=True)
         if updated_user_data:
-            deferred.defer(put_user_data, app_user, updated_user_data, _transactional=True)
+            deferred.defer(put_user_data, user_email, app_id, updated_user_data, _transactional=True)
 
     ndb.transaction(trans)
 

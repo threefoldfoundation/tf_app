@@ -42,7 +42,7 @@ from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_j
 from plugins.its_you_online_auth.bizz.profile import get_profile, index_profile
 from plugins.its_you_online_auth.models import Profile
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
-from plugins.rogerthat_api.api import system, messaging
+from plugins.rogerthat_api.api import system, messaging, RogerthatApiException
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
 from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_OAUTH
@@ -55,7 +55,7 @@ from plugins.tff_backend.bizz.iyo.user import get_user
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
 from plugins.tff_backend.bizz.kyc.onfido_bizz import create_check, update_applicant, deserialize, list_checks, serialize
 from plugins.tff_backend.bizz.messages import send_message_and_email
-from plugins.tff_backend.bizz.rogerthat import create_error_message, send_rogerthat_message
+from plugins.tff_backend.bizz.rogerthat import create_error_message, send_rogerthat_message, put_user_data
 from plugins.tff_backend.bizz.service import get_main_branding_hash
 from plugins.tff_backend.consts.kyc import kyc_steps, DEFAULT_KYC_STEPS, REQUIRED_DOCUMENT_TYPES
 from plugins.tff_backend.models.hoster import PublicKeyMapping
@@ -141,9 +141,7 @@ def store_chat_id_in_user_data(rogerthat_chat_id, user_detail):
     user_data = {
         'support_chat_id': rogerthat_chat_id
     }
-
-    api_key = get_rogerthat_api_key()
-    system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
+    put_user_data(user_detail.email, user_detail.app_id, user_data)
 
 
 @returns(unicode)
@@ -193,9 +191,7 @@ def store_invitation_code_in_userdata(username, user_detail):
     user_data = {
         'invitation_code': user_code(username)
     }
-
-    api_key = get_rogerthat_api_key()
-    system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
+    put_user_data(user_detail.email, user_detail.app_id, user_data)
 
 
 @returns()
@@ -226,7 +222,7 @@ def store_iyo_info_in_userdata(username, user_detail):
             user_data['address'] += '\n\n%s' % iyo_user.addresses[0].other
 
     if user_data:
-        system.put_user_data(api_key, user_detail.email, user_detail.app_id, user_data)
+        put_user_data(user_detail.email, user_detail.app_id, user_data)
 
 
 def store_referral_in_user_data(profile_key):
@@ -235,8 +231,7 @@ def store_referral_in_user_data(profile_key):
         'has_referrer': profile.referrer_user is not None
     }
     email, app_id = get_app_user_tuple(profile.app_user)
-    api_key = get_rogerthat_api_key()
-    system.put_user_data(api_key, email.email(), app_id, user_data)
+    put_user_data(email.email(), app_id, user_data)
 
 
 def notify_new_referral(my_username, app_user):
@@ -507,8 +502,7 @@ def store_kyc_in_user_data(app_user):
         }
     }
     email, app_id = get_app_user_tuple(app_user)
-    api_key = get_rogerthat_api_key()
-    return system.put_user_data(api_key, email.email(), app_id, user_data)
+    return put_user_data(email.email(), app_id, user_data)
 
 
 @returns([dict])

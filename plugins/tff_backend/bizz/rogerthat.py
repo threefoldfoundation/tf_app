@@ -20,7 +20,7 @@ import logging
 from google.appengine.api import users
 
 from mcfw.rpc import arguments, returns
-from plugins.rogerthat_api.api import system, messaging
+from plugins.rogerthat_api.api import system, messaging, RogerthatApiException
 from plugins.rogerthat_api.to import MemberTO
 from plugins.rogerthat_api.to.messaging import Message, AnswerTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import TYPE_FLOW, FlowCallbackResultTypeTO, \
@@ -31,10 +31,14 @@ from plugins.tff_backend.plugin_consts import FLOW_ERROR_MESSAGE
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 
-def put_user_data(app_user, updated_user_data):
+def put_user_data(user_email, app_id, updated_user_data):
     api_key = get_rogerthat_api_key()
-    email, app_id = get_app_user_tuple(app_user)
-    system.put_user_data(api_key, email.email(), app_id, updated_user_data)
+    try:
+        system.put_user_data(api_key, user_email, app_id, updated_user_data)
+    except RogerthatApiException as e:
+        if e.code == 60011:  # user not in friend list
+            raise Exception(e.message)  # ensure task is retried
+        raise
 
 
 @returns(unicode)

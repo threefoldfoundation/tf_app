@@ -46,7 +46,6 @@ from plugins.tff_backend.bizz.flow_statistics import save_flow_statistics
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \
     investment_agreement_signed_by_admin, invest_complete, start_invest, token_value_addendum_signed
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1, kyc_part_2
 from plugins.tff_backend.bizz.nodes.hoster import order_node, order_node_signed
 from plugins.tff_backend.bizz.service import add_user_to_role
@@ -166,8 +165,6 @@ def friend_register(rt_settings, request_id, params, response):
         return
     user_detail = log_and_parse_user_details(params['user_details'])[0]
     username = user_registered(user_detail, params['origin'], params['data'])
-    if user_detail.public_keys:
-        deferred.defer(store_public_key, user_detail)
     deferred.defer(store_info_in_userdata, username, user_detail)
     deferred.defer(add_user_to_role, user_detail, RogerthatRoles.MEMBERS)
     deferred.defer(populate_intercom_user, Session.create_key(username), user_detail)
@@ -185,7 +182,7 @@ def friend_update(rt_settings, request_id, user_details, changed_properties, **k
         return
 
     user_detail = log_and_parse_user_details(user_details)
-    deferred.defer(store_public_key, user_detail)
+    try_or_defer(store_public_key, user_detail)
 
 
 def friend_invite_result(rt_settings, request_id, params, response):
