@@ -2,7 +2,7 @@
 
 ## Development
 
-Run `node_modules/ionic/bin/ionic serve`
+Run `npm start`
 
 ## Production build
 

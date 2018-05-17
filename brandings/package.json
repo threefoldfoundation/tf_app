@@ -58,7 +58,7 @@
     "@types/marked": "^0.3.0",
     "codelyzer": "^4.3.0",
     "ionic": "3.20.0",
-    "typescript": "2.8.3"
+    "typescript": "^2.7.2"
   },
   "description": "An Ionic project",
   "cordova": {
