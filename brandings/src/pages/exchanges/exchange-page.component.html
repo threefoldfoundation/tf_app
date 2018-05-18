@@ -1,0 +1,17 @@
+<ion-header>
+    <ion-navbar>
+        <ion-title>Public exchanges</ion-title>
+    </ion-navbar>
+</ion-header>
+<ion-content padding>
+    <p>ThreeFold Token is listed on the following exchanges:</p>
+    <ion-list>
+        <ion-item *ngFor="let exchange of exchanges">
+            <ion-avatar item-start>
+                <img [src]="exchange.iconPath">
+            </ion-avatar>
+            {{ exchange.title }}
+            <button ion-button clear item-end (click)="itemSelected(exchange)">Details</button>
+        </ion-item>
+    </ion-list>
+</ion-content>
