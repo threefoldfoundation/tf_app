@@ -6,13 +6,13 @@ import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
 import {
   AgendaPageComponent,
+  ExchangesPageComponent,
   GlobalStatsPageComponent,
   InvitePageComponent,
   NodeStatusPageComponent,
   SeePageComponent,
   TodoListOverviewPageComponent,
   TodoListPageComponent,
-  ExchangesPageComponent,
 } from '../pages';
 import { ErrorService } from '../pages/error.service';
 import { RogerthatService } from '../services/rogerthat.service';
@@ -91,7 +91,7 @@ export class AppComponent implements OnInit {
       { tag: 'referrals_invite', page: InvitePageComponent },
       { tag: 'agenda', page: AgendaPageComponent },
       { tag: 'node_status', page: NodeStatusPageComponent },
-      { tag: 'exchanges', page: ExchangesPageComponent},
+      { tag: 'exchanges', page: ExchangesPageComponent },
     ];
     // the or is for debugging
     const page = pages.find(p => sha256(p.tag) === rogerthat.menuItem.hashedTag || p.tag === rogerthat.menuItem.hashedTag);

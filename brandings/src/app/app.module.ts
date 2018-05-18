@@ -24,13 +24,14 @@ import { BrandingEffects, RogerthatEffects } from '../effects';
 import {
   AgendaPageComponent,
   EventDetailsPageComponent,
+  ExchangeDetailPageComponent,
+  ExchangesPageComponent,
   GlobalStatsPageComponent,
   InvitePageComponent,
   NodeStatusPageComponent,
   SeePageComponent,
   TodoListOverviewPageComponent,
   TodoListPageComponent,
-  ExchangesPageComponent,
 } from '../pages';
 import { LocaleDecimalPipe } from '../pipes/localized-pipes';
 import { MarkdownPipe } from '../pipes/markdown.pipe';
@@ -38,7 +39,6 @@ import { SERVICES } from '../services';
 import { MissingTranslationWarnHandler } from '../util/missing-translation-handler';
 import { AppComponent } from './app.component';
 import { reducers } from './app.state';
-import { ExchangeDetailPageComponent } from '../pages/exchanges/exchange-detail-page.component';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, 'assets/i18n/');
@@ -49,14 +49,14 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
 export const PAGES = [
   AgendaPageComponent,
   EventDetailsPageComponent,
+  ExchangeDetailPageComponent,
+  ExchangesPageComponent,
   GlobalStatsPageComponent,
   InvitePageComponent,
   NodeStatusPageComponent,
   SeePageComponent,
   TodoListOverviewPageComponent,
   TodoListPageComponent,
-  ExchangesPageComponent,
-  ExchangeDetailPageComponent,
 ];
 
 export const COMPONENTS = [
