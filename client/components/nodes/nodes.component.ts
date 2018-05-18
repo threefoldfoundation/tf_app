@@ -15,6 +15,9 @@ import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { ChainStatus, LimitedProfile, NodeInfo, NodesQuery, NodeStatus, UserNodeStatus, WalletStatus } from '../../interfaces';
 import { CSVService } from '../../services';
 
+const DEFAULT_COLUMNS = [ 'select', 'username', 'status', 'node_id', 'serial_number', 'chain_status.network', 'chain_status.block_height',
+  'chain_status.confirmed_balance', 'chain_status.active_blockstakes', 'chain_status.connected_peers' ];
+
 @Component({
   selector: 'tff-nodes',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,13 +56,33 @@ export class NodesComponent implements OnChanges {
   @Input() nodes: UserNodeStatus[];
   @Input() status: ApiRequestStatus;
   @Output() searchNodes = new EventEmitter<NodesQuery>();
-  displayedColumns = [ 'select', 'username', 'status', 'node_id', 'serial_number', 'chain_status.block_height',
-    'chain_status.confirmed_balance', 'chain_status.active_blockstakes', 'chain_status.connected_peers', 'actions' ];
+  displayedColumns: string[] = [];
+  possibleColumns = [
+    { value: 'select', label: 'tff.checkbox' },
+    { value: 'username', label: 'tff.name' },
+    { value: 'status', label: 'tff.status' },
+    { value: 'node_id', label: 'tff.node_id' },
+    { value: 'serial_number', label: 'tff.serial_number' },
+    { value: 'chain_status.network', label: 'tff.network' },
+    { value: 'chain_status.block_height', label: 'tff.block_height' },
+    { value: 'chain_status.confirmed_balance', label: 'tff.confirmed_balance' },
+    { value: 'chain_status.active_blockstakes', label: 'tff.active_blockstakes' },
+    { value: 'chain_status.connected_peers', label: 'tff.connected_peers' },
+  ];
   dataSource = new MatTableDataSource<UserNodeStatus>();
   selection = new SelectionModel<UserNodeStatus>(true, []);
 
   constructor(private csvService: CSVService) {
-
+    // TODO move to service & input / output
+    const selectedColumns = localStorage.getItem('tff.nodes.selectedColumns');
+    let columns = DEFAULT_COLUMNS;
+    if (selectedColumns) {
+      try {
+        columns = JSON.parse(selectedColumns);
+      } catch (ignored) {
+      }
+    }
+    this.displayedColumns = [ ...columns, 'actions' ];
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -146,5 +169,10 @@ export class NodesComponent implements OnChanges {
 
   onSortNodes(event: Sort) {
     this.searchNodes.emit({ sort_by: event.direction ? event.active : null, direction: event.direction });
+  }
+
+  columnsChanged(selectedColumns: string[]) {
+    this.displayedColumns = [ ...selectedColumns, 'actions' ];
+    localStorage.setItem('tff.nodes.selectedColumns', JSON.stringify(selectedColumns));
   }
 }

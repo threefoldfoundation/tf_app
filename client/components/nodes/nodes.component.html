@@ -88,7 +88,13 @@
   </ng-container>
 
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-header-cell *matHeaderCellDef>
+      <mat-form-field>
+        <mat-select [ngModel]="displayedColumns" multiple (ngModelChange)="columnsChanged($event)">
+          <mat-option *ngFor="let col of possibleColumns" [value]="col.value">{{ col.label | translate }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </mat-header-cell>
     <mat-cell *matCellDef="let row" class="flex-layout-row flex-layout-align-end-center">
       <a mat-icon-button [routerLink]="['/users', row.profile.username]" target="_blank" *ngIf="row.profile"
          [matTooltip]="'tff.profile' | translate ">
