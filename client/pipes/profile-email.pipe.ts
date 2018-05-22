@@ -7,14 +7,14 @@ import { Profile } from '../../../its_you_online_auth/client/interfaces';
 })
 export class ProfileEmailPipe implements PipeTransform {
   transform(profile: Profile | null): string {
-    if (!profile || !profile.info) {
+    if (!profile || !profile.information) {
       return '';
     }
-    if (profile.info.validatedemailaddresses.length) {
-      return profile.info.validatedemailaddresses[ 0 ].emailaddress;
+    if (profile.information.validatedemailaddresses.length) {
+      return profile.information.validatedemailaddresses[ 0 ].emailaddress;
     }
-    if (profile.info.emailaddresses.length) {
-      return profile.info.emailaddresses[ 0 ].emailaddress;
+    if (profile.information.emailaddresses.length) {
+      return profile.information.emailaddresses[ 0 ].emailaddress;
     }
     return '';
   }

@@ -7,8 +7,8 @@
         <p matLine *ngIf="(userPresence.user | profileName) != userPresence.username">
           {{ userPresence.username }}
         </p>
-        <p matLine *ngIf="userPresence.user.info?.validatedemailaddresses.length">
-          {{ userPresence.user.info.validatedemailaddresses[0].emailaddress }}
+        <p matLine *ngIf="userPresence.user.information?.validatedemailaddresses.length">
+          {{ userPresence.user.information.validatedemailaddresses[0].emailaddress }}
         </p>
       </a>
     </mat-nav-list>

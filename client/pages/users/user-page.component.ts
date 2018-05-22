@@ -30,7 +30,7 @@ export class UserPageComponent implements OnInit, OnDestroy {
     this.store.dispatch(new GetUserAction(username));
     this.store.dispatch(new GetTffProfileAction(username));
     this._userSub = this.store.select(getUser).pipe(filterNull<Profile>()).subscribe((user: Profile) => {
-      const name = user.info && user.info.firstname ? `${user.info.firstname} ${user.info.lastname}` : user.username;
+      const name = user.information && user.information.firstname ? `${user.information.firstname} ${user.information.lastname}` : user.username;
       this.store.dispatch(new UpdateSecondaryTitleAction(<SidebarTitle>{ label: name, isTranslation: false }));
     });
   }

@@ -4,8 +4,8 @@
     <p matLine *ngIf="(user | profileName) != user.username">
       {{ user.username }}
     </p>
-    <p matLine *ngIf="user.info?.validatedemailaddresses.length">
-      {{ user.info?.validatedemailaddresses[0].emailaddress }}
+    <p matLine *ngIf="user.information?.validatedemailaddresses.length">
+      {{ user.information?.validatedemailaddresses[0].emailaddress }}
     </p>
   </a>
   <button mat-button *ngIf="userList.more" (click)="loadMore.emit()">

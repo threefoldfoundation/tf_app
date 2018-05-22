@@ -100,9 +100,9 @@ export class CreateOrderPageComponent implements OnInit, OnDestroy {
   }
 
   getUserInfoLine(user: Profile) {
-    const name = user.info && user.info.firstname ? `${user.info.firstname} ${user.info.lastname}` : user.username;
-    if (user.info && user.info.validatedemailaddresses.length) {
-      return `${name} - ${user.info.validatedemailaddresses[ 0 ].emailaddress}`;
+    const name = user.information && user.information.firstname ? `${user.information.firstname} ${user.information.lastname}` : user.username;
+    if (user.information && user.information.validatedemailaddresses.length) {
+      return `${name} - ${user.information.validatedemailaddresses[ 0 ].emailaddress}`;
     }
     return name;
   }
@@ -131,20 +131,20 @@ export class CreateOrderPageComponent implements OnInit, OnDestroy {
   }
 
   private setContactInfo(user: Profile | null) {
-    if (!(user && user.info)) {
+    if (!(user && user.information)) {
       return;
     }
-    if (user.info.firstname) {
-      this.order.billing_info.name = `${user.info.firstname} ${user.info.lastname}`;
+    if (user.information.firstname) {
+      this.order.billing_info.name = `${user.information.firstname} ${user.information.lastname}`;
     }
-    if (user.info.validatedemailaddresses.length) {
-      this.order.billing_info.email = user.info.validatedemailaddresses[ 0 ].emailaddress;
+    if (user.information.validatedemailaddresses.length) {
+      this.order.billing_info.email = user.information.validatedemailaddresses[ 0 ].emailaddress;
     }
-    if (user.info.validatedphonenumbers.length) {
-      this.order.billing_info.phone = user.info.validatedphonenumbers[ 0 ].phonenumber;
+    if (user.information.validatedphonenumbers.length) {
+      this.order.billing_info.phone = user.information.validatedphonenumbers[ 0 ].phonenumber;
     }
-    if (user.info.addresses.length) {
-      const address = user.info.addresses[ 0 ];
+    if (user.information.addresses.length) {
+      const address = user.information.addresses[ 0 ];
       this.order.billing_info.address = `${address.street} ${address.nr}
 ${address.postalcode} ${address.city}
 ${address.country}`;

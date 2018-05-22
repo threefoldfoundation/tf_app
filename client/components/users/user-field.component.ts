@@ -57,9 +57,9 @@ export class UserFieldComponent implements OnInit, ControlValueAccessor {
   }
 
   getUserInfoLine(user: Profile) {
-    const name = user.info && user.info.firstname ? `${user.info.firstname} ${user.info.lastname}` : user.username;
-    if (user.info && user.info.validatedemailaddresses.length) {
-      return `${name} - ${user.info.validatedemailaddresses[ 0 ].emailaddress}`;
+    const name = user.information && user.information.firstname ? `${user.information.firstname} ${user.information.lastname}` : user.username;
+    if (user.information && user.information.validatedemailaddresses.length) {
+      return `${name} - ${user.information.validatedemailaddresses[ 0 ].emailaddress}`;
     }
     return name;
   }

@@ -10,6 +10,10 @@ export class ProfileNamePipe implements PipeTransform {
     if (!profile) {
       return '';
     }
-    return profile.info && profile.info.firstname ? `${profile.info.firstname} ${profile.info.lastname}` : profile.username;
+    if (profile.information && profile.information.firstname) {
+      return `${profile.information.firstname} ${profile.information.lastname}`;
+    } else {
+      return profile.username;
+    }
   }
 }
