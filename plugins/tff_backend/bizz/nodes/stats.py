@@ -44,6 +44,7 @@ from plugins.tff_backend.bizz.service import add_user_to_role, remove_user_from_
 from plugins.tff_backend.bizz.todo import update_hoster_progress, HosterSteps
 from plugins.tff_backend.bizz.user import get_tff_profile
 from plugins.tff_backend.configuration import InfluxDBConfig
+from plugins.tff_backend.consts.payment import COIN_TO_HASTINGS
 from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 from plugins.tff_backend.models.nodes import Node, NodeStatus, NodeChainStatus
 from plugins.tff_backend.models.user import TffProfile
@@ -310,7 +311,6 @@ def _validate_node_id(node_id):
         raise HttpBadRequestException('invalid_node_id')
 
 
-@ndb.transactional()
 def _save_node_stats(node_id, data, date):
     # type: (unicode, UpdateNodeStatusTO, datetime) -> None
     node_key = Node.create_key(node_id)
@@ -318,15 +318,29 @@ def _save_node_stats(node_id, data, date):
     if not node:
         node = Node(key=node_key,
                     status_date=date)
-        deferred.defer(_set_serial_number_on_node, node_id, _transactional=True)
-    if data.chain_status and data.chain_status is not MISSING:
+        deferred.defer(_set_serial_number_on_node, node_id)
+    chain_status = data.chain_status
+    if chain_status and chain_status is not MISSING:
         if not node.chain_status:
             node.chain_status = NodeChainStatus()
-        node.chain_status.populate(**data.chain_status.to_dict())
+        bal = chain_status.get('confirmed_balance')
+        if bal and bal < 1000:
+            bal = bal * COIN_TO_HASTINGS
+        peers = chain_status.get('connected_peers')
+        peers_count = len(peers) if type(peers) is list else peers
+        props = {
+            'wallet_status': chain_status.get('wallet_status'),
+            'block_height': chain_status.get('block_height'),
+            'active_blockstakes': chain_status.get('active_blockstakes'),
+            'network': chain_status.get('network'),
+            'confirmed_balance': long(bal) if bal is not None else bal,
+            'connected_peers': peers_count,
+            'address': chain_status.get('address')
+        }
+        node.chain_status.populate(**props)
     if node.status != NodeStatus.RUNNING and node.username:
-        deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username), _transactional=True)
-        deferred.defer(_send_node_status_update_message, node.username, NodeStatus.RUNNING, date, node.serial_number,
-                       _transactional=True)
+        deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username))
+        deferred.defer(_send_node_status_update_message, node.username, NodeStatus.RUNNING, date, node.serial_number)
     if data.info and data.info is not MISSING:
         node.info = data.info
     node.populate(last_update=date,

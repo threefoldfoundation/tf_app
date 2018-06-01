@@ -105,20 +105,10 @@ class UpdateNodePayloadTO(TO):
     username = unicode_property('username')
 
 
-class NodeChainStatusTO(TO):
-    wallet_status = unicode_property('wallet_status')
-    block_height = long_property('block_height')
-    active_blockstakes = long_property('active_blockstakes')
-    network = unicode_property('network')   # testnet, standard, devnet
-    confirmed_balance = float_property('confirmed_balance')
-    connected_peers = long_property('connected_peers')
-    address = unicode_property('address')
-
-
 class UpdateNodeStatusTO(TO):
     info = typed_property('info', dict)
     stats = typed_property('stats', dict)
-    chain_status = typed_property('chain_status', NodeChainStatusTO)  # type: NodeChainStatusTO
+    chain_status = typed_property('chain_status', dict)
 
 
 class AuditLogNodeTO(TO):

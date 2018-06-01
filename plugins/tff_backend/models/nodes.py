@@ -37,7 +37,7 @@ class NodeChainStatus(NdbModel):
     block_height = ndb.IntegerProperty(default=0)
     active_blockstakes = ndb.IntegerProperty(default=0)
     network = ndb.StringProperty(default='standard', choices=['devnet', 'testnet', 'standard'])
-    confirmed_balance = ndb.FloatProperty(default=0)
+    confirmed_balance = ndb.IntegerProperty(default=0)
     connected_peers = ndb.IntegerProperty(default=0)
     address = ndb.StringProperty()
 

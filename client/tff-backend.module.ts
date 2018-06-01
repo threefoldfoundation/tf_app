@@ -1,4 +1,4 @@
-import { CommonModule, CurrencyPipe, DatePipe, I18nPluralPipe } from '@angular/common';
+import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe, I18nPluralPipe } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
@@ -102,6 +102,7 @@ import {
   UserPurchaseAgreementsPageComponent,
   UserTransactionsListPageComponent,
 } from './pages';
+import { AmountPipe } from './pipes/amount.pipe';
 import { MarkdownPipe } from './pipes/markdown.pipe';
 import { ProfileEmailPipe } from './pipes/profile-email.pipe';
 import { ProfileNamePipe } from './pipes/profile-name.pipe';
@@ -136,6 +137,7 @@ const MATERIAL_IMPORTS = [
 ];
 
 const PIPES = [
+  AmountPipe,
   TimestampPipe,
   MarkdownPipe,
   TimePipe,
@@ -150,6 +152,7 @@ export const TFF_PROVIDERS = [
   FlowStatisticsService,
   TffConfig,
   TffService,
+  DecimalPipe,
 ];
 
 export const TFF_PAGES = [

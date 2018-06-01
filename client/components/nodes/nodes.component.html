@@ -83,7 +83,7 @@
   <ng-container matColumnDef="chain_status.confirmed_balance">
     <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'tff.confirmed_balance' | translate }}</mat-header-cell>
     <mat-cell *matCellDef="let row" class="flex-layout-row flex-layout-align-start-center">
-      <p *ngIf="row.node.chain_status">{{ row.node.chain_status.confirmed_balance }}</p>
+      <p *ngIf="row.node.chain_status">{{ row.node.chain_status.confirmed_balance | amount }}</p>
     </mat-cell>
   </ng-container>
 

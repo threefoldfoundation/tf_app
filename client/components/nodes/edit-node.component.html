@@ -18,7 +18,7 @@
     <p>{{ 'tff.wallet_status_x' | translate : { status: node.chain_status.wallet_status } }}</p>
     <p>{{ 'tff.block_height' | translate }} {{ node.chain_status.block_height }}</p>
     <p>{{ 'tff.active_blockstakes' | translate }}: {{ node.chain_status.active_blockstakes }}</p>
-    <p>{{ 'tff.confirmed_balance' | translate }}: {{ node.chain_status.confirmed_balance }}</p>
+    <p>{{ 'tff.confirmed_balance' | translate }}: {{ node.chain_status.confirmed_balance | amount }}</p>
     <p>{{ 'tff.network' | translate }}: {{ node.chain_status.network }}</p>
     <p>{{ 'tff.connected_peers' | translate }}: {{ node.chain_status.connected_peers}}</p>
     <p>{{ 'tff.address' | translate }}: {{ node.chain_status.address }}</p>
