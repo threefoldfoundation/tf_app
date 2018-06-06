@@ -39,6 +39,7 @@ from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.messages import send_message_and_email
+from plugins.tff_backend.bizz.nodes import telegram
 from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo, get_serial_number_by_node_id
 from plugins.tff_backend.bizz.service import add_user_to_role, remove_user_from_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress, HosterSteps
@@ -148,20 +149,25 @@ def _handle_offline_nodes(node_keys, date):
     # No more than 25 node_keys should be supplied to this function (max nr of entity groups in a single transaction)
     nodes = ndb.get_multi(node_keys)  # type: list[Node]
     to_notify = []  # type: list[dict]
-    # List of usernames
-    to_update = set()  # type: set[unicode]
+    msg = """The following nodes are no longer online:
+```
+Id           | Serial number | Last request        | Username
+------------ | ------------- | ------------------- | --------------------"""
     for node in nodes:
+        msg += '\n%s | %s | %s | %s' % (
+            node.id, node.serial_number, node.status_date.strftime('%d-%m-%Y %H:%M:%S'), node.username or '')
         node.status = NodeStatus.HALTED
         node.status_date = date
         if node.username:
-            to_update.add(node.username)
             to_notify.append({'u': node.username,
                               'sn': node.serial_number,
                               'date': date,
                               'status': NodeStatus.HALTED})
+
     ndb.put_multi(nodes)
-    if to_update or to_notify:
-        deferred.defer(after_check_node_status, to_update, to_notify, _transactional=True, _countdown=5)
+    telegram.send_message('%s\n```' % msg)
+    if to_notify:
+        deferred.defer(after_check_node_status, to_notify, _transactional=True, _countdown=5)
 
 
 def save_node_statuses():
@@ -187,13 +193,12 @@ def save_node_statuses():
         client.write_points(points, time_precision='m')
 
 
-def after_check_node_status(to_update, to_notify):
-    # type: (set[unicode], list[dict]) -> None
+def after_check_node_status(to_notify):
+    # type: (list[dict]) -> None
     for obj in to_notify:
         logging.info('Sending node status update message to %s. Status: %s', obj['u'], obj['status'])
         deferred.defer(_send_node_status_update_message, obj['u'], obj['status'], obj['date'], obj['sn'])
-    for username in to_update:
-        deferred.defer(_put_node_status_user_data, TffProfile.create_key(username))
+        deferred.defer(_put_node_status_user_data, TffProfile.create_key(obj['u']))
 
 
 def _put_node_status_user_data(tff_profile_key):
@@ -341,6 +346,8 @@ def _save_node_stats(node_id, data, date):
     if node.status != NodeStatus.RUNNING and node.username:
         deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username))
         deferred.defer(_send_node_status_update_message, node.username, NodeStatus.RUNNING, date, node.serial_number)
+        msg = 'Node %s is back online' % node.id
+        try_or_defer(telegram.send_message, msg)
     if data.info and data.info is not MISSING:
         node.info = data.info
     node.populate(last_update=date,

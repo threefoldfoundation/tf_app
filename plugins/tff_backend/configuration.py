@@ -55,6 +55,11 @@ class InfluxDBConfig(TO):
     password = unicode_property('password')
 
 
+class TelegramConfig(TO):
+    bot_token = unicode_property('bot_token')
+    chat_id = long_property('chat_id')
+
+
 class TffConfiguration(TO):
     """
     Args:
@@ -81,3 +86,4 @@ class TffConfiguration(TO):
     exchangerate_key = unicode_property('exchangerate_key')
     onfido = typed_property('onfido', OnfidoConfiguration)
     influxdb = typed_property('influxdb', InfluxDBConfig)
+    telegram = typed_property('telegram', TelegramConfig)
