@@ -343,9 +343,11 @@ def _save_node_stats(node_id, data, date):
             'address': chain_status.get('address')
         }
         node.chain_status.populate(**props)
-    if node.status != NodeStatus.RUNNING and node.username:
-        deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username))
-        deferred.defer(_send_node_status_update_message, node.username, NodeStatus.RUNNING, date, node.serial_number)
+    if node.status != NodeStatus.RUNNING:
+        if node.username:
+            deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username))
+            deferred.defer(_send_node_status_update_message, node.username, NodeStatus.RUNNING, date,
+                           node.serial_number)
         msg = 'Node %s is back online' % node.id
         try_or_defer(telegram.send_message, msg)
     if data.info and data.info is not MISSING:
