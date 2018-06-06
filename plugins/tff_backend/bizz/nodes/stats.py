@@ -155,7 +155,7 @@ Id           | Serial number | Last request        | Username
 ------------ | ------------- | ------------------- | --------------------"""
     for node in nodes:
         msg += '\n%s | %s | %s | %s' % (
-            node.id, node.serial_number, node.status_date.strftime('%d-%m-%Y %H:%M:%S'), node.username or '')
+            node.id, node.serial_number, node.last_update.strftime('%d-%m-%Y %H:%M:%S'), node.username or '')
         node.status = NodeStatus.HALTED
         node.status_date = date
         if node.username:
