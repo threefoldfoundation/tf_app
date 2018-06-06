@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs/Observable';
-import { filter } from 'rxjs/operators/filter';
+import { select, Store } from '@ngrx/store';
+import { Observable } from 'rxjs';
+import { filterNull } from '../../../../framework/client/ngrx';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { GetAgendaEventAction, UpdateAgendaEventAction } from '../../actions';
 import { AgendaEvent } from '../../interfaces';
@@ -32,9 +32,9 @@ export class AgendaEventDetailPageComponent implements OnInit {
   ngOnInit() {
     const eventId = this.route.snapshot.params.eventId;
     this.store.dispatch(new GetAgendaEventAction(eventId));
-    this.agendaEvent$ = <Observable<AgendaEvent>>this.store.select(getAgendaEvent).pipe(filter(a => a !== null));
-    this.status$ = this.store.select(getAgendaEventStatus);
-    this.updateStatus$ = this.store.select(updateAgendaEventStatus);
+    this.agendaEvent$ = this.store.select(getAgendaEvent).pipe(filterNull());
+    this.status$ = this.store.pipe(select(getAgendaEventStatus));
+    this.updateStatus$ = this.store.pipe(select(updateAgendaEventStatus));
   }
 
   onSubmitted(agendaEvent: AgendaEvent) {

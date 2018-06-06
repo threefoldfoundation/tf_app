@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { GetEventParticipantsAction } from '../../actions';
 import { EventParticipant } from '../../interfaces';
@@ -27,7 +28,7 @@ export class EventParticipantsPageComponent implements OnInit {
     const eventId = this.route.snapshot.params.eventId;
     // todo: pagination
     this.store.dispatch(new GetEventParticipantsAction({ event_id: eventId, page_size: 1000, cursor: null }));
-    this.participants$ = this.store.select(getEventParticipants).map(result => result.results);
-    this.status$ = this.store.select(getEventParticipantsStatus);
+    this.participants$ = this.store.pipe(select(getEventParticipants), map(result => result.results));
+    this.status$ = this.store.pipe(select(getEventParticipantsStatus));
   }
 }
