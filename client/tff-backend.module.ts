@@ -4,6 +4,7 @@ import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
+  MAT_FORM_FIELD_DEFAULT_OPTIONS,
   MatAutocompleteModule,
   MatButtonModule,
   MatCardModule,
@@ -42,6 +43,7 @@ import {
   AgendaEventsListPageComponent,
   ApiRequestStatusComponent,
   CreateAgendaEventPageComponent,
+  CreateNodeComponent,
   CreateTransactionComponent,
   DashboardComponent,
   EditNodeComponent,
@@ -82,6 +84,7 @@ import { UserFieldComponent } from './components/users';
 import { TffEffects } from './effects';
 import {
   CreateInvestmentAgreementPageComponent,
+  CreateNodePageComponent,
   CreateOrderPageComponent,
   CreateTransactionPageComponent,
   DashboardPageComponent,
@@ -157,6 +160,7 @@ export const TFF_PROVIDERS = [
 
 export const TFF_PAGES = [
   CreateInvestmentAgreementPageComponent,
+  CreateNodePageComponent,
   CreateOrderPageComponent,
   CreateTransactionPageComponent,
   DashboardPageComponent,
@@ -185,6 +189,7 @@ export const TFF_COMPONENTS: any[] = [
   AgendaEventsListPageComponent,
   ApiRequestStatusComponent,
   CreateAgendaEventPageComponent,
+  CreateNodeComponent,
   CreateTransactionComponent,
   DashboardComponent,
   EditNodeComponent,
@@ -250,6 +255,12 @@ export const TFF_COMPONENTS: any[] = [
     I18nPluralPipe,
     TFF_PROVIDERS,
     PIPES,
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: {
+        appearance: 'standard',
+      },
+    },
   ],
   exports: [
     TFF_COMPONENTS,

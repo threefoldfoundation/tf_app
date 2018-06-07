@@ -7,6 +7,7 @@ import {
   AgendaEvent,
   Check,
   CreateInvestmentAgreementPayload,
+  CreateNodePayload,
   CreateOrderPayload,
   CreateTransactionPayload,
   EventParticipant,
@@ -174,6 +175,10 @@ export class TffService {
 
   getNode(id: string) {
     return this.http.get<NodeInfo>(`${TffConfig.API_URL}/nodes/${id}`);
+  }
+
+  createNode(payload: CreateNodePayload) {
+    return this.http.post<NodeInfo>(`${TffConfig.API_URL}/nodes`, payload);
   }
 
   updateNode(id: string, payload: UpdateNodePayload) {

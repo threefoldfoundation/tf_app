@@ -50,7 +50,7 @@ from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus
 from plugins.tff_backend.models.nodes import Node, NodeStatus, NodeChainStatus
 from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.plugin_consts import NAMESPACE
-from plugins.tff_backend.to.nodes import UpdateNodePayloadTO, UpdateNodeStatusTO
+from plugins.tff_backend.to.nodes import UpdateNodePayloadTO, UpdateNodeStatusTO, CreateNodeTO
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 SKIPPED_STATS_KEYS = ['disk.size.total']
@@ -265,6 +265,22 @@ def list_nodes(sort_by=None, ascending=False):
     return results
 
 
+def create_node(data):
+    # type: (CreateNodeTO) -> Node
+    _validate_node_id(data.id)
+    node_key = Node.create_key(data.id)
+    if node_key.get():
+        raise HttpBadRequestException('node_already_exists', {'id': data.id})
+    serial_number = get_serial_number_by_node_id(data.id)
+    if not serial_number:
+        raise HttpBadRequestException('serial_number_not_found', {'id': data.id})
+    node = Node(key=node_key,
+                username=data.username,
+                serial_number=serial_number)
+    node.put()
+    return node
+
+
 @ndb.transactional()
 def _set_serial_number_on_node(node_id):
     node = Node.create_key(node_id).get()
@@ -305,6 +321,10 @@ def delete_node(node_id):
         deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username), _transactional=True,
                        _countdown=5)
     node.key.delete()
+    try_or_defer(delete_node_from_stats, node_id)
+
+
+def delete_node_from_stats(node_id):
     client = get_influx_client()
     if client:
         client.query('DELETE FROM "node-stats" WHERE ("id" = \'%(id)s\');'

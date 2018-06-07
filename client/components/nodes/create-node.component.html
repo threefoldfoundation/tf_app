@@ -1,0 +1,12 @@
+<form (ngSubmit)="submit(form)" #form="ngForm" fxLayout="column" fxFlex="30" fxFlex.md="40" fxFlex.xs="100"
+      class="default-component-padding">
+  <mat-form-field>
+    <mat-label>{{ 'tff.node_id' | translate }}</mat-label>
+    <input matInput name="node_id" [(ngModel)]="node.id" required>
+  </mat-form-field>
+  <tff-user-field [(ngModel)]="node.username" name="username"></tff-user-field>
+  <tff-api-request-status [status]="createStatus"></tff-api-request-status>
+  <div fxLayoutGap="16px">
+    <button mat-raised-button>{{ 'tff.save' | translate }}</button>
+  </div>
+</form>

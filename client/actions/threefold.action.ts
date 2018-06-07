@@ -6,6 +6,7 @@ import {
   AgendaEvent,
   Check,
   CreateInvestmentAgreementPayload,
+  CreateNodePayload,
   CreateOrderPayload,
   CreateTransactionPayload,
   EventParticipant,
@@ -147,6 +148,9 @@ export const enum TffActionTypes {
   GET_NODE = '[TFF] Get node',
   GET_NODE_COMPLETE = '[TFF] Get node complete',
   GET_NODE_FAILED = '[TFF] Get node failed',
+  CREATE_NODE = '[TFF] Create node',
+  CREATE_NODE_COMPLETE = '[TFF] Create node complete',
+  CREATE_NODE_FAILED = '[TFF] Create node failed',
   UPDATE_NODE = '[TFF] Update node',
   UPDATE_NODE_COMPLETE = '[TFF] Update node complete',
   UPDATE_NODE_FAILED = '[TFF] Update node failed',
@@ -913,6 +917,27 @@ export class GetNodeFailedAction implements Action {
   }
 }
 
+export class CreateNodeAction implements Action {
+  readonly type = TffActionTypes.CREATE_NODE;
+
+  constructor(public payload: CreateNodePayload) {
+  }
+}
+
+export class CreateNodeCompleteAction implements Action {
+  readonly type = TffActionTypes.CREATE_NODE_COMPLETE;
+
+  constructor(public payload: NodeInfo) {
+  }
+}
+
+export class CreateNodeFailedAction implements Action {
+  readonly type = TffActionTypes.CREATE_NODE_FAILED;
+
+  constructor(public payload: ApiRequestStatus) {
+  }
+}
+
 export class UpdateNodeAction implements Action {
   readonly type = TffActionTypes.UPDATE_NODE;
 
@@ -1066,6 +1091,9 @@ export type TffActions
   | GetNodeAction
   | GetNodeCompleteAction
   | GetNodesFailedAction
+  | CreateNodeAction
+  | CreateNodeCompleteAction
+  | CreateNodeFailedAction
   | UpdateNodeAction
   | UpdateNodeCompleteAction
   | UpdateNodeFailedAction

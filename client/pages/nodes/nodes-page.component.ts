@@ -16,7 +16,12 @@ const tffConf = environment.configuration.plugins.tff_backend;
   selector: 'tff-nodes-pages',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <tff-nodes [nodes]="nodes$ | async" [status]="nodesStatus$ | async" (searchNodes)="onSearchNodes($event)"></tff-nodes>`,
+    <tff-nodes [nodes]="nodes$ | async" [status]="nodesStatus$ | async" (searchNodes)="onSearchNodes($event)"></tff-nodes>
+    <div class="fab-bottom-right">
+      <a mat-fab [routerLink]="['create']">
+        <mat-icon>add</mat-icon>
+      </a>
+    </div>`,
 })
 export class NodesPageComponent implements OnInit, OnDestroy {
   nodes$: Observable<UserNodeStatus[]>;

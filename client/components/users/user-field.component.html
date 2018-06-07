@@ -1,11 +1,11 @@
 <mat-form-field>
+  <mat-label>{{ 'tff.user' | translate }}</mat-label>
   <mat-chip-list #chipList>
     <mat-chip *ngIf="selectedUser" (removed)="selectedUser = null">
       {{ getUserInfoLine(selectedUser) }}
       <mat-icon matChipRemove>cancel</mat-icon>
     </mat-chip>
-    <input [placeholder]="'tff.user' | translate"
-           [formControl]="userSearchControl"
+    <input [formControl]="userSearchControl"
            [matAutocomplete]="userAutoComplete"
            [matChipInputFor]="chipList" #userSearchInput>
   </mat-chip-list>

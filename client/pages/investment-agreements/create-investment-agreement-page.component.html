@@ -1,13 +1,13 @@
 <form #form="ngForm" (ngSubmit)="submit()" fxLayout="column" fxFlex="40" fxFlex.md="60" fxFlex.xs="100"
       class="default-component-padding">
   <mat-form-field>
+    <mat-label>{{ 'tff.user' | translate }}</mat-label>
     <mat-chip-list #chipList>
       <mat-chip *ngIf="selectedUser" (removed)="selectedUser = null">
         {{ getUserInfoLine(selectedUser) }}
         <mat-icon matChipRemove>cancel</mat-icon>
       </mat-chip>
-      <input [placeholder]="'tff.user' | translate"
-             [formControl]="userSearchControl"
+      <input [formControl]="userSearchControl"
              [matAutocomplete]="userAutoComplete"
              [matChipInputFor]="chipList" #userSearchInput>
     </mat-chip-list>
@@ -18,52 +18,53 @@
     </mat-autocomplete>
   </mat-form-field>
   <mat-form-field>
-    <mat-select name="token" [(ngModel)]="agreement.token" [placeholder]="'tff.token' | translate" required
-                (ngModelChange)="getCurrencies()">
+    <mat-label>{{ 'tff.token' | translate }}</mat-label>
+    <mat-select name="token" [(ngModel)]="agreement.token" required (ngModelChange)="getCurrencies()">
       <mat-option *ngFor="let tokenType of tokenTypes$ | async" [value]="tokenType">
         {{ tokenType}}
       </mat-option>
     </mat-select>
   </mat-form-field>
   <mat-form-field>
-    <mat-select name="currency" [(ngModel)]="agreement.currency" required
-                [placeholder]="'tff.currency' | translate" [disabled]="!agreement.token">
+    <mat-label>{{ 'tff.currency' | translate }}</mat-label>
+    <mat-select name="currency" [(ngModel)]="agreement.currency" required [disabled]="!agreement.token">
       <mat-option *ngFor="let currency of currencies$ | async" [value]="currency">
         {{ currency }}
       </mat-option>
     </mat-select>
   </mat-form-field>
   <mat-form-field>
-    <input type="number" name="token_count" min="1" [(ngModel)]="agreement.amount" matInput
-           [placeholder]="'tff.amount' | translate" required>
+    <mat-label>{{ 'tff.amount' | translate }}</mat-label>
+    <input type="number" name="token_count" min="1" [(ngModel)]="agreement.amount" matInput required>
     <span matSuffix>{{ agreement.currency }}</span>
   </mat-form-field>
   <mat-form-field>
-    <mat-select name="status" [(ngModel)]="agreement.status" [placeholder]="'tff.status' | translate">
+    <mat-label>{{ 'tff.status' | translate }}</mat-label>
+    <mat-select name="status" [(ngModel)]="agreement.status">
       <mat-option *ngFor="let status of statuses" [value]="status.value">
         {{ status.label | translate }}
       </mat-option>
     </mat-select>
   </mat-form-field>
   <mat-form-field>
+    <mat-label>{{ 'tff.sign_time' | translate }}</mat-label>
     <input matInput
            required
            name="sign_time"
            [matDatepicker]="pickerSign"
            [max]="maxDate"
-           [placeholder]="'tff.sign_time' |  translate"
            [value]="getDate(agreement.sign_time)"
            (dateChange)="onDateChange('sign_time', $event)">
     <mat-datepicker-toggle matSuffix [for]="pickerSign"></mat-datepicker-toggle>
     <mat-datepicker #pickerSign></mat-datepicker>
   </mat-form-field>
   <mat-form-field>
+    <mat-label>{{ 'tff.paid_time' | translate }}</mat-label>
     <input matInput
            required
            name="paid_time"
            [matDatepicker]="pickerPaid"
            [max]="maxDate"
-           [placeholder]="'tff.paid_time' |  translate"
            [value]="getDate(agreement.paid_time)"
            [disabled]="!isPaid()"
            (dateChange)="onDateChange('paid_time', $event)">

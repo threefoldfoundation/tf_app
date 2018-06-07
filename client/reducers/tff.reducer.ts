@@ -1,8 +1,8 @@
-import { insertItem, updateItem } from '../../../framework/client/ngrx/redux-utils';
-import { apiRequestLoading, apiRequestSuccess } from '../../../framework/client/rpc/rpc.interfaces';
+import { insertItem, updateItem } from '../../../framework/client/ngrx';
+import { apiRequestLoading, apiRequestSuccess } from '../../../framework/client/rpc';
+import { TffActions } from '../actions';
 import * as actions from '../actions/threefold.action';
-import { TffActions } from '../actions/threefold.action';
-import { initialTffState, ITffState } from '../states/index';
+import { initialTffState, ITffState } from '../states';
 
 export function tffReducer(state: ITffState = initialTffState, action: TffActions): ITffState {
   switch (action.type) {
@@ -638,6 +638,22 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       return {
         ...state,
         getNodeStatus: action.payload,
+      };
+    case actions.TffActionTypes.CREATE_NODE:
+      return {
+        ...state,
+        createNodeStatus: apiRequestLoading,
+      };
+    case actions.TffActionTypes.CREATE_NODE_COMPLETE:
+      return {
+        ...state,
+        node: action.payload,
+        createNodeStatus: apiRequestSuccess,
+      };
+    case actions.TffActionTypes.CREATE_NODE_FAILED:
+      return {
+        ...state,
+        createNodeStatus: action.payload,
       };
     case actions.TffActionTypes.UPDATE_NODE:
       return {

@@ -40,9 +40,13 @@ export interface NodeInfo {
     platformFamily: string;
     bootTime: number;
     hostid: string;
-
   } | null;
   chain_status: ChainStatus | null;
+}
+
+export interface CreateNodePayload {
+  id: string;
+  username: string | null;
 }
 
 export interface UpdateNodePayload {

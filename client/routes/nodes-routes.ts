@@ -1,5 +1,5 @@
 import { MetaGuard } from '@ngx-meta/core';
-import { EditNodePageComponent, NodesPageComponent } from '../pages/nodes';
+import { CreateNodePageComponent, EditNodePageComponent, NodesPageComponent } from '../pages/nodes';
 
 export const NODES_ROUTES = [
   {
@@ -13,6 +13,16 @@ export const NODES_ROUTES = [
       },
     },
     component: NodesPageComponent,
+  },
+  {
+    path: 'nodes/create',
+    canActivate: [ MetaGuard ],
+    data: {
+      meta: {
+        title: 'tff.create_node',
+      },
+    },
+    component: CreateNodePageComponent,
   },
   {
     path: 'nodes/:nodeId',

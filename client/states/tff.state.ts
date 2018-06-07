@@ -89,6 +89,7 @@ export interface ITffState {
   nodesStatus: ApiRequestStatus;
   node: NodeInfo | null;
   getNodeStatus: ApiRequestStatus;
+  createNodeStatus: ApiRequestStatus;
   updateNodeStatus: ApiRequestStatus;
 }
 
@@ -171,6 +172,7 @@ export const initialTffState: ITffState = {
   nodes: [],
   nodesStatus: apiRequestInitial,
   node: null,
+  createNodeStatus: apiRequestInitial,
   getNodeStatus: apiRequestInitial,
   updateNodeStatus: apiRequestInitial,
 };

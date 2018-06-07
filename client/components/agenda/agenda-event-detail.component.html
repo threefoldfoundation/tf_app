@@ -4,44 +4,46 @@
     <form *ngIf="status.success" fxLayout="column" (ngSubmit)="onSubmit()"
           #form="ngForm">
       <mat-form-field>
-        <input matInput name="title" [(ngModel)]="event.title" [placeholder]="'tff.title' | translate" required>
+        <mat-label>{{ 'tff.title' | translate }}</mat-label>
+        <input matInput name="title" [(ngModel)]="event.title" required>
       </mat-form-field>
       <mat-form-field>
-        <input matInput name="location" [(ngModel)]="event.location" [placeholder]="'tff.location' | translate"
-               required>
+        <mat-label>{{ 'tff.location' | translate }}</mat-label>
+        <input matInput name="location" [(ngModel)]="event.location" required>
       </mat-form-field>
       <mat-form-field>
-        <mat-select [(ngModel)]="event.type" name="type" [placeholder]="'tff.event_type' | translate" required>
+        <mat-label>{{ 'tff.event_type' | translate }}</mat-label>
+        <mat-select [(ngModel)]="event.type" name="type" required>
           <mat-option *ngFor="let eventType of eventTypes" [value]="eventType.value">{{ eventType.label | translate }}
           </mat-option>
         </mat-select>
       </mat-form-field>
       <div fxLayout="row">
         <mat-form-field>
+          <mat-label>{{ 'tff.start_date' | translate }}</mat-label>
           <input matInput name="start_timestamp"
                  [matDatepicker]="picker"
-                 [placeholder]="'tff.start_date' |  translate"
                  [value]="getDate(event.start_timestamp)"
                  (dateChange)="onDateChange('start_timestamp', $event)" required>
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
         </mat-form-field>
         <mat-form-field class="time-input" *ngIf="event.start_timestamp">
+          <mat-label>{{ 'tff.hour' | translate }}</mat-label>
           <input matInput type="number" name="start_hour" [ngModel]="getHours(event.start_timestamp)"
-                 (ngModelChange)="setHours('start_timestamp', $event)" min="0" max="23"
-                 [placeholder]="'tff.hour' | translate">
+                 (ngModelChange)="setHours('start_timestamp', $event)" min="0" max="23">
         </mat-form-field>
         <mat-form-field class="time-input" *ngIf="event.start_timestamp">
+          <mat-label>{{ 'tff.minute' | translate }}</mat-label>
           <input matInput type="number" name="start_time" [ngModel]="getMinutes(event.start_timestamp)"
-                 (ngModelChange)="setMinutes('start_timestamp', $event)" min="0" max="59"
-                 [placeholder]="'tff.minute' | translate">
+                 (ngModelChange)="setMinutes('start_timestamp', $event)" min="0" max="59">
         </mat-form-field>
       </div>
       <div fxLayout="row">
         <mat-form-field>
+          <mat-label>{{ 'tff.end_date' | translate }}</mat-label>
           <input matInput name="end_timestamp"
                  [matDatepicker]="picker2"
-                 [placeholder]="'tff.end_date' |  translate"
                  [value]="getDate(event.end_timestamp)"
                  [min]="getDate(event.start_timestamp)"
                  (dateChange)="onDateChange('end_timestamp', $event)">
@@ -49,20 +51,20 @@
           <mat-datepicker #picker2></mat-datepicker>
         </mat-form-field>
         <mat-form-field class="time-input" *ngIf="event.end_timestamp">
+          <mat-label>{{ 'tff.hour' | translate }}</mat-label>
           <input matInput type="number" name="end_hour" [ngModel]="getHours(event.end_timestamp)"
-                 (ngModelChange)="setHours('end_timestamp', $event)" min="0" max="23"
-                 [placeholder]="'tff.hour' | translate">
+                 (ngModelChange)="setHours('end_timestamp', $event)" min="0" max="23">
         </mat-form-field>
         <mat-form-field class="time-input" *ngIf="event.end_timestamp">
+          <mat-label>{{ 'tff.minute' | translate }}</mat-label>
           <input matInput type="number" name="end_time" [ngModel]="getMinutes(event.end_timestamp)"
-                 (ngModelChange)="setMinutes('end_timestamp', $event)" min="0" max="59"
-                 [placeholder]="'tff.minute' | translate">
+                 (ngModelChange)="setMinutes('end_timestamp', $event)" min="0" max="59">
         </mat-form-field>
       </div>
 
       <mat-form-field>
-        <textarea matInput name="description" [(ngModel)]="event.description" rows="4" required
-                  [placeholder]="'tff.description' | translate"></textarea>
+        <mat-label>{{ 'tff.description' | translate }}</mat-label>
+        <textarea matInput name="description" [(ngModel)]="event.description" rows="4" required></textarea>
       </mat-form-field>
       <div>
         <button mat-raised-button [disabled]="!form.form.valid || updateStatus.loading">{{ 'tff.save' | translate }}

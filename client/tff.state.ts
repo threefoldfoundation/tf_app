@@ -72,4 +72,5 @@ export const getNodes = createSelector(getTffState, s => s.nodes);
 export const getNodesStatus = createSelector(getTffState, s => s.nodesStatus);
 export const getNode = createSelector(getTffState, s => s.node);
 export const getNodeStatus = createSelector(getTffState, s => s.getNodeStatus);
+export const createNodeStatus = createSelector(getTffState, s => s.createNodeStatus);
 export const updateNodeStatus = createSelector(getTffState, s => s.updateNodeStatus);

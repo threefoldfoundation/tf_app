@@ -25,8 +25,8 @@
     <form #form="ngForm">
       <div *ngIf="investmentAgreement.currency === 'BTC' && canMarkAsPaid">
         <mat-form-field>
-          <input matInput type="number" name="btc_price" [placeholder]="'tff.btc_price' | translate" required
-                 [(ngModel)]="btcPrice">
+          <mat-label>{{ 'tff.btc_price' | translate }}</mat-label>
+          <input matInput type="number" name="btc_price" required [(ngModel)]="btcPrice">
         </mat-form-field>
         <p>{{'tff.btc_price_on_payment_receive' | translate }}</p>
         <p>{{ 'tff.x_tokens_will_be_assigned' | translate : {tokens: getTokenCount() } }}</p>

@@ -7,29 +7,30 @@
   <div *ngIf="status.success" style="padding-top: 16px;">
     <form fxLayout="column" (ngSubmit)="submit(form)" #form="ngForm">
       <mat-form-field>
-        <input matInput [(ngModel)]="globalStats.name" [placeholder]="'tff.name' | translate" name="name" required>
+        <mat-label>{{ 'tff.name' | translate }}</mat-label>
+        <input matInput [(ngModel)]="globalStats.name" name="name" required>
       </mat-form-field>
       <mat-form-field>
-        <input matInput [(ngModel)]="globalStats.token_count" [placeholder]="'tff.total_tokens' | translate"
-               name="token_count" type="number" required>
+        <mat-label>{{ 'tff.total_tokens' | translate }}</mat-label>
+        <input matInput [(ngModel)]="globalStats.token_count" name="token_count" type="number" required>
       </mat-form-field>
       <mat-form-field>
-        <input matInput [(ngModel)]="globalStats.unlocked_count" [placeholder]="'tff.unlocked_tokens' | translate"
-               name="unlocked_tokens" type="number" required>
+        <mat-label>{{ 'tff.unlocked_tokens' | translate }}</mat-label>
+        <input matInput [(ngModel)]="globalStats.unlocked_count" name="unlocked_tokens" type="number" required>
       </mat-form-field>
       <mat-form-field>
-        <input matInput [(ngModel)]="globalStats.value" [placeholder]="'tff.value_in_dollars' | translate" name="value"
-               type="number" required>
+        <mat-label>{{ 'tff.value_in_dollars' | translate }}</mat-label>
+        <input matInput [(ngModel)]="globalStats.value" name="value" type="number" required>
         <mat-icon matSuffix>attach_money</mat-icon>
       </mat-form-field>
       <div *ngFor="let currency of globalStats.currencies">
         <mat-form-field class="xs-input">
-          <input matInput [(ngModel)]="currency.currency" [ngModelOptions]="{ standalone: true }"
-                 [placeholder]="'tff.symbol' | translate">
+          <mat-label>{{ 'tff.symbol' | translate }}</mat-label>
+          <input matInput [(ngModel)]="currency.currency" [ngModelOptions]="{ standalone: true }">
         </mat-form-field>
         <mat-form-field class="s-input" style="margin-left: 16px;">
-          <input matInput [(ngModel)]="currency.value" [ngModelOptions]="{ standalone: true }" type="number"
-                 [placeholder]="'tff.value' | translate">
+          <mat-label>{{ 'tff.value' | translate }}</mat-label>
+          <input matInput [(ngModel)]="currency.value" [ngModelOptions]="{ standalone: true }" type="number">
         </mat-form-field>
         <button type="button" mat-icon-button (click)="removeCurrency(currency)">
           <mat-icon>delete</mat-icon>
@@ -43,7 +44,8 @@
       </div>
       <div>
         <mat-form-field>
-          <input matInput [placeholder]="'tff.currency' | translate" [(ngModel)]="newCurrency" name="new_currency">
+          <mat-label>{{ 'tff.currency' | translate }}</mat-label>
+          <input matInput [(ngModel)]="newCurrency" name="new_currency">
         </mat-form-field>
         <button type="button" mat-button (click)="addCurrency()">{{ 'tff.add_currency' | translate }}</button>
       </div>

@@ -105,6 +105,11 @@ class UpdateNodePayloadTO(TO):
     username = unicode_property('username')
 
 
+class CreateNodeTO(TO):
+    id = unicode_property('id')
+    username = unicode_property('username')
+
+
 class UpdateNodeStatusTO(TO):
     info = typed_property('info', dict)
     stats = typed_property('stats', dict)

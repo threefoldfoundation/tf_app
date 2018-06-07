@@ -258,6 +258,13 @@ export class TffEffects {
       catchError(err => handleApiError(actions.GetNodeFailedAction, err)),
     )));
 
+  @Effect() createNode$ = this.actions$.pipe(
+    ofType<actions.CreateNodeAction>(actions.TffActionTypes.CREATE_NODE),
+    switchMap(action => this.tffService.createNode(action.payload).pipe(
+      map(result => new actions.CreateNodeCompleteAction(result)),
+      catchError(err => handleApiError(actions.CreateNodeFailedAction, err)),
+    )));
+
   @Effect() updateNode$ = this.actions$.pipe(
     ofType<actions.UpdateNodeAction>(actions.TffActionTypes.UPDATE_NODE),
     switchMap(action => this.tffService.updateNode(action.id, action.payload).pipe(
