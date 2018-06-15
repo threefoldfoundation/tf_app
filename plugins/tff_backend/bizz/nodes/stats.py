@@ -219,18 +219,18 @@ def _send_node_status_update_message(username, to_status, date, serial_number):
     date_str = date.strftime('%Y-%m-%d %H:%M:%S')
     if to_status == NodeStatus.HALTED:
         subject = u'Connection to your node(%s) has been lost since %s UTC' % (serial_number, date_str)
-        msg = u'Dear ThreeFold Member,\n\n' \
-              u'Connection to your node(%s) has been lost since %s UTC.' \
-              u' Please check the network connection of your node.\n' \
-              u'Kind regards,\n' \
-              u'The ThreeFold Team' % (serial_number, date_str)
+        msg = u"""Dear ThreeFold Member,
+
+Connection to your node(%s) has been lost since %s UTC. Please kindly check the network connection of your node.
+If this is ok, please switch off the node by pushing long on the power button till blue led is off and then switch it on again.
+If after 30 minutes still no “online” message is received in the ThreeFold app, please inform us.
+        """ % (serial_number, date_str)
     elif to_status == NodeStatus.RUNNING:
         subject = u'Connection to your node(%s) has been resumed since %s UTC' % (serial_number, date_str)
         msg = u'Dear ThreeFold Member,\n\n' \
               u'Congratulations!' \
               u' Your node(%s) is now successfully connected to our system, and has been resumed since %s UTC.\n' \
-              u'Kind regards,\n' \
-              u'The ThreeFold Team' % (serial_number, date_str)
+              % (serial_number, date_str)
     else:
         logging.debug(
             "_send_node_status_update_message not sending message for status '%s' => '%s'", to_status)

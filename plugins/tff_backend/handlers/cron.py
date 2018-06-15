@@ -131,4 +131,4 @@ class ExpiredEventsHandler(webapp2.RequestHandler):
 class RebuildFirebaseHandler(webapp2.RequestHandler):
 
     def get(self):
-        deferred.defer(rebuild_firebase_data)
+        rebuild_firebase_data()
