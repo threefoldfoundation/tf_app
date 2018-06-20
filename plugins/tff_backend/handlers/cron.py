@@ -40,8 +40,8 @@ from plugins.tff_backend.plugin_consts import NAMESPACE
 class PaymentSyncHandler(webapp2.RequestHandler):
 
     def get(self):
-        deferred.defer(sync_transactions)
-        deferred.defer(sync_wallets)
+        sync_transactions()
+        sync_wallets()
 
 
 class BackupHandler(webapp2.RequestHandler):
