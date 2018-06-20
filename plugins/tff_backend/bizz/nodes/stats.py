@@ -340,10 +340,11 @@ def _save_node_stats(node_id, data, date):
     # type: (unicode, UpdateNodeStatusTO, datetime) -> None
     node_key = Node.create_key(node_id)
     node = node_key.get()
-    if not node:
+    is_new = node is None
+    if is_new:
         node = Node(key=node_key,
                     status_date=date)
-        deferred.defer(_set_serial_number_on_node, node_id)
+        deferred.defer(_set_serial_number_on_node, node_id, _countdown=5)
     chain_status = data.chain_status
     if chain_status and chain_status is not MISSING:
         if not node.chain_status:
@@ -363,18 +364,22 @@ def _save_node_stats(node_id, data, date):
             'address': chain_status.get('address')
         }
         node.chain_status.populate(**props)
-    if node.status != NodeStatus.RUNNING:
-        if node.username:
-            deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username))
-            deferred.defer(_send_node_status_update_message, node.username, NodeStatus.RUNNING, date,
-                           node.serial_number)
-        msg = 'Node %s is back online' % node.id
-        try_or_defer(telegram.send_message, msg)
+    status_changed = node.status != NodeStatus.RUNNING
     if data.info and data.info is not MISSING:
         node.info = data.info
     node.populate(last_update=date,
                   status=NodeStatus.RUNNING)
     node.put()
+    if status_changed:
+        if node.username:
+            # Countdown is needed because we query on all nodes, and datastore needs some time to become consistent
+            deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username), _countdown=2)
+            try_or_defer(_send_node_status_update_message, node.username, NodeStatus.RUNNING, date, node.serial_number)
+        if is_new:
+            msg = 'New node %s is now online'
+        else:
+            msg = 'Node %s is back online'
+        try_or_defer(telegram.send_message, msg % node.id)
 
 
 def save_node_stats(node_id, data, date):
