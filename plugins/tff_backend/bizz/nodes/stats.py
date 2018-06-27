@@ -188,6 +188,10 @@ def save_node_statuses():
                 'id': node.id
             }
         })
+    try_or_defer(_save_node_statuses, points)
+
+
+def _save_node_statuses(points):
     client = get_influx_client()
     if client:
         client.write_points(points, time_precision='m')
