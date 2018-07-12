@@ -54,7 +54,7 @@ from plugins.tff_backend.to.nodes import UpdateNodePayloadTO, UpdateNodeStatusTO
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 SKIPPED_STATS_KEYS = ['disk.size.total']
-NODE_ID_REGEX = re.compile('([a-f0-9]{12})')
+NODE_ID_REGEX = re.compile('([a-f0-9])')
 
 
 def check_online_nodes():
@@ -336,7 +336,7 @@ def delete_node_from_stats(node_id):
 
 
 def _validate_node_id(node_id):
-    if len(node_id) != 12 or not NODE_ID_REGEX.match(node_id):
+    if len(node_id) > 12 or len(node_id) < 10 or not NODE_ID_REGEX.match(node_id):
         raise HttpBadRequestException('invalid_node_id')
 
 
