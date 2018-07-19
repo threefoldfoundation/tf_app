@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { EventParticipant, EventPresenceStatus } from '../../interfaces/agenda-events.interfaces';
+import { ApiRequestStatus } from '../../../../framework/client/rpc';
+import { EventParticipant, EventPresenceStatus } from '../../interfaces';
 
 @Component({
   selector: 'tff-event-participants',
@@ -35,6 +35,6 @@ export class EventParticipantsComponent implements OnChanges {
   }
 
   trackByUsername(index: number, item: EventParticipant) {
-    return item.username;
+    return item.user.username;
   }
 }

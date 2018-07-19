@@ -8,14 +8,7 @@ indexes:
 
 # ======================================================= PAYMENT ======================================================
 
-- kind: ThreeFoldTransaction
-  properties:
-  - name: app_users
-  - name: token
-  - name: timestamp
-    direction: desc
-
-- kind: ThreeFoldTransaction
+- kind: ThreeFoldPendingTransaction
   properties:
   - name: app_users
   - name: timestamp
@@ -25,57 +18,14 @@ indexes:
   properties:
   - name: fully_spent
   - name: to_user
-  - name: token
   - name: timestamp
     direction: desc
-
-- kind: ThreeFoldTransaction
-  properties:
-  - name: fully_spent
-  - name: to_user
-  - name: timestamp
-    direction: desc
-
-- kind: ThreeFoldPendingTransaction
-  properties:
-  - name: app_users
-  - name: timestamp
-    direction: desc
-
-- kind: ThreeFoldPendingTransaction
-  properties:
-  - name: app_users
-  - name: token_type
-  - name: timestamp
-    direction: desc
-
-- kind: ThreeFoldPendingTransaction
-  properties:
-  - name: app_users
-  - name: synced
-  - name: token
-  - name: timestamp
-    direction: desc
-
-- kind: ThreeFoldPendingTransaction
-  properties:
-  - name: synced
-  - name: timestamp
-    direction: desc
-
 
 # ===================================================== Audit logs =====================================================
 
 - kind: AuditLog
   properties:
   - name: audit_type
-  - name: user_id
-  - name: timestamp
-    direction: desc
-
-- kind: AuditLog
-  properties:
-  - name: audit_type
   - name: timestamp
     direction: desc
 
@@ -84,7 +34,6 @@ indexes:
   - name: user_id
   - name: timestamp
     direction: desc
-
 
 # ======================================================= Agenda =======================================================
 

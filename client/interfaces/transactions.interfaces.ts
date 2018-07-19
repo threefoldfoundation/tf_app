@@ -37,14 +37,6 @@ export const enum TokenTypes {
   I = 'iTFT_A',
 }
 
-export interface CreateTransactionPayload {
-  username: string;
-  token_type: TokenTypes;
-  token_count: number;
-  memo: string | null;
-  date_signed?: number;
-}
-
 export interface WalletBalance {
   available: number;
   total: number;

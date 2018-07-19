@@ -14,9 +14,6 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-import logging
-
-from google.appengine.api import search
 
 from framework.bizz.authentication import get_current_session
 from framework.plugin_loader import get_plugin, BrandingPlugin
@@ -26,19 +23,17 @@ from mcfw.restapi import rest_functions, register_postcall_hook
 from mcfw.rpc import parse_complex_value
 from plugins.rogerthat_api.rogerthat_api_plugin import RogerthatApiPlugin
 from plugins.tff_backend import rogerthat_callbacks
-from plugins.tff_backend.api import investor, payment, nodes, global_stats, users, audit, agenda, flow_statistics, \
+from plugins.tff_backend.api import investor, nodes, global_stats, users, audit, agenda, flow_statistics, \
     installations, nodes_unauthenticated
 from plugins.tff_backend.bizz.authentication import get_permissions_from_scopes, get_permission_strings, Roles
 from plugins.tff_backend.bizz.statistics import log_restapi_call_result
 from plugins.tff_backend.configuration import TffConfiguration
-from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, PaymentSyncHandler, UpdateGlobalStatsHandler, \
+from plugins.tff_backend.handlers.cron import RebuildSyncedRolesHandler, UpdateGlobalStatsHandler, \
     SaveNodeStatusesHandler, BackupHandler, CheckNodesOnlineHandler, ExpiredEventsHandler, RebuildFirebaseHandler, \
-    CheckOfflineNodesHandler
-from plugins.tff_backend.handlers.flow_statistics import CheckStuckFlowsHandler
+    CheckOfflineNodesHandler, CheckStuckFlowsHandler
 from plugins.tff_backend.handlers.index import IndexPageHandler
 from plugins.tff_backend.handlers.testing import AgreementsTestingPageHandler
-from plugins.tff_backend.handlers.unauthenticated import RefreshCallbackHandler, RefreshHandler
-from plugins.tff_backend.models.user import TffProfile, KYCStatus
+from plugins.tff_backend.handlers.update_app import UpdateAppPageHandler
 from plugins.tff_backend.patch_onfido_lib import patch_onfido_lib
 
 
@@ -58,28 +53,24 @@ class TffBackendPlugin(BrandingPlugin):
         rogerthat_api_plugin.subscribe('friend.is_in_roles', rogerthat_callbacks.friend_is_in_roles)
         rogerthat_api_plugin.subscribe('friend.update', rogerthat_callbacks.friend_update)
         rogerthat_api_plugin.subscribe('friend.invited', rogerthat_callbacks.friend_invited)
-        rogerthat_api_plugin.subscribe('friend.register', rogerthat_callbacks.friend_register, trigger_only=True)
-        rogerthat_api_plugin.subscribe('friend.invite_result', rogerthat_callbacks.friend_invite_result,
-                                       trigger_only=True)
+        rogerthat_api_plugin.subscribe('friend.register_result', rogerthat_callbacks.friend_register_result)
         rogerthat_api_plugin.subscribe('system.api_call', rogerthat_callbacks.system_api_call)
         patch_onfido_lib()
         register_postcall_hook(log_restapi_call_result)
 
     def get_handlers(self, auth):
         yield Handler(url='/', handler=IndexPageHandler)
+        yield Handler(url='/update-app', handler=UpdateAppPageHandler)
         yield Handler(url='/testing/agreements', handler=AgreementsTestingPageHandler)
-        yield Handler(url='/refresh', handler=RefreshHandler)
-        yield Handler(url='/refresh/callback', handler=RefreshCallbackHandler)
         authenticated_handlers = [nodes, investor, global_stats, users, audit, agenda, flow_statistics, installations]
         for _module in authenticated_handlers:
             for url, handler in rest_functions(_module, authentication=AUTHENTICATED):
                 yield Handler(url=url, handler=handler)
-        not_authenticated_handlers = [payment, nodes_unauthenticated]
+        not_authenticated_handlers = [nodes_unauthenticated]
         for _module in not_authenticated_handlers:
             for url, handler in rest_functions(_module, authentication=NOT_AUTHENTICATED):
                 yield Handler(url=url, handler=handler)
         if auth == Handler.AUTH_ADMIN:
-            yield Handler(url='/admin/cron/tff_backend/payment/sync', handler=PaymentSyncHandler)
             yield Handler(url='/admin/cron/tff_backend/backup', handler=BackupHandler)
             yield Handler(url='/admin/cron/tff_backend/rebuild_synced_roles', handler=RebuildSyncedRolesHandler)
             yield Handler(url='/admin/cron/tff_backend/global_stats', handler=UpdateGlobalStatsHandler)
@@ -116,11 +107,3 @@ class TffBackendPlugin(BrandingPlugin):
     def get_permissions(self):
         return get_permission_strings(get_current_session().scopes)
 
-    def get_extra_profile_fields(self, profile):
-        tff_profile = TffProfile.create_key(profile.username).get()  # type: TffProfile
-        if not tff_profile:
-            logging.debug('No TffProfile found for profile %s', profile)
-            return []
-        kyc_status = (tff_profile.kyc and tff_profile.kyc.status) or KYCStatus.UNVERIFIED.value
-        return [search.NumberField('kyc_status', kyc_status),
-                search.TextField('app_email', tff_profile.app_user.email().lower())]

@@ -42,8 +42,7 @@ from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.intercom_helpers import tag_intercom_users, IntercomTags
-from plugins.tff_backend.bizz.iyo.see import get_see_document, sign_see_document, create_see_document
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
+from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.nodes.stats import assign_nodes_to_user
 from plugins.tff_backend.bizz.odoo import create_odoo_quotation, update_odoo_quotation, QuotationState, \
@@ -60,7 +59,7 @@ from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus, Contac
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE, FLOW_HOSTER_SIGNATURE_RECEIVED, \
     FLOW_SIGN_HOSTING_AGREEMENT
-from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderDetailsTO, CreateNodeOrderTO
+from plugins.tff_backend.to.nodes import NodeOrderTO, CreateNodeOrderTO
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 
@@ -68,12 +67,12 @@ from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user
 @returns()
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
            flow_params=unicode)
 def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
                flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     order_key = NodeOrder.create_key()
-    deferred.defer(_order_node, order_key, user_details[0].email, user_details[0].app_id, steps)
+    deferred.defer(_order_node, order_key, user_details.email, user_details.app_id, steps)
 
 
 def _order_node(order_key, user_email, app_id, steps):
@@ -193,23 +192,11 @@ def _create_node_order_pdf(node_order_id):
 
 
 def _order_node_iyo_see(app_user, node_order_id, pdf_url, pdf_size, create_quotation=True):
-    iyo_username = get_iyo_username(app_user)
-    doc_id = u'Zero-Node order %s' % NodeOrder.create_human_readable_id(node_order_id)
-    category = u'Terms and conditions'
-    content_type = u'application/pdf'
-    description = u'Terms and conditions for ordering a Zero-Node'
-    create_see_document(doc_id, category, description, iyo_username, pdf_url, content_type)
-    attachment_name = u' - '.join([doc_id, category])
-
-    def trans():
-        order = get_node_order(node_order_id)
-        order.tos_iyo_see_id = doc_id
-        order.put()
-        if create_quotation:
-            deferred.defer(_create_quotation, app_user, node_order_id, pdf_url, attachment_name, pdf_size,
-                           _transactional=True)
-
-    ndb.transaction(trans)
+    order_id = NodeOrder.create_human_readable_id(node_order_id)
+    attachment_name = u'Zero-Node order %s - Terms and conditions'.join(order_id)
+    if create_quotation:
+        deferred.defer(_create_quotation, app_user, node_order_id, pdf_url, attachment_name, pdf_size,
+                       _transactional=True)
 
 
 @returns()
@@ -280,12 +267,12 @@ def _send_order_node_sign_message(app_user, order_id, pdf_url, attachment_name, 
 @returns(FlowMemberResultCallbackResultTO)
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
            flow_params=unicode)
 def order_node_signed(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                       result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     try:
-        user_detail = user_details[0]
+        user_detail = user_details
         tag_dict = json.loads(tag)
         order = get_node_order(tag_dict['order_id'])
 
@@ -299,8 +286,7 @@ def order_node_signed(message_flow_run_id, member, steps, end_id, end_message_fl
 
         sign_result = last_step.form_result.result.get_value()
         assert isinstance(sign_result, SignWidgetResultTO)
-        iyo_username = get_iyo_username(user_detail)
-        sign_see_document(iyo_username, order.tos_iyo_see_id, sign_result, user_detail)
+        iyo_username = get_username(user_detail)
 
         logging.debug('Storing signature in DB')
         order.populate(status=NodeOrderStatus.SIGNED,
@@ -327,22 +313,15 @@ def order_node_signed(message_flow_run_id, member, steps, end_id, end_message_fl
         return create_error_message()
 
 
-@returns(NodeOrderDetailsTO)
+@returns(NodeOrderTO)
 @arguments(order_id=(int, long))
 def get_node_order_details(order_id):
     # type: (long) -> NodeOrderDetailsTO
-    node_order = get_node_order(order_id)
-    if node_order.tos_iyo_see_id:
-        iyo_organization_id = get_iyo_organization_id()
-        username = get_iyo_username(node_order.app_user)
-        see_document = get_see_document(iyo_organization_id, username, node_order.tos_iyo_see_id)
-    else:
-        see_document = None
-    return NodeOrderDetailsTO.from_model(node_order, see_document)
+    return NodeOrderTO.from_model(get_node_order(order_id))
 
 
 def _get_allowed_status(current_status):
-    # type: (long, long) -> list[long]
+    # type: (long) -> list[long]
     next_statuses = {
         NodeOrderStatus.CANCELED: [],
         NodeOrderStatus.WAITING_APPROVAL: [NodeOrderStatus.CANCELED, NodeOrderStatus.APPROVED],
@@ -405,7 +384,7 @@ def put_node_order(order_id, order):
 
 def _inform_support_of_new_node_order(node_order_id):
     node_order = get_node_order(node_order_id)
-    iyo_username = get_iyo_username(node_order.app_user)
+    iyo_username = get_username(node_order.app_user)
 
     subject = 'New Node Order by %s' % node_order.billing_info.name
     body = """Hello,
@@ -492,7 +471,7 @@ def create_node_order(data):
                       app_user=app_user,
                       **data.to_dict(exclude=['document', 'app_user']))
     order.put()
-    iyo_username = get_iyo_username(app_user)
+    iyo_username = get_username(app_user)
     deferred.defer(assign_nodes_to_user, iyo_username, nodes)
     deferred.defer(set_hoster_status_in_user_data, order.app_user, False)
     deferred.defer(tag_intercom_users, IntercomTags.HOSTER, [iyo_username])

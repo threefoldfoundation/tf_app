@@ -12,3 +12,4 @@ https://github.com/onfido/api-python-client/archive/master.zip
 Markdown==2.6.11
 inflect
 influxdb
+transliterate

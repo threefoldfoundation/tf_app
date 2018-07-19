@@ -26,8 +26,6 @@ from mcfw.properties import object_factory
 from mcfw.rpc import arguments, returns
 from onfido import Applicant, Address
 from onfido.rest import ApiException
-from plugins.its_you_online_auth.bizz.profile import index_profile
-from plugins.its_you_online_auth.models import Profile
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING, FormFlowStepTO
@@ -35,12 +33,12 @@ from plugins.rogerthat_api.to.messaging.forms import FormResultTO, UnicodeWidget
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     TYPE_FLOW, FlowCallbackResultTypeTO
 from plugins.tff_backend.bizz.email import send_emails_to_support
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.bizz.kyc import save_utility_bill, validate_kyc_status
 from plugins.tff_backend.bizz.kyc.onfido_bizz import update_applicant, create_applicant, upload_document
 from plugins.tff_backend.bizz.rogerthat import create_error_message
-from plugins.tff_backend.bizz.user import get_tff_profile, generate_kyc_flow, set_kyc_status
-from plugins.tff_backend.models.user import KYCStatus
+from plugins.tff_backend.bizz.user import get_tff_profile, generate_kyc_flow, set_kyc_status, index_tff_profile
+from plugins.tff_backend.models.user import KYCStatus, TffProfile
 from plugins.tff_backend.plugin_consts import KYC_FLOW_PART_2_TAG, SCHEDULED_QUEUE
 from plugins.tff_backend.to.user import SetKYCPayloadTO
 from plugins.tff_backend.utils import get_step
@@ -49,13 +47,13 @@ from plugins.tff_backend.utils import get_step
 @returns(FlowMemberResultCallbackResultTO)
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory('step_type', FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
            flow_params=unicode)
 def kyc_part_1(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    iyo_username = get_iyo_username(user_details[0])
+    iyo_username = get_username(user_details)
     if not iyo_username:
-        logging.error('No username found for user %s', user_details[0])
+        logging.error('No username found for user %s', user_details)
         return create_error_message()
     if flush_id == 'flush_corporation':
         url = get_base_url() + '/users/%s' % iyo_username
@@ -84,7 +82,7 @@ def kyc_part_1(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 @returns(FlowMemberResultCallbackResultTO)
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory('step_type', FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
            flow_params=unicode)
 def kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
@@ -96,7 +94,7 @@ def kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 @returns(FlowMemberResultCallbackResultTO)
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory('step_type', FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
            flow_params=unicode)
 def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                 result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
@@ -104,9 +102,9 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
     applicant = Applicant(nationality=parsed_flow_params['nationality'],
                           addresses=[Address(country=parsed_flow_params.get('country'))])
     documents = []
-    username = get_iyo_username(user_details[0])
+    username = get_username(user_details)
     if not username:
-        logging.error('Could not find username for user %s!' % user_details[0])
+        logging.error('Could not find username for user %s!' % user_details)
         return create_error_message()
     profile = get_tff_profile(username)
     result = validate_kyc_status(profile)
@@ -166,7 +164,7 @@ def _kyc_part_2(message_flow_run_id, member, steps, end_id, end_message_flow_id,
                        _transactional=True)
     profile.kyc.set_status(KYCStatus.SUBMITTED.value, username)
     profile.put()
-    deferred.defer(index_profile, Profile.create_key(username))
+    deferred.defer(index_tff_profile, TffProfile.create_key(username))
 
     # Automatically set status to PENDING_APPROVAL after 5 minutes
     payload = SetKYCPayloadTO(status=KYCStatus.PENDING_APPROVAL.value, comment='Verification started automatically')

@@ -24,7 +24,7 @@ from google.appengine.ext import ndb
 from framework.bizz.job import run_job, MODE_BATCH
 from mcfw.exceptions import HttpNotFoundException
 from mcfw.rpc import returns, arguments
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_usernames
+from plugins.tff_backend.bizz.iyo.utils import get_username, get_iyo_usernames
 from plugins.tff_backend.consts.investor import INVESTMENT_AGREEMENT_SEARCH_INDEX
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import NAMESPACE
@@ -55,7 +55,7 @@ def _get_all_investment_agreements():
 def index_investment_agreement(investment):
     # type: (InvestmentAgreement) -> list[search.PutResult]
     logging.info('Indexing investment agreement %s', investment.id)
-    document = create_investment_agreement_document(investment, get_iyo_username(investment.app_user))
+    document = create_investment_agreement_document(investment, get_username(investment.app_user))
     return INVESTMENT_INDEX.put(document)
 
 

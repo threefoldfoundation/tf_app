@@ -24,7 +24,7 @@ from framework.models.common import NdbModel
 from framework.plugin_loader import get_config
 from framework.utils import chunks, now
 from plugins.tff_backend.bizz.gcs import get_serving_url, encrypt_filename
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -117,7 +117,7 @@ class NodeOrder(NdbModel):
 
     @property
     def username(self):
-        return get_iyo_username(self.app_user) if self.app_user else None
+        return get_username(self.app_user) if self.app_user else None
 
     @classmethod
     def filename(cls, node_order_id):

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { Profile } from '../../../../its_you_online_auth/client/interfaces';
-import { NODE_ORDER_STATUS_MAPPING, NodeOrder, NodeOrderStatuses, ORDER_STATUSES_DICT } from '../../interfaces';
+import { NODE_ORDER_STATUS_MAPPING, NodeOrder, NodeOrderStatuses, ORDER_STATUSES_DICT, TffProfile } from '../../interfaces';
 
 @Component({
   selector: 'tff-order-detail',
@@ -17,7 +17,7 @@ export class OrderDetailComponent implements OnChanges {
   ORDER_STATUSES_DICT = ORDER_STATUSES_DICT;
   allowedStatuses: NodeOrderStatuses[] = [];
   @Input() nodeOrder: NodeOrder;
-  @Input() user: Profile | null;
+  @Input() profile: TffProfile | null;
   @Input() status: ApiRequestStatus;
   @Input() updateStatus: ApiRequestStatus;
   @Output() onUpdate = new EventEmitter<NodeOrder>();

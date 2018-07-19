@@ -5,8 +5,8 @@ import { Actions, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
-import { Profile } from '../../../../its_you_online_auth/client/interfaces';
-import { GetUserAction, GetUserCompleteAction, SearchUsersAction, TffActions, TffActionTypes } from '../../actions';
+import { GetTffProfileAction, GetTffProfileCompleteAction, SearchUsersAction, TffActions, TffActionTypes } from '../../actions';
+import { TffProfile } from '../../interfaces';
 import { ITffState } from '../../states';
 import { getUserList } from '../../tff.state';
 
@@ -21,7 +21,7 @@ import { getUserList } from '../../tff.state';
   } ],
 })
 export class UserFieldComponent implements OnInit, ControlValueAccessor {
-  userList$: Observable<Profile[]>;
+  userList$: Observable<TffProfile[]>;
   userSearchControl: FormControl;
   onTouched: () => void;
   onChange: (_: any) => void;
@@ -29,13 +29,13 @@ export class UserFieldComponent implements OnInit, ControlValueAccessor {
 
   private _inputSubscription: Subscription;
   private _actionSubscription: Subscription = Subscription.EMPTY;
-  private _selectedUser: Profile | null = null;
+  private _selectedUser: TffProfile | null = null;
 
   get selectedUser() {
     return this._selectedUser;
   }
 
-  set selectedUser(value: Profile | null) {
+  set selectedUser(value: TffProfile | null) {
     if (value !== this._selectedUser) {
       this._selectedUser = value;
       this.onChange(value ? value.username : null);
@@ -48,7 +48,7 @@ export class UserFieldComponent implements OnInit, ControlValueAccessor {
   }
 
   ngOnInit() {
-    this.userList$ = this.store.pipe(select(getUserList), map(result => result.results.filter(p => p.app_email !== null)));
+    this.userList$ = this.store.pipe(select(getUserList), map(result => result.results.filter(p => p.app_user !== null)));
     this._inputSubscription = this.userSearchControl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
@@ -56,12 +56,8 @@ export class UserFieldComponent implements OnInit, ControlValueAccessor {
     ).subscribe(input => this.store.dispatch(new SearchUsersAction({ query: input })));
   }
 
-  getUserInfoLine(user: Profile) {
-    const name = user.information && user.information.firstname ? `${user.information.firstname} ${user.information.lastname}` : user.username;
-    if (user.information && user.information.validatedemailaddresses.length) {
-      return `${name} - ${user.information.validatedemailaddresses[ 0 ].emailaddress}`;
-    }
-    return name;
+  getUserInfoLine(user: TffProfile) {
+    return `${user.info.name} - ${user.info.email}`;
   }
 
   setSelectedUser(event: MatAutocompleteSelectedEvent) {
@@ -69,11 +65,11 @@ export class UserFieldComponent implements OnInit, ControlValueAccessor {
     this.userSearchInput.nativeElement.value = '';
   }
 
-  writeValue(value: Profile | string | null): void {
+  writeValue(value: TffProfile | string | null): void {
     if (typeof value === 'string') {
-      this.store.dispatch(new GetUserAction(value));
+      this.store.dispatch(new GetTffProfileAction(value));
       this._actionSubscription.unsubscribe();
-      this._actionSubscription = this.actions$.pipe(ofType<GetUserCompleteAction>(TffActionTypes.GET_USER_COMPLETE))
+      this._actionSubscription = this.actions$.pipe(ofType<GetTffProfileCompleteAction>(TffActionTypes.GET_TFF_PROFILE_COMPLETE))
         .subscribe(action => {
           this.selectedUser = action.payload;
         });

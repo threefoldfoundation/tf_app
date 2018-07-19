@@ -22,7 +22,7 @@ from mcfw.consts import DEBUG
 from mcfw.rpc import arguments, returns
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz.global_stats import ApiCallException
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.bizz.nodes.stats import get_nodes_for_user, assign_nodes_to_user, \
     get_nodes_stats_from_influx
 from plugins.tff_backend.models.nodes import Node
@@ -34,7 +34,7 @@ from plugins.tff_backend.utils.app import create_app_user
 def api_get_node_status(params, user_detail):
     # type: (dict, UserDetailsTO) -> list[dict]
     try:
-        username = get_iyo_username(user_detail)
+        username = get_username(user_detail)
         nodes = Node.list_by_user(username)
         if not DEBUG and not nodes:
             # fallback, should only happen when user checks his node status before our cron job has ran.

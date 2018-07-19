@@ -19,7 +19,6 @@ from google.appengine.ext import ndb
 
 from enum import IntEnum
 from framework.models.common import NdbModel
-from plugins.rogerthat_api.plugin_utils import Enum
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -62,12 +61,21 @@ class KYCInformation(NdbModel):
         self.status = new_status
 
 
+class TffProfileInfo(NdbModel):
+    NAMESPACE = NAMESPACE
+    email = ndb.StringProperty()
+    name = ndb.StringProperty(indexed=False)
+    language = ndb.StringProperty(indexed=False)
+    avatar_url = ndb.StringProperty(indexed=False)
+
+
 class TffProfile(NdbModel):
     NAMESPACE = NAMESPACE
     app_user = ndb.UserProperty()
     referrer_user = ndb.UserProperty()
     referrer_username = ndb.StringProperty()
     kyc = ndb.StructuredProperty(KYCInformation)  # type: KYCInformation
+    info = ndb.StructuredProperty(TffProfileInfo)  # type: TffProfileInfo
 
     @property
     def username(self):
@@ -84,6 +92,10 @@ class TffProfile(NdbModel):
 
     def to_dict(self, extra_properties=None, include=None, exclude=None):
         return super(TffProfile, self).to_dict(extra_properties or ['username', 'referral_code'], include, exclude)
+
+    @classmethod
+    def list_by_email(cls, email):
+        return cls.query().filter(cls.info.email == email)
 
 
 class ProfilePointer(NdbModel):

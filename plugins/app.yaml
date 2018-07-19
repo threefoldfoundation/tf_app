@@ -14,3 +14,7 @@ handlers:
 - url: /favicon.ico
   static_files: static/plugins/tff_backend/img/favicon.ico
   upload: static/plugins/tff_backend/img/favicon.ico
+- url: /update-app
+  script: main_unauthenticated.app
+  secure: always
+

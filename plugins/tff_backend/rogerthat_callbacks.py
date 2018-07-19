@@ -19,7 +19,6 @@ import logging
 
 from google.appengine.ext import deferred
 
-from framework.models.session import Session
 from framework.plugin_loader import get_config
 from framework.utils import try_or_defer
 from mcfw.properties import object_factory
@@ -44,15 +43,17 @@ from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.dashboard import update_firebase_installation
 from plugins.tff_backend.bizz.flow_statistics import save_flow_statistics
 from plugins.tff_backend.bizz.global_stats import ApiCallException
+from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user
 from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \
-    investment_agreement_signed_by_admin, invest_complete, start_invest, token_value_addendum_signed
+    investment_agreement_signed_by_admin, invest_complete, start_invest
+from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1, kyc_part_2
 from plugins.tff_backend.bizz.nodes.hoster import order_node, order_node_signed
 from plugins.tff_backend.bizz.service import add_user_to_role
-from plugins.tff_backend.bizz.user import user_registered, store_public_key, store_info_in_userdata, \
-    is_user_in_roles, populate_intercom_user
+from plugins.tff_backend.bizz.user import is_user_in_roles, populate_intercom_user, create_tff_profile, \
+    update_tff_profile
 from plugins.tff_backend.plugin_consts import NAMESPACE, BUY_TOKENS_TAG, KYC_FLOW_PART_1_TAG, KYC_FLOW_PART_2_TAG, \
-    INVEST_FLOW_TAG, SIGN_TOKEN_VALUE_ADDENDUM_TAG
+    INVEST_FLOW_TAG
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 
 FMR_TAG_MAPPING = {
@@ -65,7 +66,6 @@ FMR_TAG_MAPPING = {
     'sign_investment_agreement_admin': investment_agreement_signed_by_admin,
     KYC_FLOW_PART_1_TAG: kyc_part_1,
     KYC_FLOW_PART_2_TAG: kyc_part_2,
-    SIGN_TOKEN_VALUE_ADDENDUM_TAG: token_value_addendum_signed
 }
 
 POKE_TAG_MAPPING = {
@@ -84,11 +84,10 @@ API_METHOD_MAPPING = {
 
 
 def log_and_parse_user_details(user_details):
-    # type: (dict) -> UserDetailsTO
-    is_list = isinstance(user_details, list)
-    user_detail = user_details[0] if is_list else user_details
+    # type: (list[dict]) -> UserDetailsTO
+    user_detail = user_details[0] if isinstance(user_details, list) else user_details
     logging.debug('Current user: %(email)s:%(app_id)s', user_detail)
-    return parse_complex_value(UserDetailsTO, user_details, is_list)
+    return UserDetailsTO.from_dict(user_detail)
 
 
 def flow_member_result(rt_settings, request_id, message_flow_run_id, member, steps, end_id, end_message_flow_id,
@@ -112,7 +111,7 @@ def flow_member_result(rt_settings, request_id, message_flow_run_id, member, ste
             logging.info('[tff] Ignoring flow_member_result with tag %s and flush_id %s', tag, flush_id)
     finally:
         deferred.defer(save_flow_statistics, parent_message_key, steps, end_id, tag, flush_id, flush_message_flow_id,
-                       user_details[0], timestamp, result)
+                       user_details, timestamp, result)
 
 
 def form_update(rt_settings, request_id, status, form_result, answer_id, member, message_key, tag, received_timestamp,
@@ -155,44 +154,41 @@ def messaging_poke(rt_settings, id_, email, tag, result_key, context, service_id
     if not handler:
         logging.info('Ignoring poke with tag %s', tag)
         return None
-    user_details = log_and_parse_user_details(user_details[0])
+    user_details = log_and_parse_user_details(user_details)
     result = handler(email, tag, result_key, context, service_identity, user_details)
     return result and serialize_complex_value(result, PokeCallbackResultTO, False, skip_missing=True)
 
 
-def friend_register(rt_settings, request_id, params, response):
-    if response['result'] == DECLINE_ID:
-        return
-    user_detail = log_and_parse_user_details(params['user_details'])[0]
-    username = user_registered(user_detail, params['origin'], params['data'])
-    deferred.defer(store_info_in_userdata, username, user_detail)
-    deferred.defer(add_user_to_role, user_detail, RogerthatRoles.MEMBERS)
-    deferred.defer(populate_intercom_user, Session.create_key(username), user_detail)
+def friend_register_result(rt_settings, request_id, **params):
+    try_or_defer(_friend_register_result, rt_settings, request_id, **params)
+
+
+def _friend_register_result(rt_settings, request_id, **params):
+    user_detail = log_and_parse_user_details(params['user_details'])
+    profile = create_tff_profile(user_detail)
+    try_or_defer(add_user_to_role, user_detail, RogerthatRoles.MEMBERS)
+    try_or_defer(populate_intercom_user, profile)
 
 
 def friend_invited(rt_settings, request_id, user_details, **kwargs):
     user_details = log_and_parse_user_details(user_details)
-    if user_details[0].app_id == get_config(NAMESPACE).rogerthat.app_id:
+    if user_details.app_id == get_config(NAMESPACE).rogerthat.app_id:
         return ACCEPT_ID
+    logging.warn('Invalid app id received from friend.register call: %s', user_details)
     return DECLINE_ID
 
 
 def friend_update(rt_settings, request_id, user_details, changed_properties, **kwargs):
-    if 'public_keys' not in changed_properties:
-        return
-
     user_detail = log_and_parse_user_details(user_details)
-    try_or_defer(store_public_key, user_detail)
-
-
-def friend_invite_result(rt_settings, request_id, params, response):
-    pass
+    username = get_username(user_detail)
+    profile = update_tff_profile(username, user_detail)
+    try_or_defer(upsert_intercom_user, username, profile)
 
 
 def friend_is_in_roles(rt_settings, request_id, service_identity, user_details, roles, **kwargs):
     user_details = log_and_parse_user_details(user_details)
     roles = parse_complex_value(RoleTO, roles, True)
-    return is_user_in_roles(user_details[0], roles)
+    return is_user_in_roles(user_details, roles)
 
 
 def system_api_call(rt_settings, request_id, method, params, user_details, **kwargs):
@@ -203,7 +199,7 @@ def system_api_call(rt_settings, request_id, method, params, user_details, **kwa
     response = SendApiCallCallbackResultTO(error=None, result=None)
     try:
         params = json.loads(params) if params else params
-        result = API_METHOD_MAPPING[method](params=params, user_detail=user_details[0])
+        result = API_METHOD_MAPPING[method](params=params, user_detail=user_details)
         if result is not None:
             is_list = isinstance(result, list)
             if is_list and result:

@@ -14,35 +14,20 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-import re
+
 
 from framework.bizz.job import run_job
-from framework.models.session import Session
-from plugins.its_you_online_auth.models import Profile
-from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz.user import populate_intercom_user
-from plugins.tff_backend.utils.app import get_app_user_tuple_by_email
-
-
-def _is_guid(val):
-    return bool(re.findall('[a-z0-9]{32}', val))
+from plugins.tff_backend.models.user import TffProfile
 
 
 def ensure_intercom_users():
-    run_job(_get_users, [], _ensure_intercom_user, [])
+    run_job(_get_profiles, [], _ensure_intercom_user, [])
 
 
-def _get_users():
-    return Session.query()
+def _get_profiles():
+    return TffProfile.query()
 
 
-def _ensure_intercom_user(session_key):
-    session_key_value = session_key.id()
-    if not _is_guid(session_key_value):
-        # session_key_value == username
-        profile = Profile.create_key(session_key_value).get()
-        user_details = None
-        if profile and profile.app_email:
-            user, app_id = get_app_user_tuple_by_email(profile.app_email)
-            user_details = UserDetailsTO(email=user.email(), app_id=app_id)
-        populate_intercom_user(session_key, user_details)
+def _ensure_intercom_user(profile_key):
+    populate_intercom_user(profile_key.get())

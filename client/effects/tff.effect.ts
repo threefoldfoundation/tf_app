@@ -97,13 +97,6 @@ export class TffEffects {
       catchError(err => handleApiError(actions.SearchUsersFailedAction, err)),
     )));
 
-  @Effect() getUser$ = this.actions$.pipe(
-    ofType<actions.GetUserAction>(actions.TffActionTypes.GET_USER),
-    switchMap(action => this.tffService.getUser(action.payload).pipe(
-      map(payload => new actions.GetUserCompleteAction(payload)),
-      catchError(err => handleApiError(actions.GetUserFailedAction, err)),
-    )));
-
   @Effect() getTffProfile$ = this.actions$.pipe(
     ofType<actions.GetTffProfileAction>(actions.TffActionTypes.GET_TFF_PROFILE),
     switchMap(action => this.tffService.getTffProfile(action.payload).pipe(
@@ -137,13 +130,6 @@ export class TffEffects {
     switchMap(action => this.tffService.getUserTransactions(action.payload).pipe(
       map(payload => new actions.GetUserTransactionsCompleteAction(payload)),
       catchError(err => handleApiError(actions.GetUserTransactionsFailedAction, err)),
-    )));
-
-  @Effect() createTransaction$ = this.actions$.pipe(
-    ofType<actions.CreateTransactionAction>(actions.TffActionTypes.CREATE_TRANSACTION),
-    switchMap(action => this.tffService.createTransaction(action.payload).pipe(
-      map(payload => new actions.CreateTransactionCompleteAction(payload)),
-      catchError(err => handleApiError(actions.CreateTransactionFailedAction, err)),
     )));
 
   @Effect() getAgendaEvents$ = this.actions$.pipe(

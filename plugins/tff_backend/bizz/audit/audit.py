@@ -104,12 +104,6 @@ def list_audit_logs_by_user(user_id, page_size, cursor):
     return AuditLog.list_by_user(user_id).fetch_page(page_size, start_cursor=ndb.Cursor(urlsafe=cursor))
 
 
-def list_audit_logs_by_type_and_user(audit_log_type, user_id, page_size, cursor):
-    # type: (mapping.AuditLogType, unicode, long, unicode) -> tuple[list[AuditLog], unicode, bool]
-    return AuditLog.list_by_type_and_user(audit_log_type, user_id).fetch_page(page_size,
-                                                                              start_cursor=ndb.Cursor(urlsafe=cursor))
-
-
 def list_audit_logs_details(query_results, include_reference=True):
     # type: (tuple[list[AuditLog], ndb.Cursor, bool], bool) -> AuditLogDetailsListTO
     if not include_reference:

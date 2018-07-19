@@ -26,11 +26,6 @@ class RogerthatConfiguration(TO):
     app_id = unicode_property('app_id')
 
 
-class LedgerConfiguration(TO):
-    url = unicode_property('url')
-    secret = unicode_property('secret')
-
-
 class OdooConfiguration(TO):
     url = unicode_property('1')
     database = unicode_property('2')
@@ -77,7 +72,6 @@ class TffConfiguration(TO):
         influxdb(InfluxDBConfig)
     """
     rogerthat = typed_property('1', RogerthatConfiguration, False)
-    ledger = typed_property('3', LedgerConfiguration, False)
     odoo = typed_property('4', OdooConfiguration, False)
     support_emails = unicode_list_property('support_emails')
     backup_bucket = unicode_property('backup_bucket')

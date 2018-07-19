@@ -21,12 +21,13 @@ from google.appengine.ext import ndb
 from framework.bizz.authentication import get_current_session
 from framework.models.session import Session
 from framework.plugin_loader import get_config, get_plugin
+from mcfw.cache import cached
 from mcfw.rpc import returns, arguments
 from plugins.its_you_online_auth.bizz.authentication import get_itsyouonline_client_from_jwt
 from plugins.its_you_online_auth.its_you_online_auth_plugin import ItsYouOnlineAuthPlugin
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.to import UserDetailsTO
-from plugins.tff_backend.utils.app import create_app_user_by_email
+from plugins.tff_backend.models.user import TffProfile
 
 
 @returns(unicode)
@@ -39,12 +40,22 @@ def get_iyo_organization_id():
 @ndb.non_transactional()
 @returns(unicode)
 @arguments(app_user_or_user_details=(users.User, UserDetailsTO))
-def get_iyo_username(app_user_or_user_details):
+def get_username(app_user_or_user_details):
     if isinstance(app_user_or_user_details, UserDetailsTO):
-        app_user = create_app_user_by_email(app_user_or_user_details.email, app_user_or_user_details.app_id)
+        email = app_user_or_user_details.email
     else:
-        app_user = app_user_or_user_details
-    return get_iyo_plugin().get_username_from_rogerthat_email(app_user.email())
+        email = app_user_or_user_details.email()
+    if 'itsyou.online' in email:
+        return get_iyo_plugin().get_username_from_rogerthat_email(email)
+    else:
+        return get_username_from_app_email(email)
+
+
+@cached(1, 0)
+@returns(unicode)
+@arguments(email=unicode)
+def get_username_from_app_email(email):
+    return TffProfile.list_by_email(email).get().username
 
 
 @returns(dict)
@@ -66,7 +77,9 @@ def get_itsyouonline_client_from_username(username):
     if not session or session.user_id != username:
         session = Session.create_key(username).get()
     if not session:
-        raise Exception('No session found for %s' % username)
+        session = Session.list_by_user(username).get()
+        if not session:
+            raise Exception('No session found for %s' % username)
     jwt = session.jwt
     client = get_itsyouonline_client_from_jwt(jwt)
     return client

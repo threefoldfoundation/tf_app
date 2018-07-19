@@ -2,13 +2,10 @@
   <mat-tab [label]="tab.label | translate : { amount: presence[tab.value].length }" *ngFor="let tab of tabs">
     <mat-nav-list *ngIf="status.success">
       <a *ngFor="let userPresence of presence[tab.value]; trackBy: trackByUsername"
-         [routerLink]="'/users/' + userPresence.username" mat-list-item target="_blank">
-        <h4 matLine>{{ userPresence.user | profileName }}</h4>
-        <p matLine *ngIf="(userPresence.user | profileName) != userPresence.username">
-          {{ userPresence.username }}
-        </p>
-        <p matLine *ngIf="userPresence.user.information?.validatedemailaddresses.length">
-          {{ userPresence.user.information.validatedemailaddresses[0].emailaddress }}
+         [routerLink]="'/users/' + userPresence.user.username" mat-list-item target="_blank">
+        <h4 matLine>{{ userPresence.user.info.name }}</h4>
+        <p matLine *ngIf="userPresence.user.info.email">
+          {{ userPresence.user.info.email }}
         </p>
       </a>
     </mat-nav-list>

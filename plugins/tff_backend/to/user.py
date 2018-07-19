@@ -32,3 +32,4 @@ class TffProfileTO(TO):
     nodes = typed_property('nodes', dict, True)
     referral_code = unicode_property('referral_code')
     kyc = typed_property('kyc', dict)
+    info = typed_property('info', dict)

@@ -1,4 +1,4 @@
-import { Profile } from '../../../its_you_online_auth/client/interfaces/user.interfaces';
+import { TffProfile } from './profile.interfaces';
 
 export const enum AgendaEventType {
   EVENT = 1,
@@ -31,8 +31,7 @@ export interface EventParticipant {
   event_id: number;
   modification_timestamp: string;
   status: EventPresenceStatus;
-  user: Profile;
-  username: string;
+  user: TffProfile;
   wants_recording: boolean;
 }
 

@@ -7,9 +7,8 @@ import { Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, withLatestFrom } from 'rxjs/operators';
 import { filterNull } from '../../../../framework/client/ngrx';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
-import { Profile } from '../../../../its_you_online_auth/client/interfaces';
 import { CreateOrderAction, ResetNodeOrderAction, SearchUsersAction } from '../../actions';
-import { ContactInfo, CreateOrderPayload, NodeOrderStatuses, ORDER_STATUSES } from '../../interfaces';
+import { ContactInfo, CreateOrderPayload, NodeOrderStatuses, ORDER_STATUSES, TffProfile } from '../../interfaces';
 import { ITffState } from '../../states';
 import { createOrderStatus, getOrder, getUserList } from '../../tff.state';
 
@@ -23,11 +22,11 @@ export class CreateOrderPageComponent implements OnInit, OnDestroy {
   userSearchControl: FormControl;
   maxDate = new Date();
   order: CreateOrderPayload<Date>;
-  selectedUser: Profile | null = null;
+  selectedUser: TffProfile | null = null;
   selectedDocument: File | null;
   statuses = ORDER_STATUSES;
   NodeOrderStatuses = NodeOrderStatuses;
-  userList$: Observable<Profile[]>;
+  userList$: Observable<TffProfile[]>;
   createStatus$: Observable<ApiRequestStatus>;
 
   private _inputSubscription: Subscription;
@@ -55,7 +54,7 @@ export class CreateOrderPageComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.store.dispatch(new ResetNodeOrderAction());
     this.userList$ = this.store.select(getUserList).pipe(
-      map(result => result.results.filter(p => p.app_email !== null)),
+      map(result => result.results.filter(p => p.app_user !== null)),
     );
     this.createStatus$ = this.store.select(createOrderStatus);
 
@@ -94,17 +93,13 @@ export class CreateOrderPageComponent implements OnInit, OnDestroy {
       return;
     }
     if (form.form.valid) {
-      this.order.app_user = <string>this.selectedUser.app_email;
+      this.order.app_user = <string>this.selectedUser.app_user;
       this.store.dispatch(new CreateOrderAction(this.convertOrder(this.order)));
     }
   }
 
-  getUserInfoLine(user: Profile) {
-    const name = user.information && user.information.firstname ? `${user.information.firstname} ${user.information.lastname}` : user.username;
-    if (user.information && user.information.validatedemailaddresses.length) {
-      return `${name} - ${user.information.validatedemailaddresses[ 0 ].emailaddress}`;
-    }
-    return name;
+  getUserInfoLine(user: TffProfile) {
+    return `${user.info.name} - ${user.info.email}`;
   }
 
   setSelectedUser(event: MatAutocompleteSelectedEvent) {
@@ -130,25 +125,12 @@ export class CreateOrderPageComponent implements OnInit, OnDestroy {
     };
   }
 
-  private setContactInfo(user: Profile | null) {
-    if (!(user && user.information)) {
+  private setContactInfo(user: TffProfile | null) {
+    if (!(user)) {
       return;
     }
-    if (user.information.firstname) {
-      this.order.billing_info.name = `${user.information.firstname} ${user.information.lastname}`;
-    }
-    if (user.information.validatedemailaddresses.length) {
-      this.order.billing_info.email = user.information.validatedemailaddresses[ 0 ].emailaddress;
-    }
-    if (user.information.validatedphonenumbers.length) {
-      this.order.billing_info.phone = user.information.validatedphonenumbers[ 0 ].phonenumber;
-    }
-    if (user.information.addresses.length) {
-      const address = user.information.addresses[ 0 ];
-      this.order.billing_info.address = `${address.street} ${address.nr}
-${address.postalcode} ${address.city}
-${address.country}`;
-    }
+    this.order.billing_info.name = `${user.info.name}`;
+    this.order.billing_info.email = `${user.info.email}`;
     this.order.shipping_info = { ...this.order.billing_info };
   }
 }

@@ -18,8 +18,8 @@
 from mcfw.exceptions import HttpBadRequestException
 from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
-from plugins.tff_backend.bizz.audit.audit import list_audit_logs_details, list_audit_logs, \
-    list_audit_logs_by_type_and_user, list_audit_logs_by_type, list_audit_logs_by_user
+from plugins.tff_backend.bizz.audit.audit import list_audit_logs_details, list_audit_logs, list_audit_logs_by_type, \
+    list_audit_logs_by_user
 from plugins.tff_backend.bizz.audit.mapping import AuditLogMapping
 from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.to.audit import AuditLogDetailsListTO
@@ -32,9 +32,7 @@ def api_list_audit_logs(page_size=100, cursor=None, type=None, user_id=None, inc
     page_size = min(1000, page_size)
     if type and type not in AuditLogMapping:
         raise HttpBadRequestException('invalid_type', {'allowed_types': AuditLogMapping.keys()})
-    if type and user_id:
-        query_results = list_audit_logs_by_type_and_user(type, user_id, page_size, cursor)
-    elif type:
+    if type:
         query_results = list_audit_logs_by_type(type, page_size, cursor)
     elif user_id:
         query_results = list_audit_logs_by_user(user_id, page_size, cursor)

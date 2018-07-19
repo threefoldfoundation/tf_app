@@ -18,18 +18,18 @@
 import datetime
 import logging
 
+from google.appengine.ext import ndb, deferred
+
 import dateutil
 from dateutil.relativedelta import relativedelta
-
 from framework.consts import DAY
-from google.appengine.ext import ndb, deferred
 from mcfw.consts import MISSING
 from mcfw.exceptions import HttpNotFoundException
 from mcfw.rpc import returns, arguments
-from plugins.its_you_online_auth.models import Profile
 from plugins.rogerthat_api.api import system
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.models.agenda import Event, EventParticipant
+from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.to.agenda import EventTO, EventParticipantListTO, \
     EventParticipantTO
 
@@ -52,10 +52,10 @@ def get_event(event_id):
 def list_participants(event_id, cursor=None, page_size=50):
     qry = EventParticipant.list_by_event(event_id)
     results, cursor, more = qry.fetch_page(page_size, cursor=cursor)
-    profiles = {p.username: p for p in ndb.get_multi([Profile.create_key(r.username) for r in results if r.username])}
+    profiles = {p.username: p for p in ndb.get_multi([TffProfile.create_key(r.username) for r in results])}
     list_result = EventParticipantListTO(cursor=cursor and cursor.to_websafe_string(),
                                          more=more,
-                                         results=map(EventParticipantTO.from_model, results))
+                                         results=EventParticipantTO.from_list(results))
     for result in list_result.results:
         profile = profiles.get(result.username)
         result.user = profile and profile.to_dict()

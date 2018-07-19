@@ -1,6 +1,12 @@
-import { Profile } from '../../../its_you_online_auth/client/interfaces';
 import { Applicant } from './onfido.interfaces';
 import { PaginatedResult } from './shared.interfaces';
+
+export interface TffProfileInfo {
+  email: string;
+  name: string;
+  language: string;
+  avatar_url: string;
+}
 
 export interface TffProfile {
   app_user: string;
@@ -9,6 +15,7 @@ export interface TffProfile {
   referrer_username: string;
   username: string;
   referral_code: string;
+  info: TffProfileInfo;
 }
 
 export enum KYCStatus {
@@ -83,7 +90,7 @@ export interface SearchUsersQuery {
   query?: string;
 }
 
-export type UserList = PaginatedResult<Profile>;
+export type UserList = PaginatedResult<TffProfile>;
 
 export interface SetKYCStatusPayload {
   status: KYCStatus;

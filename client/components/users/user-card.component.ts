@@ -2,10 +2,10 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { TffProfile } from '../../interfaces';
 
 @Component({
-  selector: 'tff-user-details',
+  selector: 'tff-user-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'user-details.component.html',
+  templateUrl: 'user-card.component.html',
 })
-export class UserDetailsComponent {
-  @Input() tffProfile: TffProfile;
+export class UserCardComponent {
+  @Input() profile: TffProfile;
 }

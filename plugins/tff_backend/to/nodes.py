@@ -69,16 +69,6 @@ class CreateNodeOrderTO(TO):
     document = unicode_property('document')
 
 
-class NodeOrderDetailsTO(NodeOrderTO):
-    see_document = typed_property('see_document', IYOSeeDocument)  # type: IYOSeeDocument
-
-    @classmethod
-    def from_model(cls, model, see_document):
-        to = super(NodeOrderDetailsTO, cls).from_model(model)
-        to.see_document = see_document
-        return to
-
-
 class NodeOrderListTO(PaginatedResultTO):
     results = typed_property('results', NodeOrderTO, True)
 

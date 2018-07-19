@@ -24,7 +24,7 @@ from google.appengine.ext import ndb
 from framework.bizz.job import run_job, MODE_BATCH
 from mcfw.exceptions import HttpNotFoundException
 from mcfw.rpc import returns, arguments
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_usernames
+from plugins.tff_backend.bizz.iyo.utils import get_username, get_iyo_usernames
 from plugins.tff_backend.consts.hoster import NODE_ORDER_SEARCH_INDEX
 from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.plugin_consts import NAMESPACE
@@ -55,7 +55,7 @@ def _get_all_node_orders():
 def index_node_order(order):
     # type: (NodeOrder) -> list[search.PutResult]
     logging.info('Indexing node order %s', order.id)
-    document = create_node_order_document(order, get_iyo_username(order.app_user))
+    document = create_node_order_document(order, get_username(order.app_user))
     return NODE_ORDER_INDEX.put(document)
 
 

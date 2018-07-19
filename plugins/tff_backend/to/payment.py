@@ -82,13 +82,6 @@ class CreateTransactionResponseTO(TO):
     status = unicode_property('1')
 
 
-class NewTransactionTO(TO):
-    token_count = float_property('token_count')
-    memo = unicode_property('memo')
-    date_signed = long_property('date_signed')
-    token_type = unicode_property('token_type')
-
-
 class BaseTransactionTO(TO):
     timestamp = long_property('timestamp')
     unlock_timestamps = long_list_property('unlock_timestamps')

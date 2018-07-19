@@ -19,30 +19,22 @@ import logging
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz.global_stats import ApiCallException
-from plugins.tff_backend.bizz.iyo.see import get_see_documents, get_see_document
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
-from plugins.tff_backend.to.iyo.see import IYOSeeDocumentView, IYOSeeDocument
+from plugins.tff_backend.bizz.iyo.utils import get_username
 
 
-@returns([IYOSeeDocumentView])
+@returns([dict])
 @arguments(params=dict, user_detail=UserDetailsTO)
 def api_iyo_see_list(params, user_detail):
     try:
-        iyo_organization_id = get_iyo_organization_id()
-        iyo_username = get_iyo_username(user_detail)
-        return get_see_documents(iyo_organization_id, iyo_username)
+        iyo_username = get_username(user_detail)
+        # TODO loop over NodeOrder, InvestmentAgreement and Document
+        return []
     except:
         logging.error('iyo.see.list exception occurred', exc_info=True)
         raise ApiCallException(u'Could not load ThreeFold documents. Please try again later.')
 
 
-@returns(IYOSeeDocument)
+@returns()
 @arguments(params=dict, user_detail=UserDetailsTO)
 def api_iyo_see_detail(params, user_detail):
-    try:
-        iyo_organization_id = get_iyo_organization_id()
-        iyo_username = get_iyo_username(user_detail)
-        return get_see_document(iyo_organization_id, iyo_username, params['uniqueid'], u'all')
-    except:
-        logging.error('iyo.see.detail exception occurred', exc_info=True)
-        raise ApiCallException(u'Could not load ThreeFold document details. Please try again later.')
+    raise ApiCallException(u'Could not load ThreeFold document details. Please try again later.')

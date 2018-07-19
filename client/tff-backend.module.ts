@@ -44,7 +44,6 @@ import {
   ApiRequestStatusComponent,
   CreateAgendaEventPageComponent,
   CreateNodeComponent,
-  CreateTransactionComponent,
   DashboardComponent,
   EditNodeComponent,
   EventParticipantsComponent,
@@ -75,6 +74,7 @@ import {
   SearchInvestmentAgreementsComponent,
   SearchNodeOrdersComponent,
   TransactionListComponent,
+  UserCardComponent,
   UserDetailsComponent,
   UserListComponent,
   UserSearchComponent,
@@ -86,7 +86,6 @@ import {
   CreateInvestmentAgreementPageComponent,
   CreateNodePageComponent,
   CreateOrderPageComponent,
-  CreateTransactionPageComponent,
   DashboardPageComponent,
   EditNodePageComponent,
   FlowStatisticsDetailPageComponent,
@@ -107,8 +106,6 @@ import {
 } from './pages';
 import { AmountPipe } from './pipes/amount.pipe';
 import { MarkdownPipe } from './pipes/markdown.pipe';
-import { ProfileEmailPipe } from './pipes/profile-email.pipe';
-import { ProfileNamePipe } from './pipes/profile-name.pipe';
 import { TimeDurationPipe } from './pipes/time-duration.pipe';
 import { TimePipe } from './pipes/time.pipe';
 import { TimestampPipe } from './pipes/timestamp.pipe';
@@ -145,8 +142,6 @@ const PIPES = [
   MarkdownPipe,
   TimePipe,
   TimeDurationPipe,
-  ProfileEmailPipe,
-  ProfileNamePipe,
 ];
 
 export const TFF_PROVIDERS = [
@@ -162,7 +157,6 @@ export const TFF_PAGES = [
   CreateInvestmentAgreementPageComponent,
   CreateNodePageComponent,
   CreateOrderPageComponent,
-  CreateTransactionPageComponent,
   DashboardPageComponent,
   EditNodePageComponent,
   FlowStatisticsDetailPageComponent,
@@ -190,7 +184,6 @@ export const TFF_COMPONENTS: any[] = [
   ApiRequestStatusComponent,
   CreateAgendaEventPageComponent,
   CreateNodeComponent,
-  CreateTransactionComponent,
   DashboardComponent,
   EditNodeComponent,
   EventParticipantsComponent,
@@ -221,6 +214,7 @@ export const TFF_COMPONENTS: any[] = [
   SearchInvestmentAgreementsComponent,
   SearchNodeOrdersComponent,
   TransactionListComponent,
+  UserCardComponent,
   UserDetailsComponent,
   UserFieldComponent,
   UserListComponent,

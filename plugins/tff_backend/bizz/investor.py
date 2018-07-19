@@ -26,7 +26,7 @@ from google.appengine.ext import deferred, ndb
 
 from babel.numbers import get_currency_name
 from framework.consts import get_base_url, DAY
-from framework.utils import now, azzert
+from framework.utils import now, azzert, try_or_defer
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.properties import object_factory
 from mcfw.rpc import returns, arguments
@@ -39,39 +39,33 @@ from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormRes
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     FlowCallbackResultTypeTO, TYPE_FLOW
 from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
-from plugins.tff_backend.bizz.agreements import get_bank_account_info, create_itft_amendment_1_pdf
-from plugins.tff_backend.bizz.agreements.document import send_document_sign_message
+from plugins.tff_backend.bizz.agreements import get_bank_account_info
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.global_stats import get_global_stats
 from plugins.tff_backend.bizz.intercom_helpers import IntercomTags
-from plugins.tff_backend.bizz.iyo.see import get_see_document, sign_see_document, create_see_document
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id, get_app_user_from_iyo_username
+from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.bizz.kyc import save_utility_bill
 from plugins.tff_backend.bizz.kyc.onfido_bizz import get_applicant
 from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1
 from plugins.tff_backend.bizz.messages import send_message_and_email
-from plugins.tff_backend.bizz.payment import transfer_genesis_coins_to_user
 from plugins.tff_backend.bizz.rogerthat import create_error_message, send_rogerthat_flow
 from plugins.tff_backend.bizz.service import get_main_branding_hash, add_user_to_role
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.bizz.todo.investor import InvestorSteps
 from plugins.tff_backend.bizz.user import user_code, get_tff_profile
 from plugins.tff_backend.consts.kyc import country_choices
-from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT, TokenType
+from plugins.tff_backend.consts.payment import TOKEN_TFT, TOKEN_ITFT
 from plugins.tff_backend.dal.investment_agreements import get_investment_agreement
-from plugins.tff_backend.models.document import Document, DocumentType, DocumentStatus
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement, PaymentInfo
 from plugins.tff_backend.models.user import KYCStatus, TffProfile
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, \
     SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
     BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT, \
-    BUY_TOKENS_FLOW_V5, INVEST_FLOW_TAG, FLOW_SIGN_TOKEN_VALUE_ADDENDUM, SIGN_TOKEN_VALUE_ADDENDUM_TAG, \
-    FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED, FF_ENDED_TIMESTAMP
-from plugins.tff_backend.to.investor import InvestmentAgreementTO, InvestmentAgreementDetailsTO, \
-    CreateInvestmentAgreementTO
+    BUY_TOKENS_FLOW_V5, INVEST_FLOW_TAG, FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED
+from plugins.tff_backend.to.investor import InvestmentAgreementTO, CreateInvestmentAgreementTO
 from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 
@@ -86,7 +80,7 @@ INVESTMENT_TODO_MAPPING = {
 @returns(FlowMemberResultCallbackResultTO)
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
            flow_params=unicode)
 def invest_tft(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
                flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
@@ -97,7 +91,7 @@ def invest_tft(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 @returns(FlowMemberResultCallbackResultTO)
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
            flow_params=unicode)
 def invest_itft(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
                 flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
@@ -108,7 +102,7 @@ def invest_itft(message_flow_run_id, member, steps, end_id, end_message_flow_id,
 @returns(FlowMemberResultCallbackResultTO)
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
            flow_params=unicode, token=unicode)
 def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
            flush_id, flush_message_flow_id, service_identity, user_details, flow_params, token):
@@ -118,8 +112,8 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
                           result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params)
 
     try:
-        email = user_details[0].email
-        app_id = user_details[0].app_id
+        email = user_details.email
+        app_id = user_details.app_id
         app_user = create_app_user_by_email(email, app_id)
         logging.info('User %s wants to invest', email)
         version = get_key_name_from_key_string(steps[0].message_flow_id)
@@ -130,7 +124,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         else:
             token_count_float = float(get_step_value(steps, 'message_get_order_size_ITO'))
             amount = get_investment_amount(currency, token_count_float)
-        username = get_iyo_username(app_user)
+        username = get_username(app_user)
         agreement = _create_investment_agreement(amount, currency, token, token_count_float, username, version,
                                                  app_user, status=InvestmentAgreement.STATUS_CREATED)
         payment_info = []
@@ -147,7 +141,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         if utility_bill_step:
             azzert(utility_bill_step.answer_id == FormTO.POSITIVE)
             url = utility_bill_step.get_value()
-            deferred.defer(save_utility_bill, url, TffProfile.create_key(get_iyo_username(user_details[0])))
+            deferred.defer(save_utility_bill, url, TffProfile.create_key(get_username(user_details)))
 
         tag = {
             '__rt__.tag': INVEST_FLOW_TAG,
@@ -198,7 +192,7 @@ def _create_investment_agreement(amount, currency, token, token_count_float, use
 def create_investment_agreement(agreement):
     # type: (CreateInvestmentAgreementTO) -> InvestmentAgreement
     app_user = users.User(agreement.app_user)
-    username = get_iyo_username(app_user)
+    username = get_username(app_user)
     tff_profile = get_tff_profile(username)
     if tff_profile.kyc.status != KYCStatus.VERIFIED:
         raise HttpBadRequestException('cannot_invest_not_kyc_verified')
@@ -214,10 +208,7 @@ def create_investment_agreement(agreement):
     agreement_model.put()
 
     pdf_name = InvestmentAgreement.filename(agreement_model.id)
-    pdf_url = upload_to_gcs(pdf_name, doc_content, content_type)
-    deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_model.key, app_user, pdf_url,
-                   content_type, send_sign_message=False, pdf_size=len(doc_content))
-
+    upload_to_gcs(pdf_name, doc_content, content_type)
     return agreement_model
 
 
@@ -270,15 +261,15 @@ def _get_conversion_rates():
 
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
            flow_params=unicode)
 def invest_complete(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                     result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    email = user_details[0].email
-    app_id = user_details[0].app_id
+    email = user_details.email
+    app_id = user_details.app_id
     if 'confirm' in end_id:
         agreement_key = InvestmentAgreement.create_key(json.loads(tag)['investment_id'])
-        deferred.defer(_invest, agreement_key, email, app_id, 0)
+        try_or_defer(_invest, agreement_key, email, app_id, 0)
 
 
 def _get_currency_name(currency):
@@ -288,7 +279,7 @@ def _get_currency_name(currency):
 
 
 def _set_token_count(agreement, token_count_float=None, precision=2):
-    # type: (InvestmentAgreement) -> None
+    # type: (InvestmentAgreement, float, int) -> None
     stats = get_global_stats(agreement.token)
     logging.info('Setting token count for agreement %s', agreement.to_dict())
     if agreement.status == InvestmentAgreement.STATUS_CREATED:
@@ -312,8 +303,8 @@ def _set_token_count(agreement, token_count_float=None, precision=2):
     agreement.token_precision = precision
 
 
-def _invest(agreement_key, email, app_id, retry_count):
-    # type: (ndb.Key, unicode, unicode, long, list[int]) -> None
+def _invest(agreement_key, email, app_id):
+    # type: (ndb.Key, unicode, unicode) -> None
     from plugins.tff_backend.bizz.agreements import create_token_agreement_pdf
     app_user = create_app_user_by_email(email, app_id)
     logging.debug('Creating Token agreement')
@@ -322,7 +313,7 @@ def _invest(agreement_key, email, app_id, retry_count):
     agreement.put()
     currency_full = _get_currency_name(agreement.currency)
     pdf_name = InvestmentAgreement.filename(agreement_key.id())
-    username = get_iyo_username(app_user)
+    username = get_username(app_user)
     has_verified_utility_bill = get_tff_profile(username).kyc.utility_bill_verified
     pdf_contents = create_token_agreement_pdf(agreement.name, agreement.address, agreement.amount, currency_full,
                                               agreement.currency, agreement.token, agreement.payment_info,
@@ -330,15 +321,15 @@ def _invest(agreement_key, email, app_id, retry_count):
     pdf_url = upload_to_gcs(pdf_name, pdf_contents, 'application/pdf')
     logging.debug('Storing Investment Agreement in the datastore')
     pdf_size = len(pdf_contents)
-
-    deferred.defer(_create_investment_agreement_iyo_see_doc, agreement_key, app_user, pdf_url, pdf_size=pdf_size)
+    attachment_name = u'Purchase Agreement - Internal Token Offering %s' % agreement_key.id()
+    deferred.defer(_send_ito_agreement_sign_message, agreement_key, app_user, pdf_url, attachment_name, pdf_size)
     deferred.defer(update_investor_progress, email, app_id, INVESTMENT_TODO_MAPPING[agreement.status])
 
 
 def needs_utility_bill(agreement):
     if agreement.currency in ('EUR', 'GBP') \
             or (agreement.currency == 'USD' and PaymentInfo.UAE not in agreement.payment_info):
-        tff_profile = get_tff_profile(get_iyo_username(agreement.app_user))
+        tff_profile = get_tff_profile(get_username(agreement.app_user))
         # not uploaded -> must be someone without a passport -> doesn't need utility bill
         if not tff_profile.kyc.utility_bill_url:
             return False
@@ -350,27 +341,6 @@ def _send_utility_bill_received(app_user):
     email, app_id = get_app_user_tuple(app_user)
     members = [MemberTO(member=email.email(), app_id=app_id, alert_flags=0)]
     messaging.start_local_flow(get_rogerthat_api_key(), None, members, None, flow=FLOW_UTILITY_BILL_RECEIVED)
-
-
-def _create_investment_agreement_iyo_see_doc(agreement_key, app_user, pdf_url, content_type='application/pdf',
-                                             send_sign_message=True, pdf_size=0):
-    # type: (ndb.Key, users.User, unicode) -> None
-    iyo_username = get_iyo_username(app_user)
-    doc_id = u'Internal Token Offering %s' % agreement_key.id()
-    doc_category = u'Purchase Agreement'
-    description = u'Internal Token Offering - Purchase Agreement'
-    create_see_document(doc_id, doc_category, description, iyo_username, pdf_url, content_type)
-
-    def trans():
-        agreement = agreement_key.get()
-        agreement.iyo_see_id = doc_id
-        agreement.put()
-        if send_sign_message:
-            attachment_name = u' - '.join([doc_id, doc_category])
-            deferred.defer(_send_ito_agreement_sign_message, agreement.key, app_user, pdf_url, attachment_name,
-                           pdf_size, _transactional=True)
-
-    ndb.transaction(trans)
 
 
 def _send_ito_agreement_sign_message(agreement_key, app_user, pdf_url, attachment_name, pdf_size):
@@ -430,7 +400,7 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
 - amount: %(amount)s %(currency)s
 - %(token_count_float)s %(token_type)s tokens
 """ % {'investment': agreement.id,
-       'user': get_iyo_username(agreement.app_user),
+       'user': get_username(agreement.app_user),
        'amount': agreement.amount,
        'currency': agreement.currency,
        'token_count_float': agreement.token_count_float,
@@ -455,13 +425,13 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
 @returns(FlowMemberResultCallbackResultTO)
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
            flow_params=unicode)
 def investment_agreement_signed(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key,
                                 tag, result_key, flush_id, flush_message_flow_id, service_identity, user_details,
                                 flow_params):
     try:
-        user_detail = user_details[0]
+        user_detail = user_details
         tag_dict = json.loads(tag)
         agreement = InvestmentAgreement.create_key(tag_dict['agreement_id']).get()  # type: InvestmentAgreement
 
@@ -478,8 +448,7 @@ def investment_agreement_signed(message_flow_run_id, member, steps, end_id, end_
 
         sign_result = last_step.form_result.result.get_value()
         assert isinstance(sign_result, SignWidgetResultTO)
-        iyo_username = get_iyo_username(user_detail)
-        sign_see_document(iyo_username, agreement.iyo_see_id, sign_result, user_detail)
+        iyo_username = get_username(user_detail)
 
         logging.debug('Storing signature in DB')
         agreement.populate(status=InvestmentAgreement.STATUS_SIGNED,
@@ -515,7 +484,7 @@ def investment_agreement_signed(message_flow_run_id, member, steps, end_id, end_
 @returns(NoneType)
 @arguments(status=int, form_result=FormResultTO, answer_id=unicode, member=unicode, message_key=unicode, tag=unicode,
            received_timestamp=int, acked_timestamp=int, parent_message_key=unicode, result_key=unicode,
-           service_identity=unicode, user_details=[UserDetailsTO])
+           service_identity=unicode, user_details=UserDetailsTO)
 def investment_agreement_signed_by_admin(status, form_result, answer_id, member, message_key, tag, received_timestamp,
                                          acked_timestamp, parent_message_key, result_key, service_identity,
                                          user_details):
@@ -534,26 +503,11 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
         agreement.paid_time = now()
         agreement.put()
         user_email, app_id, = get_app_user_tuple(agreement.app_user)
-        deferred.defer(transfer_genesis_coins_to_user, agreement.app_user, TokenType.I,
-                       long(agreement.token_count_float * 100), _transactional=True)
         deferred.defer(update_investor_progress, user_email.email(), app_id, INVESTMENT_TODO_MAPPING[agreement.status],
                        _transactional=True)
         deferred.defer(_send_tokens_assigned_message, agreement.app_user, _transactional=True)
 
     ndb.transaction(trans)
-
-
-@returns(InvestmentAgreementDetailsTO)
-@arguments(agreement_id=(int, long))
-def get_investment_agreement_details(agreement_id):
-    agreement = get_investment_agreement(agreement_id)
-    if agreement.iyo_see_id:
-        iyo_organization_id = get_iyo_organization_id()
-        username = get_iyo_username(agreement.app_user)
-        see_document = get_see_document(iyo_organization_id, username, agreement.iyo_see_id)
-    else:
-        see_document = None
-    return InvestmentAgreementDetailsTO.from_model(agreement, see_document)
 
 
 @returns(InvestmentAgreement)
@@ -633,7 +587,7 @@ def send_payment_instructions(app_user, agreement_id, message_prefix, reminder=F
     elif not reminder:
         deferred.defer(send_payment_instructions, app_user, agreement_id, message_prefix, True,
                        _countdown=14 * DAY, _queue=SCHEDULED_QUEUE)
-    username = get_iyo_username(app_user)
+    username = get_username(app_user)
     profile = get_tff_profile(username)
     params = {
         'currency': agreement.currency,
@@ -708,90 +662,6 @@ def _send_sign_investment_reminder(agreement_id, message_type):
     subject = u'Your Purchase Agreement is ready to be signed'
 
     send_message_and_email(agreement.app_user, message, subject)
-
-
-@returns(FlowMemberResultCallbackResultTO)
-@arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory('step_type', FLOW_STEP_MAPPING)],
-           end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
-           flow_params=unicode)
-def token_value_addendum_signed(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key,
-                                tag, result_key, flush_id, flush_message_flow_id, service_identity, user_details,
-                                flow_params):
-    parsed_tag = json.loads(tag)
-    document_key = Document.create_key(parsed_tag['document_id'])
-    last_step = steps[-1]
-    assert isinstance(last_step, FormFlowStepTO)
-    if last_step.answer_id != FormTO.POSITIVE:
-        logging.error('User pressed cancel in the %s flow', FLOW_SIGN_TOKEN_VALUE_ADDENDUM)
-        return None
-
-    logging.info('Received signature for Document')
-
-    sign_result = last_step.form_result.result.get_value()
-    assert isinstance(sign_result, SignWidgetResultTO)
-    user_detail = user_details[0]
-    app_user = create_app_user_by_email(user_detail.email, user_detail.app_id)
-    investment_keys = InvestmentAgreement.list_by_user(app_user).fetch(keys_only=True)
-    multiply_agreements_tokens(document_key, sign_result, user_details[0], investment_keys)
-
-
-def multiply_tokens_for_agreements(investments):
-    transfer_amount = 0
-    updated_agreements = []
-    for agreement in investments:  # type: InvestmentAgreement
-        if PaymentInfo.HAS_MULTIPLIED_TOKENS not in agreement.payment_info \
-                and agreement.creation_time <= FF_ENDED_TIMESTAMP:
-            agreement.token_count *= 100
-            agreement.payment_info.append(PaymentInfo.HAS_MULTIPLIED_TOKENS)
-            updated_agreements.append(agreement)
-            if agreement.token == TOKEN_ITFT and agreement.status == InvestmentAgreement.STATUS_PAID:
-                transfer_amount += agreement.token_count_float
-    return updated_agreements, long(transfer_amount * 99)
-
-
-def multiply_agreements_tokens(document_key, sign_result, user_detail, investment_keys):
-    # type: (ndb.Key, SignWidgetResultTO, UserDetailsTO) -> None
-    document = document_key.get()  # type: Document
-    investments = ndb.get_multi(investment_keys)
-    sign_see_document(document.username, document.iyo_see_id, sign_result, user_detail)
-    # Gives the original amount of tokens * 99 as a new transaction
-    app_user = get_app_user_from_iyo_username(document.username)
-    to_put, token_count = multiply_tokens_for_agreements(investments)
-    memo = 'Amendment %s' % document.id
-    document.status = DocumentStatus.SIGNED.value
-    to_put.append(document)
-    ndb.put_multi(to_put)
-    if token_count:
-        logging.info('Assigning %s tokens to %s for investment agreements %s', token_count, document.username,
-                     to_put)
-        transfer_genesis_coins_to_user(app_user, TokenType.I, token_count, memo)
-    else:
-        logging.info('Nothing to transfer for user %s (document %s) ', document.username, document.id)
-
-
-def create_token_value_agreement(username):
-    logging.info('Creating token value agreement for user %s', username)
-    document_id = Document.allocate_ids(1)[0]
-    pdf_name = Document.create_filename(DocumentType.TOKEN_VALUE_ADDENDUM.value, document_id)
-    pdf_contents = create_itft_amendment_1_pdf(get_app_user_from_iyo_username(username))
-    content_type = u'application/pdf'
-    pdf_url = upload_to_gcs(pdf_name, pdf_contents, content_type)
-    pdf_size = len(pdf_contents)
-    iyo_see_doc_id = u'Amendment %s' % document_id
-    doc_category = u'Amendment to purchase agreement'
-    description = doc_category
-    create_see_document(iyo_see_doc_id, doc_category, description, username, pdf_url, content_type)
-    document = Document(key=Document.create_key(document_id),
-                        iyo_see_id=iyo_see_doc_id,
-                        username=username,
-                        type=DocumentType.TOKEN_VALUE_ADDENDUM.value)
-    document.put()
-    attachment_name = iyo_see_doc_id
-    push_message = 'Please read through and sign the amendment to receive 100x more tokens in your wallet for your' \
-                   ' purchased value.'
-    deferred.defer(send_document_sign_message, document.key, username, pdf_url, attachment_name, pdf_size,
-                   SIGN_TOKEN_VALUE_ADDENDUM_TAG, FLOW_SIGN_TOKEN_VALUE_ADDENDUM, push_message)
 
 
 # Called after the user his utility bill was approved

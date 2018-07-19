@@ -33,7 +33,6 @@ class EventTO(TO):
 
 class BasePresenceTO(TO):
     event_id = long_property('event_id')
-    username = unicode_property('username')
     wants_recording = bool_property('wants_recording')
     status = long_property('status')
 
@@ -41,6 +40,7 @@ class BasePresenceTO(TO):
 class EventPresenceTO(BasePresenceTO):
     present_count = long_property('present_count')
     absent_count = long_property('absent_count')
+    username = unicode_property('username')
 
 
 class EventParticipantTO(BasePresenceTO):

@@ -6,9 +6,8 @@ import { Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
-import { Profile } from '../../../../its_you_online_auth/client/interfaces';
 import { CreateInvestmentAgreementAction, GetGlobalStatsAction, GetGlobalStatsListAction, SearchUsersAction } from '../../actions';
-import { CreateInvestmentAgreementPayload, InvestmentAgreementsStatuses } from '../../interfaces';
+import { CreateInvestmentAgreementPayload, InvestmentAgreementsStatuses, TffProfile } from '../../interfaces';
 import { ITffState } from '../../states';
 import { createInvestmentAgreementStatus, getGlobalStats, getGlobalStatsList, getUserList } from '../../tff.state';
 
@@ -36,8 +35,8 @@ export class CreateInvestmentAgreementPageComponent implements OnInit, OnDestroy
     paid_time: null,
   };
   createStatus$: Observable<ApiRequestStatus>;
-  userList$: Observable<Profile[]>;
-  selectedUser: Profile | null = null;
+  userList$: Observable<TffProfile[]>;
+  selectedUser: TffProfile | null = null;
   selectedDocument: File | null;
   maxDate = new Date();
 
@@ -53,7 +52,7 @@ export class CreateInvestmentAgreementPageComponent implements OnInit, OnDestroy
     this.store.dispatch(new GetGlobalStatsListAction());
     this.createStatus$ = this.store.select(createInvestmentAgreementStatus);
     this.userList$ = this.store.select(getUserList).pipe(
-      map(result => result.results.filter(p => p.app_email !== null)),
+      map(result => result.results.filter(p => p.app_user !== null)),
     );
     this.tokenTypes$ = this.store.select(getGlobalStatsList).pipe(map(stats => stats.map(s => s.id)));
     this.currencies$ = this.store.select(getGlobalStats).pipe(
@@ -74,12 +73,8 @@ export class CreateInvestmentAgreementPageComponent implements OnInit, OnDestroy
     this._createSubscription.unsubscribe();
   }
 
-  getUserInfoLine(user: Profile) {
-    const name = user.information && user.information.firstname ? `${user.information.firstname} ${user.information.lastname}` : user.username;
-    if (user.information && user.information.validatedemailaddresses.length) {
-      return `${name} - ${user.information.validatedemailaddresses[ 0 ].emailaddress}`;
-    }
-    return name;
+  getUserInfoLine(user: TffProfile) {
+    return `${user.info.name} - ${user.info.email}`;
   }
 
   isPaid() {
@@ -123,7 +118,7 @@ export class CreateInvestmentAgreementPageComponent implements OnInit, OnDestroy
     if (this.form.form.valid && this.selectedUser) {
       const agreement = {
         ...this.agreement,
-        app_user: <string>this.selectedUser.app_email,
+        app_user: <string>this.selectedUser.app_user,
         paid_time: this.agreement.status === InvestmentAgreementsStatuses.PAID ? this.agreement.paid_time : null,
       };
       this.store.dispatch(new CreateInvestmentAgreementAction(agreement));
