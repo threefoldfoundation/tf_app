@@ -184,7 +184,7 @@ def update_odoo_quotation(order_id, order_data):
 
 
 def confirm_odoo_quotation(order_id):
-    # type: (long, dict) -> bool
+    # type: (long) -> bool
     cfg = get_config(NAMESPACE)
     erp_client = _get_erp_client(cfg)
     result = erp_client.execute('sale.order', 'action_button_confirm', [order_id])

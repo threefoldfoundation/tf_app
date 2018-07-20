@@ -36,7 +36,7 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemb
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.api.rogerthat.agenda import get_presence, update_presence
 from plugins.tff_backend.api.rogerthat.global_stats import api_list_global_stats
-from plugins.tff_backend.api.rogerthat.its_you_online import api_iyo_see_list, api_iyo_see_detail
+from plugins.tff_backend.api.rogerthat.documents import api_list_documents
 from plugins.tff_backend.api.rogerthat.nodes import api_get_node_status
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
@@ -77,8 +77,7 @@ API_METHOD_MAPPING = {
     'agenda.get_presence': get_presence,
     'referrals.set': api_set_referral,
     'global_stats.list': api_list_global_stats,
-    'iyo.see.list': api_iyo_see_list,
-    'iyo.see.detail': api_iyo_see_detail,
+    'documents.list': api_list_documents,
     'node.status': api_get_node_status
 }
 

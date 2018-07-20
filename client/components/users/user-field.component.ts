@@ -48,7 +48,7 @@ export class UserFieldComponent implements OnInit, ControlValueAccessor {
   }
 
   ngOnInit() {
-    this.userList$ = this.store.pipe(select(getUserList), map(result => result.results.filter(p => p.app_user !== null)));
+    this.userList$ = this.store.pipe(select(getUserList), map(result => result.results));
     this._inputSubscription = this.userSearchControl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),

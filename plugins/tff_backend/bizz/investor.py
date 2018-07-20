@@ -67,7 +67,7 @@ from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, \
     BUY_TOKENS_FLOW_V5, INVEST_FLOW_TAG, FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, CreateInvestmentAgreementTO
 from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string, get_step
-from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple, create_app_user
 
 INVESTMENT_TODO_MAPPING = {
     InvestmentAgreement.STATUS_CANCELED: None,
@@ -126,7 +126,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
             amount = get_investment_amount(currency, token_count_float)
         username = get_username(app_user)
         agreement = _create_investment_agreement(amount, currency, token, token_count_float, username, version,
-                                                 app_user, status=InvestmentAgreement.STATUS_CREATED)
+                                                 status=InvestmentAgreement.STATUS_CREATED)
         payment_info = []
         usd_within_uae_step = get_step(steps, 'message_usd_within_uae')
         if usd_within_uae_step and usd_within_uae_step.answer_id == 'button_yes':
@@ -162,7 +162,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         return create_error_message()
 
 
-def _create_investment_agreement(amount, currency, token, token_count_float, username, version, app_user, **kwargs):
+def _create_investment_agreement(amount, currency, token, token_count_float, username, version, **kwargs):
     tff_profile = get_tff_profile(username)
     applicant = get_applicant(tff_profile.kyc.applicant_id)
     name = '%s %s ' % (applicant.first_name, applicant.last_name)
@@ -173,7 +173,7 @@ def _create_investment_agreement(amount, currency, token, token_count_float, use
     precision = 2
     reference = user_code(username)
     agreement = InvestmentAgreement(creation_time=now(),
-                                    app_user=app_user,
+                                    username=username,
                                     token=token,
                                     amount=amount,
                                     token_count=long(token_count_float * pow(10, precision)),
@@ -191,15 +191,13 @@ def _create_investment_agreement(amount, currency, token, token_count_float, use
 @arguments(agreement=CreateInvestmentAgreementTO)
 def create_investment_agreement(agreement):
     # type: (CreateInvestmentAgreementTO) -> InvestmentAgreement
-    app_user = users.User(agreement.app_user)
-    username = get_username(app_user)
-    tff_profile = get_tff_profile(username)
+    tff_profile = get_tff_profile(agreement.username)
     if tff_profile.kyc.status != KYCStatus.VERIFIED:
         raise HttpBadRequestException('cannot_invest_not_kyc_verified')
 
     token_count_float = get_token_count(agreement.currency, agreement.amount)
     agreement_model = _create_investment_agreement(agreement.amount, agreement.currency, agreement.token,
-                                                   token_count_float, username, 'manually_created', app_user,
+                                                   token_count_float, tff_profile.username, 'manually_created',
                                                    status=agreement.status, paid_time=agreement.paid_time,
                                                    sign_time=agreement.sign_time)
     prefix, doc_content_base64 = agreement.document.split(',')
@@ -329,7 +327,7 @@ def _invest(agreement_key, email, app_id):
 def needs_utility_bill(agreement):
     if agreement.currency in ('EUR', 'GBP') \
             or (agreement.currency == 'USD' and PaymentInfo.UAE not in agreement.payment_info):
-        tff_profile = get_tff_profile(get_username(agreement.app_user))
+        tff_profile = get_tff_profile(agreement.username)
         # not uploaded -> must be someone without a passport -> doesn't need utility bill
         if not tff_profile.kyc.utility_bill_url:
             return False
@@ -400,7 +398,7 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
 - amount: %(amount)s %(currency)s
 - %(token_count_float)s %(token_type)s tokens
 """ % {'investment': agreement.id,
-       'user': get_username(agreement.app_user),
+       'user': agreement.username,
        'amount': agreement.amount,
        'currency': agreement.currency,
        'token_count_float': agreement.token_count_float,
@@ -464,13 +462,14 @@ def investment_agreement_signed(message_flow_run_id, member, steps, end_id, end_
         deferred.defer(update_investor_progress, user_detail.email, user_detail.app_id,
                        INVESTMENT_TODO_MAPPING[agreement.status])
         deferred.defer(_inform_support_of_new_investment, iyo_username, agreement.id, agreement.token_count_float)
+        app_user = create_app_user(users.User(user_detail.email), user_detail.app_id)
         if needs_utility_bill(agreement):
             logging.debug('Sending "utility bill received" message')
-            deferred.defer(_send_utility_bill_received, agreement.app_user)
+            deferred.defer(_send_utility_bill_received, app_user)
         else:
             logging.debug('Sending confirmation message')
-            deferred.defer(send_payment_instructions, agreement.app_user, agreement.id, '')
-            deferred.defer(send_hoster_reminder, agreement.app_user, _countdown=1)
+            deferred.defer(send_payment_instructions, app_user, agreement.id, '')
+            deferred.defer(send_hoster_reminder, agreement.username, _countdown=1)
         result = FlowCallbackResultTypeTO(flow=FLOW_INVESTMENT_CONFIRMED,
                                           tag=None,
                                           force_language=None,
@@ -502,10 +501,11 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
         agreement.status = InvestmentAgreement.STATUS_PAID
         agreement.paid_time = now()
         agreement.put()
-        user_email, app_id, = get_app_user_tuple(agreement.app_user)
+        profile = get_tff_profile(agreement.username)
+        user_email, app_id, = get_app_user_tuple(profile.app_user)
         deferred.defer(update_investor_progress, user_email.email(), app_id, INVESTMENT_TODO_MAPPING[agreement.status],
                        _transactional=True)
-        deferred.defer(_send_tokens_assigned_message, agreement.app_user, _transactional=True)
+        deferred.defer(_send_tokens_assigned_message, profile.app_user, _transactional=True)
 
     ndb.transaction(trans)
 
@@ -548,33 +548,33 @@ Please visit %(base_url)s/investment-agreements/%(agreement_id)s to find more de
     send_emails_to_support(subject, body)
 
 
-def get_total_token_count(app_user, agreements):
+def get_total_token_count(username, agreements):
     total_token_count = defaultdict(lambda: 0)
     for agreement in agreements:
         total_token_count[agreement.token] += agreement.token_count_float
-    logging.debug('%s has the following tokens: %s', app_user, dict(total_token_count))
+    logging.debug('%s has the following tokens: %s', username, dict(total_token_count))
     return total_token_count
 
 
-def get_total_investment_value(app_user):
+def get_total_investment_value(username):
     statuses = (InvestmentAgreement.STATUS_PAID, InvestmentAgreement.STATUS_SIGNED)
-    total_token_count = get_total_token_count(app_user, InvestmentAgreement.list_by_status_and_user(app_user, statuses))
+    total_token_count = get_total_token_count(username, InvestmentAgreement.list_by_status_and_user(username, statuses))
 
     tokens = total_token_count.keys()
     stats = dict(zip(tokens, ndb.get_multi([GlobalStats.create_key(token) for token in tokens])))
     total_usd = 0
     for token, token_count in total_token_count.iteritems():
         total_usd += token_count * stats[token].value
-    logging.debug('The tokens of %s are worth $%s', app_user, total_usd)
+    logging.debug('The tokens of %s are worth $%s', username, total_usd)
     return total_usd
 
 
 @returns()
-@arguments(app_user=users.User)
-def send_hoster_reminder(app_user):
+@arguments(username=unicode)
+def send_hoster_reminder(username):
     # Temporarily disabled
     return
-    if get_total_investment_value(app_user) >= 600:
+    if get_total_investment_value(username) >= 600:
         send_rogerthat_flow(app_user, FLOW_HOSTER_REMINDER)
 
 
@@ -639,7 +639,7 @@ def get_intercom_tags_for_investment(agreement):
         # todo: In the future (PTO), change ITO_INVESTOR to IntercomTags.TFT_PURCHASER
         return [IntercomTags.BETTERTOKEN_CONTRACT, IntercomTags.ITO_INVESTOR]
     else:
-        logging.warn('Unknown token %s, not tagging intercom user %s', agreement.token, agreement.app_user)
+        logging.warn('Unknown token %s, not tagging intercom user %s', agreement.token, agreement.username)
         return []
 
 
@@ -653,19 +653,20 @@ def _send_sign_investment_reminder(agreement_id, message_type):
     if message_type == u'long':
         message = 'Dear ThreeFold Member,\n\n' \
                   'Thank you for joining the ThreeFold Foundation! Your contract has been created and is ready to be signed and processed.\n' \
-                  'You can find your created %s Purchase Agreement in your ThreeFold messages.' % (agreement.token)
+                  'You can find your created %s Purchase Agreement in your ThreeFold messages.' % agreement.token
     elif message_type == u'short':
         message = 'Dear ThreeFold Member,\n\n' \
-                  'It appears that your created %s Purchase Agreement has not been signed yet.' % (agreement.token)
+                  'It appears that your created %s Purchase Agreement has not been signed yet.' % agreement.token
     else:
         return
     subject = u'Your Purchase Agreement is ready to be signed'
-
-    send_message_and_email(agreement.app_user, message, subject)
+    app_user = get_tff_profile(agreement.username).app_user
+    send_message_and_email(app_user, message, subject)
 
 
 # Called after the user his utility bill was approved
 def send_signed_investments_messages(app_user):
-    agreements = InvestmentAgreement.list_by_status_and_user(app_user, InvestmentAgreement.STATUS_SIGNED)
+    username = get_username(app_user)
+    agreements = InvestmentAgreement.list_by_status_and_user(username, InvestmentAgreement.STATUS_SIGNED)
     for agreement in agreements:
         deferred.defer(send_payment_instructions, app_user, agreement.id, '')

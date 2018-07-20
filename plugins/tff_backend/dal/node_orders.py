@@ -24,7 +24,6 @@ from google.appengine.ext import ndb
 from framework.bizz.job import run_job, MODE_BATCH
 from mcfw.exceptions import HttpNotFoundException
 from mcfw.rpc import returns, arguments
-from plugins.tff_backend.bizz.iyo.utils import get_username, get_iyo_usernames
 from plugins.tff_backend.consts.hoster import NODE_ORDER_SEARCH_INDEX
 from plugins.tff_backend.models.hoster import NodeOrder
 from plugins.tff_backend.plugin_consts import NAMESPACE
@@ -55,18 +54,17 @@ def _get_all_node_orders():
 def index_node_order(order):
     # type: (NodeOrder) -> list[search.PutResult]
     logging.info('Indexing node order %s', order.id)
-    document = create_node_order_document(order, get_username(order.app_user))
+    document = create_node_order_document(order)
     return NODE_ORDER_INDEX.put(document)
 
 
 def multi_index_node_order(order_keys):
     logging.info('Indexing %s node orders', len(order_keys))
     orders = ndb.get_multi(order_keys)  # type: list[NodeOrder]
-    usernames = get_iyo_usernames([order.app_email for order in orders])
-    return NODE_ORDER_INDEX.put([create_node_order_document(order, usernames.get(order.app_email)) for order in orders])
+    return NODE_ORDER_INDEX.put([create_node_order_document(order) for order in orders])
 
 
-def create_node_order_document(order, iyo_username):
+def create_node_order_document(order):
     order_id_str = '%s' % order.id
     fields = [
         search.AtomField(name='id', value=order_id_str),
@@ -74,7 +72,7 @@ def create_node_order_document(order, iyo_username):
         search.NumberField(name='so', value=order.odoo_sale_order_id or -1),
         search.NumberField(name='status', value=order.status),
         search.DateField(name='order_time', value=datetime.utcfromtimestamp(order.order_time)),
-        search.TextField(name='username', value=iyo_username),
+        search.TextField(name='username', value=order.username),
     ]
     if order.shipping_info:
         fields.extend([search.TextField(name='shipping_name', value=order.shipping_info.name),
@@ -101,3 +99,7 @@ def search_node_orders(query=None, page_size=20, cursor=None):
     results = search_results.results  # type: list[search.ScoredDocument]
     node_orders = ndb.get_multi([NodeOrder.create_key(long(result.doc_id)) for result in results])
     return node_orders, search_results.cursor, search_results.cursor is not None
+
+
+def list_node_orders_by_user(username):
+    return NodeOrder.list_by_user(username)

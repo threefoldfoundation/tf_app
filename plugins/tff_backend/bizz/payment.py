@@ -72,9 +72,9 @@ def _get_balance_from_transactions(transactions, token):
 
 
 @returns([WalletBalanceTO])
-@arguments(app_user=users.User)
-def get_all_balances(app_user):
-    transactions = ThreeFoldTransaction.list_with_amount_left(app_user)
+@arguments(username=unicode)
+def get_all_balances(username):
+    transactions = ThreeFoldTransaction.list_with_amount_left(username)
     token_types = set(map(lambda transaction: transaction.token, transactions))
     results = []
     for token in token_types:
@@ -84,8 +84,8 @@ def get_all_balances(app_user):
 
 
 @returns(tuple)
-@arguments(app_user=users.User, page_size=(int, long), cursor=unicode)
-def get_pending_transactions(app_user, page_size, cursor):
+@arguments(username=unicode, page_size=(int, long), cursor=unicode)
+def get_pending_transactions(username, page_size, cursor):
     # type: (users.User, long, unicode) -> tuple[list[ThreeFoldPendingTransaction], ndb.Cursor, bool]
-    return ThreeFoldPendingTransaction.list_by_user(app_user) \
+    return ThreeFoldPendingTransaction.list_by_user(username) \
         .fetch_page(page_size, start_cursor=ndb.Cursor(urlsafe=cursor))

@@ -205,8 +205,8 @@ def upsert_tff_profile(username, user_details):
         pp_key = ProfilePointer.create_key(username)
         profile_pointer = pp_key.get()
         if profile_pointer:
-            raise Exception('Failed to save invitation code of user %s, we have a duplicate. %s', username,
-                            user_details)
+            raise Exception('Failed to save invitation code of user %s, we have a duplicate. %s' % (username,
+                                                                                                    user_details))
         profile_pointer = ProfilePointer(key=pp_key, username=username)
         to_put.append(profile_pointer)
         user_data = {
@@ -272,7 +272,7 @@ def set_utility_bill_verified(username):
     profile.kyc.utility_bill_verified = True
     profile.put()
     deferred.defer(send_signed_investments_messages, profile.app_user, _transactional=True)
-    deferred.defer(send_hoster_reminder, profile.app_user, _countdown=1, _transactional=True)
+    deferred.defer(send_hoster_reminder, profile.username, _countdown=1, _transactional=True)
     return profile
 
 

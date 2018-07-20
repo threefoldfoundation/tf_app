@@ -9,7 +9,7 @@ export function getQueryParams<T>(queryObject: T): HttpParams {
   const q = <[ keyof T ]>Object.keys(queryObject);
   for (const key of q) {
     if (queryObject[ key ] !== null && queryObject[ key ] !== undefined) {
-      params = params.set(key, queryObject[ key ].toString());
+      params = params.set(key, encodeURIComponent(queryObject[ key ].toString()));
     }
   }
   return params;

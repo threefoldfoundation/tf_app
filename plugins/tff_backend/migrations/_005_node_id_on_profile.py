@@ -37,6 +37,5 @@ def _set_node_id(order_key):
     order = order_key.get()  # type: NodeOrder
     nodes = get_nodes_from_odoo(order.odoo_sale_order_id)
     if nodes:
-        username = get_username(order.app_user)
-        assign_nodes_to_user(username, nodes)
-        logging.info('Saved node_id %s for user %s', nodes, username)
+        assign_nodes_to_user(order.username, nodes)
+        logging.info('Saved node_id %s for user %s', nodes, order.username)

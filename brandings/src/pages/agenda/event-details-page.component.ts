@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { AlertController, LoadingController, NavParams } from 'ionic-angular';
-import { Loading } from 'ionic-angular/components/loading/loading';
+import { AlertController, Loading, LoadingController, NavParams } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { filter } from 'rxjs/operators/filter';
 import { Subscription } from 'rxjs/Subscription';

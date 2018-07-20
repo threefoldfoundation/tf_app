@@ -14,11 +14,13 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
+from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
 
 from plugins.tff_backend.bizz.investor import INVESTMENT_TODO_MAPPING
 from plugins.tff_backend.bizz.todo import update_investor_progress
 from plugins.tff_backend.models.investor import InvestmentAgreement
+from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 
@@ -27,10 +29,12 @@ def migrate(dry_run=False):
     updates = {}
     for investment in investments:
         new_status = INVESTMENT_TODO_MAPPING[investment.status]
-        if investment.app_user not in updates or updates[investment.app_user] < new_status:
-            updates[investment.app_user] = INVESTMENT_TODO_MAPPING[investment.status]
+        if investment.username not in updates or updates[investment.username] < new_status:
+            updates[investment.username] = INVESTMENT_TODO_MAPPING[investment.status]
     if dry_run:
         return updates
-    for app_user, step in updates.iteritems():
-        email, app_id = get_app_user_tuple(app_user)
+    keys = [TffProfile.create_key(username) for username in updates]
+    app_users = {p.username: p.app_user for p in ndb.get_multi(keys)}
+    for username, step in updates.iteritems():
+        email, app_id = get_app_user_tuple(app_users.get(username))
         deferred.defer(update_investor_progress, email.email(), app_id, step)

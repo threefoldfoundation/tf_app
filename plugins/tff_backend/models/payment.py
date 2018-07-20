@@ -31,9 +31,12 @@ class ThreeFoldBaseTransaction(NdbModel):
     amount = ndb.IntegerProperty()
     precision = ndb.IntegerProperty(default=2)
     memo = ndb.StringProperty()
-    app_users = ndb.UserProperty(repeated=True)
-    from_user = ndb.UserProperty()
-    to_user = ndb.UserProperty()
+    app_users = ndb.UserProperty(repeated=True)  # TODO: remove after migration 014
+    from_user = ndb.UserProperty()  # TODO: remove after migration 014
+    to_user = ndb.UserProperty()  # TODO: remove after migration 014
+    usernames = ndb.StringProperty()
+    from_username = ndb.StringProperty()
+    to_username = ndb.StringProperty()
 
 
 class ThreeFoldTransaction(ThreeFoldBaseTransaction):
@@ -50,9 +53,9 @@ class ThreeFoldTransaction(ThreeFoldBaseTransaction):
         return cls(namespace=NAMESPACE)
 
     @classmethod
-    def list_with_amount_left(cls, app_user):
+    def list_with_amount_left(cls, username):
         return cls.query() \
-            .filter(cls.to_user == app_user) \
+            .filter(cls.to_username == username) \
             .filter(cls.fully_spent == False) \
             .order(-cls.timestamp)  # noQA
 
@@ -74,7 +77,7 @@ class ThreeFoldPendingTransaction(ThreeFoldBaseTransaction):
         return ndb.Key(cls, u"%s" % transaction_id, namespace=NAMESPACE)
 
     @classmethod
-    def list_by_user(cls, app_user):
+    def list_by_user(cls, username):
         return cls.query() \
-            .filter(cls.app_users == app_user) \
+            .filter(cls.usernames == username) \
             .order(-cls.timestamp)

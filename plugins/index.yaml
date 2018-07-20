@@ -10,14 +10,14 @@ indexes:
 
 - kind: ThreeFoldPendingTransaction
   properties:
-  - name: app_users
+  - name: usernames
   - name: timestamp
     direction: desc
 
 - kind: ThreeFoldTransaction
   properties:
   - name: fully_spent
-  - name: to_user
+  - name: to_username
   - name: timestamp
     direction: desc
 

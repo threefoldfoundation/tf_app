@@ -11,6 +11,7 @@ export interface InvestmentAgreementsQuery {
   cursor: string | null;
   status: InvestmentAgreementsStatuses | null;
   query: string | null;
+  username?: string | null;
 }
 
 export const INVESTMENT_AGREEMENT_STATUSES = {
@@ -22,7 +23,6 @@ export const INVESTMENT_AGREEMENT_STATUSES = {
 
 export interface InvestmentAgreement {
   id: number;
-  app_user: string;
   amount: number;
   token: string;
   /**
@@ -51,14 +51,11 @@ export interface InvestmentAgreement {
   cancel_time: number | null;
   modification_time: number;
   document_url: string | null;
-  /**
-   * Only set on the details pages
-   */
-  username?: string;
+  username: string;
 }
 
 export interface CreateInvestmentAgreementPayload {
-  app_user: string;
+  username: string;
   amount: number;
   token: string;
   currency: string;

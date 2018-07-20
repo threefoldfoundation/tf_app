@@ -75,8 +75,7 @@ def api_set_utility_bill_verified(username):
 @arguments(username=str, page_size=(int, long), cursor=unicode)
 def api_get_transactions(username, page_size=50, cursor=None):
     username = username.decode('utf-8')  # username must be unicode
-    app_user = get_app_user_from_iyo_username(username)
-    return PendingTransactionListTO.from_query(*get_pending_transactions(app_user, page_size, cursor))
+    return PendingTransactionListTO.from_query(*get_pending_transactions(username, page_size, cursor))
 
 
 @rest('/users/<username:[^/]+>/balance', 'get', Scopes.BACKEND_ADMIN)
@@ -84,8 +83,7 @@ def api_get_transactions(username, page_size=50, cursor=None):
 @arguments(username=str)
 def api_get_balance(username):
     username = username.decode('utf-8')  # username must be unicode
-    app_user = get_app_user_from_iyo_username(username)
-    return get_all_balances(app_user)
+    return get_all_balances(username)
 
 
 @rest('/users/<username:[^/]+>/kyc/checks', 'get', Scopes.BACKEND_READONLY, silent_result=True)

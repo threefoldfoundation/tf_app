@@ -28,7 +28,7 @@ from plugins.tff_backend.to.iyo.see import IYOSeeDocument
 
 class InvestmentAgreementTO(TO):
     id = long_property('id')
-    app_user = unicode_property('app_user')
+    username = unicode_property('username')
     amount = float_property('amount')
     referrer = unicode_property('referrer')
     token = unicode_property('token')
@@ -56,7 +56,7 @@ class InvestmentAgreementDetailTO(InvestmentAgreementTO):
 
 
 class CreateInvestmentAgreementTO(TO):
-    app_user = unicode_property('app_user')
+    username = unicode_property('username')
     amount = float_property('amount')
     currency = unicode_property('currency')
     document = unicode_property('document')

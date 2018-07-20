@@ -1,10 +1,10 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { AgendaEvent, EventPresence } from '../interfaces/agenda.interfaces';
+import { SignedDocument } from '../interfaces/documents';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { NodeInfo, NodeStatus } from '../interfaces/node-status.interfaces';
 import { KYCStatus } from '../interfaces/rogerthat';
 import { apiRequestInitial, ApiRequestStatus } from '../interfaces/rpc.interfaces';
-import { SeeDocument } from '../interfaces/see.interfaces';
 import { TodoList } from '../interfaces/todo-list.interfaces';
 import { getServiceData, getUserData } from './rogerthat.state';
 
@@ -12,7 +12,7 @@ export interface IBrandingState {
   globalStats: GlobalStats[];
   globalStatsStatus: ApiRequestStatus;
   todoLists: TodoList[];
-  seeDocuments: SeeDocument[];
+  seeDocuments: SignedDocument[];
   seeDocumentsStatus: ApiRequestStatus;
   events: AgendaEvent[];
   eventPresence: EventPresence | null;

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { IAppState } from '../../../../framework/client/ngrx';
@@ -27,9 +27,9 @@ export class UserListPageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.userList$ = this.store.select(getUserList);
-    this.query$ = this.store.select(getUserQueryList);
-    this.status$ = this.store.select(getUserListStatus);
+    this.userList$ = this.store.pipe(select(getUserList));
+    this.query$ = this.store.pipe(select(getUserQueryList));
+    this.status$ = this.store.pipe(select(getUserListStatus));
     this.onLoadMore();
   }
 

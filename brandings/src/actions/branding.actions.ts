@@ -1,17 +1,17 @@
 import { Action } from '@ngrx/store';
 import { EventPresence, UpdatePresenceData } from '../interfaces/agenda.interfaces';
+import { SignedDocument } from '../interfaces/documents';
 import { GlobalStats } from '../interfaces/global-stats.interfaces';
 import { NodeInfo } from '../interfaces/node-status.interfaces';
 import { ApiRequestStatus } from '../interfaces/rpc.interfaces';
-import { SeeDocument } from '../interfaces/see.interfaces';
 
 export const enum BrandingActionTypes {
   GET_GLOBAL_STATS = 'Get global stats',
   GET_GLOBAL_STATS_COMPLETE = 'Get global stats complete',
   GET_GLOBAL_STATS_FAILED = 'Get global stats failed',
-  GET_SEE_DOCUMENTS = 'Get see documents ',
-  GET_SEE_DOCUMENTS_COMPLETE = 'Get see documents complete',
-  GET_SEE_DOCUMENTS_FAILED = 'Get see documents failed',
+  GET_DOCUMENTS = 'Get documents ',
+  GET_DOCUMENTS_COMPLETE = 'Get documents complete',
+  GET_DOCUMENTS_FAILED = 'Get documents failed',
   GET_EVENT_PRESENCE = 'Get event presence',
   GET_EVENT_PRESENCE_COMPLETE = 'Get events presence complete',
   GET_EVENT_PRESENCE_FAILED = 'Get events presence failed',
@@ -44,19 +44,19 @@ export class GetGlobalStatsFailedAction implements Action {
   }
 }
 
-export class GetSeeDocumentsAction implements Action {
-  readonly type = BrandingActionTypes.GET_SEE_DOCUMENTS;
+export class GetDocumentsAction implements Action {
+  readonly type = BrandingActionTypes.GET_DOCUMENTS;
 }
 
 export class GetSeeDocumentsCompleteAction implements Action {
-  readonly type = BrandingActionTypes.GET_SEE_DOCUMENTS_COMPLETE;
+  readonly type = BrandingActionTypes.GET_DOCUMENTS_COMPLETE;
 
-  constructor(public payload: SeeDocument[]) {
+  constructor(public payload: SignedDocument[]) {
   }
 }
 
 export class GetSeeDocumentsFailedAction implements Action {
-  readonly type = BrandingActionTypes.GET_SEE_DOCUMENTS_FAILED;
+  readonly type = BrandingActionTypes.GET_DOCUMENTS_FAILED;
 
   constructor(public payload: ApiRequestStatus) {
   }
@@ -147,7 +147,7 @@ export type BrandingActions
   = GetGlobalStatsAction
   | GetGlobalStatsCompleteAction
   | GetGlobalStatsFailedAction
-  | GetSeeDocumentsAction
+  | GetDocumentsAction
   | GetSeeDocumentsCompleteAction
   | GetSeeDocumentsFailedAction
   | GetEventPresenceAction

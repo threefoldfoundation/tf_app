@@ -14,22 +14,22 @@ import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 import {
   AgendaComponent,
   ApiRequestStatusComponent,
+  DocumentComponent,
   EventDetailsComponent,
   GlobalStatsComponent,
   NodeStatusComponent,
-  SeeDocumentComponent,
   TodoItemListComponent,
 } from '../components';
 import { BrandingEffects, RogerthatEffects } from '../effects';
 import {
   AgendaPageComponent,
+  DocumentsPageComponent,
   EventDetailsPageComponent,
   ExchangeDetailPageComponent,
   ExchangesPageComponent,
   GlobalStatsPageComponent,
   InvitePageComponent,
   NodeStatusPageComponent,
-  SeePageComponent,
   TodoListOverviewPageComponent,
   TodoListPageComponent,
 } from '../pages';
@@ -48,13 +48,13 @@ const IONIC_NATIVE_PLUGINS = [ InAppBrowser, StatusBar, SplashScreen ];
 
 export const PAGES = [
   AgendaPageComponent,
+  DocumentsPageComponent,
   EventDetailsPageComponent,
   ExchangeDetailPageComponent,
   ExchangesPageComponent,
   GlobalStatsPageComponent,
   InvitePageComponent,
   NodeStatusPageComponent,
-  SeePageComponent,
   TodoListOverviewPageComponent,
   TodoListPageComponent,
 ];
@@ -62,10 +62,10 @@ export const PAGES = [
 export const COMPONENTS = [
   AgendaComponent,
   ApiRequestStatusComponent,
+  DocumentComponent,
   EventDetailsComponent,
   GlobalStatsComponent,
   NodeStatusComponent,
-  SeeDocumentComponent,
   TodoItemListComponent,
 ];
 

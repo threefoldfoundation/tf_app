@@ -43,17 +43,15 @@ def migrate_profiles(dry_run):
         rogerthat_friend = rogerthat_friends.get(user_email)  # type: ServiceFriendTO
         if not tff_profile.info:
             tff_profile.info = TffProfileInfo()
-        if tff_profile:
-            tff_profile.info.email = profile.email
-            tff_profile.info.name = profile.full_name
-        elif rogerthat_friend:
-            tff_profile.info.email = rogerthat_friends[profile.app_email]
-            tff_profile.info.name = profile.full_name
-        else:
-            not_friends.append(profile)
+        tff_profile.info.email = profile.email
+        tff_profile.info.name = profile.full_name
         if rogerthat_friend:
+            tff_profile.info.email = rogerthat_friend.email
+            tff_profile.info.name = rogerthat_friend.name
             tff_profile.info.language = rogerthat_friend.language
             tff_profile.info.avatar_url = rogerthat_friend.avatar
+        else:
+            not_friends.append(profile)
         to_put.append(tff_profile)
     if not dry_run:
         ndb.put_multi(to_put)

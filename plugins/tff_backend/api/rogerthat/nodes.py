@@ -40,8 +40,7 @@ def api_get_node_status(params, user_detail):
             # fallback, should only happen when user checks his node status before our cron job has ran.
             logging.warn('Fetching node serial number from odoo since no nodes where found for user %s',
                          username)
-            app_user = create_app_user(users.User(user_detail.email), user_detail.app_id)
-            new_nodes = get_nodes_for_user(app_user)
+            new_nodes = get_nodes_for_user(username)
             if new_nodes:
                 nodes = assign_nodes_to_user(username, new_nodes)
             else:

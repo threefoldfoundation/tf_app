@@ -33,3 +33,10 @@ class TffProfileTO(TO):
     referral_code = unicode_property('referral_code')
     kyc = typed_property('kyc', dict)
     info = typed_property('info', dict)
+
+
+class SignedDocumentTO(TO):
+    description = unicode_property('description')
+    name = unicode_property('name')
+    link = unicode_property('link')
+    signature = unicode_property('signature')

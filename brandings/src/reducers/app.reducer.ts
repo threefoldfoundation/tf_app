@@ -21,18 +21,18 @@ export function appReducer(state: IBrandingState = initialState, action: Brandin
         ...state,
         globalStatsStatus: action.payload,
       };
-    case BrandingActionTypes.GET_SEE_DOCUMENTS:
+    case BrandingActionTypes.GET_DOCUMENTS:
       return {
         ...state,
         seeDocumentsStatus: apiRequestLoading,
       };
-    case BrandingActionTypes.GET_SEE_DOCUMENTS_COMPLETE:
+    case BrandingActionTypes.GET_DOCUMENTS_COMPLETE:
       return {
         ...state,
         seeDocuments: action.payload,
         seeDocumentsStatus: apiRequestSuccess,
       };
-    case BrandingActionTypes.GET_SEE_DOCUMENTS_FAILED:
+    case BrandingActionTypes.GET_DOCUMENTS_FAILED:
       return {
         ...state,
         seeDocumentsStatus: action.payload,
