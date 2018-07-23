@@ -28,6 +28,7 @@ from plugins.its_you_online_auth.its_you_online_auth_plugin import ItsYouOnlineA
 from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.models.user import TffProfile
+from plugins.tff_backend.utils.app import create_app_user_by_email
 
 
 @returns(unicode)
@@ -42,7 +43,7 @@ def get_iyo_organization_id():
 @arguments(app_user_or_user_details=(users.User, UserDetailsTO))
 def get_username(app_user_or_user_details):
     if isinstance(app_user_or_user_details, UserDetailsTO):
-        email = app_user_or_user_details.email
+        email = create_app_user_by_email(app_user_or_user_details.email, app_user_or_user_details.app_id).email()
     else:
         email = app_user_or_user_details.email()
     if 'itsyou.online' in email:

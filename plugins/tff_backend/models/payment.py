@@ -34,7 +34,7 @@ class ThreeFoldBaseTransaction(NdbModel):
     app_users = ndb.UserProperty(repeated=True)  # TODO: remove after migration 014
     from_user = ndb.UserProperty()  # TODO: remove after migration 014
     to_user = ndb.UserProperty()  # TODO: remove after migration 014
-    usernames = ndb.StringProperty()
+    usernames = ndb.StringProperty(repeated=True)
     from_username = ndb.StringProperty()
     to_username = ndb.StringProperty()
 

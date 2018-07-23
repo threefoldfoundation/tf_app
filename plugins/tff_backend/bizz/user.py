@@ -487,11 +487,10 @@ def _add_slug_fields(key, value):
 
 def create_tff_profile_document(profile):
     # type: (TffProfile) -> search.Document
-    fields = [search.AtomField(name='username', value=profile.username.lower()),
+    fields = [search.AtomField(name='username', value=profile.username),
               search.TextField(name='email', value=profile.info.email),
-              search.NumberField('kyc_status', profile.kyc.status),
+              search.NumberField('kyc_status', profile.kyc.status if profile.kyc else KYCStatus.UNVERIFIED.value),
               search.TextField('app_email', profile.app_user.email().lower())]
-    # complete this if needed
     fields.extend(_add_slug_fields('name', profile.info.name))
     return search.Document(_encode_doc_id(profile), fields)
 

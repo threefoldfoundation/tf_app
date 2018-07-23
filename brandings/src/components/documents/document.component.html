@@ -1,11 +1,13 @@
 <ion-card>
-  <ion-card-header>
-    {{ document.name }}
-  </ion-card-header>
+  <ion-card-header>{{ document.name }}</ion-card-header>
   <ion-card-content>
-    <p>
-      {{ 'link' | translate }}: <a [href]="document.link" target="_blank" rel="noopener">{{ document.link }}</a>
-    </p>
     <div [innerHTML]="document.description | markdown"></div>
   </ion-card-content>
+  <ion-row no-padding>
+    <ion-col text-right>
+      <a ion-button clear color="primary" [href]="document.link" target="_blank" rel="noopener">
+        <ion-icon name="open"></ion-icon>&nbsp;{{ 'view_document' | translate }}
+      </a>
+    </ion-col>
+  </ion-row>
 </ion-card>

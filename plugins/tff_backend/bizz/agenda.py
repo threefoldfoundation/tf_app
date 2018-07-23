@@ -55,11 +55,12 @@ def list_participants(event_id, cursor=None, page_size=50):
     profiles = {p.username: p for p in ndb.get_multi([TffProfile.create_key(r.username) for r in results])}
     list_result = EventParticipantListTO(cursor=cursor and cursor.to_websafe_string(),
                                          more=more,
-                                         results=EventParticipantTO.from_list(results))
-    for result in list_result.results:
+                                         results=[])
+    for result in results:
+        to = EventParticipantTO.from_model(result)
         profile = profiles.get(result.username)
-        result.user = profile and profile.to_dict()
-
+        to.user = profile and profile.to_dict()
+        list_result.results.append(to)
     return list_result
 
 

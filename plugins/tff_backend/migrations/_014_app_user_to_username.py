@@ -41,7 +41,11 @@ def migrate_documents(profile_key, dry_run):
     username = profile_key.string_id()
     tff_profile = profile_key.get()  # type: TffProfile
     iyo_organization_id = get_iyo_organization_id()
-    see_docs = get_see_documents(iyo_organization_id, username)
+    try:
+        see_docs = get_see_documents(iyo_organization_id, username)
+    except:
+        logging.exception('Could not get see documents for user %s', username)
+        see_docs = []
     signatures = {doc.uniqueid: doc.signature for doc in see_docs if doc.signature}
     to_put = []
     for document in Document.list_by_username(username):  # type: Document
@@ -63,10 +67,11 @@ def migrate_documents(profile_key, dry_run):
         to_put.append(agreement)
     for trans_type in [ThreeFoldTransaction, ThreeFoldPendingTransaction]:
         for transaction in trans_type.query().filter(trans_type.app_users == tff_profile.app_user):
-            transaction.from_username = get_username(transaction.from_user)
-            transaction.to_username = get_username(transaction.to_user)
-            for i, u in enumerate(transaction.app_users):
-                transaction.app_users[i] = get_username(u)
+            if transaction.from_user:
+                transaction.from_username = get_username(transaction.from_user)
+            if transaction.to_user:
+                transaction.to_username = get_username(transaction.to_user)
+            transaction.usernames = [get_username(u) for u in transaction.app_users]
             del transaction.from_user
             del transaction.to_user
             del transaction.app_users
