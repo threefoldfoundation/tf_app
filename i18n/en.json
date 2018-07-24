@@ -186,6 +186,7 @@
     "pending_approval": "Pending approval",
     "phone": "Phone",
     "picture": "Picture",
+    "pin_x": "Pin: {{ pin }}",
     "please_update_your_app": "You need to update your app to continue.",
     "preview": "Preview",
     "profile": "Profile",
