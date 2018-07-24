@@ -97,6 +97,10 @@ class TffProfile(NdbModel):
     def list_by_email(cls, email):
         return cls.query().filter(cls.info.email == email)
 
+    @classmethod
+    def get_by_app_user(cls, app_user):
+        return cls.query(cls.app_user == app_user).get()
+
 
 class ProfilePointer(NdbModel):
     NAMESPACE = NAMESPACE

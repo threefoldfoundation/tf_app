@@ -74,17 +74,17 @@ TFF_PROFILE_INDEX = search.Index('tff_profile', namespace=NAMESPACE)
 
 def create_tff_profile(user_details):
     # type: (UserDetailsTO) -> TffProfile
+    # Try TffProfile
     user_email = user_details.email
-    # First try searching old (itsyou.online based) profiles
+    profile = TffProfile.list_by_email(user_email).get()
+    if profile:
+        logging.debug('TffProfile for email %s already exists (%s)', user_email, profile.username)
+        return upsert_tff_profile(profile.username, user_details)
+    # Try searching old (itsyou.online based) profiles
     profiles, cursor, more = search_profiles(sanitise_search_query('', {'validatedemailaddresses': user_email}))
     if profiles:
         logging.debug('Creating TffProfile from old itsyou.online profile')
         return upsert_tff_profile(profiles[0].username, user_details)
-    # Try TffProfile
-    profile = TffProfile.list_by_email(user_email).get()
-    if profile:
-        logging.debug('TffProfile for email %s already exists (%s)', user_email, profile.username)
-        return profile
     # Try intercom
     intercom_plugin = get_intercom_plugin()
     if intercom_plugin:
@@ -104,8 +104,7 @@ def create_tff_profile(user_details):
 def update_tff_profile(username, user_details):
     # type: (unicode, UserDetailsTO) -> TffProfile
     profile = get_tff_profile(username)
-    profile.info = TffProfileInfo(email=user_details.email,
-                                  name=user_details.name,
+    profile.info = TffProfileInfo(name=user_details.name,
                                   language=user_details.language,
                                   avatar_url=user_details.avatar_url)
     profile.put()
@@ -214,10 +213,11 @@ def upsert_tff_profile(username, user_details):
         }
         deferred.defer(put_user_data, user_details.email, user_details.app_id, user_data, _transactional=True)
     profile.app_user = create_app_user_by_email(user_details.email, user_details.app_id)
-    profile.info = TffProfileInfo(email=user_details.email,
-                                  name=user_details.name,
+    profile.info = TffProfileInfo(name=user_details.name,
                                   language=user_details.language,
                                   avatar_url=user_details.avatar_url)
+    if 'itsyou.online' not in user_details.email:
+        profile.info.email = user_details.email
     to_put.append(profile)
     ndb.put_multi(to_put)
     index_tff_profile(profile)

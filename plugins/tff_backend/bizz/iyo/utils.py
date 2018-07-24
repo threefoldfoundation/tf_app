@@ -43,20 +43,20 @@ def get_iyo_organization_id():
 @arguments(app_user_or_user_details=(users.User, UserDetailsTO))
 def get_username(app_user_or_user_details):
     if isinstance(app_user_or_user_details, UserDetailsTO):
-        email = create_app_user_by_email(app_user_or_user_details.email, app_user_or_user_details.app_id).email()
+        app_user = create_app_user_by_email(app_user_or_user_details.email, app_user_or_user_details.app_id)
     else:
-        email = app_user_or_user_details.email()
-    if 'itsyou.online' in email:
-        return get_iyo_plugin().get_username_from_rogerthat_email(email)
+        app_user = app_user_or_user_details
+    if 'itsyou.online' in app_user.email():
+        return get_iyo_plugin().get_username_from_rogerthat_email(app_user.email())
     else:
-        return get_username_from_app_email(email)
+        return get_username_from_app_email(app_user)
 
 
 @cached(1, 0)
 @returns(unicode)
-@arguments(email=unicode)
-def get_username_from_app_email(email):
-    return TffProfile.list_by_email(email).get().username
+@arguments(app_user=users.User)
+def get_username_from_app_email(app_user):
+    return TffProfile.get_by_app_user(app_user).username
 
 
 @returns(dict)
