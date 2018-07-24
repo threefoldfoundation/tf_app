@@ -50,7 +50,8 @@ def migrate_profiles(dry_run):
         tff_profile.info.email = profile.email
         tff_profile.info.name = profile.full_name
         if rogerthat_friend:
-            tff_profile.info.name = rogerthat_friend.name
+            if not tff_profile.info.name:
+                tff_profile.info.name = rogerthat_friend.name
             tff_profile.info.language = rogerthat_friend.language
             tff_profile.info.avatar_url = rogerthat_friend.avatar
         else:
