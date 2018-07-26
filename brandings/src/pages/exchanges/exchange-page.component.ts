@@ -3,7 +3,6 @@ import { NavController, NavParams, Platform } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { ExchangeInfo } from '../../interfaces/exchange.interfaces';
 import { ExchangesService } from '../../services/exchanges.service';
-import { ExchangeDetailPageComponent } from './exchange-detail-page.component';
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -22,10 +21,6 @@ export class ExchangesPageComponent implements OnInit {
 
   ngOnInit() {
     this.exchanges$ = this.exchangeService.getExchanges();
-  }
-
-  itemSelected(item: ExchangeInfo) {
-    this.navControl.push(ExchangeDetailPageComponent, {info: item});
   }
 
   close() {

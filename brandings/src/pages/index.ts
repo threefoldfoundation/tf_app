@@ -1,7 +1,6 @@
 export * from './agenda/agenda-page.component';
 export * from './agenda/event-details-page.component';
 export * from './documents/documents-page.component';
-export * from './exchanges/exchange-detail-page.component';
 export * from './exchanges/exchange-page.component';
 export * from './global-stats/global-stats-page.component';
 export * from './node-status/node-status-page.component';

@@ -16,7 +16,8 @@
                 <img [src]="exchange.iconPath">
             </ion-avatar>
             {{ exchange.title }}
-            <button ion-button clear item-end (click)="itemSelected(exchange)">Details</button>
+          <a ion-button item-end [href]="exchange.url" target="_blank">
+            <ion-icon name="open"></ion-icon>&nbsp;&nbsp;Details</a>
         </ion-item>
     </ion-list>
 </ion-content>
