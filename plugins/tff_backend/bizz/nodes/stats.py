@@ -392,6 +392,8 @@ def save_node_stats(node_id, data, date):
     _save_node_stats(node_id, data, date)
     if data.stats and data.stats is not MISSING:
         try_or_defer(_save_node_stats_to_influx, node_id, data.stats)
+    else:
+        logging.debug('No statistics were sent by node: %s', data)
 
 
 def _save_node_stats_to_influx(node_id, stats):
