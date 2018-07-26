@@ -62,5 +62,5 @@ def migrate_profiles(dry_run):
     return {
         'missing_profiles': missing_profiles,
         'not_friends': not_friends,
-        'to_put': [p.info for p in to_put]
+        'to_put': to_put
     }

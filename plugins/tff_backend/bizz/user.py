@@ -457,7 +457,14 @@ def index_all_profiles():
 def multi_index_tff_profile(tff_profile_keys):
     # type: (list[ndb.Key]) -> object
     logging.info('Indexing %s TffProfiles', len(tff_profile_keys))
-    return TFF_PROFILE_INDEX.put([create_tff_profile_document(profile) for profile in ndb.get_multi(tff_profile_keys)])
+    profiles = ndb.get_multi(tff_profile_keys)
+    good_profiles = []
+    for profile in profiles:
+        if profile.info:
+            good_profiles.append(profile)
+        else:
+            logging.info('Profile has no info: %s', profile)
+    return TFF_PROFILE_INDEX.put([create_tff_profile_document(profile) for profile in good_profiles])
 
 
 def _get_all_profiles():
