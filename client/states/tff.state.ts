@@ -1,5 +1,4 @@
 import { apiRequestInitial, ApiRequestStatus } from '../../../framework/client/rpc';
-import { Profile } from '../../../its_you_online_auth/client/interfaces';
 import { Installation, InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces';
 import {
   AgendaEvent,
@@ -48,8 +47,6 @@ export interface ITffState {
   userListQuery: SearchUsersQuery;
   userList: UserList;
   userListStatus: ApiRequestStatus;
-  user: Profile | null;
-  userStatus: ApiRequestStatus;
   userTransactions: TransactionList;
   userTransactionsStatus: ApiRequestStatus;
   createTransactionStatus: ApiRequestStatus;
@@ -132,8 +129,6 @@ export const initialTffState: ITffState = {
   },
   userList: emptyPaginatedResult,
   userListStatus: apiRequestInitial,
-  user: null,
-  userStatus: apiRequestInitial,
   userTransactions: emptyPaginatedResult,
   userTransactionsStatus: apiRequestInitial,
   createTransactionStatus: apiRequestInitial,

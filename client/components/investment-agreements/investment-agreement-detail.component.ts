@@ -2,7 +2,13 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { TranslateService } from '@ngx-translate/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { Profile } from '../../../../its_you_online_auth/client/interfaces';
-import { GlobalStats, INVESTMENT_AGREEMENT_STATUSES, InvestmentAgreement, InvestmentAgreementsStatuses } from '../../interfaces';
+import {
+  GlobalStats,
+  INVESTMENT_AGREEMENT_STATUSES,
+  InvestmentAgreement,
+  InvestmentAgreementsStatuses,
+  TffProfile,
+} from '../../interfaces';
 
 @Component({
   selector: 'tff-investment-agreement',
@@ -19,7 +25,7 @@ export class InvestmentAgreementDetailComponent {
   @Input() status: ApiRequestStatus;
   @Input() updateStatus: ApiRequestStatus;
   @Input() canUpdate = false;
-  @Input() user: Profile | null;
+  @Input() profile: TffProfile | null;
   @Output() onUpdate = new EventEmitter<InvestmentAgreement>();
 
   private _btcPrice: number;

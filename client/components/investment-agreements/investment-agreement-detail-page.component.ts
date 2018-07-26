@@ -6,24 +6,29 @@ import { Observable, Subscription } from 'rxjs';
 import { filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { DialogService } from '../../../../framework/client/dialog';
 import { getIdentity } from '../../../../framework/client/identity';
-import { Identity } from '../../../../framework/client/identity/interfaces';
 import { filterNull, IAppState } from '../../../../framework/client/ngrx';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
-import { Profile } from '../../../../its_you_online_auth/client/interfaces';
 import {
   GetGlobalStatsAction,
   GetInvestmentAgreementAction,
-  GetUserAction,
+  GetTffProfileAction,
   ResetInvestmentAgreementAction,
   UpdateInvestmentAgreementAction,
 } from '../../actions';
-import { GlobalStats, InvestmentAgreement, InvestmentAgreementsStatuses, TffPermission, TffPermissions } from '../../interfaces';
+import {
+  GlobalStats,
+  InvestmentAgreement,
+  InvestmentAgreementsStatuses,
+  TffPermission,
+  TffPermissions,
+  TffProfile,
+} from '../../interfaces';
 import { ApiErrorService } from '../../services';
 import {
   getGlobalStats,
   getInvestmentAgreement,
   getInvestmentAgreementStatus,
-  getUser,
+  getTffProfile,
   updateInvestmentAgreementStatus,
 } from '../../tff.state';
 
@@ -36,7 +41,7 @@ import {
                               [globalStats]="globalStats$ | async"
                               [updateStatus]="updateStatus$ | async"
                               [canUpdate]="canUpdate$ | async"
-                              [user]="user$ | async"
+                              [profile]="profile$ | async"
                               (onUpdate)="onUpdate($event)"></tff-investment-agreement>`,
 })
 
@@ -46,7 +51,7 @@ export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy
   updateStatus$: Observable<ApiRequestStatus>;
   globalStats$: Observable<GlobalStats>;
   canUpdate$: Observable<boolean>;
-  user$: Observable<Profile | null>;
+  profile$: Observable<TffProfile | null>;
 
   private _investmentSub: Subscription;
   private _errorSub: Subscription;
@@ -68,11 +73,11 @@ export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy
     this.updateStatus$ = this.store.select(updateInvestmentAgreementStatus);
     this.canUpdate$ = this.store.pipe(
       select(getIdentity),
-      filterNull<Identity | null>(),
+      filterNull(),
       map(identity => (<TffPermission[]>identity.permissions).some(p => TffPermissions.BACKEND_ADMIN.includes(p))),
     );
     this.globalStats$ = this.store.select(getGlobalStats).pipe(filterNull());
-    this.user$ = this.store.select(getUser);
+    this.profile$ = this.store.pipe(select(getTffProfile));
     this._investmentSub = this.investmentAgreement$.pipe(filter(i => i.token !== null)).subscribe(investment => {
       this.store.dispatch(new GetGlobalStatsAction(investment.token));
     });
@@ -82,7 +87,7 @@ export class InvestmentAgreementDetailPageComponent implements OnInit, OnDestroy
       filter(s => s.success),
       withLatestFrom(this.investmentAgreement$),
       take(1),
-    ).subscribe(([ _, investment ]) => this.store.dispatch(new GetUserAction(<string>investment.username)));
+    ).subscribe(([ _, investment ]) => this.store.dispatch(new GetTffProfileAction(<string>investment.username)));
   }
 
   ngOnDestroy() {

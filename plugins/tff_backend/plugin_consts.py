@@ -35,7 +35,6 @@ KYC_FLOW_PART_1_TAG = u'kyc_part_1'
 KYC_FLOW_PART_2_TAG = u'kyc_part_2'
 BUY_TOKENS_TAG = u'invest_itft'
 INVEST_FLOW_TAG = 'invest_complete'
-SIGN_TOKEN_VALUE_ADDENDUM_TAG = u'sign_token_value_addendum'
 
 FLOW_ERROR_MESSAGE = 'error_message'
 FLOW_HOSTER_SIGNATURE_RECEIVED = 'hoster_signature_received'

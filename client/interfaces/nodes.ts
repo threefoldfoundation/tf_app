@@ -55,7 +55,7 @@ export interface UpdateNodePayload {
 
 export interface LimitedProfile {
   username: string;
-  full_name: string | null;
+  name: string | null;
   email: string | null;
 }
 

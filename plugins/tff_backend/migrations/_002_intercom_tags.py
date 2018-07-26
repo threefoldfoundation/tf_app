@@ -45,28 +45,24 @@ def _get_investment_agreements():
 
 def _set_intercom_tags_node_orders(node_order_keys, dry_run):
     node_orders = ndb.get_multi(node_order_keys)  # type: list[NodeOrder]
-    usernames = get_iyo_usernames([order.app_email for order in node_orders])
     tags = defaultdict(list)
     for order in node_orders:
         order_tags = get_intercom_tags_for_node_order(order)
         for tag in order_tags:
-            iyo_username = usernames.get(order.app_email)
-            if iyo_username not in tags[tag]:
-                tags[tag].append(iyo_username)
+            if order.username not in tags[tag]:
+                tags[tag].append(order.username)
     _set_tags(tags, dry_run)
 
 
 def _set_intercom_tags_investment_agreements(agreement_keys, dry_run):
     investments = ndb.get_multi(agreement_keys)  # type: list[InvestmentAgreement]
-    usernames = get_iyo_usernames([i.app_email for i in investments])
     tags = defaultdict(list)
     for investment in investments:
         investment_tags = get_intercom_tags_for_investment(investment)
         if investment_tags:
             for tag in investment_tags:
-                iyo_username = usernames.get(investment.app_email)
-                if iyo_username not in tags[tag]:
-                    tags[tag].append(iyo_username)
+                if investment.username not in tags[tag]:
+                    tags[tag].append(investment.username)
     _set_tags(tags, dry_run)
 
 

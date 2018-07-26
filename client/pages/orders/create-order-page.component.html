@@ -1,24 +1,6 @@
 <form (ngSubmit)="submit(form)" #form="ngForm" fxLayout="column" fxFlex="40" fxFlex.md="60" fxFlex.xs="100"
       class="default-component-padding">
-  <!--TODO generic user search component -->
-  <mat-form-field>
-    <mat-label>{{ 'tff.user' | translate }}</mat-label>
-    <mat-chip-list #chipList>
-      <mat-chip *ngIf="selectedUser" (removed)="selectedUser = null">
-        {{ getUserInfoLine(selectedUser) }}
-        <mat-icon matChipRemove>cancel</mat-icon>
-      </mat-chip>
-      <input [formControl]="userSearchControl"
-             [matAutocomplete]="userAutoComplete"
-             [matChipInputFor]="chipList" #userSearchInput>
-    </mat-chip-list>
-    <mat-autocomplete #userAutoComplete="matAutocomplete" (optionSelected)="setSelectedUser($event)">
-      <mat-option *ngFor="let user of userList$ | async" [value]="user">
-        {{ getUserInfoLine(user) }}
-      </mat-option>
-    </mat-autocomplete>
-    <mat-error>{{ 'tff.this_field_is_required' | translate }}</mat-error>
-  </mat-form-field>
+  <tff-user-field [(ngModel)]="order.username" name="username"></tff-user-field>
   <mat-form-field>
     <mat-label>{{ 'tff.odoo_sale_order_id' | translate }}</mat-label>
     <input type="number" name="odoo_sale_order_id" matInput [(ngModel)]="order.odoo_sale_order_id" required>

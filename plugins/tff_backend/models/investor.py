@@ -4,7 +4,6 @@ from enum import IntEnum
 from framework.models.common import NdbModel
 from framework.utils import now
 from plugins.tff_backend.bizz.gcs import get_serving_url, encrypt_filename
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.consts.payment import TOKEN_TFT
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
@@ -24,7 +23,8 @@ class InvestmentAgreement(NdbModel):
     def _compute_token_count(self):
         return round(float(self.token_count) / pow(10, self.token_precision), self.token_precision)
 
-    app_user = ndb.UserProperty()
+    app_user = ndb.UserProperty()  # todo: remove after migration 014
+    username = ndb.StringProperty()
     amount = ndb.FloatProperty(indexed=False)
     token = ndb.StringProperty(indexed=False, default=TOKEN_TFT)
     token_count_float = ndb.ComputedProperty(_compute_token_count, indexed=False)  # Real amount of tokens
@@ -60,21 +60,12 @@ class InvestmentAgreement(NdbModel):
             index_investment_agreement(self)
 
     @property
-    def app_email(self):
-        # type: () -> unicode
-        return self.app_user.email()
-
-    @property
     def id(self):
         return self.key.id()
 
     @property
     def document_url(self):
-        return get_serving_url(self.filename(self.id)) if self.iyo_see_id else None
-
-    @property
-    def username(self):
-        return get_iyo_username(self.app_user) if self.app_user else None
+        return get_serving_url(self.filename(self.id))
 
     @classmethod
     def filename(cls, agreement_id):
@@ -89,15 +80,15 @@ class InvestmentAgreement(NdbModel):
         return cls.query()
 
     @classmethod
-    def list_by_user(cls, app_user):
+    def list_by_user(cls, username):
         return cls.query() \
-            .filter(cls.app_user == app_user)
+            .filter(cls.username == username)
 
     @classmethod
-    def list_by_status_and_user(cls, app_user, statuses):
-        # type: (users.User, list[int]) -> list[InvestmentAgreement]
+    def list_by_status_and_user(cls, username, statuses):
+        # type: (unicode, list[int]) -> list[InvestmentAgreement]
         statuses = [statuses] if isinstance(statuses, int) else statuses
-        return [investment for investment in cls.list_by_user(app_user) if investment.status in statuses]
+        return [investment for investment in cls.list_by_user(username) if investment.status in statuses]
 
     def to_dict(self, extra_properties=[], include=None, exclude=None):
         return super(InvestmentAgreement, self).to_dict(extra_properties + ['document_url'], include, exclude)

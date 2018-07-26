@@ -255,23 +255,6 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
         ...state,
         userListStatus: action.payload,
       };
-    case actions.TffActionTypes.GET_USER:
-      return {
-        ...state,
-        user: null,
-        userStatus: apiRequestLoading,
-      };
-    case actions.TffActionTypes.GET_USER_COMPLETE:
-      return {
-        ...state,
-        user: action.payload,
-        userStatus: apiRequestSuccess,
-      };
-    case actions.TffActionTypes.GET_USER_FAILED:
-      return {
-        ...state,
-        userStatus: action.payload,
-      };
     case actions.TffActionTypes.GET_TFF_PROFILE:
       return {
         ...state,
@@ -327,25 +310,6 @@ export function tffReducer(state: ITffState = initialTffState, action: TffAction
       return {
         ...state,
         createTransactionStatus: initialTffState.createTransactionStatus,
-      };
-    case actions.TffActionTypes.CREATE_TRANSACTION:
-      return {
-        ...state,
-        createTransactionStatus: apiRequestLoading,
-      };
-    case actions.TffActionTypes.CREATE_TRANSACTION_COMPLETE:
-      return {
-        ...state,
-        createTransactionStatus: apiRequestSuccess,
-        userTransactions: {
-          ...state.userTransactions,
-          results: [ ...state.userTransactions.results, action.payload ],
-        },
-      };
-    case actions.TffActionTypes.CREATE_TRANSACTION_FAILED:
-      return {
-        ...state,
-        createTransactionStatus: action.payload,
       };
     case actions.TffActionTypes.SET_KYC_STATUS:
       return { ...state, setKYCStatus: apiRequestLoading };

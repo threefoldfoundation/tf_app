@@ -1,6 +1,5 @@
 import { MetaGuard } from '@ngx-meta/core';
 import {
-  CreateTransactionPageComponent,
   KycPageComponent,
   UserDetailsPageComponent,
   UserListPageComponent,
@@ -82,12 +81,6 @@ export const USERS_ROUTES = [
         canActivate: [ MetaGuard ],
         data: { meta: { title: 'tff.transactions' } },
         component: UserTransactionsListPageComponent,
-      },
-      {
-        path: 'transactions/create',
-        canActivate: [ MetaGuard ],
-        data: { meta: { title: 'tff.create_transaction' } },
-        component: CreateTransactionPageComponent,
       },
       {
         path: 'node-orders',

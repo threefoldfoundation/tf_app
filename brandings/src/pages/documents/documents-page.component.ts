@@ -3,19 +3,19 @@ import { select, Store } from '@ngrx/store';
 import { Platform } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { map, withLatestFrom } from 'rxjs/operators';
-import { GetSeeDocumentsAction } from '../../actions';
+import { GetDocumentsAction } from '../../actions';
 import { IAppState } from '../../app/app.state';
+import { SignedDocument } from '../../interfaces/documents';
 import { ApiRequestStatus } from '../../interfaces/rpc.interfaces';
-import { SeeDocument } from '../../interfaces/see.interfaces';
 import { getSeeDocuments, getSeeDocumentsStatus } from '../../state/app.state';
 
 @Component({
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: 'see-page.component.html',
+  templateUrl: 'documents-page.component.html',
 })
-export class SeePageComponent implements OnInit {
-  documents$: Observable<SeeDocument[]>;
+export class DocumentsPageComponent implements OnInit {
+  documents$: Observable<SignedDocument[]>;
   status$: Observable<ApiRequestStatus>;
   hasNoDocuments$: Observable<boolean>;
 
@@ -26,7 +26,7 @@ export class SeePageComponent implements OnInit {
   ngOnInit() {
     this.documents$ = this.store.pipe(select(getSeeDocuments));
     this.status$ = this.store.pipe(select(getSeeDocumentsStatus));
-    this.store.dispatch(new GetSeeDocumentsAction());
+    this.store.dispatch(new GetDocumentsAction());
     this.hasNoDocuments$ = this.status$.pipe(
       withLatestFrom(this.documents$),
       map(([ status, docs ]) => status.success && docs.length === 0),

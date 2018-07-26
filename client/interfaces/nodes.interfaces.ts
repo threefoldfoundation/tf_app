@@ -29,7 +29,6 @@ export interface ContactInfo {
 
 export interface NodeOrder {
   id: number;
-  app_user: string;
   billing_info: ContactInfo;
   shipping_info: ContactInfo;
   status: NodeOrderStatuses;
@@ -45,14 +44,11 @@ export interface NodeOrder {
   cancel_time: number | null;
   socket: string;
   document_url: string | null;
-  /**
-   * Not set when listing node orders
-   */
-  username?: string;
+  username: string;
 }
 
 export interface CreateOrderPayload<DateType = number> {
-  app_user: string;
+  username: string;
   billing_info: ContactInfo;
   shipping_info: ContactInfo;
   status: NodeOrderStatuses;
@@ -67,6 +63,7 @@ export interface NodeOrdersQuery {
   cursor: string | null;
   status: NodeOrderStatuses | null;
   query: string | null;
+  username?: string | null;
 }
 
 export interface NodeOrderList extends PaginatedResult<NodeOrder> {

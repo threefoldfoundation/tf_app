@@ -26,8 +26,6 @@ export const updateGlobalStatsStatus = createSelector(getTffState, s => s.update
 export const getUserList = createSelector(getTffState, s => s.userList);
 export const getUserQueryList = createSelector(getTffState, s => s.userListQuery);
 export const getUserListStatus = createSelector(getTffState, s => s.userListStatus);
-export const getUser = createSelector(getTffState, s => s.user);
-export const getUserStatus = createSelector(getTffState, s => s.userStatus);
 export const getTffProfile = createSelector(getTffState, s => s.tffProfile);
 export const getTffProfileStatus = createSelector(getTffState, s => s.tffProfileStatus);
 export const setKYCStatus = createSelector(getTffState, s => s.setKYCStatus);

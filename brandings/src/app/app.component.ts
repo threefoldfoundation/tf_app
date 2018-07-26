@@ -6,11 +6,11 @@ import { TranslateService } from '@ngx-translate/core';
 import { Platform } from 'ionic-angular';
 import {
   AgendaPageComponent,
+  DocumentsPageComponent,
   ExchangesPageComponent,
   GlobalStatsPageComponent,
   InvitePageComponent,
   NodeStatusPageComponent,
-  SeePageComponent,
   TodoListOverviewPageComponent,
   TodoListPageComponent,
 } from '../pages';
@@ -29,8 +29,7 @@ interface RootPage {
   templateUrl: 'app.html',
 })
 export class AppComponent implements OnInit {
-  root: RootPage;
-  platformReady = false;
+  root: RootPage | null;
 
   constructor(private platform: Platform,
               private statusBar: StatusBar,
@@ -56,11 +55,7 @@ export class AppComponent implements OnInit {
         splashScreen.hide();
         this.rogerthatService.initialize();
         this.rogerthatService.getContext().subscribe(context => {
-          const root = this.getRootPage(context);
-          if (root) {
-            this.root = root;
-          }
-          this.platformReady = true;
+          this.root = this.getRootPage(context);
           this.cdRef.detectChanges();
         });
       });
@@ -87,7 +82,8 @@ export class AppComponent implements OnInit {
     const pages = [
       { tag: 'todo_list', page: todoComp },
       { tag: 'global_stats', page: GlobalStatsPageComponent },
-      { tag: 'iyo_see', page: SeePageComponent },
+      { tag: 'iyo_see', page: DocumentsPageComponent },
+      { tag: 'documents', page: DocumentsPageComponent },
       { tag: 'referrals_invite', page: InvitePageComponent },
       { tag: 'agenda', page: AgendaPageComponent },
       { tag: 'node_status', page: NodeStatusPageComponent },
@@ -98,8 +94,7 @@ export class AppComponent implements OnInit {
     if (page) {
       return { page: page.page, params: null };
     } else {
-      console.error('Cannot find page for menu item', JSON.stringify(rogerthat.menuItem));
+      throw new Error('Cannot find page for menu item ' + JSON.stringify(rogerthat.menuItem));
     }
-    return null;
   }
 }

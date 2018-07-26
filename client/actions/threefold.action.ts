@@ -1,6 +1,5 @@
 import { Action } from '@ngrx/store';
 import { ApiRequestStatus } from '../../../framework/client/rpc';
-import { Profile } from '../../../its_you_online_auth/client';
 import { Installation, InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces';
 import {
   AgendaEvent,
@@ -8,7 +7,6 @@ import {
   CreateInvestmentAgreementPayload,
   CreateNodePayload,
   CreateOrderPayload,
-  CreateTransactionPayload,
   EventParticipant,
   FirebaseFlowStats,
   FlowRun,
@@ -29,7 +27,6 @@ import {
   SearchUsersQuery,
   SetKYCStatusPayload,
   TffProfile,
-  Transaction,
   TransactionList,
   UpdateNodePayload,
   UserFlowRunsQuery,
@@ -77,9 +74,6 @@ export const enum TffActionTypes {
   SEARCH_USERS = '[TFF] Search users',
   SEARCH_USERS_COMPLETE = '[TFF] Search users success',
   SEARCH_USERS_FAILED = '[TFF] Search users failed',
-  GET_USER = '[TFF] Get user',
-  GET_USER_COMPLETE = '[TFF] Get user success',
-  GET_USER_FAILED = '[TFF] Get user failed',
   GET_BALANCE = '[TFF] Get balance',
   GET_BALANCE_COMPLETE = '[TFF] Get balance complete',
   GET_BALANCE_FAILED = '[TFF] Get balance failed',
@@ -87,9 +81,6 @@ export const enum TffActionTypes {
   GET_USER_TRANSACTIONS_COMPLETE = '[TFF] Get user transactions success',
   GET_USER_TRANSACTIONS_FAILED = '[TFF] Get user transactions failed',
   RESET_NEW_TRANSACTION = '[TFF] Reset new transaction',
-  CREATE_TRANSACTION = '[TFF] Create transaction',
-  CREATE_TRANSACTION_COMPLETE = '[TFF] Create transaction success',
-  CREATE_TRANSACTION_FAILED = '[TFF] Create transaction failed',
   GET_TFF_PROFILE = '[TFF] Get tff profile',
   GET_TFF_PROFILE_COMPLETE = '[TFF] Get tff profile complete',
   GET_TFF_PROFILE_FAILED = '[TFF] Get tff profile failed',
@@ -417,27 +408,6 @@ export class SearchUsersFailedAction implements Action {
   }
 }
 
-export class GetUserAction implements Action {
-  readonly type = TffActionTypes.GET_USER;
-
-  constructor(public payload: string) {
-  }
-}
-
-export class GetUserCompleteAction implements Action {
-  readonly type = TffActionTypes.GET_USER_COMPLETE;
-
-  constructor(public payload: Profile) {
-  }
-}
-
-export class GetUserFailedAction implements Action {
-  readonly type = TffActionTypes.GET_USER_FAILED;
-
-  constructor(public payload: ApiRequestStatus) {
-  }
-}
-
 export class GetUserTransactionsAction implements Action {
   readonly type = TffActionTypes.GET_USER_TRANSACTIONS;
 
@@ -483,27 +453,6 @@ export class GetBalanceFailedAction implements Action {
 export class ResetNewTransactionAction implements Action {
   readonly type = TffActionTypes.RESET_NEW_TRANSACTION;
   payload: null = null;
-}
-
-export class CreateTransactionAction implements Action {
-  readonly type = TffActionTypes.CREATE_TRANSACTION;
-
-  constructor(public payload: CreateTransactionPayload) {
-  }
-}
-
-export class CreateTransactionCompleteAction implements Action {
-  readonly type = TffActionTypes.CREATE_TRANSACTION_COMPLETE;
-
-  constructor(public payload: Transaction) {
-  }
-}
-
-export class CreateTransactionFailedAction implements Action {
-  readonly type = TffActionTypes.CREATE_TRANSACTION_FAILED;
-
-  constructor(public payload: ApiRequestStatus) {
-  }
 }
 
 export class GetTffProfileAction implements Action {
@@ -1019,9 +968,6 @@ export type TffActions
   | SearchUsersAction
   | SearchUsersCompleteAction
   | SearchUsersFailedAction
-  | GetUserAction
-  | GetUserCompleteAction
-  | GetUserFailedAction
   | GetUserTransactionsAction
   | GetUserTransactionsCompleteAction
   | GetUserTransactionsFailedAction
@@ -1029,16 +975,12 @@ export type TffActions
   | GetBalanceCompleteAction
   | GetBalanceFailedAction
   | ResetNewTransactionAction
-  | CreateTransactionAction
-  | CreateTransactionCompleteAction
-  | CreateTransactionFailedAction
   | GetTffProfileAction
   | GetTffProfileCompleteAction
   | GetTffProfileFailedAction
   | SetKYCStatusAction
   | SetKYCStatusCompleteAction
   | SetKYCStatusFailedAction
-  | CreateTransactionFailedAction
   | GetAgendaEventsAction
   | GetAgendaEventsCompleteAction
   | GetAgendaEventsFailedAction

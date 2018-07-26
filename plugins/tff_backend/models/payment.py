@@ -15,54 +15,10 @@
 #
 # @@license_version:1.3@@
 
-from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from framework.models.common import NdbModel
 from plugins.tff_backend.plugin_consts import NAMESPACE
-
-
-class ThreeFoldBlockHeight(NdbModel):
-    NAMESPACE = NAMESPACE
-    timestamp = ndb.IntegerProperty()
-    height = ndb.IntegerProperty()
-    updating = ndb.BooleanProperty()
-
-    @classmethod
-    def create_key(cls):
-        return ndb.Key(cls, u"TFFBlockHeight", namespace=NAMESPACE)
-
-    @staticmethod
-    def get_block_height():
-        bh_key = ThreeFoldBlockHeight.create_key()
-        bh = bh_key.get()
-        if bh:
-            return bh
-        bh = ThreeFoldBlockHeight(key=bh_key)
-        bh.height = -1
-        bh.timestamp = 0
-        bh.updating = False
-        return bh
-
-
-class ThreeFoldWallet(NdbModel):
-    NAMESPACE = NAMESPACE
-    tokens = ndb.StringProperty(repeated=True)
-    next_unlock_timestamp = ndb.IntegerProperty()
-
-    @property
-    def app_user(self):
-        return users.User(self.key.string_id().decode('utf8'))
-
-    @classmethod
-    def create_key(cls, app_user):
-        return ndb.Key(cls, app_user.email(), namespace=NAMESPACE)
-
-    @classmethod
-    def list_update_needed(cls, now_):
-        return ThreeFoldWallet.query() \
-            .filter(ThreeFoldWallet.next_unlock_timestamp > 0) \
-            .filter(ThreeFoldWallet.next_unlock_timestamp < now_)
 
 
 class ThreeFoldBaseTransaction(NdbModel):
@@ -75,9 +31,12 @@ class ThreeFoldBaseTransaction(NdbModel):
     amount = ndb.IntegerProperty()
     precision = ndb.IntegerProperty(default=2)
     memo = ndb.StringProperty()
-    app_users = ndb.UserProperty(repeated=True)
-    from_user = ndb.UserProperty()
-    to_user = ndb.UserProperty()
+    app_users = ndb.UserProperty(repeated=True)  # TODO: remove after migration 014
+    from_user = ndb.UserProperty()  # TODO: remove after migration 014
+    to_user = ndb.UserProperty()  # TODO: remove after migration 014
+    usernames = ndb.StringProperty(repeated=True)
+    from_username = ndb.StringProperty()
+    to_username = ndb.StringProperty()
 
 
 class ThreeFoldTransaction(ThreeFoldBaseTransaction):
@@ -94,24 +53,9 @@ class ThreeFoldTransaction(ThreeFoldBaseTransaction):
         return cls(namespace=NAMESPACE)
 
     @classmethod
-    def list_by_user(cls, app_user, token):
+    def list_with_amount_left(cls, username):
         return cls.query() \
-            .filter(cls.app_users == app_user) \
-            .filter(cls.token == token) \
-            .order(-cls.timestamp)
-
-    @classmethod
-    def list_with_amount_left_by_token(cls, app_user, token):
-        return cls.query() \
-            .filter(cls.to_user == app_user) \
-            .filter(cls.token == token) \
-            .filter(cls.fully_spent == False) \
-            .order(-cls.timestamp)  # noQA
-
-    @classmethod
-    def list_with_amount_left(cls, app_user):
-        return cls.query() \
-            .filter(cls.to_user == app_user) \
+            .filter(cls.to_username == username) \
             .filter(cls.fully_spent == False) \
             .order(-cls.timestamp)  # noQA
 
@@ -133,24 +77,7 @@ class ThreeFoldPendingTransaction(ThreeFoldBaseTransaction):
         return ndb.Key(cls, u"%s" % transaction_id, namespace=NAMESPACE)
 
     @classmethod
-    def count_pending(cls):
+    def list_by_user(cls, username):
         return cls.query() \
-            .filter(cls.synced == False) \
-            .count(None)  # noQA
-
-    @classmethod
-    def list_by_user(cls, app_user):
-        return cls.query() \
-            .filter(cls.app_users == app_user) \
+            .filter(cls.usernames == username) \
             .order(-cls.timestamp)
-
-    @classmethod
-    def list_by_user_and_token_type(cls, app_user, token_type):
-        return cls.list_by_user(app_user) \
-            .filter(cls.token_type == token_type)
-
-    @classmethod
-    def list_unsynced_by_user(cls, app_user, token):
-        return cls.list_by_user(app_user) \
-            .filter(cls.token == token) \
-            .filter(cls.synced == False)  # noQA

@@ -1,0 +1,15 @@
+{% extends 'plugins/tff_backend/base.html' %}
+{% block head %}
+<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<img class="homepage-image img-logo" src="/static/plugins/tff_backend/img/threefold.png">
+<img class="homepage-image img-text" src="/static/plugins/tff_backend/img/threefold-connecting-the-dots.png">
+<div>
+  <p>{% translate lang, 'tff', 'please_update_your_app' %}</p>
+  <a class="btn btn-update" href="{{ url }}">
+    <div class="button-title">{% translate lang, 'tff', 'update_app' %}</div>
+  </a>
+</div>
+{% endblock %}
+

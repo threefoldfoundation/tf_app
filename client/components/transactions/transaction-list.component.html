@@ -5,7 +5,7 @@
     <p matLine *ngIf="transaction.memo">{{ transaction.memo }}</p>
   </mat-list-item>
 </mat-list>
-<p *ngIf="status.success && transactionList.results.length === 0">
+<p *ngIf="status.success && transactionList.results.length === 0" style="margin-left: 16px;">
   <i>{{ 'tff.no_transactions_yet' | translate }}</i>
 </p>
 <tff-api-request-status [status]="status"></tff-api-request-status>

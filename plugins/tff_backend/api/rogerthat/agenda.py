@@ -18,7 +18,7 @@ from collections import defaultdict
 
 from mcfw.rpc import returns, arguments, parse_complex_value
 from plugins.rogerthat_api.to import UserDetailsTO
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.models.agenda import EventParticipant
 from plugins.tff_backend.to.agenda import EventPresenceTO, BasePresenceTO
 
@@ -26,14 +26,14 @@ from plugins.tff_backend.to.agenda import EventPresenceTO, BasePresenceTO
 @returns(EventPresenceTO)
 @arguments(params=dict, user_detail=UserDetailsTO)
 def get_presence(params, user_detail):
-    iyo_username = get_iyo_username(user_detail)
+    username = get_username(user_detail)
     status = EventParticipant.STATUS_UNKNOWN
     wants_recording = False
     counts = defaultdict(lambda: 0)
     event_id = params['event_id']
 
     for participant in EventParticipant.list_by_event(event_id):
-        if participant.username == iyo_username:
+        if participant.username == username:
             status = participant.status
             wants_recording = participant.wants_recording
         counts[participant.status] += 1
@@ -41,7 +41,7 @@ def get_presence(params, user_detail):
     return EventPresenceTO(event_id=event_id,
                            status=status,
                            wants_recording=wants_recording,
-                           username=iyo_username,
+                           username=username,
                            present_count=counts[EventParticipant.STATUS_PRESENT],
                            absent_count=counts[EventParticipant.STATUS_ABSENT])
 
@@ -50,7 +50,7 @@ def get_presence(params, user_detail):
 @arguments(params=dict, user_detail=UserDetailsTO)
 def update_presence(params, user_detail):
     presence = parse_complex_value(BasePresenceTO, params, False)
-    iyo_username = get_iyo_username(user_detail)
+    iyo_username = get_username(user_detail)
     participant = EventParticipant.get_or_create_participant(presence.event_id, iyo_username)
     participant.status = presence.status
     participant.wants_recording = presence.wants_recording

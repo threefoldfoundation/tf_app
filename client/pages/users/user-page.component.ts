@@ -1,14 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
-import { filterNull } from '../../../../framework/client/ngrx';
-import { IAppState } from '../../../../framework/client/ngrx/state/app.state';
-import { UpdateSecondaryTitleAction } from '../../../../framework/client/sidebar/actions/sidebar.action';
-import { SidebarTitle } from '../../../../framework/client/sidebar/interfaces/sidebar.interfaces';
-import { Profile } from '../../../../its_you_online_auth/client/interfaces/index';
-import { GetTffProfileAction, GetUserAction } from '../../actions/threefold.action';
-import { getUser } from '../../tff.state';
+import { filterNull, IAppState } from '../../../../framework/client/ngrx';
+import { UpdateSecondaryTitleAction } from '../../../../framework/client/sidebar/actions';
+import { SidebarTitle } from '../../../../framework/client/sidebar/interfaces';
+import { GetTffProfileAction } from '../../actions';
+import { getTffProfile } from '../../tff.state';
 
 @Component({
   selector: 'tff-user-page',
@@ -19,7 +17,7 @@ import { getUser } from '../../tff.state';
 })
 
 export class UserPageComponent implements OnInit, OnDestroy {
-  private _userSub: Subscription;
+  private _profileSubscription: Subscription;
 
   constructor(private store: Store<IAppState>,
               private route: ActivatedRoute) {
@@ -27,15 +25,14 @@ export class UserPageComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     const username = this.route.snapshot.params.username;
-    this.store.dispatch(new GetUserAction(username));
     this.store.dispatch(new GetTffProfileAction(username));
-    this._userSub = this.store.select(getUser).pipe(filterNull<Profile>()).subscribe((user: Profile) => {
-      const name = user.information && user.information.firstname ? `${user.information.firstname} ${user.information.lastname}` : user.username;
-      this.store.dispatch(new UpdateSecondaryTitleAction(<SidebarTitle>{ label: name, isTranslation: false }));
+    this._profileSubscription = this.store.pipe(select(getTffProfile), filterNull()).subscribe(profile => {
+      const item = <SidebarTitle>{ label: profile.info.name, isTranslation: false, imageUrl: profile.info.avatar_url };
+      this.store.dispatch(new UpdateSecondaryTitleAction(item));
     });
   }
 
   ngOnDestroy() {
-    this._userSub.unsubscribe();
+    this._profileSubscription.unsubscribe();
   }
 }

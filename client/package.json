@@ -1,9 +1,9 @@
 {
   "name": "tff_backend",
   "dependencies": {
-    "marked": "^0.3.17",
-    "@types/marked": "^0.3.0",
+    "marked": "^0.4.0",
+    "@types/marked": "^0.4.0",
     "ng2-google-charts": "^3.4.0",
-    "@types/google.visualization": "^0.0.41"
+    "@types/google.visualization": "^0.0.42"
   }
 }

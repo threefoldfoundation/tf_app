@@ -76,10 +76,10 @@ def get_bank_account_info(currency_short, payment_info, has_verified_utility_bil
         return f.read()
 
 
-def create_itft_amendment_1_pdf(app_user):
+def create_itft_amendment_1_pdf(username):
     from plugins.tff_backend.bizz.investor import get_total_token_count
-    agreements = InvestmentAgreement.list_by_status_and_user(app_user, (InvestmentAgreement.STATUS_PAID,
-                                                                        InvestmentAgreement.STATUS_SIGNED))
+    agreements = InvestmentAgreement.list_by_status_and_user(username, [InvestmentAgreement.STATUS_PAID,
+                                                                        InvestmentAgreement.STATUS_SIGNED])
     azzert(agreements)
     agreements.sort(key=lambda a: a.sign_time)
     purchase_amounts = ''
@@ -91,7 +91,7 @@ def create_itft_amendment_1_pdf(app_user):
         purchase_amounts += '%s %s' % (agreement.amount, agreement.currency)
         sign_dates += _get_effective_date(agreement.sign_time)
 
-    old_count = get_total_token_count(app_user, agreements)[TOKEN_ITFT]
+    old_count = get_total_token_count(username, agreements)[TOKEN_ITFT]
     new_count = old_count * 100.0
     purchase_amount_in_usd = old_count * 5.0
 

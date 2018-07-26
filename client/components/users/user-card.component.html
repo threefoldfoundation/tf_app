@@ -1,0 +1,15 @@
+<mat-card *ngIf="profile" style="display: inline-block;">
+  <mat-card-header>
+    <div mat-card-avatar style="background-size: cover;"
+         [style.background-image]="'url(' + profile.info.avatar_url + ')'"></div>
+    <mat-card-title>{{ profile.info.name }}</mat-card-title>
+    <mat-card-subtitle>{{ profile.info.email }}</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-actions>
+    <div fxFlex fxLayoutAlign="end center">
+      <a mat-raised-button *ngIf="profile" [routerLink]="['/users', profile.username]" target="_blank">
+        {{ 'tff.user_details' | translate }}
+      </a>
+    </div>
+  </mat-card-actions>
+</mat-card>

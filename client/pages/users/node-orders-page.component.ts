@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
 import { GetOrdersAction } from '../../actions';
@@ -26,8 +26,8 @@ export class UserNodeOrdersPageComponent implements OnInit {
 
   ngOnInit() {
     const username = (<ActivatedRoute>this.route.parent).snapshot.params.username;
-    this.store.dispatch(new GetOrdersAction({ query: `username:${username}`, cursor: null, status: null }));
-    this.orders$ = this.store.select(getOrders);
-    this.status$ = this.store.select(getOrdersStatus);
+    this.store.dispatch(new GetOrdersAction({ query: null, username: username, cursor: null, status: null }));
+    this.orders$ = this.store.pipe(select(getOrders));
+    this.status$ = this.store.pipe(select(getOrdersStatus));
   }
 }

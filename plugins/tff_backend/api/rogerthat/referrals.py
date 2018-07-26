@@ -21,7 +21,7 @@ from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.global_stats import ApiCallException
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.bizz.user import store_referral_in_user_data, \
     notify_new_referral
@@ -37,7 +37,7 @@ def api_set_referral(params, user_detail):
         if not code or not pp:
             raise ApiCallException(u'Unknown invitation code received')
 
-        username = get_iyo_username(user_detail)
+        username = get_username(user_detail)
         if username == pp.username:
             raise ApiCallException(u'You can\'t use your own invitation code')
 

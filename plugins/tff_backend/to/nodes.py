@@ -35,7 +35,7 @@ class ContactInfoTO(TO):
 
 class NodeOrderTO(TO):
     id = long_property('id')
-    app_user = unicode_property('app_user')
+    username = unicode_property('username')
     billing_info = typed_property('billing_info', ContactInfoTO)
     shipping_info = typed_property('shipping_info', ContactInfoTO)
     status = long_property('status')
@@ -53,12 +53,8 @@ class NodeOrderTO(TO):
     document_url = unicode_property('document_url')
 
 
-class NodeOrderDetailTO(NodeOrderTO):
-    username = unicode_property('username')
-
-
 class CreateNodeOrderTO(TO):
-    app_user = unicode_property('app_user')
+    username = unicode_property('username')
     billing_info = typed_property('billing_info', ContactInfoTO)  # type: ContactInfoTO
     shipping_info = typed_property('shipping_info', ContactInfoTO)  # type: ContactInfoTO
     status = long_property('status')
@@ -67,16 +63,6 @@ class CreateNodeOrderTO(TO):
     send_time = long_property('send_time')
     odoo_sale_order_id = long_property('odoo_sale_order_id')
     document = unicode_property('document')
-
-
-class NodeOrderDetailsTO(NodeOrderTO):
-    see_document = typed_property('see_document', IYOSeeDocument)  # type: IYOSeeDocument
-
-    @classmethod
-    def from_model(cls, model, see_document):
-        to = super(NodeOrderDetailsTO, cls).from_model(model)
-        to.see_document = see_document
-        return to
 
 
 class NodeOrderListTO(PaginatedResultTO):

@@ -111,13 +111,13 @@ export class NodesComponent implements OnChanges {
   getSelectionCsv() {
     return this.selection.selected.filter(s => s.profile !== null && s.profile.email !== null).map(s => {
       const p = <LimitedProfile>s.profile;
-      return `${p.full_name || p.username} <${p.email}>`;
+      return `${p.name || p.username} <${p.email}>`;
     }).join(',');
   }
 
   generateCsv(selection: UserNodeStatus[]) {
     const csvData = selection.map(row => ({
-      name: row.profile ? row.profile.full_name : '',
+      name: row.profile ? row.profile.name : '',
       email: row.profile ? row.profile.email : '',
       status: row.node.status,
       node_id: row.node.id,

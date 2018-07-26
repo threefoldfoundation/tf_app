@@ -24,7 +24,7 @@ from framework.models.common import NdbModel
 from framework.plugin_loader import get_config
 from framework.utils import chunks, now
 from plugins.tff_backend.bizz.gcs import get_serving_url, encrypt_filename
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
@@ -58,9 +58,9 @@ def _validate_socket(prop, value):
 def normalize_address(address):
     if not address:
         return None
-    without_duplicate_spaces = re.sub('\s\s+', '', address).strip()
+    without_duplicate_spaces = re.sub('\s\s+', '', address).strip().lower()
     # Remove everything that isn't alphanumerical
-    return re.sub('[^0-9a-zA-Z]+', '', without_duplicate_spaces)
+    return re.sub('[^0-9a-z]+', '', without_duplicate_spaces)
 
 
 class NodeOrder(NdbModel):
@@ -69,7 +69,8 @@ class NodeOrder(NdbModel):
     def _normalize_address(self):
         return normalize_address(self.billing_info and self.billing_info.address)
 
-    app_user = ndb.UserProperty()
+    app_user = ndb.UserProperty()  # TODO: remove after migration 014
+    username = ndb.StringProperty()
     billing_info = ndb.LocalStructuredProperty(ContactInfo)  # type: ContactInfo
     shipping_info = ndb.LocalStructuredProperty(ContactInfo)  # type: ContactInfo
     status = ndb.IntegerProperty()
@@ -98,11 +99,6 @@ class NodeOrder(NdbModel):
             index_node_order(self)
 
     @property
-    def app_email(self):
-        # type: () -> unicode
-        return self.app_user.email()
-
-    @property
     def id(self):
         return self.key.id()
 
@@ -114,10 +110,6 @@ class NodeOrder(NdbModel):
     def document_url(self):
         has_doc = self.tos_iyo_see_id is not None or self.status in (NodeOrderStatus.ARRIVED, NodeOrderStatus.SENT)
         return get_serving_url(self.filename(self.id)) if has_doc else None
-
-    @property
-    def username(self):
-        return get_iyo_username(self.app_user) if self.app_user else None
 
     @classmethod
     def filename(cls, node_order_id):
@@ -146,13 +138,13 @@ class NodeOrder(NdbModel):
             .filter(cls.status == status)
 
     @classmethod
-    def list_by_user(cls, app_user):
+    def list_by_user(cls, username):
         return cls.query() \
-            .filter(cls.app_user == app_user)
+            .filter(cls.username == username)
 
     @classmethod
-    def has_order_for_user_or_location(cls, app_user, address):
-        user_qry = cls.list_by_user(app_user).fetch_async()
+    def has_order_for_user_or_location(cls, username, address):
+        user_qry = cls.list_by_user(username).fetch_async()
         address_qry = cls.query().filter(cls.address_hash == normalize_address(address)).fetch_async()
         results = user_qry.get_result() + address_qry.get_result()
         return any(n for n in results if n.status != NodeOrderStatus.CANCELED)

@@ -17,7 +17,7 @@
 import logging
 
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username, get_iyo_username
+from plugins.tff_backend.bizz.iyo.utils import get_itsyouonline_client_from_username, get_username
 from plugins.tff_backend.models.hoster import PublicKeyMapping
 from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey
 from plugins.tff_backend.utils import convert_to_str
@@ -47,7 +47,7 @@ def get_publickey_label(public_key, user_details):
         return mapping.label
     else:
         logging.error('No PublicKeyMapping found! falling back to doing a request to itsyou.online')
-        iyo_keys = get_keystore(get_iyo_username(user_details))
+        iyo_keys = get_keystore(get_username(user_details))
         results = filter(lambda k: public_key in k.key, iyo_keys)  # some stuff is prepended to the key
         if len(results):
             return results[0].label

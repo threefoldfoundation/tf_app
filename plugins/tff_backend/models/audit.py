@@ -37,9 +37,5 @@ class AuditLog(NdbModel):
         return cls.query(cls.user_id == user_id).order(-cls.timestamp)
 
     @classmethod
-    def list_by_type_and_user(cls, audit_type, user_id):
-        return cls.list_by_type(audit_type).filter(cls.user_id == user_id)
-
-    @classmethod
     def list(cls):
         return cls.query().order(-cls.timestamp)

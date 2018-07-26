@@ -15,7 +15,7 @@
   </ng-container>
   <ng-container matColumnDef="username">
     <mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'tff.name' | translate }}</mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.profile ? (row.profile.full_name || row.profile.username) : '' }}</mat-cell>
+    <mat-cell *matCellDef="let row">{{ row.profile ? (row.profile.name || row.profile.username) : '' }}</mat-cell>
   </ng-container>
 
   <ng-container matColumnDef="status">

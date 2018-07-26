@@ -1,11 +1,9 @@
 <mat-nav-list>
   <a *ngFor="let user of userList.results" [routerLink]="[user.username]" mat-list-item>
-    <h4 matLine>{{ user | profileName }}</h4>
-    <p matLine *ngIf="(user | profileName) != user.username">
-      {{ user.username }}
-    </p>
-    <p matLine *ngIf="user.information?.validatedemailaddresses.length">
-      {{ user.information?.validatedemailaddresses[0].emailaddress }}
+    <img matListAvatar [src]="user.info.avatar_url" [alt]="user.info.name" *ngIf="user.info.avatar_url">
+    <h3 matLine>{{ user.info.name }}</h3>
+    <p matLine>
+      {{ user.info.email }}
     </p>
   </a>
   <button mat-button *ngIf="userList.more" (click)="loadMore.emit()">

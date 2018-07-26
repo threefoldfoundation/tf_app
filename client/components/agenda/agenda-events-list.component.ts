@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
-import { ApiRequestStatus } from '../../../../framework/client/rpc/rpc.interfaces';
-import { AgendaEvent } from '../../interfaces/agenda-events.interfaces';
+import { ApiRequestStatus } from '../../../../framework/client/rpc';
+import { AgendaEvent } from '../../interfaces';
 
 @Component({
   selector: 'tff-agenda-events-list',

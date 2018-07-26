@@ -27,13 +27,13 @@ from framework.utils import try_or_defer
 from mcfw.exceptions import HttpNotFoundException
 from mcfw.properties import object_factory
 from mcfw.rpc import arguments, parse_complex_value
-from plugins.its_you_online_auth.bizz.profile import get_profile
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.rogerthat_api.to.messaging.flow import MessageFlowStepTO, FormFlowStepTO, FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     FlowCallbackResultTypeTO, FormCallbackResultTypeTO, MessageCallbackResultTypeTO
 from plugins.tff_backend.bizz.email import send_emails_to_support
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
+from plugins.tff_backend.bizz.iyo.utils import get_username
+from plugins.tff_backend.bizz.user import get_tff_profile
 from plugins.tff_backend.firebase import put_firebase_data
 from plugins.tff_backend.models.statistics import FlowRun, FlowRunStatus, FlowRunStatistics, StepStatistics
 from plugins.tff_backend.to.dashboard import TickerEntryTO, TickerEntryType
@@ -46,7 +46,7 @@ def _create_flow_run(flow_run_key, tag, message_flow_name, user_details, timesta
                    tag=tag,
                    flow_name=message_flow_name,
                    start_date=datetime.utcfromtimestamp(timestamp),
-                   user=get_iyo_username(user_details),
+                   user=get_username(user_details),
                    status=FlowRunStatus.STARTED)
 
 
@@ -208,9 +208,9 @@ def notify_stalled_flow_run(flow_run_key):
         return
     url = get_base_url() + '/flow-statistics/%s/%s' % (flow_run.flow_name, flow_run.id),
     subject = 'Stalled flow %s' % flow_run.flow_name
-    profile = get_profile(flow_run.user)
+    profile = get_tff_profile(flow_run.user)
     body = 'User %s appears to be stuck in the %s flow. Click the following link to check the details: %s' % (
-        profile.full_name or profile.username, flow_run.flow_name, url)
+        profile.info.name, flow_run.flow_name, url)
     send_emails_to_support(subject, body)
 
 

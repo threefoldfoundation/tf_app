@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 import { ApiRequestStatus } from '../../../../framework/client/rpc';
-import { Profile } from '../../../../its_you_online_auth/client/interfaces';
 import { FlowStep, FormFlowStep, WidgetType } from '../../../../rogerthat_api/client/interfaces';
-import { FlowRun, FlowRunStatus } from '../../interfaces';
+import { FlowRun, FlowRunStatus, TffProfile } from '../../interfaces';
 import { FlowStatisticsService } from '../../services';
 import { getStepTitle } from '../../util';
 
@@ -26,7 +25,7 @@ import { getStepTitle } from '../../util';
 })
 export class FlowRunDetailComponent {
   @Input() flowRun: FlowRun;
-  @Input() user?: Profile;
+  @Input() profile?: TffProfile;
   @Input() status: ApiRequestStatus;
 
   constructor(private flowStatisticsService: FlowStatisticsService) {

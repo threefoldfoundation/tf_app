@@ -9,10 +9,8 @@
     <tff-investment-agreement-amount [amount]="investmentAgreement.amount" [currency]="investmentAgreement.currency"
                                      [tokenCount]="investmentAgreement.token_count_float"></tff-investment-agreement-amount>
     <p>{{ 'tff.status' | translate}}: {{ getStatus() }}</p>
-    <a [routerLink]="['/users', user.username]" target="_blank" *ngIf="user">
-      {{ 'tff.user_x' | translate : { user: user | profileName } }}
-    </a>
-    <p *ngIf="!user && investmentAgreement.name">{{ 'tff.name' | translate}}: {{ investmentAgreement.name }}</p>
+    <tff-user-card [profile]="profile"></tff-user-card>
+    <p *ngIf="!profile && investmentAgreement.name">{{ 'tff.name' | translate}}: {{ investmentAgreement.name }}</p>
     <p *ngIf="investmentAgreement.address">{{ 'tff.address' | translate}}: {{ investmentAgreement.address }}</p>
     <p *ngIf="investmentAgreement.paid_time">
       {{ 'tff.paid_time' | translate }}: {{ investmentAgreement.paid_time | timestamp }}

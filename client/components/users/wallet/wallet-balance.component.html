@@ -5,7 +5,7 @@
     <p>{{ 'tff.total_balance' | translate : { balance: getTotal(wallet) } }}</p>
   </mat-card-content>
 </mat-card>
-<p *ngIf="status.success && balance.length === 0">
+<p *ngIf="status.success && balance.length === 0" style="margin-left: 16px;">
   <i>{{ 'tff.user_has_no_wallet_yet' | translate }}</i>
 </p>
 <tff-api-request-status [status]="status"></tff-api-request-status>

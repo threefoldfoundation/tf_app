@@ -25,7 +25,8 @@ from plugins.tff_backend.bizz.audit.mapping import AuditLogType
 from plugins.tff_backend.bizz.authentication import Scopes
 from plugins.tff_backend.bizz.investor import put_investment_agreement, create_investment_agreement
 from plugins.tff_backend.bizz.iyo.utils import get_app_user_from_iyo_username
-from plugins.tff_backend.dal.investment_agreements import search_investment_agreements, get_investment_agreement
+from plugins.tff_backend.dal.investment_agreements import search_investment_agreements, get_investment_agreement, \
+    list_investment_agreements_by_user
 from plugins.tff_backend.to.investor import InvestmentAgreementListTO, InvestmentAgreementTO, \
     CreateInvestmentAgreementTO, InvestmentAgreementDetailTO
 from plugins.tff_backend.utils.search import sanitise_search_query
@@ -33,10 +34,13 @@ from plugins.tff_backend.utils.search import sanitise_search_query
 
 @rest('/investment-agreements', 'get', Scopes.BACKEND_ADMIN, silent_result=True)
 @returns(InvestmentAgreementListTO)
-@arguments(page_size=(int, long), cursor=unicode, query=unicode, status=(int, long))
-def api_get_investment_agreements(page_size=20, cursor=None, query=None, status=None):
+@arguments(page_size=(int, long), cursor=unicode, query=unicode, status=(int, long), username=unicode)
+def api_get_investment_agreements(page_size=20, cursor=None, query=None, status=None, username=None):
     page_size = min(page_size, MAXIMUM_DOCUMENTS_RETURNED_PER_SEARCH)
-    filters = {'status': status}
+    filters = {'status': status, 'username': username}
+    if username and not status and not query:
+        results = [InvestmentAgreementTO.from_model(model) for model in list_investment_agreements_by_user(username)]
+        return InvestmentAgreementListTO(cursor=None, more=False, results=results)
     return InvestmentAgreementListTO.from_search(
         *search_investment_agreements(sanitise_search_query(query, filters), page_size, cursor))
 

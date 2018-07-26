@@ -1,7 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map } from 'rxjs/operators';
-import { Profile } from '../../../its_you_online_auth/client/interfaces';
 import { Installation, InstallationLog, InstallationsList } from '../../../rogerthat_api/client/interfaces';
 import {
   AgendaEvent,
@@ -9,7 +8,6 @@ import {
   CreateInvestmentAgreementPayload,
   CreateNodePayload,
   CreateOrderPayload,
-  CreateTransactionPayload,
   EventParticipant,
   GetEventParticipantsPayload,
   GetInstallationsQuery,
@@ -26,7 +24,6 @@ import {
   SearchUsersQuery,
   SetKYCStatusPayload,
   TffProfile,
-  Transaction,
   TransactionList,
   UpdateNodePayload,
   UserList,
@@ -93,20 +90,16 @@ export class TffService {
     return this.http.get<UserList>(`${TffConfig.API_URL}/users`, { params });
   }
 
-  getUser(username: string) {
-    return this.http.get<Profile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}`);
-  }
-
   getTffProfile(username: string) {
-    return this.http.get<TffProfile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/profile`);
+    return this.http.get<TffProfile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}`);
   }
 
   setKYCStatus(username: string, payload: SetKYCStatusPayload) {
-    return this.http.put<TffProfile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/profile/kyc`, payload);
+    return this.http.put<TffProfile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/kyc`, payload);
   }
 
   verifyUtilityBill(username: string) {
-    return this.http.put<TffProfile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/profile/kyc/utility-bill`, {});
+    return this.http.put<TffProfile>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/kyc/utility-bill`, {});
   }
 
   getBalance(username: string) {
@@ -115,12 +108,6 @@ export class TffService {
 
   getUserTransactions(username: string) {
     return this.http.get<TransactionList>(`${TffConfig.API_URL}/users/${encodeURIComponent(username)}/transactions`);
-  }
-
-  createTransaction(payload: CreateTransactionPayload) {
-    const data: Partial<CreateTransactionPayload> = { ...payload };
-    delete data.username;
-    return this.http.post<Transaction>(`${TffConfig.API_URL}/users/${encodeURIComponent(payload.username)}/transactions`, data);
   }
 
   getAgendaEvents(past: boolean) {

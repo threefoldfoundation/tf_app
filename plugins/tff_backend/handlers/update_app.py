@@ -15,13 +15,17 @@
 #
 # @@license_version:1.4@@
 import webapp2
-from google.appengine.ext import deferred
 
-from plugins.tff_backend.bizz.flow_statistics import check_stuck_flows
+from framework.bizz.i18n import get_user_language
+from framework.handlers import render_page
+from framework.plugin_loader import get_config
+from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
-class CheckStuckFlowsHandler(webapp2.RequestHandler):
-
-    def get(self):
-        deferred.defer(check_stuck_flows)
-
+class UpdateAppPageHandler(webapp2.RequestHandler):
+    def get(self, *args, **kwargs):
+        parameters = {
+            'lang': get_user_language(),
+            'url': 'https://rogerth.at/install/%s' % get_config(NAMESPACE).rogerthat.app_id
+        }
+        render_page(self.response, 'update-app.html', template_parameters=parameters)

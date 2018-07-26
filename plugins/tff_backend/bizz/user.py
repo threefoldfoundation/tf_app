@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-
+import base64
 import datetime
 import hashlib
 import json
@@ -24,48 +24,44 @@ import time
 
 import jinja2
 from google.appengine.api import users, urlfetch
+from google.appengine.api.search import search
 from google.appengine.ext import deferred, ndb
 from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 
-from framework.bizz.session import create_session
+import intercom
+from framework.bizz.job import run_job, MODE_BATCH
 from framework.i18n_utils import DEFAULT_LANGUAGE, translate
-from framework.models.session import Session
-from framework.plugin_loader import get_config, get_plugin
+from framework.plugin_loader import get_config
+from framework.utils import try_or_defer
 from framework.utils.jinja_extensions import TranslateExtension
 from mcfw.consts import MISSING, DEBUG
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
 from onfido import Applicant
-from plugins.intercom_support.intercom_support_plugin import IntercomSupportPlugin
 from plugins.intercom_support.rogerthat_callbacks import start_or_get_chat
-from plugins.its_you_online_auth.bizz.authentication import create_jwt, decode_jwt_cached
-from plugins.its_you_online_auth.bizz.profile import get_profile, index_profile
-from plugins.its_you_online_auth.models import Profile
-from plugins.its_you_online_auth.plugin_consts import NAMESPACE as IYO_AUTH_NAMESPACE
-from plugins.rogerthat_api.api import system, messaging, RogerthatApiException
+from plugins.its_you_online_auth.bizz.profile import search_profiles
+from plugins.rogerthat_api.api import messaging
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
-from plugins.rogerthat_api.to.friends import REGISTRATION_ORIGIN_OAUTH
 from plugins.rogerthat_api.to.messaging import AnswerTO, Message
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user, tag_intercom_users, IntercomTags
-from plugins.tff_backend.bizz.iyo.keystore import create_keystore_key, get_keystore
-from plugins.tff_backend.bizz.iyo.user import get_user
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_organization_id, get_iyo_username
+from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user, tag_intercom_users, IntercomTags, \
+    get_intercom_plugin
+from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.bizz.kyc.onfido_bizz import create_check, update_applicant, deserialize, list_checks, serialize
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.rogerthat import create_error_message, send_rogerthat_message, put_user_data
 from plugins.tff_backend.bizz.service import get_main_branding_hash
 from plugins.tff_backend.consts.kyc import kyc_steps, DEFAULT_KYC_STEPS, REQUIRED_DOCUMENT_TYPES
-from plugins.tff_backend.models.hoster import PublicKeyMapping
-from plugins.tff_backend.models.user import ProfilePointer, TffProfile, KYCInformation, KYCStatus
-from plugins.tff_backend.plugin_consts import NAMESPACE, KEY_NAME, KEY_ALGORITHM, KYC_FLOW_PART_1, KYC_FLOW_PART_1_TAG, \
-    BUY_TOKENS_TAG, SCHEDULED_QUEUE
-from plugins.tff_backend.to.iyo.keystore import IYOKeyStoreKey, IYOKeyStoreKeyData
+from plugins.tff_backend.models.user import ProfilePointer, TffProfile, KYCInformation, KYCStatus, TffProfileInfo
+from plugins.tff_backend.plugin_consts import NAMESPACE, KYC_FLOW_PART_1, KYC_FLOW_PART_1_TAG, \
+    BUY_TOKENS_TAG
 from plugins.tff_backend.to.user import SetKYCPayloadTO
 from plugins.tff_backend.utils import convert_to_str
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
+from plugins.tff_backend.utils.search import sanitise_search_query, remove_all_from_index
+from transliterate import slugify
 
 FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     trim_blocks=True,
@@ -73,57 +69,59 @@ FLOWS_JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True,
     loader=jinja2.FileSystemLoader([os.path.join(os.path.dirname(__file__), 'flows')]))
 
-
-@returns(unicode)
-@arguments(user_detail=UserDetailsTO, origin=unicode, data=unicode)
-def user_registered(user_detail, origin, data):
-    logging.info('User %s:%s registered', user_detail.email, user_detail.app_id)
-    data = json.loads(data)
-
-    required_scopes = get_config(IYO_AUTH_NAMESPACE).required_scopes.split(',')
-    if origin == REGISTRATION_ORIGIN_OAUTH:
-        access_token_data = data.get('result', {})
-        access_token = access_token_data.get('access_token')
-        jwt = create_jwt(access_token, scope='offline_access')
-    else:
-        return
-
-    decoded_jwt = decode_jwt_cached(jwt)
-    username = decoded_jwt.get('username', None)
-    if not username:
-        logging.warn('Could not find username in jwt.')
-        return
-
-    missing_scopes = [s for s in required_scopes if s and s not in decoded_jwt['scope']]
-    if missing_scopes:
-        logging.warn('Access token is missing required scopes %s', missing_scopes)
-
-    logging.debug('Decoded JWT: %s', decoded_jwt)
-    scopes = decoded_jwt['scope']
-    # Creation session such that the JWT is automatically up to date
-    _, session = create_session(username, scopes, jwt, secret=username)
-    return username
+TFF_PROFILE_INDEX = search.Index('tff_profile', namespace=NAMESPACE)
 
 
-def populate_intercom_user(session_key, user_detail=None):
-    """
-    Creates or updates an intercom user with information from itsyou.online
-    Args:
-        session_key (ndb.Key): key of the Session for this user
-        user_detail (UserDetailsTO): key of the Session for this user
-    """
-    intercom_plugin = get_plugin('intercom_support')
+def create_tff_profile(user_details):
+    # type: (UserDetailsTO) -> TffProfile
+    # Try TffProfile
+    user_email = user_details.email
+    profile = TffProfile.list_by_email(user_email).get()
+    if profile:
+        logging.debug('TffProfile for email %s already exists (%s)', user_email, profile.username)
+        return upsert_tff_profile(profile.username, user_details)
+    # Try searching old (itsyou.online based) profiles
+    profiles, cursor, more = search_profiles(sanitise_search_query('', {'validatedemailaddresses': user_email}))
+    if profiles:
+        logging.debug('Creating TffProfile from old itsyou.online profile')
+        return upsert_tff_profile(profiles[0].username, user_details)
+    # Try intercom
+    intercom_plugin = get_intercom_plugin()
     if intercom_plugin:
-        session = session_key.get()
-        if not session:
-            return
-        assert isinstance(session, Session)
-        assert isinstance(intercom_plugin, IntercomSupportPlugin)
-        data = get_user(session.user_id, session.jwt)
-        intercom_user = upsert_intercom_user(data.username, data)
-        tag_intercom_users(IntercomTags.APP_REGISTER, [data.username])
-        if user_detail:
-            message = """Welcome to the ThreeFold Foundation app.
+        try:
+            user = intercom_plugin.get_user(email=user_email)
+            if user.user_id:
+                logging.debug('Creating TffProfile based on intercom account %s (%s)', user_email, user.user_id)
+                return upsert_tff_profile(user.user_id, user_details.app_id)
+        except intercom.ResourceNotFound:
+            pass
+    # Didn't find an old user. Use email as username.
+    logging.debug('Creating new TffProfile with email as username %s', user_email)
+    return upsert_tff_profile(user_email, user_details)
+
+
+@ndb.transactional()
+def update_tff_profile(username, user_details):
+    # type: (unicode, UserDetailsTO) -> TffProfile
+    profile = get_tff_profile(username)
+    profile.info = TffProfileInfo(name=user_details.name,
+                                  language=user_details.language,
+                                  avatar_url=user_details.avatar_url)
+    profile.put()
+    index_tff_profile(profile)
+    return profile
+
+
+def populate_intercom_user(profile):
+    """
+    Creates or updates an intercom user with information from TffProfile (from UserDetails)
+    """
+    intercom_plugin = get_intercom_plugin()
+    if not intercom_plugin:
+        return
+    intercom_user = upsert_intercom_user(profile.username, profile)
+    tag_intercom_users(IntercomTags.APP_REGISTER, [profile.username])
+    message = """Welcome to the ThreeFold Foundation app.
 If you have questions you can get in touch with us through this chat.
 Our team is at your service during these hours:
 
@@ -131,17 +129,18 @@ Sunday: 07:00 - 15:00 GMT +1
 Monday - Friday: 09:00 - 17:00 GMT +1
 
 Of course you can always ask your questions outside these hours, we will then get back to you the next business day."""
-            chat_id = start_or_get_chat(get_config(NAMESPACE).rogerthat.api_key, '+default+', user_detail.email,
-                                        user_detail.app_id, intercom_user, message)
-            deferred.defer(store_chat_id_in_user_data, chat_id, user_detail)
+    email, app_id = get_app_user_tuple(profile.app_user)
+    chat_id = start_or_get_chat(get_config(NAMESPACE).rogerthat.api_key, '+default+', email.email(), app_id,
+                                intercom_user, message)
+    try_or_defer(store_chat_id_in_user_data, chat_id, email.email(), app_id)
 
 
-@arguments(rogerthat_chat_id=unicode, user_detail=UserDetailsTO)
-def store_chat_id_in_user_data(rogerthat_chat_id, user_detail):
+@arguments(rogerthat_chat_id=unicode, email=unicode, app_id=unicode)
+def store_chat_id_in_user_data(rogerthat_chat_id, email, app_id):
     user_data = {
         'support_chat_id': rogerthat_chat_id
     }
-    put_user_data(user_detail.email, user_detail.app_id, user_data)
+    put_user_data(email, app_id, user_data)
 
 
 @returns(unicode)
@@ -151,78 +150,6 @@ def user_code(username):
     digester.update(convert_to_str(username))
     key = digester.hexdigest()
     return unicode(key[:5])
-
-
-@returns()
-@arguments(username=unicode, user_detail=UserDetailsTO)
-def store_info_in_userdata(username, user_detail):
-    deferred.defer(store_invitation_code_in_userdata, username, user_detail)
-    deferred.defer(store_iyo_info_in_userdata, username, user_detail)
-
-
-@returns()
-@arguments(username=unicode, user_detail=UserDetailsTO)
-def store_invitation_code_in_userdata(username, user_detail):
-    def trans():
-        profile_key = TffProfile.create_key(username)
-        profile = profile_key.get()
-        if not profile:
-            profile = TffProfile(key=profile_key,
-                                 app_user=create_app_user_by_email(user_detail.email, user_detail.app_id))
-
-            pp_key = ProfilePointer.create_key(username)
-            pp = pp_key.get()
-            if pp:
-                logging.error("Failed to save invitation code of user '%s', we have a duplicate", user_detail.email)
-                deferred.defer(store_invitation_code_in_userdata, username,
-                               user_detail, _countdown=10 * 60, _queue=SCHEDULED_QUEUE, _transactional=True)
-                return False
-
-            profile.put()
-
-            pp = ProfilePointer(key=pp_key, username=username)
-            pp.put()
-
-        return True
-
-    if not ndb.transaction(trans, xg=True):
-        return
-
-    user_data = {
-        'invitation_code': user_code(username)
-    }
-    put_user_data(user_detail.email, user_detail.app_id, user_data)
-
-
-@returns()
-@arguments(username=unicode, user_detail=UserDetailsTO)
-def store_iyo_info_in_userdata(username, user_detail):
-    logging.info('Getting the user\'s info from IYO')
-    iyo_user = get_user(username)
-
-    api_key = get_rogerthat_api_key()
-    user_data_keys = ['name', 'email', 'phone', 'address']
-    current_user_data = system.get_user_data(api_key, user_detail.email, user_detail.app_id, user_data_keys)
-
-    user_data = dict()
-    if not current_user_data.get('name') and iyo_user.firstname and iyo_user.lastname:
-        user_data['name'] = '%s %s' % (iyo_user.firstname, iyo_user.lastname)
-
-    if not current_user_data.get('email') and iyo_user.validatedemailaddresses:
-        user_data['email'] = iyo_user.validatedemailaddresses[0].emailaddress
-
-    if not current_user_data.get('phone') and iyo_user.validatedphonenumbers:
-        user_data['phone'] = iyo_user.validatedphonenumbers[0].phonenumber
-
-    if not current_user_data.get('address') and iyo_user.addresses:
-        user_data['address'] = '%s %s' % (iyo_user.addresses[0].street, iyo_user.addresses[0].nr)
-        user_data['address'] += '\n%s %s' % (iyo_user.addresses[0].postalcode, iyo_user.addresses[0].city)
-        user_data['address'] += '\n%s' % iyo_user.addresses[0].country
-        if iyo_user.addresses[0].other:
-            user_data['address'] += '\n\n%s' % iyo_user.addresses[0].other
-
-    if user_data:
-        put_user_data(user_detail.email, user_detail.app_id, user_data)
 
 
 def store_referral_in_user_data(profile_key):
@@ -235,50 +162,14 @@ def store_referral_in_user_data(profile_key):
 
 
 def notify_new_referral(my_username, app_user):
-    iyo_user = get_user(my_username)
+    # username is username from user who used referral code of app_user
+    profile = get_tff_profile(my_username)
 
-    subject = u'%s just used your invitation code' % iyo_user.firstname
+    subject = u'%s just used your invitation code' % profile.info.name
     message = u'Hi!\n' \
-              u'Good news, %s %s has used your invitation code.' % (iyo_user.firstname, iyo_user.lastname)
+              u'Good news, %s has used your invitation code.' % profile.info.name
 
     send_message_and_email(app_user, message, subject)
-
-
-@returns()
-@arguments(user_detail=UserDetailsTO)
-def store_public_key(user_detail):
-    # type: (UserDetailsTO) -> None
-    logging.info('Storing %s key in IYO for user %s:%s', KEY_NAME, user_detail.email, user_detail.app_id)
-
-    for rt_key in user_detail.public_keys:
-        if rt_key.name == KEY_NAME and rt_key.algorithm == KEY_ALGORITHM:
-            break
-    else:
-        return
-
-    username = get_iyo_username(user_detail)
-    keys = get_keystore(username)
-    if any(True for iyo_key in keys if iyo_key.key == rt_key.public_key):
-        logging.info('No new key to store starting with name "%s" and algorithm "%s" in %s',
-                     KEY_NAME, KEY_ALGORITHM, repr(user_detail))
-        return
-
-    used_labels = [key.label for key in keys]
-    label = KEY_NAME
-    suffix = 2
-    while label in used_labels:
-        label = u'%s %d' % (KEY_NAME, suffix)
-        suffix += 1
-    organization_id = get_iyo_organization_id()
-    key = IYOKeyStoreKey(key=rt_key.public_key, username=username, globalid=organization_id, label=label)
-    key.keydata = IYOKeyStoreKeyData(comment=u'ThreeFold app', algorithm=rt_key.algorithm)
-    key.keydata.timestamp = MISSING  # Must be missing, else we get bad request since it can't be null
-    result = create_keystore_key(username, key)
-    # We cache the public key - label mapping here so we don't have to go to itsyou.online every time
-    mapping_key = PublicKeyMapping.create_key(result.key, user_detail.email)
-    mapping = PublicKeyMapping(key=mapping_key)
-    mapping.label = result.label
-    mapping.put()
 
 
 @returns([(int, long)])
@@ -296,6 +187,40 @@ def get_tff_profile(username):
         profile.kyc = KYCInformation(status=KYCStatus.UNVERIFIED.value,
                                      updates=[],
                                      applicant_id=None)
+    return profile
+
+
+@ndb.transactional(xg=True)
+def upsert_tff_profile(username, user_details):
+    # type: (unicode, UserDetailsTO) -> TffProfile
+    key = TffProfile.create_key(username)
+    profile = key.get()
+    to_put = []
+    if not profile:
+        profile = TffProfile(key=key,
+                             kyc=KYCInformation(status=KYCStatus.UNVERIFIED.value,
+                                                updates=[],
+                                                applicant_id=None))
+        pp_key = ProfilePointer.create_key(username)
+        profile_pointer = pp_key.get()
+        if profile_pointer:
+            raise Exception('Failed to save invitation code of user %s, we have a duplicate. %s' % (username,
+                                                                                                    user_details))
+        profile_pointer = ProfilePointer(key=pp_key, username=username)
+        to_put.append(profile_pointer)
+        user_data = {
+            'invitation_code': profile_pointer.user_code
+        }
+        deferred.defer(put_user_data, user_details.email, user_details.app_id, user_data, _transactional=True)
+    profile.app_user = create_app_user_by_email(user_details.email, user_details.app_id)
+    profile.info = TffProfileInfo(name=user_details.name,
+                                  language=user_details.language,
+                                  avatar_url=user_details.avatar_url)
+    if 'itsyou.online' not in user_details.email:
+        profile.info.email = user_details.email
+    to_put.append(profile)
+    ndb.put_multi(to_put)
+    index_tff_profile(profile)
     return profile
 
 
@@ -335,7 +260,7 @@ def set_kyc_status(username, payload, current_user_id):
         deferred.defer(_send_kyc_approved_message, profile.key)
     profile.put()
     deferred.defer(store_kyc_in_user_data, profile.app_user, _countdown=2)
-    deferred.defer(index_profile, Profile.create_key(username), _countdown=2)
+    deferred.defer(index_tff_profile, TffProfile.create_key(username), _countdown=2)
     return profile
 
 
@@ -347,7 +272,7 @@ def set_utility_bill_verified(username):
     profile.kyc.utility_bill_verified = True
     profile.put()
     deferred.defer(send_signed_investments_messages, profile.app_user, _transactional=True)
-    deferred.defer(send_hoster_reminder, profile.app_user, _countdown=1, _transactional=True)
+    deferred.defer(send_hoster_reminder, profile.username, _countdown=1, _transactional=True)
     return profile
 
 
@@ -457,10 +382,12 @@ def _get_step_info(property):
 def _get_known_information(username):
     date_of_birth = datetime.datetime.now()
     date_of_birth = date_of_birth.replace(year=date_of_birth.year - 18, hour=0, minute=0, second=0, microsecond=0)
+    profile = get_tff_profile(username)
+    first_name, last_name = profile.info.name.split(' ', 1)
     known_information = {
-        'first_name': None,
-        'last_name': None,
-        'email': None,
+        'first_name': first_name,
+        'last_name': last_name,
+        'email': profile.info.email,
         'telephone': None,
         'address_building_number': None,
         'address_street': None,
@@ -468,31 +395,12 @@ def _get_known_information(username):
         'address_postcode': None,
         'dob': long(time.mktime(date_of_birth.timetuple())),
     }
-    profile = get_profile(username)
-    if profile.info:
-        if profile.info.firstname:
-            known_information['first_name'] = profile.info.firstname
-        if profile.info.lastname:
-            known_information['last_name'] = profile.info.lastname
-        if profile.info.validatedphonenumbers:
-            known_information['telephone'] = profile.info.validatedphonenumbers[0].phonenumber
-        elif profile.info.phonenumbers:
-            known_information['telephone'] = profile.info.phonenumbers[0].phonenumber
-        if profile.info.validatedemailaddresses:
-            known_information['email'] = profile.info.validatedemailaddresses[0].emailaddress
-        elif profile.info.emailaddresses:
-            known_information['email'] = profile.info.emailaddresses[0].emailaddress
-        if profile.info.addresses:
-            known_information['address_street'] = profile.info.addresses[0].street
-            known_information['address_building_number'] = profile.info.addresses[0].nr
-            known_information['address_town'] = profile.info.addresses[0].city
-            known_information['address_postcode'] = profile.info.addresses[0].postalcode
     return known_information
 
 
 @arguments(app_user=users.User)
 def store_kyc_in_user_data(app_user):
-    username = get_iyo_username(app_user)
+    username = get_username(app_user)
     profile = get_tff_profile(username)
     user_data = {
         'kyc': {
@@ -532,3 +440,71 @@ def _send_kyc_approved_message(profile_key):
                         color=None)]
     send_rogerthat_message(MemberTO(member=email.email(), app_id=app_id, alert_flags=Message.ALERT_FLAG_VIBRATE),
                            message, answers, 0)
+
+
+def index_tff_profile(profile_or_key):
+    # type: (ndb.Key) -> list[search.PutResult]
+    profile = profile_or_key.get() if isinstance(profile_or_key, ndb.Key) else profile_or_key
+    document = create_tff_profile_document(profile)
+    return TFF_PROFILE_INDEX.put(document)
+
+
+def index_all_profiles():
+    remove_all_from_index(TFF_PROFILE_INDEX)
+    run_job(_get_all_profiles, [], multi_index_tff_profile, [], mode=MODE_BATCH, batch_size=200)
+
+
+def multi_index_tff_profile(tff_profile_keys):
+    # type: (list[ndb.Key]) -> object
+    logging.info('Indexing %s TffProfiles', len(tff_profile_keys))
+    return TFF_PROFILE_INDEX.put([create_tff_profile_document(profile) for profile in ndb.get_multi(tff_profile_keys)])
+
+
+def _get_all_profiles():
+    return TffProfile.query()
+
+
+def _encode_doc_id(profile):
+    # type: (TffProfile) -> unicode
+    # doc id must be ascii, base64 encode it
+    return base64.b64encode(profile.username.encode('utf-8'))
+
+
+def _decode_doc_id(doc_id):
+    # type: (unicode) -> unicode
+    return base64.b64decode(doc_id)
+
+
+def _add_slug_fields(key, value):
+    if not value:
+        return []
+    value = value.lower().strip()
+    return [
+        search.TextField(name=key, value=value),
+        search.TextField(name='%s_slug' % key, value=slugify(value) or value)
+    ]
+
+
+def create_tff_profile_document(profile):
+    # type: (TffProfile) -> search.Document
+    fields = [search.AtomField(name='username', value=profile.username),
+              search.TextField(name='email', value=profile.info.email),
+              search.NumberField('kyc_status', profile.kyc.status if profile.kyc else KYCStatus.UNVERIFIED.value),
+              search.TextField('app_email', profile.app_user.email().lower())]
+    fields.extend(_add_slug_fields('name', profile.info.name))
+    return search.Document(_encode_doc_id(profile), fields)
+
+
+def search_tff_profiles(query='', page_size=20, cursor=None):
+    # type: (unicode, int, unicode) -> tuple[list[TffProfile], search.Cursor, bool]
+    sort_expressions = [search.SortExpression(expression='name_slug', direction=search.SortExpression.ASCENDING),
+                        search.SortExpression(expression='username', direction=search.SortExpression.ASCENDING)]
+    options = search.QueryOptions(limit=page_size,
+                                  cursor=search.Cursor(cursor),
+                                  sort_options=search.SortOptions(expressions=sort_expressions),
+                                  ids_only=True)
+    search_results = TFF_PROFILE_INDEX.search(search.Query(query, options=options))  # type: search.SearchResults
+    results = search_results.results  # type: list[search.ScoredDocument]
+    keys = [TffProfile.create_key(_decode_doc_id(result.doc_id)) for result in results]
+    profiles = ndb.get_multi(keys) if keys else []
+    return profiles, search_results.cursor, search_results.cursor is not None

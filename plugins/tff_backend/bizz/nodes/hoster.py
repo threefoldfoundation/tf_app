@@ -42,8 +42,7 @@ from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.intercom_helpers import tag_intercom_users, IntercomTags
-from plugins.tff_backend.bizz.iyo.see import get_see_document, sign_see_document, create_see_document
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_organization_id
+from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.nodes.stats import assign_nodes_to_user
 from plugins.tff_backend.bizz.odoo import create_odoo_quotation, update_odoo_quotation, QuotationState, \
@@ -52,6 +51,7 @@ from plugins.tff_backend.bizz.rogerthat import put_user_data, create_error_messa
 from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
 from plugins.tff_backend.bizz.todo.hoster import HosterSteps
+from plugins.tff_backend.bizz.user import get_tff_profile
 from plugins.tff_backend.configuration import TffConfiguration
 from plugins.tff_backend.consts.hoster import REQUIRED_TOKEN_COUNT_TO_HOST
 from plugins.tff_backend.dal.node_orders import get_node_order
@@ -60,7 +60,7 @@ from plugins.tff_backend.models.hoster import NodeOrder, NodeOrderStatus, Contac
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import KEY_NAME, KEY_ALGORITHM, NAMESPACE, FLOW_HOSTER_SIGNATURE_RECEIVED, \
     FLOW_SIGN_HOSTING_AGREEMENT
-from plugins.tff_backend.to.nodes import NodeOrderTO, NodeOrderDetailsTO, CreateNodeOrderTO
+from plugins.tff_backend.to.nodes import NodeOrderTO, CreateNodeOrderTO
 from plugins.tff_backend.utils import get_step_value, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple
 
@@ -68,12 +68,12 @@ from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user
 @returns()
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
            flow_params=unicode)
 def order_node(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
                flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     order_key = NodeOrder.create_key()
-    deferred.defer(_order_node, order_key, user_details[0].email, user_details[0].app_id, steps)
+    deferred.defer(_order_node, order_key, user_details.email, user_details.app_id, steps)
 
 
 def _order_node(order_key, user_email, app_id, steps):
@@ -140,7 +140,8 @@ def _order_node(order_key, user_email, app_id, steps):
     socket = socket_step and socket_step.answer_id.replace('button_', '')
 
     # Only one node is allowed per user, and one per location
-    if NodeOrder.has_order_for_user_or_location(app_user, billing_info.address) and not DEBUG:
+    username = get_username(app_user)
+    if NodeOrder.has_order_for_user_or_location(username, billing_info.address) and not DEBUG:
         logging.info('User already has a node order, sending abort message')
         msg = u'Dear ThreeFold Member, we sadly cannot grant your request to host an additional ThreeFold Node:' \
               u' We are currently only allowing one Node to be hosted per ThreeFold Member and location.' \
@@ -150,14 +151,14 @@ def _order_node(order_key, user_email, app_id, steps):
         return
 
     # Check if user has invested >= 120 tokens
-    paid_orders = InvestmentAgreement.list_by_status_and_user(app_user, InvestmentAgreement.STATUS_PAID)
+    paid_orders = InvestmentAgreement.list_by_status_and_user(username, InvestmentAgreement.STATUS_PAID)
     total_tokens = sum([o.token_count_float for o in paid_orders])
     can_host = total_tokens >= REQUIRED_TOKEN_COUNT_TO_HOST
 
     def trans():
         logging.debug('Storing order in the database')
         order = NodeOrder(key=order_key,
-                          app_user=app_user,
+                          username=username,
                           tos_iyo_see_id=None,
                           billing_info=billing_info,
                           shipping_info=shipping_info,
@@ -168,48 +169,36 @@ def _order_node(order_key, user_email, app_id, steps):
         if can_host:
             logging.info('User has invested more than %s tokens, immediately creating node order PDF.',
                          REQUIRED_TOKEN_COUNT_TO_HOST)
-            deferred.defer(_create_node_order_pdf, order_key.id(), _transactional=True)
+            deferred.defer(_create_node_order_pdf, order_key.id(), app_user, _transactional=True)
         else:
             logging.info('User has not invested more than %s tokens, an admin needs to approve this order manually.',
                          REQUIRED_TOKEN_COUNT_TO_HOST)
             deferred.defer(_inform_support_of_new_node_order, order_key.id(), _transactional=True)
-        deferred.defer(set_hoster_status_in_user_data, order.app_user, False, _transactional=True)
+        deferred.defer(set_hoster_status_in_user_data, app_user, False, _transactional=True)
         if updated_user_data:
             deferred.defer(put_user_data, user_email, app_id, updated_user_data, _transactional=True)
 
     ndb.transaction(trans)
 
 
-def _create_node_order_pdf(node_order_id):
+def _create_node_order_pdf(node_order_id, app_user):
     node_order = get_node_order(node_order_id)
-    user_email, app_id = get_app_user_tuple(node_order.app_user)
+    user_email, app_id = get_app_user_tuple(app_user)
     logging.debug('Creating Hosting agreement')
     pdf_name = NodeOrder.filename(node_order_id)
     pdf_contents = create_hosting_agreement_pdf(node_order.billing_info.name, node_order.billing_info.address)
     pdf_size = len(pdf_contents)
     pdf_url = upload_to_gcs(pdf_name, pdf_contents, 'application/pdf')
-    deferred.defer(_order_node_iyo_see, node_order.app_user, node_order_id, pdf_url, pdf_size)
+    deferred.defer(_order_node_iyo_see, app_user, node_order_id, pdf_url, pdf_size)
     deferred.defer(update_hoster_progress, user_email.email(), app_id, HosterSteps.FLOW_ADDRESS)
 
 
 def _order_node_iyo_see(app_user, node_order_id, pdf_url, pdf_size, create_quotation=True):
-    iyo_username = get_iyo_username(app_user)
-    doc_id = u'Zero-Node order %s' % NodeOrder.create_human_readable_id(node_order_id)
-    category = u'Terms and conditions'
-    content_type = u'application/pdf'
-    description = u'Terms and conditions for ordering a Zero-Node'
-    create_see_document(doc_id, category, description, iyo_username, pdf_url, content_type)
-    attachment_name = u' - '.join([doc_id, category])
-
-    def trans():
-        order = get_node_order(node_order_id)
-        order.tos_iyo_see_id = doc_id
-        order.put()
-        if create_quotation:
-            deferred.defer(_create_quotation, app_user, node_order_id, pdf_url, attachment_name, pdf_size,
-                           _transactional=True)
-
-    ndb.transaction(trans)
+    order_id = NodeOrder.create_human_readable_id(node_order_id)
+    attachment_name = u'Zero-Node order %s - Terms and conditions'.join(order_id)
+    if create_quotation:
+        deferred.defer(_create_quotation, app_user, node_order_id, pdf_url, attachment_name, pdf_size,
+                       _transactional=True)
 
 
 @returns()
@@ -280,12 +269,12 @@ def _send_order_node_sign_message(app_user, order_id, pdf_url, attachment_name, 
 @returns(FlowMemberResultCallbackResultTO)
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=[UserDetailsTO],
+           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
            flow_params=unicode)
 def order_node_signed(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag,
                       result_key, flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
     try:
-        user_detail = user_details[0]
+        user_detail = user_details
         tag_dict = json.loads(tag)
         order = get_node_order(tag_dict['order_id'])
 
@@ -299,8 +288,7 @@ def order_node_signed(message_flow_run_id, member, steps, end_id, end_message_fl
 
         sign_result = last_step.form_result.result.get_value()
         assert isinstance(sign_result, SignWidgetResultTO)
-        iyo_username = get_iyo_username(user_detail)
-        sign_see_document(iyo_username, order.tos_iyo_see_id, sign_result, user_detail)
+        iyo_username = get_username(user_detail)
 
         logging.debug('Storing signature in DB')
         order.populate(status=NodeOrderStatus.SIGNED,
@@ -327,22 +315,15 @@ def order_node_signed(message_flow_run_id, member, steps, end_id, end_message_fl
         return create_error_message()
 
 
-@returns(NodeOrderDetailsTO)
+@returns(NodeOrderTO)
 @arguments(order_id=(int, long))
 def get_node_order_details(order_id):
     # type: (long) -> NodeOrderDetailsTO
-    node_order = get_node_order(order_id)
-    if node_order.tos_iyo_see_id:
-        iyo_organization_id = get_iyo_organization_id()
-        username = get_iyo_username(node_order.app_user)
-        see_document = get_see_document(iyo_organization_id, username, node_order.tos_iyo_see_id)
-    else:
-        see_document = None
-    return NodeOrderDetailsTO.from_model(node_order, see_document)
+    return NodeOrderTO.from_model(get_node_order(order_id))
 
 
 def _get_allowed_status(current_status):
-    # type: (long, long) -> list[long]
+    # type: (long) -> list[long]
     next_statuses = {
         NodeOrderStatus.CANCELED: [],
         NodeOrderStatus.WAITING_APPROVAL: [NodeOrderStatus.CANCELED, NodeOrderStatus.APPROVED],
@@ -365,6 +346,7 @@ def _can_change_status(current_status, new_status):
 def put_node_order(order_id, order):
     # type: (long, NodeOrderTO) -> NodeOrder
     order_model = get_node_order(order_id)
+    app_user = get_tff_profile(order_model.username).app_user
     if order_model.status == NodeOrderStatus.CANCELED:
         raise HttpBadRequestException('order_canceled')
     if order.status not in (NodeOrderStatus.CANCELED, NodeOrderStatus.SENT, NodeOrderStatus.APPROVED,
@@ -377,7 +359,7 @@ def put_node_order(order_id, order):
                                           {'from': order_model.status, 'to': order.status,
                                            'allowed_new_statuses': _get_allowed_status(order_model.status)})
         order_model.status = order.status
-        human_user, app_id = get_app_user_tuple(order_model.app_user)
+        human_user, app_id = get_app_user_tuple(app_user)
         if order_model.status == NodeOrderStatus.CANCELED:
             order_model.cancel_time = now()
             if order_model.odoo_sale_order_id:
@@ -385,7 +367,7 @@ def put_node_order(order_id, order):
                                {'state': QuotationState.CANCEL.value})
             deferred.defer(update_hoster_progress, human_user.email(), app_id,
                            HosterSteps.NODE_POWERED)  # nuke todo list
-            deferred.defer(set_hoster_status_in_user_data, order_model.app_user, _countdown=2)
+            deferred.defer(set_hoster_status_in_user_data, app_user, _countdown=2)
         elif order_model.status == NodeOrderStatus.SENT:
             if not order_model.odoo_sale_order_id or not get_nodes_from_odoo(order_model.odoo_sale_order_id):
                 raise HttpBadRequestException('cannot_mark_sent_no_serial_number_configured_yet',
@@ -394,7 +376,7 @@ def put_node_order(order_id, order):
             deferred.defer(update_hoster_progress, human_user.email(), app_id, HosterSteps.NODE_SENT)
             deferred.defer(_send_node_order_sent_message, order_id)
         elif order_model.status == NodeOrderStatus.APPROVED:
-            deferred.defer(_create_node_order_pdf, order_id)
+            deferred.defer(_create_node_order_pdf, order_id, app_user)
         elif order_model.status == NodeOrderStatus.PAID:
             deferred.defer(confirm_odoo_quotation, order_model.odoo_sale_order_id)
     else:
@@ -405,7 +387,6 @@ def put_node_order(order_id, order):
 
 def _inform_support_of_new_node_order(node_order_id):
     node_order = get_node_order(node_order_id)
-    iyo_username = get_iyo_username(node_order.app_user)
 
     subject = 'New Node Order by %s' % node_order.billing_info.name
     body = """Hello,
@@ -417,7 +398,7 @@ Check the old purchase agreements to verify if this user can sign up as a hoster
 Please visit %(base_url)s/orders/%(node_order_id)s to approve or cancel this order.
 """ % {
         'name': node_order.billing_info.name,
-        'iyo_username': iyo_username,
+        'iyo_username': node_order.username,
         'base_url': get_base_url(),
         'node_order_id': node_order.id,
         'tokens': REQUIRED_TOKEN_COUNT_TO_HOST
@@ -428,12 +409,13 @@ Please visit %(base_url)s/orders/%(node_order_id)s to approve or cancel this ord
 
 def _send_node_order_sent_message(node_order_id):
     node_order = get_node_order(node_order_id)
+    app_user = get_tff_profile(node_order.username).app_user
     subject = u'ThreeFold node ready to ship out'
     msg = u'Good news, your ThreeFold node (order id %s) has been prepared for shipment.' \
           u' It will be handed over to our shipping partner soon.' \
           u'\nThanks again for accepting hosting duties and helping to grow the ThreeFold Grid close to the users.' % \
           node_order_id
-    send_message_and_email(node_order.app_user, msg, subject)
+    send_message_and_email(app_user, msg, subject)
 
 
 def get_intercom_tags_for_node_order(order):
@@ -445,8 +427,9 @@ def get_intercom_tags_for_node_order(order):
 
 def set_hoster_status_in_user_data(app_user, can_order=None):
     # type: (users.User, bool) -> None
+    username = get_username(app_user)
     if not isinstance(can_order, bool):
-        can_order = all(o.status == NodeOrderStatus.CANCELED for o in NodeOrder.list_by_user(app_user))
+        can_order = all(o.status == NodeOrderStatus.CANCELED for o in NodeOrder.list_by_user(username))
     user_data = {
         'hoster': {
             'can_order': can_order
@@ -463,11 +446,11 @@ def set_hoster_status_in_user_data(app_user, can_order=None):
 @arguments(data=CreateNodeOrderTO)
 def create_node_order(data):
     # type: (CreateNodeOrderTO) -> NodeOrder
+    profile = get_tff_profile(data.username)
     if data.status not in (NodeOrderStatus.SIGNED, NodeOrderStatus.SENT, NodeOrderStatus.ARRIVED, NodeOrderStatus.PAID):
         data.sign_time = MISSING
     if data.status not in (NodeOrderStatus.SENT, NodeOrderStatus.ARRIVED):
         data.send_time = MISSING
-    app_user = users.User(data.app_user)
     order_count = NodeOrder.list_by_so(data.odoo_sale_order_id).count()
     if order_count > 0:
         raise OrderAlreadyExistsException(data.odoo_sale_order_id)
@@ -489,12 +472,10 @@ def create_node_order(data):
     pdf_name = NodeOrder.filename(order_key.id())
     pdf_url = upload_to_gcs(pdf_name, doc_content, content_type)
     order = NodeOrder(key=order_key,
-                      app_user=app_user,
-                      **data.to_dict(exclude=['document', 'app_user']))
+                      **data.to_dict(exclude=['document']))
     order.put()
-    iyo_username = get_iyo_username(app_user)
-    deferred.defer(assign_nodes_to_user, iyo_username, nodes)
-    deferred.defer(set_hoster_status_in_user_data, order.app_user, False)
-    deferred.defer(tag_intercom_users, IntercomTags.HOSTER, [iyo_username])
-    deferred.defer(_order_node_iyo_see, order.app_user, order.id, pdf_url, len(doc_content), create_quotation=False)
+    deferred.defer(assign_nodes_to_user, order.username, nodes)
+    deferred.defer(set_hoster_status_in_user_data, profile.app_user, False)
+    deferred.defer(tag_intercom_users, IntercomTags.HOSTER, [order.username])
+    deferred.defer(_order_node_iyo_see, profile.app_user, order.id, pdf_url, len(doc_content), create_quotation=False)
     return order

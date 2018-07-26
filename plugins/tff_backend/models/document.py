@@ -39,6 +39,7 @@ class Document(NdbModel):
     type = ndb.StringProperty(choices=map(lambda x: x.value, DocumentType))
     status = ndb.StringProperty(choices=map(lambda x: x.value, DocumentStatus), default=DocumentStatus.CREATED.value)
     creation_timestamp = ndb.DateTimeProperty(auto_now_add=True)
+    signature = ndb.StringProperty(indexed=False)
 
     @property
     def id(self):

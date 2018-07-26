@@ -1,3 +1,7 @@
+body {
+  font-family: "Open Sans", sans-serif;
+}
+
 .homepage-image {
   max-width: 75%;
 }
@@ -94,7 +98,6 @@ body {
   transition: box-shadow .4s cubic-bezier(.25, .8, .25, 1), background-color .4s cubic-bezier(.25, .8, .25, 1);
   transition: box-shadow .4s cubic-bezier(.25, .8, .25, 1), background-color .4s cubic-bezier(.25, .8, .25, 1), -webkit-box-shadow .4s cubic-bezier(.25, .8, .25, 1);
   letter-spacing: .2em;
-  font-family: "Open Sans", sans-serif;
 }
 
 .button-title {
@@ -113,10 +116,14 @@ body {
   background-color: rgba(103, 150, 106, .8);
 }
 
-.btn-login {
+.btn-update {
+  height: 56px;
+}
+
+.btn-login, .btn-update {
   background-color: rgb(108, 160, 223);
 }
 
-.btn-login:hover, .btn-login:focus {
+.btn-login:hover, .btn-login:focus, btn-update:hover, .btn-update:focus {
   background-color: rgba(108, 160, 223, .8);
 }

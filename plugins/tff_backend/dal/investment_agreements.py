@@ -24,7 +24,7 @@ from google.appengine.ext import ndb
 from framework.bizz.job import run_job, MODE_BATCH
 from mcfw.exceptions import HttpNotFoundException
 from mcfw.rpc import returns, arguments
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username, get_iyo_usernames
+from plugins.tff_backend.bizz.iyo.utils import get_username, get_iyo_usernames
 from plugins.tff_backend.consts.investor import INVESTMENT_AGREEMENT_SEARCH_INDEX
 from plugins.tff_backend.models.investor import InvestmentAgreement
 from plugins.tff_backend.plugin_consts import NAMESPACE
@@ -55,17 +55,14 @@ def _get_all_investment_agreements():
 def index_investment_agreement(investment):
     # type: (InvestmentAgreement) -> list[search.PutResult]
     logging.info('Indexing investment agreement %s', investment.id)
-    document = create_investment_agreement_document(investment, get_iyo_username(investment.app_user))
+    document = create_investment_agreement_document(investment)
     return INVESTMENT_INDEX.put(document)
 
 
 def multi_index_investment_agreement(order_keys):
     # type: (list[ndb.Key]) -> list[search.PutResult]
     logging.info('Indexing %s investment agreements', len(order_keys))
-    orders = ndb.get_multi(order_keys)  # type: list[InvestmentAgreement]
-    usernames = get_iyo_usernames([order.app_email for order in orders])
-    to_put = [create_investment_agreement_document(order, usernames.get(order.app_email)) for order in orders]
-    return INVESTMENT_INDEX.put(to_put)
+    return INVESTMENT_INDEX.put([create_investment_agreement_document(order) for order in ndb.get_multi(order_keys)])
 
 
 def _stringify_float(value):
@@ -73,14 +70,14 @@ def _stringify_float(value):
     return str(value).rstrip('0').rstrip('.')
 
 
-def create_investment_agreement_document(investment, iyo_username):
+def create_investment_agreement_document(investment):
     # type: (InvestmentAgreement) -> search.Document
     investment_id_str = str(investment.id)
     fields = [
         search.AtomField(name='id', value=investment_id_str),
         search.AtomField(name='reference', value=investment.reference),
         search.NumberField(name='status', value=investment.status),
-        search.TextField(name='username', value=iyo_username),
+        search.TextField(name='username', value=investment.username),
         search.DateField(name='creation_time', value=datetime.utcfromtimestamp(investment.creation_time)),
         search.TextField(name='name', value=investment.name),
         search.TextField(name='address', value=investment.address and investment.address.replace('\n', '')),
@@ -105,3 +102,7 @@ def search_investment_agreements(query=None, page_size=20, cursor=None):
     results = search_results.results  # type: list[search.ScoredDocument]
     investment_agreements = ndb.get_multi([InvestmentAgreement.create_key(long(result.doc_id)) for result in results])
     return investment_agreements, search_results.cursor, search_results.cursor is not None
+
+
+def list_investment_agreements_by_user(username):
+    return InvestmentAgreement.list_by_user(username)

@@ -1,9 +1,7 @@
 <tff-api-request-status [status]="status"></tff-api-request-status>
 <div *ngIf="status.success">
   <h2>{{ 'tff.flow_run_x_tag_y' | translate : { flowName: getFlowName(flowRun.flow_name), tag: flowRun.tag } }}</h2>
-  <a *ngIf="user" [routerLink]="['/users', user.username]" target="_blank">
-    {{ 'tff.user_x' | translate : { user: user | profileName } }}
-  </a>
+  <tff-user-card [profile]="profile"></tff-user-card>
   <div fxLayout="column" fxLayoutAlign="center center" class="steps step-margin">
     <span>{{ 'tff.flow_started_x' | translate : { date: flowRun.start_date | date : 'medium' } }}</span>
     <mat-icon *ngIf="flowRun.steps?.length > 0">arrow_downward</mat-icon>

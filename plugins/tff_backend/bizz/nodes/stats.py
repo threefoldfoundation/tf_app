@@ -18,7 +18,6 @@ import logging
 import re
 from datetime import datetime
 
-from google.appengine.api import users
 from google.appengine.ext import ndb
 from google.appengine.ext.deferred import deferred
 
@@ -30,14 +29,11 @@ from framework.utils import now, try_or_defer
 from mcfw.consts import MISSING, DEBUG
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
-from plugins.its_you_online_auth.bizz.profile import get_profile
-from plugins.its_you_online_auth.models import Profile
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO
 from plugins.tff_backend.bizz import get_rogerthat_api_key
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
-from plugins.tff_backend.bizz.iyo.utils import get_iyo_username
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.nodes import telegram
 from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo, get_serial_number_by_node_id
@@ -75,16 +71,16 @@ def check_if_node_comes_online(order_key):
     if not odoo_nodes:
         raise BusinessException('Could not find nodes for sale order %s on odoo' % order_id)
     statuses = {n.id: n.status for n in ndb.get_multi(odoo_node_keys) if n}
-    iyo_username = get_iyo_username(order.app_user)
-    user_nodes = {node.id: node for node in Node.list_by_user(iyo_username)}
+    username = order.username
+    user_nodes = {node.id: node for node in Node.list_by_user(username)}
     to_add = []
     logging.debug('odoo_nodes: %s\n statuses: %s\n', odoo_nodes, statuses)
     for node in odoo_nodes:
         if node['id'] not in user_nodes:
             to_add.append(node)
     if to_add:
-        logging.info('Setting username %s on nodes %s', iyo_username, to_add)
-        deferred.defer(assign_nodes_to_user, iyo_username, to_add)
+        logging.info('Setting username %s on nodes %s', username, to_add)
+        deferred.defer(assign_nodes_to_user, username, to_add)
     if all([status == NodeStatus.RUNNING for status in statuses.itervalues()]):
         _set_node_status_arrived(order_key, odoo_nodes)
     else:
@@ -93,9 +89,10 @@ def check_if_node_comes_online(order_key):
 
 @ndb.transactional()
 def _set_node_status_arrived(order_key, nodes):
-    order = order_key.get()
+    order = order_key.get()  # type: NodeOrder
     logging.info('Marking nodes %s from node order %s as arrived', nodes, order_key)
-    human_user, app_id = get_app_user_tuple(order.app_user)
+    profile = TffProfile.create_key(order.username).get()  # type: TffProfile
+    human_user, app_id = get_app_user_tuple(profile.app_user)
     order.populate(arrival_time=now(),
                    status=NodeOrderStatus.ARRIVED)
     order.put()
@@ -124,10 +121,10 @@ def assign_nodes_to_user(iyo_username, nodes):
     return to_put
 
 
-def get_nodes_for_user(app_user):
-    # type: (users.User) -> list[dict]
+def get_nodes_for_user(username):
+    # type: (unicode) -> list[dict]
     nodes = []
-    for order in NodeOrder.list_by_user(app_user):
+    for order in NodeOrder.list_by_user(username):
         if order.status in (NodeOrderStatus.SENT, NodeOrderStatus.ARRIVED):
             nodes.extend(get_nodes_from_odoo(order.odoo_sale_order_id))
     return nodes
@@ -246,23 +243,23 @@ If after 30 minutes still no “online” message is received in the ThreeFold a
 def _get_limited_profile(profile):
     if not profile:
         return None
-    assert isinstance(profile, Profile)
+    assert isinstance(profile, TffProfile)
     return {
         'username': profile.username,
-        'full_name': profile.full_name,
-        'email': profile.email,
+        'name': profile.info.name,
+        'email': profile.info.email,
     }
 
 
 def list_nodes(sort_by=None, ascending=False):
-    # type: (unicode) -> list[dict]
+    # type: (unicode, bool) -> list[dict]
     if sort_by:
         qry = Node.list_by_property(sort_by, ascending)
     else:
         qry = Node.query()
     nodes = qry.fetch()  # type: list[Node]
     profiles = {profile.username: profile for profile in
-                ndb.get_multi([Profile.create_key(node.username) for node in nodes if node.username])}
+                ndb.get_multi([TffProfile.create_key(node.username) for node in nodes if node.username])}
     include_node = ['status', 'serial_number', 'chain_status']
     results = [{'profile': _get_limited_profile(profiles.get(node.username)),
                 'node': node.to_dict(include=include_node)} for node in nodes]
@@ -307,11 +304,10 @@ def update_node(node_id, data):
     # type: (unicode, UpdateNodePayloadTO) -> Node
     node = get_node(node_id)
     if data.username:
-        profile = get_profile(data.username)
-        if profile.app_email:
-            email, app_id = get_app_user_tuple(users.User(profile.app_email))
-            user_details = UserDetailsTO(email=email.email(), app_id=app_id)
-            deferred.defer(add_user_to_role, user_details, RogerthatRoles.HOSTERS, _transactional=True)
+        profile = get_tff_profile(data.username)
+        email, app_id = get_app_user_tuple(profile.app_user)
+        user_details = UserDetailsTO(email=email.email(), app_id=app_id)
+        deferred.defer(add_user_to_role, user_details, RogerthatRoles.HOSTERS, _transactional=True)
     node.username = data.username
     node.put()
     return node

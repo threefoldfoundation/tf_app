@@ -21,12 +21,7 @@ import { getBalance, getBalanceStatus, getUserTransactions, getUserTransactionsS
       <h2>{{ 'tff.transactions' | translate }}</h2>
     </mat-toolbar>
     <tff-transaction-list [transactionList]="transactionList$ | async"
-                          [status]="transactionListStatus$ | async"></tff-transaction-list>
-    <div class="fab-bottom-right">
-      <a mat-fab [routerLink]="['create']">
-        <mat-icon>add</mat-icon>
-      </a>
-    </div>`,
+                          [status]="transactionListStatus$ | async"></tff-transaction-list>`,
 })
 
 export class UserTransactionsListPageComponent implements OnInit {
