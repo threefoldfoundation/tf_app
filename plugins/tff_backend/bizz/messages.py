@@ -26,11 +26,11 @@ from plugins.tff_backend.bizz.rogerthat import send_rogerthat_message
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 
-def send_message_and_email(app_user, message, subject):
+def send_message_and_email(app_user, message, subject, api_key):
     if not DEBUG:
         human_user, app_id = get_app_user_tuple(app_user)
         member = MemberTO(member=human_user.email(), app_id=app_id, alert_flags=0)
-        deferred.defer(send_rogerthat_message, member, message, _transactional=ndb.in_transaction())
+        deferred.defer(send_rogerthat_message, member, message, api_key=api_key, _transactional=ndb.in_transaction())
         iyo_username = get_username(app_user)
         message += '\n\nKind regards,\nThe ThreeFold Team'
         if iyo_username is None:

@@ -28,7 +28,6 @@ MEMBEROF_REGEX = re.compile('^user:memberof:%s\.(.*)' % ROOT_ORGANIZATION)
 
 
 class RogerthatRoles(object):
-    HOSTERS = 'hosters'
     MEMBERS = 'members'
     INVESTOR = 'investors'
 

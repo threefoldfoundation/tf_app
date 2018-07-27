@@ -45,7 +45,7 @@ from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.rogerthat_api.to import UserDetailsTO, MemberTO
 from plugins.rogerthat_api.to.messaging import AnswerTO, Message
 from plugins.rogerthat_api.to.system import RoleTO
-from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz import get_tf_token_api_key, get_mazraa_api_key
 from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user, tag_intercom_users, IntercomTags, \
     get_intercom_plugin
 from plugins.tff_backend.bizz.iyo.utils import get_username
@@ -140,7 +140,7 @@ def store_chat_id_in_user_data(rogerthat_chat_id, email, app_id):
     user_data = {
         'support_chat_id': rogerthat_chat_id
     }
-    put_user_data(email, app_id, user_data)
+    put_user_data(get_tf_token_api_key(), email, app_id, user_data)
 
 
 @returns(unicode)
@@ -158,7 +158,7 @@ def store_referral_in_user_data(profile_key):
         'has_referrer': profile.referrer_user is not None
     }
     email, app_id = get_app_user_tuple(profile.app_user)
-    put_user_data(email.email(), app_id, user_data)
+    put_user_data(get_tf_token_api_key(), email.email(), app_id, user_data)
 
 
 def notify_new_referral(my_username, app_user):
@@ -169,7 +169,7 @@ def notify_new_referral(my_username, app_user):
     message = u'Hi!\n' \
               u'Good news, %s has used your invitation code.' % profile.info.name
 
-    send_message_and_email(app_user, message, subject)
+    send_message_and_email(app_user, message, subject, get_tf_token_api_key())
 
 
 @returns([(int, long)])
@@ -211,7 +211,8 @@ def upsert_tff_profile(username, user_details):
         user_data = {
             'invitation_code': profile_pointer.user_code
         }
-        deferred.defer(put_user_data, user_details.email, user_details.app_id, user_data, _transactional=True)
+        deferred.defer(put_user_data, get_tf_token_api_key(), user_details.email, user_details.app_id, user_data,
+                       _transactional=True)
     profile.app_user = create_app_user_by_email(user_details.email, user_details.app_id)
     profile.info = TffProfileInfo(name=user_details.name,
                                   language=user_details.language,
@@ -290,7 +291,7 @@ def send_kyc_flow(app_user, message=None):
     email, app_id = get_app_user_tuple(app_user)
     member = MemberTO(member=email.email(), app_id=app_id, alert_flags=0)
     push_message = u'KYC procedure has been initiated'  # for iOS only
-    messaging.start_local_flow(get_rogerthat_api_key(), None, [member], tag=KYC_FLOW_PART_1_TAG, flow=KYC_FLOW_PART_1,
+    messaging.start_local_flow(get_tf_token_api_key(), None, [member], tag=KYC_FLOW_PART_1_TAG, flow=KYC_FLOW_PART_1,
                                push_message=push_message, flow_params=json.dumps({'message': message}))
 
 
@@ -398,19 +399,23 @@ def _get_known_information(username):
     return known_information
 
 
-@arguments(app_user=users.User)
-def store_kyc_in_user_data(app_user):
-    username = get_username(app_user)
-    profile = get_tff_profile(username)
-    user_data = {
+def get_kyc_user_data(profile):
+    # type: (TffProfile) -> dict
+    return {
         'kyc': {
             'status': profile.kyc.status,
             'verified': profile.kyc.status == KYCStatus.VERIFIED,
             'has_utility_bill': profile.kyc.utility_bill_url is not None
         }
     }
+
+
+@arguments(app_user=users.User)
+def store_kyc_in_user_data(app_user):
+    username = get_username(app_user)
+    profile = get_tff_profile(username)
     email, app_id = get_app_user_tuple(app_user)
-    return put_user_data(email.email(), app_id, user_data)
+    return put_user_data(get_mazraa_api_key(), email.email(), app_id, get_kyc_user_data(profile))
 
 
 @returns([dict])
@@ -439,7 +444,7 @@ def _send_kyc_approved_message(profile_key):
                         ui_flags=0,
                         color=None)]
     send_rogerthat_message(MemberTO(member=email.email(), app_id=app_id, alert_flags=Message.ALERT_FLAG_VIBRATE),
-                           message, answers, 0)
+                           message, answers, 0, get_tf_token_api_key())
 
 
 def index_tff_profile(profile_or_key):

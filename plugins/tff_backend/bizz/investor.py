@@ -38,7 +38,7 @@ from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING, FormFlowS
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     FlowCallbackResultTypeTO, TYPE_FLOW
-from plugins.tff_backend.bizz import get_rogerthat_api_key, intercom_helpers
+from plugins.tff_backend.bizz import get_tf_token_api_key, intercom_helpers, get_mazraa_api_key
 from plugins.tff_backend.bizz.agreements import get_bank_account_info
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.email import send_emails_to_support
@@ -241,7 +241,7 @@ def start_invest(email, tag, result_key, context, service_identity, user_details
     logging.info('Starting invest flow %s for user %s', flow, user_details.email)
     members = [MemberTO(member=user_details.email, app_id=user_details.app_id, alert_flags=0)]
     flow_params = json.dumps({'currencies': _get_conversion_rates()})
-    messaging.start_local_flow(get_rogerthat_api_key(), None, members, service_identity, tag=BUY_TOKENS_TAG,
+    messaging.start_local_flow(get_mazraa_api_key(), None, members, service_identity, tag=BUY_TOKENS_TAG,
                                context=context, flow=flow, flow_params=flow_params)
 
 
@@ -338,7 +338,7 @@ def needs_utility_bill(agreement):
 def _send_utility_bill_received(app_user):
     email, app_id = get_app_user_tuple(app_user)
     members = [MemberTO(member=email.email(), app_id=app_id, alert_flags=0)]
-    messaging.start_local_flow(get_rogerthat_api_key(), None, members, None, flow=FLOW_UTILITY_BILL_RECEIVED)
+    messaging.start_local_flow(get_mazraa_api_key(), None, members, None, flow=FLOW_UTILITY_BILL_RECEIVED)
 
 
 def _send_ito_agreement_sign_message(agreement_key, app_user, pdf_url, attachment_name, pdf_size):
@@ -364,7 +364,7 @@ def _send_ito_agreement_sign_message(agreement_key, app_user, pdf_url, attachmen
     })
     email, app_id = get_app_user_tuple(app_user)
     members = [MemberTO(member=email.email(), app_id=app_id, alert_flags=0)]
-    messaging.start_local_flow(get_rogerthat_api_key(), None, members, None, tag=tag,
+    messaging.start_local_flow(get_mazraa_api_key(), None, members, None, tag=tag,
                                context=None, flow=FLOW_SIGN_INVESTMENT, flow_params=flow_params)
 
     deferred.defer(_send_sign_investment_reminder, agreement_key.id(), u'long', _countdown=3600, _queue=SCHEDULED_QUEUE)
@@ -405,7 +405,7 @@ def _send_ito_agreement_to_admin(agreement_key, admin_app_user):
        'token_type': agreement.token,
        'reference': agreement.reference}
 
-    messaging.send_form(api_key=get_rogerthat_api_key(),
+    messaging.send_form(api_key=get_mazraa_api_key(),
                         parent_message_key=None,
                         member=member_user.email(),
                         message=message,
@@ -615,7 +615,7 @@ Amount: %(currency)s %(amount)s
 %(notes)s
 
 Please use %(reference)s as reference.""" % params
-    send_message_and_email(app_user, msg, subject)
+    send_message_and_email(app_user, msg, subject, get_mazraa_api_key())
 
 
 def _send_tokens_assigned_message(app_user):
@@ -626,7 +626,7 @@ def _send_tokens_assigned_message(app_user):
               'You can make such a backup by writing down the 29 words you can use to restore the wallet. ' \
               '\nYou can find these 29 words by going to Settings -> Security -> threefold. ' \
               '\n\nThank you once again for getting on board!'
-    send_message_and_email(app_user, message, subject)
+    send_message_and_email(app_user, message, subject, get_mazraa_api_key())
 
 
 @arguments(agreement=InvestmentAgreement)
@@ -661,7 +661,7 @@ def _send_sign_investment_reminder(agreement_id, message_type):
         return
     subject = u'Your Purchase Agreement is ready to be signed'
     app_user = get_tff_profile(agreement.username).app_user
-    send_message_and_email(app_user, message, subject)
+    send_message_and_email(app_user, message, subject, get_mazraa_api_key())
 
 
 # Called after the user his utility bill was approved

@@ -19,5 +19,13 @@ from framework.plugin_loader import get_config
 from plugins.tff_backend.plugin_consts import NAMESPACE
 
 
-def get_rogerthat_api_key():
-    return get_config(NAMESPACE).rogerthat.api_key
+def get_tf_token_api_key():
+    return get_config(NAMESPACE).rogerthat.token_api_key
+
+
+def get_grid_api_key():
+    return get_config(NAMESPACE).rogerthat.grid_api_key
+
+
+def get_mazraa_api_key():
+    return get_config(NAMESPACE).rogerthat.mazraa_api_key

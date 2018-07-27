@@ -19,8 +19,12 @@ from mcfw.properties import unicode_property, typed_property, long_property, uni
 
 
 class RogerthatConfiguration(TO):
-    api_key = unicode_property('1')
-    sik = unicode_property('2')
+    token_api_key = unicode_property('1')
+    token_sik = unicode_property('2')
+    grid_api_key = unicode_property('grid_api_key')
+    grid_sik = unicode_property('grid_sik')
+    mazraa_api_key = unicode_property('mazraa_api_key')
+    mazraa_sik = unicode_property('mazraa_sik')
     url = unicode_property('3')
     payment_secret = unicode_property('4')
     app_id = unicode_property('app_id')

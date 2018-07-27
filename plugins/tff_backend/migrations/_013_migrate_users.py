@@ -20,7 +20,7 @@ from google.appengine.ext import ndb
 
 from plugins.rogerthat_api.api import friends
 from plugins.rogerthat_api.to.friends import ServiceFriendTO
-from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz import get_tf_token_api_key
 from plugins.tff_backend.models.user import TffProfile, TffProfileInfo
 from plugins.tff_backend.utils.app import get_human_user_from_app_user
 
@@ -34,7 +34,7 @@ def migrate_profiles(dry_run):
     profiles = Profile.query().fetch(None)
     keys = [TffProfile.create_key(profile.username) for profile in profiles]
     tff_profiles = {p.username: p for p in ndb.get_multi(keys) if p}
-    rogerthat_friends = {f.email: f for f in friends.list(get_rogerthat_api_key()).friends}
+    rogerthat_friends = {f.email: f for f in friends.list(get_tf_token_api_key()).friends}
     to_put = []
     missing_profiles = []
     not_friends = []

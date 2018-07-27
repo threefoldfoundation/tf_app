@@ -26,7 +26,7 @@ from google.appengine.api.app_identity import app_identity
 from framework.plugin_loader import get_config
 from mcfw.consts import MISSING
 from plugins.rogerthat_api.api import friends
-from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz import get_tf_token_api_key
 from plugins.tff_backend.bizz.agenda import update_expired_events
 from plugins.tff_backend.bizz.dashboard import rebuild_firebase_data
 from plugins.tff_backend.bizz.flow_statistics import check_stuck_flows
@@ -86,7 +86,7 @@ class BackupHandler(webapp2.RequestHandler):
 class RebuildSyncedRolesHandler(webapp2.RequestHandler):
 
     def get(self):
-        api_key = get_rogerthat_api_key()
+        api_key = get_tf_token_api_key()
         friends.rebuild_synced_roles(api_key, members=[], service_identities=[])
 
 

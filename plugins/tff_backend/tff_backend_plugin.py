@@ -52,7 +52,7 @@ class TffBackendPlugin(BrandingPlugin):
         rogerthat_api_plugin.subscribe('messaging.poke', rogerthat_callbacks.messaging_poke)
         rogerthat_api_plugin.subscribe('friend.is_in_roles', rogerthat_callbacks.friend_is_in_roles)
         rogerthat_api_plugin.subscribe('friend.update', rogerthat_callbacks.friend_update)
-        rogerthat_api_plugin.subscribe('friend.invited', rogerthat_callbacks.friend_invited)
+        rogerthat_api_plugin.subscribe('friend.invite_result', rogerthat_callbacks.friend_invite_result)
         rogerthat_api_plugin.subscribe('friend.register_result', rogerthat_callbacks.friend_register_result)
         rogerthat_api_plugin.subscribe('system.api_call', rogerthat_callbacks.system_api_call)
         patch_onfido_lib()

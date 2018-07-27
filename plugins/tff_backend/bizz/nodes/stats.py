@@ -31,13 +31,11 @@ from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.exceptions import BusinessException
-from plugins.rogerthat_api.to import UserDetailsTO
-from plugins.tff_backend.bizz import get_rogerthat_api_key
-from plugins.tff_backend.bizz.authentication import RogerthatRoles
+from plugins.tff_backend.bizz import get_grid_api_key
 from plugins.tff_backend.bizz.messages import send_message_and_email
 from plugins.tff_backend.bizz.nodes import telegram
 from plugins.tff_backend.bizz.odoo import get_nodes_from_odoo, get_serial_number_by_node_id
-from plugins.tff_backend.bizz.service import add_user_to_role, remove_user_from_role
+from plugins.tff_backend.bizz.rogerthat import put_user_data
 from plugins.tff_backend.bizz.todo import update_hoster_progress, HosterSteps
 from plugins.tff_backend.bizz.user import get_tff_profile
 from plugins.tff_backend.configuration import InfluxDBConfig
@@ -206,12 +204,7 @@ def _put_node_status_user_data(tff_profile_key):
     tff_profile = tff_profile_key.get()
     user, app_id = get_app_user_tuple(tff_profile.app_user)
     data = {'nodes': [n.to_dict() for n in Node.list_by_user(tff_profile.username)]}
-    system.put_user_data(get_rogerthat_api_key(), user.email(), app_id, data)
-    user_detail = UserDetailsTO(email=user.email(), app_id=app_id)
-    if not data['nodes']:
-        remove_user_from_role(user_detail, RogerthatRoles.HOSTERS)
-    else:
-        add_user_to_role(user_detail, RogerthatRoles.HOSTERS)
+    put_user_data(get_grid_api_key(), user.email(), app_id, data)
 
 
 def _send_node_status_update_message(username, to_status, date, serial_number):
@@ -237,7 +230,7 @@ If after 30 minutes still no “online” message is received in the ThreeFold a
             "_send_node_status_update_message not sending message for status '%s' => '%s'", to_status)
         return
 
-    send_message_and_email(app_user, msg, subject)
+    send_message_and_email(app_user, msg, subject, get_grid_api_key())
 
 
 def _get_limited_profile(profile):
@@ -303,11 +296,10 @@ def get_node(node_id):
 def update_node(node_id, data):
     # type: (unicode, UpdateNodePayloadTO) -> Node
     node = get_node(node_id)
-    if data.username:
-        profile = get_tff_profile(data.username)
-        email, app_id = get_app_user_tuple(profile.app_user)
-        user_details = UserDetailsTO(email=email.email(), app_id=app_id)
-        deferred.defer(add_user_to_role, user_details, RogerthatRoles.HOSTERS, _transactional=True)
+    if data.username != node.username:
+        _put_node_status_user_data(TffProfile.create_key(data.username))
+        if node.username:
+            _put_node_status_user_data(TffProfile.create_key(node.username))
     node.username = data.username
     node.put()
     return node

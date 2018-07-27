@@ -27,7 +27,7 @@ from mcfw.consts import MISSING
 from mcfw.exceptions import HttpNotFoundException
 from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.api import system
-from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz import get_tf_token_api_key
 from plugins.tff_backend.models.agenda import Event, EventParticipant
 from plugins.tff_backend.models.user import TffProfile
 from plugins.tff_backend.to.agenda import EventTO, EventParticipantListTO, \
@@ -85,8 +85,8 @@ def put_event(event):
 
 def put_agenda_app_data():
     data = {'agenda_events': [event.to_dict() for event in Event.list()]}
-    system.put_service_data(get_rogerthat_api_key(), data)
-    system.publish_changes(get_rogerthat_api_key())
+    system.put_service_data(get_tf_token_api_key(), data)
+    system.publish_changes(get_tf_token_api_key())
 
 
 @returns([Event])

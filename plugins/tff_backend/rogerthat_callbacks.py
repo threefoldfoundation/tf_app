@@ -23,9 +23,9 @@ from framework.plugin_loader import get_config
 from framework.utils import try_or_defer
 from mcfw.properties import object_factory
 from mcfw.rpc import parse_complex_value, serialize_complex_value, returns, arguments
+from plugins.rogerthat_api.api.system import put_user_data
 from plugins.rogerthat_api.models.settings import RogerthatSettings
 from plugins.rogerthat_api.to import UserDetailsTO
-from plugins.rogerthat_api.to.friends import ACCEPT_ID, DECLINE_ID
 from plugins.rogerthat_api.to.installation import InstallationTO, InstallationLogTO
 from plugins.rogerthat_api.to.messaging import Message
 from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
@@ -35,10 +35,11 @@ from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemb
     PokeCallbackResultTO
 from plugins.rogerthat_api.to.system import RoleTO
 from plugins.tff_backend.api.rogerthat.agenda import get_presence, update_presence
-from plugins.tff_backend.api.rogerthat.global_stats import api_list_global_stats
 from plugins.tff_backend.api.rogerthat.documents import api_list_documents
+from plugins.tff_backend.api.rogerthat.global_stats import api_list_global_stats
 from plugins.tff_backend.api.rogerthat.nodes import api_get_node_status
 from plugins.tff_backend.api.rogerthat.referrals import api_set_referral
+from plugins.tff_backend.bizz import get_mazraa_api_key
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.dashboard import update_firebase_installation
 from plugins.tff_backend.bizz.flow_statistics import save_flow_statistics
@@ -51,7 +52,7 @@ from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1, kyc_par
 from plugins.tff_backend.bizz.nodes.hoster import order_node, order_node_signed
 from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.bizz.user import is_user_in_roles, populate_intercom_user, create_tff_profile, \
-    update_tff_profile
+    update_tff_profile, get_kyc_user_data, get_tff_profile
 from plugins.tff_backend.plugin_consts import NAMESPACE, BUY_TOKENS_TAG, KYC_FLOW_PART_1_TAG, KYC_FLOW_PART_2_TAG, \
     INVEST_FLOW_TAG
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
@@ -169,12 +170,13 @@ def _friend_register_result(rt_settings, request_id, **params):
     try_or_defer(populate_intercom_user, profile)
 
 
-def friend_invited(rt_settings, request_id, user_details, **kwargs):
+def friend_invite_result(rt_settings, request_id, user_details, **kwargs):
     user_details = log_and_parse_user_details(user_details)
     if user_details.app_id == get_config(NAMESPACE).rogerthat.app_id:
-        return ACCEPT_ID
-    logging.warn('Invalid app id received from friend.register call: %s', user_details)
-    return DECLINE_ID
+        mazraa_key = get_mazraa_api_key()
+        if rt_settings.api_key == mazraa_key:
+            profile = get_tff_profile(get_username(user_details))
+            put_user_data(mazraa_key, user_details.email, user_details.app_id, get_kyc_user_data(profile))
 
 
 def friend_update(rt_settings, request_id, user_details, changed_properties, **kwargs):

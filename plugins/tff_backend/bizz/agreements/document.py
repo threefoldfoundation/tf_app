@@ -22,7 +22,7 @@ from plugins.rogerthat_api.api import messaging
 from plugins.rogerthat_api.to import MemberTO
 from plugins.rogerthat_api.to.messaging import Message, AttachmentTO
 from plugins.rogerthat_api.to.messaging.forms import SignFormTO, SignTO
-from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz import get_tf_token_api_key
 from plugins.tff_backend.bizz.iyo.utils import get_app_user_from_iyo_username
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME
 from plugins.tff_backend.utils.app import get_app_user_tuple
@@ -52,5 +52,5 @@ def send_document_sign_message(document_key, username, pdf_url, attachment_name,
     })
     email, app_id = get_app_user_tuple(app_user)
     members = [MemberTO(member=email.email(), app_id=app_id, alert_flags=0)]
-    messaging.start_local_flow(get_rogerthat_api_key(), None, members, None, tag=tag, context=None, flow=flow,
+    messaging.start_local_flow(get_tf_token_api_key(), None, members, None, tag=tag, context=None, flow=flow,
                                push_message=push_message, flow_params=flow_params)

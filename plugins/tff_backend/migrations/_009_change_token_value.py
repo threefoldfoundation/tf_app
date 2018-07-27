@@ -16,7 +16,7 @@
 # @@license_version:1.4@@
 from mcfw.consts import DEBUG
 from plugins.rogerthat_api.api import system
-from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz import get_tf_token_api_key
 from plugins.tff_backend.bizz.global_stats import _get_currency_conversions
 from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.plugin_consts import BUY_TOKENS_TAG, BUY_TOKENS_FLOW_V5
@@ -32,7 +32,7 @@ def migrate():
     icon_name = 'fa-suitcase'
     label = 'Purchase iTokens'
     flow = BUY_TOKENS_FLOW_V5
-    api_key = get_rogerthat_api_key()
+    api_key = get_tf_token_api_key()
     roles = system.list_roles(api_key)
     menu_item_roles = []
     for role in roles:

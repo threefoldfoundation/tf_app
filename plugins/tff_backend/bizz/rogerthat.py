@@ -25,14 +25,14 @@ from plugins.rogerthat_api.to import MemberTO
 from plugins.rogerthat_api.to.messaging import Message, AnswerTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import TYPE_FLOW, FlowCallbackResultTypeTO, \
     FlowMemberResultCallbackResultTO
-from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz import get_tf_token_api_key
 from plugins.tff_backend.bizz.service import get_main_branding_hash
 from plugins.tff_backend.plugin_consts import FLOW_ERROR_MESSAGE
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 
-def put_user_data(user_email, app_id, updated_user_data):
-    api_key = get_rogerthat_api_key()
+def put_user_data(api_key, user_email, app_id, updated_user_data):
+    # type: (unicode, unicode, unicode, dict) -> None
     try:
         system.put_user_data(api_key, user_email, app_id, updated_user_data)
     except RogerthatApiException as e:
@@ -42,14 +42,14 @@ def put_user_data(user_email, app_id, updated_user_data):
 
 
 @returns(unicode)
-@arguments(member=MemberTO, message=unicode, answers=(None, [AnswerTO]), flags=(int, long))
-def send_rogerthat_message(member, message, answers=None, flags=None):
-    # type: (MemberTO, unicode, list[AnswerTO]) -> unicode
+@arguments(member=MemberTO, message=unicode, answers=(None, [AnswerTO]), flags=(int, long), api_key=unicode)
+def send_rogerthat_message(member, message, answers=None, flags=None, api_key=None):
+    # type: (MemberTO, unicode, list[AnswerTO], int, unicode) -> unicode
     flags = flags if flags is not None else Message.FLAG_AUTO_LOCK
     if not answers:
         flags = flags | Message.FLAG_ALLOW_DISMISS
         answers = []
-    return messaging.send(api_key=get_rogerthat_api_key(),
+    return messaging.send(api_key=api_key or get_tf_token_api_key(),
                           parent_message_key=None,
                           members=[member],
                           message=message,
@@ -67,7 +67,7 @@ def send_rogerthat_flow(member, flow):
         human_user, app_id = get_app_user_tuple(member)
         member = MemberTO(member=human_user.email(), app_id=app_id, alert_flags=Message.ALERT_FLAG_VIBRATE)
 
-    messaging.start_local_flow(api_key=get_rogerthat_api_key(),
+    messaging.start_local_flow(api_key=get_tf_token_api_key(),
                                xml=None,
                                members=[member],
                                flow=flow)

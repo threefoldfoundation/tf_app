@@ -22,14 +22,14 @@ from mcfw.rpc import returns, arguments
 from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.to import BaseMemberTO, UserDetailsTO
 from plugins.rogerthat_api.to.system import RoleTO
-from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz import get_tf_token_api_key
 
 
 @cached(version=1, lifetime=86400, request=True, memcache=True)
 @returns(unicode)
 @arguments()
 def get_main_branding_hash():
-    api_key = get_rogerthat_api_key()
+    api_key = get_tf_token_api_key()
     si = system.get_identity(api_key)
     return si.description_branding
 
@@ -38,7 +38,7 @@ def get_main_branding_hash():
 @arguments(user_detail=UserDetailsTO, role_name=unicode)
 def add_user_to_role(user_detail, role_name):
     logging.info('Adding user %s to role "%s"', user_detail.email, role_name)
-    api_key = get_rogerthat_api_key()
+    api_key = get_tf_token_api_key()
     role_id = get_role_id_by_name(api_key, role_name)
     member = BaseMemberTO()
     member.member = user_detail.email
@@ -50,7 +50,7 @@ def add_user_to_role(user_detail, role_name):
 @arguments(user_detail=UserDetailsTO, role_name=unicode)
 def remove_user_from_role(user_detail, role_name):
     logging.info('Deleting user %s from role "%s"', user_detail.email, role_name)
-    api_key = get_rogerthat_api_key()
+    api_key = get_tf_token_api_key()
     role_id = get_role_id_by_name(api_key, role_name)
     member = BaseMemberTO()
     member.member = user_detail.email

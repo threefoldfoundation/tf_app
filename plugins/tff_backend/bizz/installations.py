@@ -19,21 +19,21 @@ from datetime import datetime
 from framework.plugin_loader import get_config
 from plugins.rogerthat_api.api import app
 from plugins.rogerthat_api.to.installation import InstallationTO, InstallationLogTO
-from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz import get_tf_token_api_key
 from plugins.tff_backend.plugin_consts import NAMESPACE
 from plugins.tff_backend.to.dashboard import TickerEntryTO, TickerEntryType
 
 
 def list_installations(**kwargs):
-    return app.list_installations(get_rogerthat_api_key(), app_id=get_config(NAMESPACE).rogerthat.app_id, **kwargs)
+    return app.list_installations(get_tf_token_api_key(), app_id=get_config(NAMESPACE).rogerthat.app_id, **kwargs)
 
 
 def get_installation(installation_id, **kwargs):
-    return app.get_installation(get_rogerthat_api_key(), installation_id, **kwargs)
+    return app.get_installation(get_tf_token_api_key(), installation_id, **kwargs)
 
 
 def list_installation_logs(**kwargs):
-    return app.list_installation_logs(get_rogerthat_api_key(), **kwargs)
+    return app.list_installation_logs(get_tf_token_api_key(), **kwargs)
 
 
 def get_ticker_entry_for_installation(installation, new_logs):

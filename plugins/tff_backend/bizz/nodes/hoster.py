@@ -36,9 +36,8 @@ from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormTO, SignWidgetResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import TYPE_FLOW, FlowCallbackResultTypeTO, \
     FlowMemberResultCallbackResultTO
-from plugins.tff_backend.bizz import get_rogerthat_api_key
+from plugins.tff_backend.bizz import get_tf_token_api_key, get_grid_api_key
 from plugins.tff_backend.bizz.agreements import create_hosting_agreement_pdf
-from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.email import send_emails_to_support
 from plugins.tff_backend.bizz.gcs import upload_to_gcs
 from plugins.tff_backend.bizz.intercom_helpers import tag_intercom_users, IntercomTags
@@ -48,7 +47,6 @@ from plugins.tff_backend.bizz.nodes.stats import assign_nodes_to_user
 from plugins.tff_backend.bizz.odoo import create_odoo_quotation, update_odoo_quotation, QuotationState, \
     confirm_odoo_quotation, get_nodes_from_odoo
 from plugins.tff_backend.bizz.rogerthat import put_user_data, create_error_message
-from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.bizz.todo import update_hoster_progress
 from plugins.tff_backend.bizz.todo.hoster import HosterSteps
 from plugins.tff_backend.bizz.user import get_tff_profile
@@ -82,7 +80,7 @@ def _order_node(order_key, user_email, app_id, steps):
 
     overview_step = get_step(steps, 'message_overview')
     if overview_step and overview_step.answer_id == u"button_use":
-        api_key = get_rogerthat_api_key()
+        api_key = get_grid_api_key()
         user_data_keys = ['name', 'email', 'phone', 'billing_address', 'address', 'shipping_name', 'shipping_email',
                           'shipping_phone', 'shipping_address']
         user_data = system.get_user_data(api_key, user_email, app_id, user_data_keys)
@@ -147,7 +145,7 @@ def _order_node(order_key, user_email, app_id, steps):
               u' We are currently only allowing one Node to be hosted per ThreeFold Member and location.' \
               u' This will allow us to build a bigger base and a more diverse Grid.'
         subject = u'Your ThreeFold Node request'
-        send_message_and_email(app_user, msg, subject)
+        send_message_and_email(app_user, msg, subject, get_grid_api_key())
         return
 
     # Check if user has invested >= 120 tokens
@@ -176,7 +174,8 @@ def _order_node(order_key, user_email, app_id, steps):
             deferred.defer(_inform_support_of_new_node_order, order_key.id(), _transactional=True)
         deferred.defer(set_hoster_status_in_user_data, app_user, False, _transactional=True)
         if updated_user_data:
-            deferred.defer(put_user_data, user_email, app_id, updated_user_data, _transactional=True)
+            deferred.defer(put_user_data, get_tf_token_api_key(), user_email, app_id, updated_user_data,
+                           _transactional=True)
 
     ndb.transaction(trans)
 
@@ -262,7 +261,7 @@ def _send_order_node_sign_message(app_user, order_id, pdf_url, attachment_name, 
         'form': form.to_dict(),
         'attachments': [attachment.to_dict()]
     })
-    messaging.start_local_flow(get_rogerthat_api_key(), None, members, None, tag=tag, context=None,
+    messaging.start_local_flow(get_tf_token_api_key(), None, members, None, tag=tag, context=None,
                                flow=FLOW_SIGN_HOSTING_AGREEMENT, flow_params=flow_params)
 
 
@@ -297,7 +296,6 @@ def order_node_signed(message_flow_run_id, member, steps, end_id, end_message_fl
         order.put()
 
         # TODO: send mail to TF support
-        deferred.defer(add_user_to_role, user_detail, RogerthatRoles.HOSTERS)
         deferred.defer(update_hoster_progress, user_detail.email, user_detail.app_id, HosterSteps.FLOW_SIGN)
         intercom_tags = get_intercom_tags_for_node_order(order)
         for intercom_tag in intercom_tags:
@@ -415,7 +413,7 @@ def _send_node_order_sent_message(node_order_id):
           u' It will be handed over to our shipping partner soon.' \
           u'\nThanks again for accepting hosting duties and helping to grow the ThreeFold Grid close to the users.' % \
           node_order_id
-    send_message_and_email(app_user, msg, subject)
+    send_message_and_email(app_user, msg, subject, get_grid_api_key())
 
 
 def get_intercom_tags_for_node_order(order):
@@ -435,11 +433,11 @@ def set_hoster_status_in_user_data(app_user, can_order=None):
             'can_order': can_order
         }
     }
-    api_key = get_rogerthat_api_key()
+    api_key = get_grid_api_key()
     email, app_id = get_app_user_tuple(app_user)
     current_user_data = system.get_user_data(api_key, email.email(), app_id, ['hoster'])
     if current_user_data != user_data:
-        system.put_user_data(api_key, email.email(), app_id, user_data)
+        put_user_data(api_key, email.email(), app_id, user_data)
 
 
 @returns(NodeOrder)
