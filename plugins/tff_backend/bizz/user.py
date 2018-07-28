@@ -130,7 +130,7 @@ Monday - Friday: 09:00 - 17:00 GMT +1
 
 Of course you can always ask your questions outside these hours, we will then get back to you the next business day."""
     email, app_id = get_app_user_tuple(profile.app_user)
-    chat_id = start_or_get_chat(get_config(NAMESPACE).rogerthat.api_key, '+default+', email.email(), app_id,
+    chat_id = start_or_get_chat(get_tf_token_api_key(), '+default+', email.email(), app_id,
                                 intercom_user, message)
     try_or_defer(store_chat_id_in_user_data, chat_id, email.email(), app_id)
 
