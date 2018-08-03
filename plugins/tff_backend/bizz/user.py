@@ -92,7 +92,7 @@ def create_tff_profile(user_details):
             user = intercom_plugin.get_user(email=user_email)
             if user.user_id:
                 logging.debug('Creating TffProfile based on intercom account %s (%s)', user_email, user.user_id)
-                return upsert_tff_profile(user.user_id, user_details.app_id)
+                return upsert_tff_profile(user.user_id, user_details)
         except intercom.ResourceNotFound:
             pass
     # Didn't find an old user. Use email as username.
