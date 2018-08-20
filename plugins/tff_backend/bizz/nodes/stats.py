@@ -29,7 +29,6 @@ from framework.utils import now, try_or_defer
 from mcfw.consts import MISSING, DEBUG
 from mcfw.exceptions import HttpNotFoundException, HttpBadRequestException
 from mcfw.rpc import returns, arguments
-from plugins.rogerthat_api.api import system
 from plugins.rogerthat_api.exceptions import BusinessException
 from plugins.tff_backend.bizz import get_grid_api_key
 from plugins.tff_backend.bizz.messages import send_message_and_email
@@ -80,17 +79,17 @@ def check_if_node_comes_online(order_key):
         logging.info('Setting username %s on nodes %s', username, to_add)
         deferred.defer(assign_nodes_to_user, username, to_add)
     if all([status == NodeStatus.RUNNING for status in statuses.itervalues()]):
-        _set_node_status_arrived(order_key, odoo_nodes)
+        profile = TffProfile.create_key(username).get()  # type: TffProfile
+        _set_node_status_arrived(order_key, odoo_nodes, profile.app_user)
     else:
         logging.info('Nodes %s from order %s are not all online yet', odoo_nodes, order_id)
 
 
 @ndb.transactional()
-def _set_node_status_arrived(order_key, nodes):
+def _set_node_status_arrived(order_key, nodes, app_user):
     order = order_key.get()  # type: NodeOrder
     logging.info('Marking nodes %s from node order %s as arrived', nodes, order_key)
-    profile = TffProfile.create_key(order.username).get()  # type: TffProfile
-    human_user, app_id = get_app_user_tuple(profile.app_user)
+    human_user, app_id = get_app_user_tuple(app_user)
     order.populate(arrival_time=now(),
                    status=NodeOrderStatus.ARRIVED)
     order.put()
