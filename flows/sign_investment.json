@@ -1,0 +1,223 @@
+{
+  "modules": [
+    {
+      "config": {
+        "position": [
+          284,
+          17
+        ]
+      },
+      "name": "Start",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          54,
+          658
+        ]
+      },
+      "name": "End",
+      "value": {
+        "id": "confirmed",
+        "waitForFollowUpMessage": true
+      }
+    },
+    {
+      "config": {
+        "position": [
+          71,
+          540
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "confirmed"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          285,
+          94
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_message_sign_investment"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          612,
+          658
+        ]
+      },
+      "name": "End",
+      "value": {
+        "id": "canceled",
+        "waitForFollowUpMessage": false
+      }
+    },
+    {
+      "config": {
+        "position": [
+          602,
+          545
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_end_canceled"
+      }
+    },
+    {
+      "config": {
+        "formMessageDef": {
+          "attachments_group": {
+            "attachments_list": []
+          },
+          "form_settings_group": {
+            "algorithm": "ed25519",
+            "button-editor-name-2807b1bb-427e-debd-893c-1cf459c85557": "",
+            "caption": "Please enter your PIN code to digitally sign the purchase agreement.",
+            "index": "",
+            "javascript_validation": "",
+            "key_name": "threefold",
+            "negative_caption": "Abort",
+            "negative_confirmation": "",
+            "payload": "",
+            "positive_caption": "Accept",
+            "positive_confirmation": ""
+          },
+          "id": "sign_investment",
+          "message": "Please review the purchase agreement and press the \"Sign\" button to accept.",
+          "message_settings_group": {
+            "alert_interval": "NONE",
+            "alert_type": "SILENT",
+            "auto_lock": "true",
+            "branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+            "vibrate": true
+          }
+        },
+        "position": [
+          288,
+          316
+        ]
+      },
+      "name": "Sign",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          293,
+          180
+        ],
+        "sourceDef": {
+          "button-editor-name-36505866-6d6b-33bd-9fcf-b57b7efc4595": "",
+          "id": "set_widget",
+          "javascript_code": "function run(rogerthat, mfr){\n    return {outlet: 'default', form: mfr.flow_params.form, attachments: mfr.flow_params.attachments};\n}",
+          "outlets_group": {
+            "outlets_list": [
+              "default"
+            ]
+          }
+        }
+      },
+      "name": "Flow code",
+      "value": {}
+    }
+  ],
+  "properties": {
+    "description": "Sign message for the investment flow",
+    "global_branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+    "multilanguage": false,
+    "name": "sign_investment",
+    "test_account": "",
+    "test_language": null
+  },
+  "wires": [
+    {
+      "src": {
+        "moduleId": 2,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 1,
+        "terminal": "end"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 5,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 4,
+        "terminal": "end"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 6,
+        "terminal": "positive"
+      },
+      "tgt": {
+        "moduleId": 2,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 6,
+        "terminal": "negative"
+      },
+      "tgt": {
+        "moduleId": 5,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 7,
+        "terminal": "exception"
+      },
+      "tgt": {
+        "moduleId": 5,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 3,
+        "terminal": "in"
+      },
+      "tgt": {
+        "moduleId": 0,
+        "terminal": "out"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 7,
+        "terminal": "default"
+      },
+      "tgt": {
+        "moduleId": 6,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 3,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 7,
+        "terminal": "in"
+      }
+    }
+  ]
+}

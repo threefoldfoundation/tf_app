@@ -150,6 +150,13 @@ def create_token_agreement_pdf(full_name, address, amount, currency_full, curren
         template_variables['markdown_to_html'] = markdown_to_html.replace('<th', '<td')
         template_variables['title'] = u'iTFT Purchase Agreement'
     else:
+
+
+
+        # TODO new contract for after ITO
+
+
+
         currency_messages = []
         for currency in BANK_ACCOUNTS:
             account = BANK_ACCOUNTS[currency]

@@ -1,0 +1,129 @@
+{
+  "modules": [
+    {
+      "config": {
+        "position": [
+          15,
+          15
+        ]
+      },
+      "name": "Start",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          14,
+          465
+        ]
+      },
+      "name": "End",
+      "value": {
+        "id": "utility_bill_received",
+        "waitForFollowUpMessage": false
+      }
+    },
+    {
+      "config": {
+        "messageDef": {
+          "attachments_group": {
+            "attachments_list": []
+          },
+          "buttons_group": {
+            "buttons_list": []
+          },
+          "id": "utility_bill_received",
+          "message": "Thank you for joining the ThreeFold Foundation! You will receive the payment info as soon as you have been verified by our 3rd party payment processor.",
+          "settings_group": {
+            "alert_interval": "NONE",
+            "alert_type": "BEEP",
+            "auto_lock": "true",
+            "branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+            "rogerthat_button": true,
+            "vibrate": true
+          }
+        },
+        "position": [
+          14,
+          180
+        ]
+      },
+      "name": "Message",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          14,
+          373
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_end_utility_bill_received"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          14,
+          80
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_message_utility_bill_received"
+      }
+    }
+  ],
+  "properties": {
+    "description": "Message sent after the user has confirmed an investment.",
+    "global_branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+    "multilanguage": false,
+    "name": "utility_bill_received",
+    "test_account": "",
+    "test_language": null
+  },
+  "wires": [
+    {
+      "src": {
+        "moduleId": 3,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 1,
+        "terminal": "end"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 0,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 4,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 4,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 2,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 2,
+        "terminal": "roger that"
+      },
+      "tgt": {
+        "moduleId": 3,
+        "terminal": "in"
+      }
+    }
+  ]
+}

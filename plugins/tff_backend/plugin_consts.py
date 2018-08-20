@@ -25,16 +25,13 @@ CRYPTO_CURRENCY_NAMES = {
     'BTC': 'Bitcoin'
 }
 
-BUY_TOKENS_FLOW_V3 = u'buy_tokens_ITO_v3'
 BUY_TOKENS_FLOW_V3_PAUSED = u'buy_tokens_ITO_v3_paused'
-BUY_TOKENS_FLOW_V3_KYC_MENTION = u'buy_tokens_ITO_v3_KYCmention'
-BUY_TOKENS_FLOW_V4 = u'buy_tokens_ITO_v4'
-BUY_TOKENS_FLOW_V5 = u'buy_tokens_ITO_v5'
+BUY_TOKENS_V6 = u'buy_tokens_v6'
 KYC_FLOW_PART_1 = u'kyc_part_1'
 KYC_FLOW_PART_1_TAG = u'kyc_part_1'
 KYC_FLOW_PART_2_TAG = u'kyc_part_2'
-BUY_TOKENS_TAG = u'invest_itft'
-INVEST_FLOW_TAG = 'invest_complete'
+BUY_TOKENS_TAG = u'invest'
+INVEST_COMPLETE_FLOW_TAG = u'invest_complete'
 
 FLOW_ERROR_MESSAGE = 'error_message'
 FLOW_HOSTER_SIGNATURE_RECEIVED = 'hoster_signature_received'

@@ -1,0 +1,187 @@
+{
+  "modules": [
+    {
+      "config": {
+        "position": [
+          198,
+          8
+        ]
+      },
+      "name": "Start",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          17,
+          465
+        ]
+      },
+      "name": "End",
+      "value": {
+        "id": "confirmed",
+        "waitForFollowUpMessage": false
+      }
+    },
+    {
+      "config": {
+        "messageDef": {
+          "attachments_group": {
+            "attachments_list": []
+          },
+          "buttons_group": {
+            "buttons_list": [
+              {
+                "action": "",
+                "caption": "Confirm",
+                "color": "",
+                "id": "confirm"
+              },
+              {
+                "action": "",
+                "caption": "Cancel",
+                "color": "",
+                "id": "cancel"
+              }
+            ]
+          },
+          "id": "confirm_investment",
+          "message": "We are ready to process your purchase. Is the following information correct?\n\nYou would like to buy {{messageFlowRun.flow_params.token}} for a total amount of **{{messageFlowRun.flow_params.amount}} {{messageFlowRun.flow_params.currency}}**.\n\nAfter confirming, you will receive your personalised purchase agreement.",
+          "settings_group": {
+            "alert_interval": "NONE",
+            "alert_type": "SILENT",
+            "auto_lock": "true",
+            "branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+            "rogerthat_button": false,
+            "vibrate": false
+          }
+        },
+        "position": [
+          213,
+          165
+        ]
+      },
+      "name": "Message",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          17,
+          364
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "confirmed"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          198,
+          78
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_message_confirm_investment"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          412,
+          466
+        ]
+      },
+      "name": "End",
+      "value": {
+        "id": "canceled",
+        "waitForFollowUpMessage": false
+      }
+    },
+    {
+      "config": {
+        "position": [
+          412,
+          365
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_end_canceled"
+      }
+    }
+  ],
+  "properties": {
+    "description": "Confirmation message for the 'buy tokens' flow.",
+    "global_branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+    "multilanguage": false,
+    "name": "confirm_investment",
+    "test_account": "",
+    "test_language": null
+  },
+  "wires": [
+    {
+      "src": {
+        "moduleId": 3,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 1,
+        "terminal": "end"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 0,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 4,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 4,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 2,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 6,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 5,
+        "terminal": "end"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 2,
+        "terminal": "Cancel"
+      },
+      "tgt": {
+        "moduleId": 6,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 2,
+        "terminal": "Confirm"
+      },
+      "tgt": {
+        "moduleId": 3,
+        "terminal": "in"
+      }
+    }
+  ]
+}

@@ -17,6 +17,7 @@ export class FlowStatisticsService {
     'error_message': 'tff.error_message',
     'buy_tokens_ITO_v3_async_KYC': 'tff.buy_tokens',
     'buy_tokens_ITO_v5': 'tff.buy_tokens',
+    'buy_tokens_v6': 'tff.buy_tokens',
     'sign_investment': 'tff.sign_investment',
     'sign_hosting_agreement': 'tff.sign_hosting_agreement',
     'utility_bill_received': 'tff.utility_bill_received',

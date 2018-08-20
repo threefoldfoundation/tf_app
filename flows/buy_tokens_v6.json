@@ -1,0 +1,920 @@
+{
+  "modules": [
+    {
+      "config": {
+        "position": [
+          13,
+          7
+        ]
+      },
+      "name": "Start",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          2,
+          1891
+        ]
+      },
+      "name": "End",
+      "value": {
+        "id": "waiting_for_summary",
+        "waitForFollowUpMessage": true
+      }
+    },
+    {
+      "config": {
+        "position": [
+          2,
+          1790
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "order"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          389,
+          887
+        ]
+      },
+      "name": "End",
+      "value": {
+        "id": "canceled",
+        "waitForFollowUpMessage": false
+      }
+    },
+    {
+      "config": {
+        "messageDef": {
+          "attachments_group": {
+            "attachments_list": []
+          },
+          "buttons_group": {
+            "buttons_list": [
+              {
+                "action": "",
+                "caption": "Continue",
+                "color": "",
+                "id": "continue"
+              },
+              {
+                "action": "",
+                "caption": "Cancel",
+                "color": "",
+                "id": "cancel"
+              }
+            ]
+          },
+          "id": "notification",
+          "message": "Dear ThreeFold member,\n\nWe are offering you the opportunity to purchase ThreeFold Tokens at $0.10 per token. These ThreeFold Tokens have immediate utility as payment currency for Internet Capacity through our partnership with GIG. The Tokens will become tradeable 6 months after signing an agreement.\n\nIf you choose to pay in Bitcoin, conversion to USD will occur at 23:59 Gulf Standard Time of the day we receive your payment, and all resulting USD will be converted to TFT at that moment.",
+          "settings_group": {
+            "alert_interval": "NONE",
+            "alert_type": "SILENT",
+            "auto_lock": "true",
+            "branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+            "rogerthat_button": false,
+            "vibrate": false
+          }
+        },
+        "position": [
+          15,
+          152
+        ]
+      },
+      "name": "Message",
+      "value": {}
+    },
+    {
+      "config": {
+        "formMessageDef": {
+          "attachments_group": {
+            "attachments_list": []
+          },
+          "choices_group": {
+            "choices_list": [
+              {
+                "label": "US Dollar wire transfer",
+                "value": "USD_cur"
+              },
+              {
+                "label": "Euro wire transfer",
+                "value": "EUR_cur"
+              },
+              {
+                "label": "Pounds sterling wire transfer",
+                "value": "GBP_cur"
+              },
+              {
+                "label": "United Arab Emirates dirham",
+                "value": "AED_cur"
+              },
+              {
+                "label": "Bitcoin payment",
+                "value": "BTC_cur"
+              }
+            ]
+          },
+          "form_settings_group": {
+            "button-editor-name-4c50faf4-62ff-1b3d-9860-c8986de690d8": "",
+            "javascript_validation": "function run(result) {\n    if (!result.value) {\n        return 'Please select a currency';\n    }\n    return true;\n}",
+            "negative_caption": "Cancel",
+            "negative_confirmation": "",
+            "positive_caption": "Submit",
+            "positive_confirmation": "",
+            "value": "USD_cur"
+          },
+          "id": "get_currency",
+          "message": "We offer USD, EUR, GBP, AED and BTC payment options. BTC payments are subject to a conversion factor determined on the day of payment at 23:59 Gulf standard time.",
+          "message_settings_group": {
+            "alert_interval": "NONE",
+            "alert_type": "SILENT",
+            "auto_lock": "true",
+            "branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+            "vibrate": false
+          }
+        },
+        "position": [
+          15,
+          885
+        ]
+      },
+      "name": "Single select",
+      "value": {}
+    },
+    {
+      "config": {
+        "formMessageDef": {
+          "attachments_group": {
+            "attachments_list": []
+          },
+          "form_settings_group": {
+            "button-editor-name-28c6af66-aec2-552c-97fa-403419edee8c": "",
+            "javascript_validation": "function run(result) {\n    if (!result.value) {\n        return 'Please enter the amount';\n    }\n    return true;\n}",
+            "keyboard_type": "DECIMAL",
+            "max_chars": "50",
+            "negative_caption": "Cancel",
+            "negative_confirmation": "",
+            "place_holder": "",
+            "positive_caption": "Submit",
+            "positive_confirmation": "",
+            "value": ""
+          },
+          "id": "get_amount",
+          "message": "For which amount in your preselected currency would you like to purchase TFT tokens?\nTokens are currently priced at 0.1 US dollars equivalent. BTC payments are subject to a conversion factor determined on the day of payment at 23:59 Gulf standard time.",
+          "message_settings_group": {
+            "alert_interval": "NONE",
+            "alert_type": "SILENT",
+            "auto_lock": "true",
+            "branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+            "vibrate": false
+          }
+        },
+        "position": [
+          5,
+          1616
+        ]
+      },
+      "name": "Text line",
+      "value": {}
+    },
+    {
+      "config": {
+        "messageDef": {
+          "attachments_group": {
+            "attachments_list": []
+          },
+          "buttons_group": {
+            "buttons_list": [
+              {
+                "action": "",
+                "caption": "Continue",
+                "color": "",
+                "id": "continue"
+              },
+              {
+                "action": "",
+                "caption": "Cancel",
+                "color": "",
+                "id": "cancel"
+              }
+            ]
+          },
+          "id": "convertible_display",
+          "message": "Participating in the Threefold TFT sale requires a TFT Purchase Agreement. You will be asked to sign a personalized version later to finalize your order.",
+          "settings_group": {
+            "alert_interval": "NONE",
+            "alert_type": "SILENT",
+            "auto_lock": "true",
+            "branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+            "rogerthat_button": false,
+            "vibrate": false
+          }
+        },
+        "position": [
+          27,
+          580
+        ]
+      },
+      "name": "Message",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          18,
+          328
+        ],
+        "sourceDef": {
+          "button-editor-name-6a58bb96-821c-31c6-a4f6-cadbbcd537ad": "",
+          "id": "check_kyc",
+          "javascript_code": "var run = function(rogerthat, messageFlowRun){\n    var outlet = 'default';\n    if (rogerthat.user.data.kyc && [20,30,40].indexOf(rogerthat.user.data.kyc.status) !== -1){\n       outlet = 'kyc_pending';\n    } else if (rogerthat.user.data.kyc && [50].indexOf(rogerthat.user.data.kyc.status) !== -1){\n       outlet = 'kyc_approved';\n    }\n   return {outlet: outlet};\n};",
+          "outlets_group": {
+            "outlets_list": [
+              "kyc_approved",
+              "kyc_pending",
+              "default"
+            ]
+          }
+        }
+      },
+      "name": "Flow code",
+      "value": {}
+    },
+    {
+      "config": {
+        "messageDef": {
+          "attachments_group": {
+            "attachments_list": []
+          },
+          "buttons_group": {
+            "buttons_list": [
+              {
+                "action": "",
+                "caption": "Start KYC procedure",
+                "color": "",
+                "id": "start_kyc"
+              },
+              {
+                "action": "",
+                "caption": "Cancel",
+                "color": "",
+                "id": "cancel"
+              }
+            ]
+          },
+          "id": "kyc_proc_init",
+          "message": "According to our system, you have not yet passed a Know Your Customer procedure. \n\nClick the \"Start KYC procedure\" button to start the Know Your Customer procedure.",
+          "settings_group": {
+            "alert_interval": "NONE",
+            "alert_type": "SILENT",
+            "auto_lock": "true",
+            "branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+            "rogerthat_button": false,
+            "vibrate": false
+          }
+        },
+        "position": [
+          781,
+          580
+        ]
+      },
+      "name": "Message",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          777,
+          885
+        ]
+      },
+      "name": "Message flow",
+      "value": {
+        "nmessage_flow": "ahNkZXZ-bW9iaWNhZ2VjbG91ZGhycmgLEgptYy10cmFja2VyIjdzZXJ2aWNlLWY4NmU2NmZiLTNiZjktNDFjYS04YTI5LWY0ZjZjZTkyNDc2OUByb2dlcnRoLmF0DAsSEU1lc3NhZ2VGbG93RGVzaWduIgpreWNfcGFydF8xDA"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          13,
+          68
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_message_notification"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          766,
+          481
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_message_kyc_prod_init"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          389,
+          773
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_end_canceled"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          12,
+          482
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_message_convertible_display"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          10,
+          1508
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_message_get_order_size_ITO"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          12,
+          773
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_message_get_currency"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          388,
+          484
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_message_kyc_prod_pending"
+      }
+    },
+    {
+      "config": {
+        "messageDef": {
+          "attachments_group": {
+            "attachments_list": []
+          },
+          "buttons_group": {
+            "buttons_list": [
+              {
+                "action": "",
+                "caption": "OK",
+                "color": "",
+                "id": "ok"
+              }
+            ]
+          },
+          "id": "kyc_proc_pending",
+          "message": "We have received your Know Your Customer information. Please be patient while we verify this information.",
+          "settings_group": {
+            "alert_interval": "NONE",
+            "alert_type": "SILENT",
+            "auto_lock": "true",
+            "branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+            "rogerthat_button": false,
+            "vibrate": false
+          }
+        },
+        "position": [
+          403,
+          581
+        ]
+      },
+      "name": "Message",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          12,
+          1090
+        ],
+        "sourceDef": {
+          "button-editor-name-4cf3b7f0-2f1f-26be-a0ba-26ced5f9ca3c": "",
+          "id": "check_gcen",
+          "javascript_code": "var run = function(rogerthat, messageFlowRun) {\n    var currency = messageFlowRun.steps[messageFlowRun.steps.length - 1].form_result.result.value;\n    if (currency === 'USD_cur') {\n        return {outlet: 'USD'};\n    } else if (currency === 'AED_cur' || currency === 'BTC_cur') {\n        return {outlet: 'AED/BTC'};\n    } else {\n        return {outlet: 'GCEN'};\n    }\n};",
+          "outlets_group": {
+            "outlets_list": [
+              "AED/BTC",
+              "USD",
+              "GCEN"
+            ]
+          }
+        }
+      },
+      "name": "Flow code",
+      "value": {}
+    },
+    {
+      "config": {
+        "messageDef": {
+          "attachments_group": {
+            "attachments_list": []
+          },
+          "buttons_group": {
+            "buttons_list": [
+              {
+                "action": "",
+                "caption": "Yes",
+                "color": "",
+                "id": "yes"
+              },
+              {
+                "action": "",
+                "caption": "No",
+                "color": "",
+                "id": "no"
+              }
+            ]
+          },
+          "id": "usd_within_uae",
+          "message": "Will you transfer the money from a bank within the United Arab Emirates?",
+          "settings_group": {
+            "alert_interval": "NONE",
+            "alert_type": "SILENT",
+            "auto_lock": "true",
+            "branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+            "rogerthat_button": false,
+            "vibrate": false
+          }
+        },
+        "position": [
+          398,
+          1286
+        ]
+      },
+      "name": "Message",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          455,
+          1502
+        ],
+        "sourceDef": {
+          "button-editor-name-3d1c0129-cb73-f504-b1c5-fb5bec4719c0": "",
+          "id": "check_utlility_bill",
+          "javascript_code": "var run = function(rogerthat, messageFlowRun) {\n    if (rogerthat.user.data.kyc && rogerthat.user.data.kyc.has_utility_bill) {\n        return {outlet: 'ok'};\n    } else {\n        return {outlet: 'missing_utility_bill'};\n    }\n};",
+          "outlets_group": {
+            "outlets_list": [
+              "ok",
+              "missing_utility_bill"
+            ]
+          }
+        }
+      },
+      "name": "Flow code",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          383,
+          1193
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_message_usd_within_uae"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          798,
+          1637
+        ]
+      },
+      "name": "Photo upload",
+      "value": {
+        "attachments_group": {
+          "attachments_list": []
+        },
+        "form_settings_group": {
+          "crop": false,
+          "negative_caption": "Cancel",
+          "negative_confirmation": "",
+          "positive_caption": "Submit",
+          "positive_confirmation": "",
+          "quality": "best",
+          "ratio": "",
+          "source": "camera"
+        },
+        "id": "utility_bill",
+        "message": "For payment on a 3rd party payment processor, we will need a proof of address.\n\nPlease upload a picture of a utility bill that has your name and address on it.",
+        "message_settings_group": {
+          "alert_interval": "NONE",
+          "alert_type": "SILENT",
+          "auto_lock": "true",
+          "branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+          "vibrate": false
+        }
+      }
+    }
+  ],
+  "properties": {
+    "description": "",
+    "global_branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+    "multilanguage": false,
+    "name": "buy_tokens_v6",
+    "test_account": "",
+    "test_language": null
+  },
+  "wires": [
+    {
+      "src": {
+        "moduleId": 6,
+        "terminal": "positive"
+      },
+      "tgt": {
+        "moduleId": 2,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 4,
+        "terminal": "Continue"
+      },
+      "tgt": {
+        "moduleId": 8,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 2,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 1,
+        "terminal": "end"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 0,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 11,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 11,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 4,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 8,
+        "terminal": "exception"
+      },
+      "tgt": {
+        "moduleId": 12,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 12,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 9,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 4,
+        "terminal": "Cancel"
+      },
+      "tgt": {
+        "moduleId": 13,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 8,
+        "terminal": "kyc_approved"
+      },
+      "tgt": {
+        "moduleId": 14,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 14,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 7,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 3,
+        "terminal": "end"
+      },
+      "tgt": {
+        "moduleId": 13,
+        "terminal": "out"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 9,
+        "terminal": "Cancel"
+      },
+      "tgt": {
+        "moduleId": 13,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 7,
+        "terminal": "Cancel"
+      },
+      "tgt": {
+        "moduleId": 13,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 5,
+        "terminal": "negative"
+      },
+      "tgt": {
+        "moduleId": 13,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 6,
+        "terminal": "negative"
+      },
+      "tgt": {
+        "moduleId": 13,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 7,
+        "terminal": "Continue"
+      },
+      "tgt": {
+        "moduleId": 16,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 16,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 5,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 9,
+        "terminal": "Start KYC procedure"
+      },
+      "tgt": {
+        "moduleId": 10,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 8,
+        "terminal": "default"
+      },
+      "tgt": {
+        "moduleId": 12,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 8,
+        "terminal": "kyc_pending"
+      },
+      "tgt": {
+        "moduleId": 17,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 17,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 18,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 18,
+        "terminal": "OK"
+      },
+      "tgt": {
+        "moduleId": 13,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 20,
+        "terminal": "No"
+      },
+      "tgt": {
+        "moduleId": 21,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 19,
+        "terminal": "USD"
+      },
+      "tgt": {
+        "moduleId": 22,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 22,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 20,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 5,
+        "terminal": "positive"
+      },
+      "tgt": {
+        "moduleId": 19,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 15,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 6,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 19,
+        "terminal": "AED/BTC"
+      },
+      "tgt": {
+        "moduleId": 15,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 20,
+        "terminal": "Yes"
+      },
+      "tgt": {
+        "moduleId": 15,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 19,
+        "terminal": "exception"
+      },
+      "tgt": {
+        "moduleId": 15,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 21,
+        "terminal": "ok"
+      },
+      "tgt": {
+        "moduleId": 15,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 21,
+        "terminal": "missing_utility_bill"
+      },
+      "tgt": {
+        "moduleId": 23,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 21,
+        "terminal": "exception"
+      },
+      "tgt": {
+        "moduleId": 23,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 23,
+        "terminal": "positive"
+      },
+      "tgt": {
+        "moduleId": 15,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 19,
+        "terminal": "GCEN"
+      },
+      "tgt": {
+        "moduleId": 21,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 23,
+        "terminal": "negative"
+      },
+      "tgt": {
+        "moduleId": 3,
+        "terminal": "end"
+      }
+    }
+  ]
+}
