@@ -23,6 +23,7 @@ from plugins.rogerthat_api.to import MemberTO
 from plugins.tff_backend.bizz.intercom_helpers import send_intercom_email
 from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.bizz.rogerthat import send_rogerthat_message
+from plugins.tff_backend.plugin_consts import INTERCOM_QUEUE
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 
@@ -37,6 +38,7 @@ def send_message_and_email(app_user, message, subject, api_key):
             logging.error('Could not find itsyou.online username for app_user %s, not sending intercom email'
                           '\nSubject: %s\nMessage:%s', app_user, subject, message)
         else:
-            deferred.defer(send_intercom_email, iyo_username, subject, message, _transactional=ndb.in_transaction())
+            deferred.defer(send_intercom_email, iyo_username, subject, message, _transactional=ndb.in_transaction(),
+                           _queue=INTERCOM_QUEUE)
     else:
         logging.info('send_message_and_email %s\n %s\n %s', app_user, message, subject)

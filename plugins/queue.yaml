@@ -4,3 +4,6 @@ queue:
   target: ah-builtin-python-bundle
 - name: scheduled-queue
   rate: 20/s
+# https://developers.intercom.com/intercom-api-reference/reference#rate-limiting
+- name: intercom
+  rate: 4/s  # Usually 2 requests to intercom in 1 request, so 8/s (limit 83 / 10s)
