@@ -196,8 +196,7 @@ def _order_node_iyo_see(app_user, node_order_id, pdf_url, pdf_size, create_quota
     order_id = NodeOrder.create_human_readable_id(node_order_id)
     attachment_name = u'Zero-Node order %s - Terms and conditions'.join(order_id)
     if create_quotation:
-        deferred.defer(_create_quotation, app_user, node_order_id, pdf_url, attachment_name, pdf_size,
-                       _transactional=True)
+        _create_quotation(app_user, node_order_id, pdf_url, attachment_name, pdf_size)
 
 
 @returns()
