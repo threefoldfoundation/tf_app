@@ -296,10 +296,10 @@ def update_node(node_id, data):
     # type: (unicode, UpdateNodePayloadTO) -> Node
     node = get_node(node_id)
     if data.username != node.username:
-        deferred.defer(_put_node_status_user_data, TffProfile.create_key(data.username), _timeout=2,
+        deferred.defer(_put_node_status_user_data, TffProfile.create_key(data.username), _countdown=2,
                        _transactional=True)
         if node.username:
-            deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username), _timeout=2,
+            deferred.defer(_put_node_status_user_data, TffProfile.create_key(node.username), _countdown=2,
                            _transactional=True)
     node.username = data.username
     node.put()
