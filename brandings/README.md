@@ -89,12 +89,9 @@ To test it, either upload it as a branding on your rogerthat server or add this 
           }]
         }
       },
-      security: {
-        getAddress: success => success({address: '015df22a2e82a3323bc6ffbd1730450ed844feca711c8fe0c15e218c171962fd17b206263220ee'})
-      },
       menuItem: {
-        hashedTag: 'wallet',
-        label: 'Wallet'
+        hashedTag: 'exchanges',
+        label: 'Exchanges'
       },
       util: {
         uuid: () => {

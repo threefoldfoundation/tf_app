@@ -1,12 +1,14 @@
 [
   {
+    "docsUrl": "https://github.com/threefoldfoundation/info_tokens/blob/master/docs/how_to_buy/btc-alpha.md#using-btc-alpha",
     "title": "BTC-Alpha",
-    "url": "https://github.com/threefoldfoundation/info_tokens/blob/master/docs/how_to_buy/btc-alpha.md#using-btc-alpha",
+    "url": "https://btc-alpha.com/exchange/TFT_USD",
     "iconPath": "assets/images/btc-alpha-logo.svg"
   },
   {
+    "docsUrl": "https://github.com/threefoldfoundation/info_tokens/blob/master/docs/how_to_buy/bitmeex.md#using-bitmeexpro",
     "title": "BitMeEx",
-    "url": "https://github.com/threefoldfoundation/info_tokens/blob/master/docs/how_to_buy/bitmeex.md#using-bitmeexpro",
-    "iconPath": "assets/images/bitmeex.svg"
+    "url": "https://bitmeex.pro",
+    "iconPath": "assets/images/bitmeex.png"
   }
 ]

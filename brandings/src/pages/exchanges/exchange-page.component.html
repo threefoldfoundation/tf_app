@@ -11,13 +11,14 @@
 <ion-content padding>
     <p>{{ 'listed_on_following_exchanges' | translate }}:</p>
     <ion-list>
-        <ion-item *ngFor="let exchange of exchanges$ | async">
-            <ion-avatar item-start>
-                <img [src]="exchange.iconPath">
-            </ion-avatar>
-            {{ exchange.title }}
-          <a ion-button item-end [href]="exchange.url" target="_blank">
-            <ion-icon name="open"></ion-icon>&nbsp;&nbsp;Details</a>
-        </ion-item>
+      <a ion-item *ngFor="let exchange of exchanges$ | async" [href]="exchange.url" target="_blank">
+        <ion-avatar item-start>
+          <img [src]="exchange.iconPath">
+        </ion-avatar>
+        {{ exchange.title }}
+        <a ion-button item-end [href]="exchange.docsUrl" target="_blank">
+          <ion-icon name="open"></ion-icon>&nbsp;&nbsp;Details
+        </a>
+      </a>
     </ion-list>
 </ion-content>
