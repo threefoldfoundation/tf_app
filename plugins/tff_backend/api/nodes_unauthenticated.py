@@ -30,10 +30,9 @@
 # limitations under the License.
 #
 # @@license_version:1.3@@
-import logging
 from datetime import datetime
 
-from mcfw.restapi import rest, GenericRESTRequestHandler
+from mcfw.restapi import rest
 from mcfw.rpc import returns, arguments
 from plugins.tff_backend.bizz.nodes.stats import save_node_stats
 from plugins.tff_backend.to.nodes import UpdateNodeStatusTO
@@ -43,6 +42,5 @@ from plugins.tff_backend.to.nodes import UpdateNodeStatusTO
 @returns()
 @arguments(node_id=unicode, data=UpdateNodeStatusTO)
 def api_save_node_stats(node_id, data):
-    logging.debug(GenericRESTRequestHandler.getCurrentRequest().body)
     return save_node_stats(node_id, data, datetime.now())
 
