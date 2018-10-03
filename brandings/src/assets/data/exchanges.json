@@ -3,5 +3,10 @@
     "title": "BTC-Alpha",
     "url": "https://github.com/threefoldfoundation/info_tokens/blob/master/docs/how_to_buy/btc-alpha.md#using-btc-alpha",
     "iconPath": "assets/images/btc-alpha-logo.svg"
+  },
+  {
+    "title": "BitMeEx",
+    "url": "https://github.com/threefoldfoundation/info_tokens/blob/master/docs/how_to_buy/bitmeex.md#using-bitmeexpro",
+    "iconPath": "assets/images/bitmeex.svg"
   }
 ]
