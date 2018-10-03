@@ -69,7 +69,6 @@ class NodeOrder(NdbModel):
     def _normalize_address(self):
         return normalize_address(self.billing_info and self.billing_info.address)
 
-    app_user = ndb.UserProperty()  # TODO: remove after migration 014
     username = ndb.StringProperty()
     billing_info = ndb.LocalStructuredProperty(ContactInfo)  # type: ContactInfo
     shipping_info = ndb.LocalStructuredProperty(ContactInfo)  # type: ContactInfo
