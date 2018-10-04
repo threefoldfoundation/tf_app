@@ -31,7 +31,6 @@ from google.appengine.ext.deferred.deferred import PermanentTaskFailure
 import intercom
 from framework.bizz.job import run_job, MODE_BATCH
 from framework.i18n_utils import DEFAULT_LANGUAGE, translate
-from framework.plugin_loader import get_config
 from framework.utils import try_or_defer
 from framework.utils.jinja_extensions import TranslateExtension
 from mcfw.consts import MISSING, DEBUG
@@ -434,7 +433,7 @@ def _send_kyc_approved_message(profile_key):
     answers = [AnswerTO(type=u'button',
                         action='smi://%s' % BUY_TOKENS_TAG,
                         id=u'purchase',
-                        caption=translate(DEFAULT_LANGUAGE, 'tff', 'purchase_itokens'),
+                        caption=translate(DEFAULT_LANGUAGE, 'tff', 'purchase_tokens'),
                         ui_flags=0,
                         color=None),
                AnswerTO(type=u'button',

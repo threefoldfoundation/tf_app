@@ -1,0 +1,129 @@
+{
+  "modules": [
+    {
+      "config": {
+        "position": [
+          12,
+          14
+        ]
+      },
+      "name": "Start",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          12,
+          480
+        ]
+      },
+      "name": "End",
+      "value": {
+        "id": "confirmed",
+        "waitForFollowUpMessage": false
+      }
+    },
+    {
+      "config": {
+        "messageDef": {
+          "attachments_group": {
+            "attachments_list": []
+          },
+          "buttons_group": {
+            "buttons_list": []
+          },
+          "id": "investment_agreement_accepted",
+          "message": "Thank you. We successfully received your digital signature. We have stored a copy of this agreement in your ThreeFold Documents. We will contact you again when we have received your payment. Thanks again for your purchase and your support of the ThreeFold Foundation!'\n\nWe would like to take this opportunity to remind you once again to keep a back-up of your wallet in a safe place, by writing down the 29 words that can be used to restore it to a different device. You can find this security key in your ThreeFold App under Settings > Security. As usual, if you have any questions, don't hesitate to contact us.",
+          "settings_group": {
+            "alert_interval": "NONE",
+            "alert_type": "SILENT",
+            "auto_lock": "true",
+            "branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+            "rogerthat_button": true,
+            "vibrate": true
+          }
+        },
+        "position": [
+          13,
+          196
+        ]
+      },
+      "name": "Message",
+      "value": {}
+    },
+    {
+      "config": {
+        "position": [
+          12,
+          374
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_end_confirmed"
+      }
+    },
+    {
+      "config": {
+        "position": [
+          11,
+          100
+        ]
+      },
+      "name": "Results flush",
+      "value": {
+        "id": "monitoring_end_message_investment_agreement_accepted"
+      }
+    }
+  ],
+  "properties": {
+    "description": "Message sent after the user has confirmed an investment.",
+    "global_branding": "B2CE4C628B5AC3DD0D618498E4B07BB30F0D241D5B8CF915BD62A2DD9F12DF6D",
+    "multilanguage": false,
+    "name": "investment_confirmed",
+    "test_account": "",
+    "test_language": null
+  },
+  "wires": [
+    {
+      "src": {
+        "moduleId": 3,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 1,
+        "terminal": "end"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 0,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 4,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 4,
+        "terminal": "out"
+      },
+      "tgt": {
+        "moduleId": 2,
+        "terminal": "in"
+      }
+    },
+    {
+      "src": {
+        "moduleId": 2,
+        "terminal": "roger that"
+      },
+      "tgt": {
+        "moduleId": 3,
+        "terminal": "in"
+      }
+    }
+  ]
+}

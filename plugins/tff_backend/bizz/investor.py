@@ -38,7 +38,7 @@ from plugins.rogerthat_api.to.messaging.flow import FLOW_STEP_MAPPING, FormFlowS
 from plugins.rogerthat_api.to.messaging.forms import SignTO, SignFormTO, FormResultTO, FormTO, SignWidgetResultTO
 from plugins.rogerthat_api.to.messaging.service_callback_results import FlowMemberResultCallbackResultTO, \
     FlowCallbackResultTypeTO, TYPE_FLOW
-from plugins.tff_backend.bizz import get_tf_token_api_key, intercom_helpers, get_mazraa_api_key
+from plugins.tff_backend.bizz import intercom_helpers, get_mazraa_api_key
 from plugins.tff_backend.bizz.agreements import get_bank_account_info
 from plugins.tff_backend.bizz.authentication import RogerthatRoles
 from plugins.tff_backend.bizz.email import send_emails_to_support
@@ -62,9 +62,9 @@ from plugins.tff_backend.models.global_stats import GlobalStats
 from plugins.tff_backend.models.investor import InvestmentAgreement, PaymentInfo
 from plugins.tff_backend.models.user import KYCStatus, TffProfile
 from plugins.tff_backend.plugin_consts import KEY_ALGORITHM, KEY_NAME, \
-    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
-    BUY_TOKENS_FLOW_V3_KYC_MENTION, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT, \
-    BUY_TOKENS_FLOW_V5, INVEST_FLOW_TAG, FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED
+    SUPPORTED_CRYPTO_CURRENCIES, CRYPTO_CURRENCY_NAMES, BUY_TOKENS_FLOW_V3_PAUSED, BUY_TOKENS_TAG, \
+    BUY_TOKENS_V6, FLOW_CONFIRM_INVESTMENT, FLOW_INVESTMENT_CONFIRMED, FLOW_SIGN_INVESTMENT, \
+    INVEST_COMPLETE_FLOW_TAG, FLOW_HOSTER_REMINDER, SCHEDULED_QUEUE, FLOW_UTILITY_BILL_RECEIVED
 from plugins.tff_backend.to.investor import InvestmentAgreementTO, CreateInvestmentAgreementTO
 from plugins.tff_backend.utils import get_step_value, round_currency_amount, get_key_name_from_key_string, get_step
 from plugins.tff_backend.utils.app import create_app_user_by_email, get_app_user_tuple, create_app_user
@@ -92,17 +92,6 @@ def invest_tft(message_flow_run_id, member, steps, end_id, end_message_flow_id, 
 @arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
            end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
            flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
-           flow_params=unicode)
-def invest_itft(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
-                flush_id, flush_message_flow_id, service_identity, user_details, flow_params):
-    return invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
-                  flush_id, flush_message_flow_id, service_identity, user_details, flow_params, TOKEN_ITFT)
-
-
-@returns(FlowMemberResultCallbackResultTO)
-@arguments(message_flow_run_id=unicode, member=unicode, steps=[object_factory("step_type", FLOW_STEP_MAPPING)],
-           end_id=unicode, end_message_flow_id=unicode, parent_message_key=unicode, tag=unicode, result_key=unicode,
-           flush_id=unicode, flush_message_flow_id=unicode, service_identity=unicode, user_details=UserDetailsTO,
            flow_params=unicode, token=unicode)
 def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, parent_message_key, tag, result_key,
            flush_id, flush_message_flow_id, service_identity, user_details, flow_params, token):
@@ -117,13 +106,11 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
         app_user = create_app_user_by_email(email, app_id)
         logging.info('User %s wants to invest', email)
         version = get_key_name_from_key_string(steps[0].message_flow_id)
+        if version == BUY_TOKENS_FLOW_V3_PAUSED:
+            return None
         currency = get_step_value(steps, 'message_get_currency').replace('_cur', '')
-        if version.startswith(BUY_TOKENS_FLOW_V3) or version.startswith(BUY_TOKENS_FLOW_V5):
-            amount = float(get_step_value(steps, 'message_get_order_size_ITO').replace(',', '.'))
-            token_count_float = get_token_count(currency, amount)
-        else:
-            token_count_float = float(get_step_value(steps, 'message_get_order_size_ITO'))
-            amount = get_investment_amount(currency, token_count_float)
+        amount = float(get_step_value(steps, 'message_get_amount').replace(',', '.'))
+        token_count_float = get_token_count(currency, amount)
         username = get_username(app_user)
         agreement = _create_investment_agreement(amount, currency, token, token_count_float, username, version,
                                                  status=InvestmentAgreement.STATUS_CREATED)
@@ -133,10 +120,6 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
             payment_info.append(PaymentInfo.UAE.value)
         agreement.payment_info.extend(payment_info)
         agreement.put()
-
-        if version == BUY_TOKENS_FLOW_V3_PAUSED:
-            return None
-
         utility_bill_step = get_step(steps, 'message_utility_bill')
         if utility_bill_step:
             azzert(utility_bill_step.answer_id == FormTO.POSITIVE)
@@ -144,7 +127,7 @@ def invest(message_flow_run_id, member, steps, end_id, end_message_flow_id, pare
             deferred.defer(save_utility_bill, url, TffProfile.create_key(get_username(user_details)))
 
         tag = {
-            '__rt__.tag': INVEST_FLOW_TAG,
+            '__rt__.tag': INVEST_COMPLETE_FLOW_TAG,
             'investment_id': agreement.id
         }
         flow_params = {
@@ -235,9 +218,7 @@ def get_token_count(currency, amount):
            user_details=UserDetailsTO)
 def start_invest(email, tag, result_key, context, service_identity, user_details):
     # type: (unicode, unicode, unicode, unicode, unicode, UserDetailsTO) -> None
-    logging.info('Ignoring start_invest poke tag because this flow is not used atm')
-    return
-    flow = BUY_TOKENS_FLOW_V3_KYC_MENTION
+    flow = BUY_TOKENS_V6
     logging.info('Starting invest flow %s for user %s', flow, user_details.email)
     members = [MemberTO(member=user_details.email, app_id=user_details.app_id, alert_flags=0)]
     flow_params = json.dumps({'currencies': _get_conversion_rates()})
@@ -267,7 +248,7 @@ def invest_complete(message_flow_run_id, member, steps, end_id, end_message_flow
     app_id = user_details.app_id
     if 'confirm' in end_id:
         agreement_key = InvestmentAgreement.create_key(json.loads(tag)['investment_id'])
-        try_or_defer(_invest, agreement_key, email, app_id, 0)
+        try_or_defer(_invest, agreement_key, email, app_id)
 
 
 def _get_currency_name(currency):
@@ -320,7 +301,7 @@ def _invest(agreement_key, email, app_id):
     logging.debug('Storing Investment Agreement in the datastore')
     pdf_size = len(pdf_contents)
     attachment_name = u'Purchase Agreement - Internal Token Offering %s' % agreement_key.id()
-    deferred.defer(_send_ito_agreement_sign_message, agreement_key, app_user, pdf_url, attachment_name, pdf_size)
+    deferred.defer(_send_investment_agreement_sign_message, agreement_key, app_user, pdf_url, attachment_name, pdf_size)
     deferred.defer(update_investor_progress, email, app_id, INVESTMENT_TODO_MAPPING[agreement.status])
 
 
@@ -341,7 +322,7 @@ def _send_utility_bill_received(app_user):
     messaging.start_local_flow(get_mazraa_api_key(), None, members, None, flow=FLOW_UTILITY_BILL_RECEIVED)
 
 
-def _send_ito_agreement_sign_message(agreement_key, app_user, pdf_url, attachment_name, pdf_size):
+def _send_investment_agreement_sign_message(agreement_key, app_user, pdf_url, attachment_name, pdf_size):
     logging.debug('Sending SIGN widget to app user')
 
     form = SignFormTO(positive_button_ui_flags=Message.UI_FLAG_EXPECT_NEXT_WAIT_5,
@@ -505,7 +486,6 @@ def investment_agreement_signed_by_admin(status, form_result, answer_id, member,
         user_email, app_id, = get_app_user_tuple(profile.app_user)
         deferred.defer(update_investor_progress, user_email.email(), app_id, INVESTMENT_TODO_MAPPING[agreement.status],
                        _transactional=True)
-        deferred.defer(_send_tokens_assigned_message, profile.app_user, _transactional=True)
 
     ndb.transaction(trans)
 
@@ -618,17 +598,6 @@ Please use %(reference)s as reference.""" % params
     send_message_and_email(app_user, msg, subject, get_mazraa_api_key())
 
 
-def _send_tokens_assigned_message(app_user):
-    subject = u'ThreeFold tokens assigned'
-    message = 'Dear ThreeFold Member, we have just assigned your tokens to your wallet. ' \
-              'It may take up to an hour for them to appear in your wallet. ' \
-              '\n\nWe would like to take this opportunity to remind you to have a paper backup of your wallet. ' \
-              'You can make such a backup by writing down the 29 words you can use to restore the wallet. ' \
-              '\nYou can find these 29 words by going to Settings -> Security -> threefold. ' \
-              '\n\nThank you once again for getting on board!'
-    send_message_and_email(app_user, message, subject, get_mazraa_api_key())
-
-
 @arguments(agreement=InvestmentAgreement)
 def get_intercom_tags_for_investment(agreement):
     if agreement.status not in [InvestmentAgreement.STATUS_PAID, InvestmentAgreement.STATUS_SIGNED]:
@@ -636,8 +605,7 @@ def get_intercom_tags_for_investment(agreement):
     if agreement.token == TOKEN_ITFT:
         return [IntercomTags.ITFT_PURCHASER, IntercomTags.GREENITGLOBE_CONTRACT]
     elif agreement.token == TOKEN_TFT:
-        # todo: In the future (PTO), change ITO_INVESTOR to IntercomTags.TFT_PURCHASER
-        return [IntercomTags.BETTERTOKEN_CONTRACT, IntercomTags.ITO_INVESTOR]
+        return [IntercomTags.BETTERTOKEN_CONTRACT, IntercomTags.TFT_PURCHASER]
     else:
         logging.warn('Unknown token %s, not tagging intercom user %s', agreement.token, agreement.username)
         return []

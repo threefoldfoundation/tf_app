@@ -45,7 +45,7 @@ from plugins.tff_backend.bizz.dashboard import update_firebase_installation
 from plugins.tff_backend.bizz.flow_statistics import save_flow_statistics
 from plugins.tff_backend.bizz.global_stats import ApiCallException
 from plugins.tff_backend.bizz.intercom_helpers import upsert_intercom_user
-from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investment_agreement_signed, \
+from plugins.tff_backend.bizz.investor import invest_tft, investment_agreement_signed, \
     investment_agreement_signed_by_admin, invest_complete, start_invest
 from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1, kyc_part_2
@@ -54,15 +54,14 @@ from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.bizz.user import is_user_in_roles, populate_intercom_user, create_tff_profile, \
     update_tff_profile, get_kyc_user_data, get_tff_profile
 from plugins.tff_backend.plugin_consts import NAMESPACE, BUY_TOKENS_TAG, KYC_FLOW_PART_1_TAG, KYC_FLOW_PART_2_TAG, \
-    INVEST_FLOW_TAG
+    INVEST_COMPLETE_FLOW_TAG
 from plugins.tff_backend.utils import parse_to_human_readable_tag, is_flag_set
 
 FMR_TAG_MAPPING = {
     'order_node': order_node,
     'sign_order_node_tos': order_node_signed,
-    'invest': invest_tft,
-    BUY_TOKENS_TAG: invest_itft,
-    INVEST_FLOW_TAG: invest_complete,
+    BUY_TOKENS_TAG: invest_tft,
+    INVEST_COMPLETE_FLOW_TAG: invest_complete,
     'sign_investment_agreement': investment_agreement_signed,
     'sign_investment_agreement_admin': investment_agreement_signed_by_admin,
     KYC_FLOW_PART_1_TAG: kyc_part_1,
