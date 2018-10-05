@@ -50,6 +50,7 @@ from plugins.tff_backend.bizz.investor import invest_tft, invest_itft, investmen
 from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.bizz.kyc.rogerthat_callbacks import kyc_part_1, kyc_part_2
 from plugins.tff_backend.bizz.nodes.hoster import order_node, order_node_signed
+from plugins.tff_backend.bizz.nodes.stats import _put_node_status_user_data
 from plugins.tff_backend.bizz.service import add_user_to_role
 from plugins.tff_backend.bizz.user import is_user_in_roles, populate_intercom_user, create_tff_profile, \
     update_tff_profile, get_kyc_user_data, get_tff_profile
@@ -168,6 +169,7 @@ def _friend_register_result(rt_settings, request_id, **params):
     profile = create_tff_profile(user_detail)
     try_or_defer(add_user_to_role, user_detail, RogerthatRoles.MEMBERS)
     try_or_defer(populate_intercom_user, profile)
+    try_or_defer(_put_node_status_user_data, profile.key)
 
 
 def friend_invite_result(rt_settings, request_id, user_details, **kwargs):

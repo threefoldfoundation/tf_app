@@ -16,8 +16,6 @@
 # @@license_version:1.3@@
 import logging
 
-from google.appengine.api import users
-
 from mcfw.consts import DEBUG
 from mcfw.rpc import arguments, returns
 from plugins.rogerthat_api.to import UserDetailsTO
@@ -26,7 +24,6 @@ from plugins.tff_backend.bizz.iyo.utils import get_username
 from plugins.tff_backend.bizz.nodes.stats import get_nodes_for_user, assign_nodes_to_user, \
     get_nodes_stats_from_influx
 from plugins.tff_backend.models.nodes import Node
-from plugins.tff_backend.utils.app import create_app_user
 
 
 @returns([dict])
