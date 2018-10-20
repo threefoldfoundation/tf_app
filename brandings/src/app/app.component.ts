@@ -94,7 +94,32 @@ export class AppComponent implements OnInit {
     if (page) {
       return { page: page.page, params: null };
     } else {
-      throw new Error('Cannot find page for menu item ' + JSON.stringify(rogerthat.menuItem));
+      if (sha256('wallet') === rogerthat.menuItem.hashedTag) {
+        const version = this.rogerthatService.getVersion();
+        let mustUpdate = false;
+        if (rogerthat.system.os === 'ios') {
+          if (version.patch < 3073) {
+            mustUpdate = true;
+          }
+        } else {
+          if (version.patch < 4344) {
+            mustUpdate = true;
+          }
+        }
+        if (mustUpdate) {
+          this.errorService.showVersionNotSupported(this.translate.instant('not_supported_pls_update'));
+        } else {
+          const embeddedAppId = rogerthat.system.appId.includes('staging') ? 'threefold-testnet' : 'threefold-payments';
+          const f: any = (err: any) => {
+            console.error((err.code || '') + err.message);
+            rogerthat.app.exit();
+          };
+          rogerthat.util.open({ action_type: 'embedded-app', action: embeddedAppId }, rogerthat.app.exit, f);
+        }
+        return null;
+      } else {
+        throw new Error('Cannot find page for menu item ' + JSON.stringify(rogerthat.menuItem));
+      }
     }
   }
 }
