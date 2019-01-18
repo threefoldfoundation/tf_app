@@ -11,6 +11,7 @@ Create an easy to use tool for the ThreeFold Community where they can connect wi
 
 ## Team
 Owner: Sabrina Sadik (Telegram: @sabrinasadik)
+
 Development team: OCA 
   - lead: Tom Van Hecke 
   - devs: Bart Pede, Lucas Van Halst
