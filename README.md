@@ -2,7 +2,9 @@
 
 ![](https://images.unsplash.com/photo-1541455006848-ebcc2b42bf33?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1920)
 
+## Support
 
+[Support repo](https://github.com/threefoldtech/support/issues)
 
 ## Mission
 
