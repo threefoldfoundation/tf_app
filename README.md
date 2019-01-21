@@ -1,6 +1,6 @@
 # tf_app
 
-![](https://unsplash.com/photos/ySHZCAuaa4I)
+![](https://images.unsplash.com/photo-1541455006848-ebcc2b42bf33?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1920)
 
 
 
@@ -14,5 +14,5 @@ Owner: Sabrina Sadik (Telegram: @sabrinasadik)
 
 Development team: OCA 
   - lead: Tom Van Hecke 
-  - devs: Bart Pede, Lucas Van Halst
+  - devs: Bart Pede, Lucas Vanhalst
   - customer support: Maureen Godu
