@@ -29,8 +29,6 @@ import {
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
 import { Store, StoreModule } from '@ngrx/store';
-// noinspection ES6UnusedImports
-import {} from '@types/google.visualization';
 import { Ng2GoogleChartsModule } from 'ng2-google-charts';
 import { AddRoutesAction, AuthenticationService, ChannelModule, MultilingualModule, ToolbarItemTypes } from '../../framework/client';
 import { AddToolbarItemAction } from '../../framework/client/';

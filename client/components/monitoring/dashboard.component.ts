@@ -25,12 +25,6 @@ import {
 import { TimeDurationPipe } from '../../pipes/time-duration.pipe';
 import { FlowStatisticsService } from '../../services';
 import { getStepTitle } from '../../util';
-import BarChartOptions = google.visualization.BarChartOptions;
-import ChartSpecs = google.visualization.ChartSpecs;
-
-export interface BarChart extends ChartSpecs {
-  options: BarChartOptions;
-}
 
 export const enum ChartColor {
   GREEN = '#109618',
@@ -53,7 +47,7 @@ export class DashboardComponent implements OnChanges, OnDestroy {
   @Input() installationStats: AggregatedInstallationStats;
   timeDuration = 86400 * 7;
   TickerEntryType = TickerEntryType;
-  chart: BarChart;
+  chart: any;
   timeDurationPipe: TimeDurationPipe;
   breakPoint: BreakPoint;
   drawChartSubject = new Subject();

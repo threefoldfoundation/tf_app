@@ -121,6 +121,7 @@ def populate_intercom_user(profile):
         return
     intercom_user = upsert_intercom_user(profile.username, profile)
     tag_intercom_users(IntercomTags.APP_REGISTER, [profile.username])
+    return
     message = """Welcome to the ThreeFold Foundation app.
 If you have questions you can get in touch with us through this chat.
 Our team is at your service during these hours:

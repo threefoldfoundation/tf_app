@@ -63,7 +63,7 @@ export class CreateOrderPageComponent implements OnInit, OnDestroy {
       fileReader.readAsDataURL(this.selectedDocument);
       fileReader.onload = () => {
         if (fileReader.result) {
-          this.order.document = fileReader.result;
+          this.order.document = fileReader.result as string;
         }
       };
     }

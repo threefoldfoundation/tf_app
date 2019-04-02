@@ -80,7 +80,7 @@ export class CreateInvestmentAgreementPageComponent implements OnInit, OnDestroy
       fileReader.readAsDataURL(this.selectedDocument);
       fileReader.onload = () => {
         if (fileReader.result) {
-          this.agreement.document = fileReader.result;
+          this.agreement.document = fileReader.result as string;
         }
       };
     }
