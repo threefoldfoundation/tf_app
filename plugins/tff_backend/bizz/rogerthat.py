@@ -31,12 +31,12 @@ from plugins.tff_backend.plugin_consts import FLOW_ERROR_MESSAGE
 from plugins.tff_backend.utils.app import get_app_user_tuple
 
 
-def put_user_data(api_key, user_email, app_id, updated_user_data):
-    # type: (unicode, unicode, unicode, dict) -> None
+def put_user_data(api_key, user_email, app_id, updated_user_data, retry=True):
+    # type: (unicode, unicode, unicode, dict, bool) -> None
     try:
         system.put_user_data(api_key, user_email, app_id, updated_user_data)
     except RogerthatApiException as e:
-        if e.code == 60011:  # user not in friend list
+        if retry and e.code == 60011:  # user not in friend list
             raise Exception(e.message)  # ensure task is retried
         raise
 

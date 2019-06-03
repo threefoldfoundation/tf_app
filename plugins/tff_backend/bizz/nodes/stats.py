@@ -203,7 +203,7 @@ def _put_node_status_user_data(tff_profile_key):
     tff_profile = tff_profile_key.get()
     user, app_id = get_app_user_tuple(tff_profile.app_user)
     data = {'nodes': [n.to_dict() for n in Node.list_by_user(tff_profile.username)]}
-    put_user_data(get_grid_api_key(), user.email(), app_id, data)
+    put_user_data(get_grid_api_key(), user.email(), app_id, data, retry=False)
 
 
 def _send_node_status_update_message(username, to_status, date, serial_number):

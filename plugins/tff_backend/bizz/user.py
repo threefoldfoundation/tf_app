@@ -133,7 +133,7 @@ Of course you can always ask your questions outside these hours, we will then ge
     email, app_id = get_app_user_tuple(profile.app_user)
     chat_id = start_or_get_chat(get_tf_token_api_key(), '+default+', email.email(), app_id,
                                 intercom_user, message)
-    try_or_defer(store_chat_id_in_user_data, chat_id, email.email(), app_id)
+    deferred.defer(store_chat_id_in_user_data, chat_id, email.email(), app_id, _countdown=10)
 
 
 @arguments(rogerthat_chat_id=unicode, email=unicode, app_id=unicode)
@@ -141,7 +141,7 @@ def store_chat_id_in_user_data(rogerthat_chat_id, email, app_id):
     user_data = {
         'support_chat_id': rogerthat_chat_id
     }
-    put_user_data(get_tf_token_api_key(), email, app_id, user_data)
+    put_user_data(get_tf_token_api_key(), email, app_id, user_data, retry=False)
 
 
 @returns(unicode)
