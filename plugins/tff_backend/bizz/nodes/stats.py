@@ -379,8 +379,8 @@ def save_node_stats(node_id, data, date):
     # type: (unicode, UpdateNodeStatusTO, datetime) -> None
     _validate_node_id(node_id)
     _save_node_stats(node_id, data, date)
-    if data.stats and data.stats is not MISSING:
-        try_or_defer(_save_node_stats_to_influx, node_id, data.stats)
+    # if data.stats and data.stats is not MISSING:
+    #     try_or_defer(_save_node_stats_to_influx, node_id, data.stats)
 
 
 def _save_node_stats_to_influx(node_id, stats):
