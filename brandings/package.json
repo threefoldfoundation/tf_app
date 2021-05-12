@@ -35,7 +35,7 @@
     "@ngx-translate/core": "^10.0.2",
     "@ngx-translate/http-loader": "^3.0.1",
     "angular2-chartjs": "^0.5.1",
-    "chart.js": "^2.7.2",
+    "chart.js": "^2.9.4",
     "cordova-plugin-console": "^1.1.0",
     "cordova-plugin-device": "^2.0.2",
     "cordova-plugin-inappbrowser": "^3.0.0",
