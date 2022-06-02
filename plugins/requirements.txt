@@ -1,7 +1,7 @@
 babel==2.5.1
 ERPpeek==1.6.3
 html2text==2015.11.4
-html5lib==0.999
+html5lib==0.99999999
 Pillow==4.0.0
 poster==0.8.1
 PyPDF2==1.23
